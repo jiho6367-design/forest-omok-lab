@@ -182,4 +182,3 @@ const compactRender=render;
 render=function(){compactRender();if(!rec)return;const lead=rec.patternVerified?'기보 패턴 방어 확인 · 전체 무패 미증명':rec.urgent?'즉시 전술 판정':rec.proven?'검증한 승리 수순 '+rec.pv.length+'반수':rec.lossProven?'강제패배 수순 확인':'일반 탐색 완료 '+rec.depth+'반수';$('metrics').textContent=lead+(rec.limits?' · 위협검사 상한 '+rec.limits.forcing+'반수':'')+' · '+rec.ms+'ms';if(rec.patternVerified)$('analysisState').textContent='패턴 방어 확인';};
 versionBadge.textContent='v3.3.0';versionBadge.setAttribute('aria-label','앱 버전 3.3.0');versionBadge.title='검증한 F12 패턴 방어 · 전체 무패와 구분';
 render();
-
