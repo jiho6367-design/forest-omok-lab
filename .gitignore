@@ -1,0 +1,4 @@
+# 개발 중 생성되는 내부 작업물과 개인 복기 문서는 공개 저장소에서 제외합니다.
+/work/
+/outputs/*.md
+!/outputs/omok.html
