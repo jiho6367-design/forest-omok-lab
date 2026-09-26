@@ -1,0 +1,11 @@
+{
+  "name": "forest-omok-unified",
+  "version": "4.0.0",
+  "private": true,
+  "description": "Offline Gomoku with green slime and yellow mushroom characters",
+  "scripts": {
+    "build": "node build.cjs",
+    "test": "node build.cjs && node test/reader/test.cjs && node test/unified.cjs"
+  },
+  "engines": {"node": ">=20"}
+}
