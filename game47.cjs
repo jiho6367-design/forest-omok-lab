@@ -1,0 +1,5 @@
+const coords='I7 H8 G6 I8 H6 J8 G8 G7 F6 E6 I6 J6 H7 J5 F9 E10 J7 K8 L8 F5 K7 L7 D7 M6 N5 K6 I4 E8 H5 E7 E9 I10 J9 N9 M8 N6 L6 E4 E5 J3 G4 F3 H4 H3 J4 K4 F4'.split(' ');
+const idx=s=>(15-Number(s.slice(1)))*15+s.charCodeAt(0)-65,coord=i=>String.fromCharCode(65+i%15)+(15-Math.floor(i/15));
+const position=(n=coords.length)=>{let b=Array(225).fill(0);coords.slice(0,n).forEach((s,k)=>{if(b[idx(s)])throw Error('duplicate '+s);b[idx(s)]=k%2?1:2;});return b;};
+module.exports={coords,idx,coord,position};
+if(require.main===module){const {createEngine}=require('./engine');let b=position(0);coords.forEach((s,k)=>{let p=k%2?1:2,e=createEngine(15,b);if(!e.legal(idx(s),p))console.log('Illegal historical move',k+1,s,p);b[idx(s)]=p;let st=createEngine(15,b).state();if(st.winners.length)console.log('Historical winner',k+1,st.winners,st.lines.map(l=>l.map(coord)));});for(let n of [41,43,44,45,46,47]){let e=createEngine(15,position(n)),p=n%2?1:2,r=e.analyze(p,1500);console.log(n,JSON.stringify({...r,moves:r.moves.map(m=>({...m,i:coord(m.i),pv:m.pv.map(coord)})),danger:r.danger.map(coord)}));}}

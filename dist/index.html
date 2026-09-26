@@ -1,0 +1,332 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>오목 수읽기 10.0 · 고속 수읽기판</title><meta name="description" content="양쪽 착수를 입력하고 추천 수와 예상 응수를 살펴보는 오목 분석판"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e1823'/%3E%3Ccircle cx='12' cy='12' r='7' fill='%2346e3b4'/%3E%3Ccircle cx='22' cy='22' r='7' fill='white'/%3E%3C/svg%3E"><style>
+:root{color-scheme:dark;--bg:#0b121b;--surface:#131e2b;--line:#2a394a;--muted:#a5b3c4;--text:#edf3fa;--green:#5de4ba}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,'Segoe UI',sans-serif}button,select,input{font:inherit}button,select{border:1px solid var(--line);background:#1b2a3b;color:var(--text);border-radius:9px;padding:9px 13px}button{cursor:pointer}button:hover{border-color:var(--green)}button:disabled{opacity:.45;cursor:default}button:focus-visible,select:focus-visible,canvas:focus-visible{outline:3px solid var(--green);outline-offset:3px}header{max-width:1250px;margin:auto;padding:25px 28px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{display:flex;gap:12px;align-items:center}.mark{font-size:27px;color:var(--green)}h1{font-size:24px;margin:0;letter-spacing:-1px}.eyebrow{font-size:12px;color:var(--green);letter-spacing:2px}.private{font-size:13px;color:var(--muted)}main{max-width:1250px;padding:0 28px 32px;margin:auto;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px}.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:16px}.tools{display:flex;gap:6px;flex-wrap:wrap}.seg.active{background:#314357;border-color:var(--green)}.stone{display:inline-block;width:15px;height:15px;border-radius:50%;vertical-align:-2px;margin-right:5px;border:1px solid #6c7987}.black{background:#16191e}.white{background:#fff}canvas{width:100%;display:block;aspect-ratio:1;touch-action:manipulation;border-radius:10px;background:#d9ae72}.boardfoot{display:flex;flex-wrap:wrap;gap:9px;align-items:center;justify-content:space-between;margin-top:15px;font-size:14px;color:var(--muted)}.setting{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}.setting label{font-size:14px}.setting select{max-width:175px;font-size:14px}h2{font-size:17px;margin:0 0 15px}.primary{background:var(--green);color:#0b231b;border:0;font-weight:750;width:100%;padding:13px}.secondary{width:100%;margin-top:8px}.result{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}.caption{color:var(--muted);font-size:14px;margin:6px 0 0}.heroMove{font-size:44px;font-weight:750;letter-spacing:-2px;line-height:1.25;color:var(--green);margin:9px 0}.badge{font-size:13px;color:var(--green)}.alt{display:flex;gap:7px;margin:14px 0}.alt button{flex:1;font-size:14px}.pv{background:#0c1520;padding:12px;border-radius:8px;font-size:14px;min-height:50px}.row{display:flex;gap:6px;margin-top:10px}.row button{flex:1;font-size:14px}.help{margin-top:16px;font-size:14px;color:var(--muted)}details{margin-top:16px;border-top:1px solid var(--line);padding-top:14px;font-size:14px}summary{cursor:pointer;color:var(--text)}details p{color:var(--muted);margin:8px 0}.notice{min-height:26px;font-size:14px;color:#ffd290;margin-top:12px}.full{grid-column:1/-1}.footnotes{display:flex;gap:20px;justify-content:space-between;color:var(--muted);font-size:13px}.ref{max-width:100%;max-height:350px;object-fit:contain;margin-top:10px}input[type=file]{width:100%;font-size:13px}.small{font-size:13px;color:var(--muted)}#cancel{display:none}#history{max-height:100px;overflow:auto;font-size:13px;color:var(--muted);overflow-wrap:anywhere}dialog{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:16px;max-width:360px;padding:24px}dialog::backdrop{background:#0009}@media(max-width:900px){main{grid-template-columns:minmax(0,1fr) 300px;padding:0 16px 24px;gap:14px}header{padding:20px 16px}.panel{padding:14px}}@media(max-width:730px){main{grid-template-columns:1fr}.private{display:none}h1{font-size:22px}.footnotes{display:block}.panel{padding:14px}.toolbar button{font-size:14px;padding:8px 10px}.heroMove{font-size:36px}.full{grid-column:auto}}@media(prefers-reduced-motion:no-preference){button{transition:border-color .15s,background .15s}}
+.context{padding:12px;background:#0c1520;border-left:3px solid var(--green);font-size:14px;margin:0 0 16px}.dangerText{color:#ffaf97!important}.alt{flex-wrap:wrap}.alt button{min-width:80px}.alt button.active{border-color:var(--green)}.heroMove{font-size:clamp(26px,4vw,44px);letter-spacing:-1px}.reviewNote{margin-top:14px;padding:12px;border:1px solid #9a6449;border-radius:8px;color:#ffd290;font-size:14px}main{align-items:start}#compare[hidden]{display:none}select{max-width:100%}#inputMode{font-size:13px;padding:8px}button{min-height:40px}textarea{width:100%;resize:vertical;background:#0b1520;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px;font:14px/1.6 system-ui}#recordPly{width:100%;accent-color:var(--green)}#forbiddenNote{border-color:#b676c5;color:#f0c5ff}#reviewNav .row{flex-wrap:wrap}</style></head><body><header><div class="brand"><span class="mark">◉</span><div><div class="eyebrow">OMOK / TACTICAL BOARD</div><h1>오목 수읽기 <small style="font-size:14px;color:var(--green)">10.0</small></h1></div></div><span class="private">착수 입력 → 추천 확인 → 실제 판에 착수</span></header><main><section class="panel"><div class="toolbar"><div class="tools" aria-label="입력할 돌"><button class="seg active" id="black" aria-pressed="true"><span class="stone black"></span>흑돌</button><button class="seg" id="white" aria-pressed="false"><span class="stone white"></span>백돌</button><button class="seg" id="erase" aria-pressed="false">지우개</button></div><label class="small" for="inputMode">입력 방식 <select id="inputMode"><option value="live">실전 · 차례대로</option><option value="setup">판 복원 · 수정</option></select></label></div><canvas id="board" width="900" height="900" tabindex="0" role="application" aria-label="오목판. 방향키로 교차점을 고르고 Enter로 입력합니다."></canvas><div class="boardfoot"><span id="turnLabel"></span><div class="tools"><button id="undo">↶ 한 수 취소</button><button id="reset">새 판</button></div></div><label class="small"><input id="showForbidden" type="checkbox" checked> × 표시: 이번 차례의 3·3 금수</label><div id="forbiddenNote" class="reviewNote" role="status" hidden></div><div id="reviewNote" class="reviewNote" hidden></div><div class="notice" id="notice" role="status" aria-live="polite"></div><details open><summary>기보 붙여넣기 · 한 수씩 복기</summary><p class="small">순서와 금수를 검사한 뒤 판을 복원합니다.</p><textarea id="recordText" rows="3" aria-label="기보 입력" placeholder="1. 백 H8 · 2. 흑 G9"></textarea><div class="row"><button id="loadRecord">입력한 기보 복원</button><button id="load48">이번 48수 기보</button><button id="load29">이전 29수 기보</button><button id="load31">이전 31수 승리 기보</button><button id="load33">이전 33수 기보</button><button id="load47">이전 47수 기보</button><button id="load95">이전 95수 기보</button></div><div id="reviewNav" hidden><p id="recordState" class="small"></p><input id="recordPly" type="range" min="0" max="95" value="95" aria-label="복기 수 번호"><div class="row"><button id="recordPrev">◀ 한 수 전</button><button id="recordNext">한 수 뒤 ▶</button><button id="before94">주요 장면</button></div></div></details><details><summary>착수 기록</summary><div id="history">아직 놓인 돌이 없습니다.</div></details><details><summary>상대방 판 사진을 옆에 놓고 입력하기</summary><p>사진은 참고용으로만 표시됩니다. 흑돌·백돌을 선택해 위 분석판에 같은 위치로 입력하세요. 자동 인식 기능은 없습니다.</p><input id="imageInput" type="file" accept="image/*" aria-label="오목판 참고 사진"><img id="reference" class="ref" alt="입력할 오목판 참고 사진" hidden></details></section><aside><section class="panel"><h2>다음 한 수 분석</h2><div class="setting"><label for="mine">내 돌</label><select id="mine"><option value="1">흑돌</option><option value="2">백돌</option></select></div><div class="setting"><label for="starter">먼저 두는 색</label><select id="starter"><option value="2">백돌 · 나는 후공</option><option value="1">흑돌 · 나는 선공</option></select></div><div id="setupSummary" class="context"></div><div class="setting"><label for="next">이번 차례</label><select id="next"><option value="1">흑돌</option><option value="2" selected>백돌</option></select></div><div class="setting"><label for="size">오목판 크기</label><select id="size"><option value="15">15 × 15</option><option value="19">19 × 19</option></select></div><div class="setting"><label for="time">수읽기 시간</label><select id="time"><option value="auto" selected>자동 · 상황에 맞춰</option><option value="3000">수동 · 3초</option><option value="10000">수동 · 10초</option><option value="30000">수동 · 30초</option></select></div><p class="small">자동 모드는 즉시 승리·유일한 방어점을 빠르게 표시합니다. 그 외에는 깊이를 늘려 비교하고, 후보가 안정되면 일찍 종료합니다. 복잡한 판은 최대 8초를 사용합니다. 더 깊게 분석하려면 수동 30초를 선택하세요. 실제 대국의 남은 시간은 읽지 못하므로 급하면 분석 중지를 누르세요.</p><p id="timeStatus" class="small" role="status">자동 시간 조절 · 최대 8초</p><label class="small"><input id="auto" type="checkbox" checked> 내 차례가 되면 자동 분석</label><button id="analyze" class="primary" style="margin-top:14px">내 차례 추천 찾기</button><button id="cancel" class="secondary">분석 중지</button><div class="result" aria-live="polite"><span id="badge" class="badge">분석 준비</span><div id="move" class="heroMove">상대 먼저</div><p id="reason" class="caption">백돌이 먼저 두는 설정입니다. 상대 수를 입력하면 흑돌의 추천 한 수를 찾아줍니다.</p><p class="small" id="rankHelp">추천은 1순위 한 수를 따르세요. 후보를 여러 번 누를 필요가 없습니다.</p><details id="compare"><summary>다른 후보 비교 · 동등한 추천이 아닙니다</summary><div class="alt" id="alternatives"></div><button id="backBest" class="secondary">1순위로 돌아가기</button></details><details id="rejectedPanel" hidden><summary>위험 후보와 상대 응수</summary><div id="rejectedLines" class="small"></div></details><div class="pv" id="variation">추천 수는 민트색 원으로 표시됩니다.</div><div class="row"><button id="prevPV" disabled>이전</button><button id="nextPV" disabled>예상 진행 ▶</button></div><button id="apply" class="secondary" disabled>실제 판에 둔 뒤 이 수 기록</button><p class="small" id="stats">탐색 결과는 필승을 보장하지 않습니다.</p></div><details open><summary>적용 규칙</summary><p>가로·세로·대각선 중 정확히 5개면 승리합니다. 6개 이상의 장목은 허용하지만 승리가 아닙니다.</p><p>색과 선후공은 별개입니다. 현재 게임처럼 백이 먼저 두도록 설정할 수 있습니다.</p><p>빈칸을 포함한 열린 3을 두 방향 이상 동시에 만드는 3·3은 양쪽 모두 금지합니다. 4·4는 허용합니다.</p><p>첨부 이미지의 규칙으로 구현했습니다. 표준 렌주 규칙과는 다르며, 3·3은 열린 4로 이어지는 모양을 기준으로 판정합니다.</p></details></section><p class="help">상대 수 입력 → 1순위 확인 → 실제 대국에서 착수 → 같은 수 기록. 빨간 원은 상대의 즉시 승리 자리입니다. 판을 한꺼번에 옮길 때는 ‘판 복원·수정’을 사용하세요.</p></aside><div class="full footnotes"><span>분석은 이 기기의 브라우저에서 실행됩니다. 사진과 착수는 서버로 전송하지 않습니다.</span><div class="tools"><button id="review">내 패배 판 복기</button><button id="demo">승리 예제</button></div></div></main><dialog id="confirm"><h2>판을 비울까요?</h2><p>현재 입력한 돌과 분석 결과가 지워집니다.</p><div class="row"><button id="keep">취소</button><button id="clear">비우기</button></div></dialog>
+<script id="engineSource">function createEngine(N, board) {
+  if(![15,19].includes(N)||board.length!==N*N||board.some(v=>![0,1,2].includes(v)))throw Error('Invalid board');
+  const b=Array.from(board),dirs=[[1,0],[0,1],[1,1],[1,-1]],M=10000000;
+  const inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N, at=(x,y)=>inside(x,y)?b[y*N+x]:3;
+  const windows=[],affected=Array.from({length:N*N},()=>[]),cellAffected=Array.from({length:N*N},()=>[]),counts1=[],counts2=[],contributions=[];
+  const threePatterns=Array.from({length:N*N},(_,i)=>dirs.map(([dx,dy])=>{
+    const x=i%N,y=Math.floor(i/N),patterns=[];
+    for(let start=-3;start<=0;start++){
+      if(!inside(x+(start-1)*dx,y+(start-1)*dy)||!inside(x+(start+4)*dx,y+(start+4)*dy))continue;
+      const atIndex=k=>(y+k*dy)*N+x+k*dx;
+      patterns.push([atIndex(start-1),atIndex(start+4),...Array.from({length:4},(_,k)=>atIndex(start+k))]);
+    }return patterns;
+  }));
+  let total=0,nodes=0,deadline=Infinity,phaseDeadline=Infinity,tt=new Map(),tacticalCache=new Map();
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)for(let [dx,dy]of dirs){
+    if(!inside(x+4*dx,y+4*dy))continue;
+    const cells=Array.from({length:5},(_,k)=>(y+k*dy)*N+x+k*dx);
+    const pre=inside(x-dx,y-dy)?(y-dy)*N+x-dx:-1,post=inside(x+5*dx,y+5*dy)?(y+5*dy)*N+x+5*dx:-1;
+    const id=windows.length;windows.push({id,cells,pre,post});counts1.push(cells.filter(i=>b[i]===1).length);counts2.push(cells.filter(i=>b[i]===2).length);for(let i of cells)cellAffected[i].push(id);for(let i of [...cells,pre,post])if(i>=0)affected[i].push(id);
+  }
+  function value(w){const n1=counts1[w.id],n2=counts2[w.id];if(n1&&n2||!n1&&!n2)return 0;let p=n1?1:2,n=n1||n2;if(b[w.pre]===p||b[w.post]===p)return 0;let v=[0,2,25,420,24000,2000000][n];return p===1?v:-v;}
+  windows.forEach((w,k)=>{contributions[k]=value(w);total+=contributions[k];});
+  function set(i,p){const before=b[i];for(const id of cellAffected[i]){counts1[id]+=(p===1)-(before===1);counts2[id]+=(p===2)-(before===2);}b[i]=p;for(let id of affected[i]){const v=value(windows[id]);total+=v-contributions[id];contributions[id]=v;}}
+  function tick(){nodes++;if(Date.now()>Math.min(deadline,phaseDeadline))throw Error('timeout');}
+  function run(i,p,dx,dy){let x=i%N,y=Math.floor(i/N),len=1;for(let s of [-1,1]){let k=1;while(at(x+s*k*dx,y+s*k*dy)===p){len++;k++;}}return len;}
+  function exact(i,p){return dirs.some(([dx,dy])=>run(i,p,dx,dy)===5);}
+  // House-rule threes depend on geometric OPEN ends, not whether both future
+  // endpoints would win by exact five. Stones beyond an empty endpoint do NOT
+  // close it. Exact-five/overline restrictions belong only in winningMoves.
+  function openThrees(i,p,explain=false){
+    if(!explain){let count=0;for(const patterns of threePatterns[i]){for(const w of patterns){if(b[w[0]]||b[w[1]])continue;let own=0,empty=0;for(let k=2;k<6;k++){const v=b[w[k]];if(v===p)own++;else if(v===0)empty++;else break;}if(own===3&&empty===1){count++;break;}}if(count===2)return count;}return count;}
+    let count=0,details=[],x=i%N,y=Math.floor(i/N);for(const [dx,dy]of dirs){let found=false;for(let off=-3;off<=3&&!found;off++){
+    if(!off||at(x+off*dx,y+off*dy)!==0)continue;let j=(y+off*dy)*N+x+off*dx;b[j]=p;
+    for(let start=-3;start<=0&&!found;start++){if(off<start||off>start+3)continue;let good=true;for(let k=start;k<start+4;k++)if(at(x+k*dx,y+k*dy)!==p)good=false;
+      if(good&&at(x+(start-1)*dx,y+(start-1)*dy)===0&&at(x+(start+4)*dx,y+(start+4)*dy)===0){found=true;if(explain){const index=k=>(y+k*dy)*N+x+k*dx,four=Array.from({length:4},(_,k)=>index(start+k));details.push({direction:dx===0?'세로':dy===0?'가로':dy===1?'↘ 대각선':'↗ 대각선',stones:four.filter(v=>v!==j),extension:j,four,ends:[index(start-1),index(start+4)]});}}
+    }b[j]=0;
+  }if(found&&++count>=2&&!explain)return count;}return explain?details:count;}
+  const threes=(i,p)=>openThrees(i,p,false);
+  function moveInfo(i,p){if(!Number.isInteger(i)||i<0||i>=b.length||![1,2].includes(p))return {i,legal:false,reason:'invalid',threes:[]};if(b[i])return {i,legal:false,reason:'occupied',threes:[]};b[i]=p;let details;try{details=openThrees(i,p,true);}finally{b[i]=0;}return {i,legal:details.length<2,reason:details.length>=2?'double-three':'legal',threes:details};}
+  function legal(i,p){if(!Number.isInteger(i)||i<0||i>=b.length||![1,2].includes(p)||b[i])return false;b[i]=p;let ok=threes(i,p)<2;b[i]=0;return ok;}
+  function winMove(i,p){if(!legal(i,p))return false;b[i]=p;let yes=exact(i,p);b[i]=0;return yes;}
+  function wins(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(let id=0;id<windows.length;id++){if(own[id]!==4||enemy[id])continue;const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;const empty=w.cells.find(i=>!b[i]);if(legal(empty,p))res.add(empty);}return [...res];}
+  function forcingCandidates(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(let id=0;id<windows.length;id++){if(own[id]<3||enemy[id])continue;const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;for(const i of w.cells)if(!b[i])res.add(i);}return [...res].filter(i=>legal(i,p));}
+  function candidates(){const s=new Set();for(let i=0;i<b.length;i++)if(b[i]){const x=i%N,y=Math.floor(i/N);for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){let xx=x+dx,yy=y+dy;if(inside(xx,yy)&&!b[yy*N+xx])s.add(yy*N+xx);}}if(!s.size&&!b.some(Boolean))s.add(Math.floor(N/2)*(N+1));return [...s];}
+  function local(i,p){b[i]=p;let sum=0;for(let id of affected[i]){let w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;let count=0,blocked=false;for(let j of w.cells){if(b[j]===p)count++;else if(b[j]){blocked=true;break;}}if(!blocked)sum+=[0,1,20,400,25000,2000000][count];}b[i]=0;return sum;}
+  function rank(p,cs=candidates()){let center=(N-1)/2;return cs.filter(i=>legal(i,p)).map(i=>({i,s:local(i,p)+local(i,3-p)*1.1-.05*(Math.abs(i%N-center)+Math.abs(Math.floor(i/N)-center))})).sort((a,c)=>c.s-a.s);}
+  function fork(p){for(let i of forcingCandidates(p)){tick();set(i,p);let ws,enemy,forbiddenBlock;try{ws=wins(p);enemy=wins(3-p);forbiddenBlock=ws.length===1&&!legal(ws[0],3-p);}finally{set(i,0);}if((ws.length>=2||forbiddenBlock)&&!enemy.length)return {i,ends:ws,forbiddenBlock};}return null;}
+  // A forcing-four proof checks every relevant defense: a legal win, or the
+  // unique block. Any other defense loses immediately to exact five.
+  function vcf(p,remaining,seen=new Set()){
+    tick();const own=wins(p);if(own.length)return [own[0]];if(remaining<3)return null;
+    const danger=wins(3-p);if(danger.length>1)return null;
+    let attacks=danger.length?[danger[0]].filter(i=>legal(i,p)):rank(p,forcingCandidates(p)).map(v=>v.i);
+    const key=b.join('')+p;if(seen.has(key))return null;seen.add(key);
+    try{for(let i of attacks){tick();set(i,p);try{
+      if(wins(3-p).length)continue;const threats=wins(p);if(!threats.length)continue;
+      if(threats.length>=2||!legal(threats[0],3-p))return [i];
+      const block=threats[0];set(block,3-p);try{const rest=vcf(p,remaining-2,seen);if(rest)return [i,block,...rest];}finally{set(block,0);}
+    }finally{set(i,0);}}return null;}finally{seen.delete(key);}
+  }
+  // A forced blocking reply can end our apparent attack and leave a lost
+  // position. Prove this only after checking EVERY legal reply, without a beam.
+  function forcedReplyTrap(p){
+    tick();const threats=wins(p);if(threats.length!==1||!legal(threats[0],3-p))return null;
+    const block=threats[0];set(block,3-p);
+    try{if(wins(p).length)return null;const replies=rank(p,b.flatMap((v,i)=>v?[]:[i]));if(!replies.length)return null;let example=null;
+      for(const r of replies){tick();set(r.i,p);let proof;try{if(exact(r.i,p))return null;proof=vcf(3-p,13);}finally{set(r.i,0);}if(!proof)return null;if(!example)example=[r.i,...proof];}
+      return {line:[block,...example],checkedReplies:replies.length};
+    }finally{set(block,0);}
+  }
+  // A quiet three is a proof only when EVERY legal defense is refuted.
+  // Candidate pruning affects discovery, never the completeness of defenses.
+  function threatWin(p){
+    tick();if(wins(3-p).length)return null;
+    const attacks=rank(p).slice(0,12);
+    for(const {i} of attacks){tick();set(i,p);try{
+      if(wins(3-p).length||!openThrees(i,p))continue;
+      const defenses=rank(3-p,b.flatMap((v,j)=>v?[]:[j]));
+      if(!defenses.length)continue;let example=null,proven=true;
+      for(const {i:j} of defenses){tick();set(j,3-p);let proof;try{
+        if(exact(j,3-p)){proven=false;break;}
+        proof=vcf(p,13);
+      }finally{set(j,0);}
+      if(!proof){proven=false;break;}if(!example)example=[j,...proof];}
+      if(proven)return [i,...example];
+    }finally{set(i,0);}}
+    return null;
+  }
+  function search(p,depth,alpha,beta,ply,extension=6){
+    tick();const own=wins(p);if(own.length)return {score:M-ply,pv:[own[0]]};const danger=wins(3-p);
+    if(danger.length>1||danger.length===1&&!legal(danger[0],p))return {score:-M+ply+1,pv:[]};
+    // Do not replace a forcing win just beyond the horizon with a positional
+    // score. A bounded proof probe is sound when found; a timeout proves nothing.
+    if(depth<=1&&!danger.length){const tacticalKey=b.join('')+p;let proof=tacticalCache.get(tacticalKey);if(proof===undefined){const previous=phaseDeadline;try{phaseDeadline=Math.min(previous,deadline,Date.now()+5);proof=vcf(p,9);if(tacticalCache.size<30000)tacticalCache.set(tacticalKey,proof);}catch(e){if(e.message!=='timeout')throw e;proof=null;}finally{phaseDeadline=previous;}}if(proof)return {score:M-ply-proof.length,pv:proof};}
+    if(depth<=0&&!danger.length)return {score:(p===1?total:-total),pv:[]};
+    if(depth<=0&&extension<=0)return {score:(p===1?total:-total),pv:[]};
+    const key=b.join('')+p,entry=tt.get(key),a0=alpha,b0=beta;
+    if(entry&&entry.depth>=depth&&entry.extension>=extension){if(entry.bound==='exact')return {score:entry.score,pv:entry.pv};if(entry.bound==='lower')alpha=Math.max(alpha,entry.score);else beta=Math.min(beta,entry.score);if(alpha>=beta)return {score:entry.score,pv:entry.pv};}
+    let moves;if(danger.length)moves=[{i:danger[0],s:M}];else{
+      let all=rank(p),forcing=new Set(forcingCandidates(p));moves=all.filter((m,k)=>k<16||forcing.has(m.i));
+      if(entry?.pv.length){let k=moves.findIndex(m=>m.i===entry.pv[0]);if(k>0)moves.unshift(...moves.splice(k,1));}
+    }
+    if(!moves.length)return {score:b.every(Boolean)?0:-M+ply,pv:[]};let best={score:-Infinity,pv:[]};
+    for(let {i}of moves){set(i,p);let child;try{child=search(3-p,depth-1,-beta,-alpha,ply+1,depth<=0?extension-1:extension);}finally{set(i,0);}const score=-child.score;if(score>best.score)best={score,pv:[i,...child.pv]};alpha=Math.max(alpha,score);if(alpha>=beta)break;}
+    if(tt.size>50000)tt.clear();tt.set(key,{...best,depth,extension,bound:best.score<=a0?'upper':best.score>=b0?'lower':'exact'});return best;
+  }
+  function state(){let winners=[],lines=[];for(let w of windows){let p=b[w.cells[0]];if(p&&w.cells.every(i=>b[i]===p)&&b[w.pre]!==p&&b[w.post]!==p){if(!winners.includes(p))winners.push(p);lines.push(w.cells);}}return {winners,lines,full:b.every(Boolean)};}
+  function analyze(p,ms=5000,onProgress=()=>{}){
+    const automatic=ms==='auto';if(automatic)ms=8000;
+    if(![1,2].includes(p))throw Error('Invalid player');nodes=0;tt.clear();tacticalCache.clear();const start=Date.now();deadline=start+Math.max(30,ms);phaseDeadline=Infinity;
+    const terminal=state();if(terminal.winners.length||terminal.full)return {kind:'terminal',...terminal,moves:[],depth:0,nodes,danger:[],automatic,autoReason:automatic?'대국 종료':null};
+    const own=wins(p),danger=wins(3-p);
+    const immediateThreats=danger.map(i=>{b[i]=3-p;try{return {i,lines:state().lines.filter(line=>line.includes(i))};}finally{b[i]=0;}});
+    // A risk verdict is not a terminal game state. Keep a legal practical move
+    // available even when every screened continuation loses or time runs out.
+    const output=(kind,moves,depth=0,extra={})=>{
+      let fallback=false;
+      if(!moves.length&&['lost','incomplete'].includes(kind)){
+        const rejected=new Map((extra.rejectedMoves||[]).map(r=>[r.i,r.reason]));
+        const legalBlocks=danger.filter(i=>legal(i,p));
+        const options=rank(p,legalBlocks.length?legalBlocks:b.flatMap((v,i)=>v?[]:[i])).map(r=>({...r,
+          practical:r.s+(danger.includes(r.i)?M:0)-(rejected.get(r.i)==='immediate'?M:0)}));
+        options.sort((a,c)=>c.practical-a.practical);
+        moves=options.slice(0,3).map(r=>({i:r.i,score:kind==='lost'?-M:0,pv:[r.i],status:'fallback'}));
+        fallback=!!moves.length;
+      }
+      return {kind,moves,depth,nodes,danger,immediateThreats,...extra,fallback,mandatoryDefense:!own.length&&danger.length===1&&legal(danger[0],p),automatic,autoReason:automatic?(extra.autoReason||(['win','forced'].includes(kind)?'승리 경로 확인':kind==='lost'?'강제 위협 확인':'복잡한 판 · 추가 비교 중')):null};
+    };
+    if(own.length)return output('win',own.map(i=>({i,score:M,pv:[i],status:'win'})),1);
+    if(danger.length>1||danger.length===1&&!legal(danger[0],p))return output('lost',[],1,{lossReason:danger.length===1?'forbidden-defense':'immediate',forbiddenDefenses:danger.filter(i=>!legal(i,p)).map(i=>moveInfo(i,p))});
+    if(automatic&&danger.length===1)return output('block',[{i:danger[0],score:0,pv:[danger[0]],status:'mandatory'}],1,{autoReason:'유일한 즉시 방어점 · 이후 판세 미검사'});
+    if(automatic&&!b.some(Boolean)){const i=Math.floor(N/2)*(N+1);return output('search',[{i,score:0,pv:[i],status:'opening'}],0,{autoReason:'빈 판 · 중앙 시작 후보'});}
+    // Screen every legal board point before heuristic pruning. Far-away moves
+    // may be poor, but are still legal defenses and cannot be omitted in a loss claim.
+    let roots=danger.length?[{i:danger[0],s:M}]:rank(p,b.some(Boolean)?b.flatMap((v,i)=>v?[]:[i]):candidates());
+    if(!roots.length)return output('none',[]);
+    onProgress(output('incomplete',[],0,{screeningComplete:false}));
+    try{phaseDeadline=start+Math.min(ms*.22,2200);const proof=vcf(p,13);if(proof)return output('forced',[{i:proof[0],score:M-1,pv:proof,status:'proven'}],proof.length,{proof:'forcing-four'});}catch(e){if(e.message!=='timeout')throw e;}finally{phaseDeadline=Infinity;}
+    const screeningDeadline=Math.min(deadline,start+(automatic?2200:Math.max(10,ms*.45)));
+    const screened=[];let screeningComplete=true,forcingChecksComplete=true;
+    for(let r of roots){if(Date.now()>screeningDeadline){screeningComplete=false;break;}phaseDeadline=screeningDeadline;let status='screened',refutation=[],lossReason=null;try{tick();set(r.i,p);try{const threats=wins(3-p);if(threats.length){status='loss';refutation=[threats[0]];lossReason='immediate';}else{const f=fork(3-p);if(f){status='loss';refutation=[f.i];lossReason=f.forbiddenBlock?'forbidden-defense':'fork';}
+        else{try{phaseDeadline=Math.min(screeningDeadline,Date.now()+Math.max(20,Math.min(200,ms*.035)));const line=vcf(3-p,13);if(line){status='loss';refutation=line;lossReason='forcing-line';}
+          else{phaseDeadline=Math.min(screeningDeadline,Date.now()+Math.max(60,Math.min(650,ms*.15)));const trap=forcedReplyTrap(p);if(trap){status='loss';refutation=trap.line;lossReason='forced-reply-trap';}
+            else{phaseDeadline=Math.min(screeningDeadline,Date.now()+Math.max(50,Math.min(4000,ms*.15)));const quiet=threatWin(3-p);if(quiet){status='loss';refutation=quiet;lossReason='three-threat';}}}
+        }catch(e){if(e.message!=='timeout')throw e;status='unverified';forcingChecksComplete=false;}finally{phaseDeadline=Infinity;}}
+      }}finally{set(r.i,0);}}catch(e){if(e.message!=='timeout')throw e;screeningComplete=false;break;}
+      screened.push({...r,score:status==='loss'?-M+3:r.s,pv:[r.i],status,refutation,lossReason});
+    }
+    phaseDeadline=Infinity;
+    const rejectedMoves=screened.filter(r=>r.status==='loss').map(r=>({i:r.i,reason:r.lossReason,line:[r.i,...r.refutation]}));
+    // Unexamined points remain candidates; a partial screen cannot prove loss.
+    const checked=new Set(screened.map(r=>r.i));
+    const pending=roots.filter(r=>!checked.has(r.i)).map(r=>({...r,score:r.s,pv:[r.i],status:'unverified'}));
+    if(pending.length){screeningComplete=false;forcingChecksComplete=false;}
+    let safe=[...screened.filter(r=>r.status!=='loss'),...pending];if(!safe.length){
+      if(screeningComplete)return output('lost',[],3,{lossReason:'forcing-line',screened:screened.length,rejectedMoves});
+      return output('incomplete',[],0,{screened:screened.length});
+    }
+    let best=safe.slice(0,3),depth=0;const rejected=screened.filter(r=>r.status==='loss').length;
+    const kind=danger.length?'block':'search',extra={screeningComplete,forcingChecksComplete,screened:screened.length,rejected,rejectedMoves};
+    onProgress(output(kind,best,depth,extra));
+    const forceSet=new Set(forcingCandidates(p));let frontier=safe.filter((r,k)=>k<24||forceSet.has(r.i));
+    const rounds=[];let stopReason='최대 탐색 깊이 도달';
+    for(let d=1;d<=10;d++){
+      const round=[];
+      try{for(let r of frontier){tick();set(r.i,p);let child;try{child=search(3-p,d-1,-Infinity,Infinity,1);}finally{set(r.i,0);}const score=-child.score;round.push({...r,score,pv:[r.i,...child.pv]});}
+        round.sort((a,c)=>c.score-a.score);best=round.slice(0,3);depth=d;frontier=round;
+        onProgress(output(kind,best,depth,extra));
+        rounds.push({i:best[0].i,score:best[0].score});
+        if(automatic&&autoStable(rounds,depth,Date.now()-start,extra,best)){stopReason='연속 깊이에서 후보와 평가가 안정됨';break;}
+      }catch(e){if(e.message!=='timeout')throw e;stopReason=(ms/1000)+'초 상한 도달 · 완료된 비교 결과';break;}
+      if(Math.abs(best[0].score)>M-1000){stopReason='제한 탐색에서 승패 경로 발견';break;}
+    }
+    return output(kind,best,depth,{...extra,autoReason:automatic?stopReason:null});
+  }
+  return {legal,moveInfo,winMove,threes,analyze,state,board:b,winningMoves:wins,threatWin:(p,ms=1000)=>{deadline=Date.now()+ms;try{return threatWin(p);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}},forcingWin:(p,depth=13,ms=1000)=>{deadline=Date.now()+ms;try{return vcf(p,depth);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}}};
+}
+function autoStable(rounds,depth,elapsed,checks,moves){
+  if(elapsed<1000||depth<4||rounds.length<3||!checks.screeningComplete||!checks.forcingChecksComplete||!moves.length||moves[0].status==='unverified')return false;
+  const tail=rounds.slice(-3),scores=tail.map(r=>r.score);
+  return tail.every(r=>r.i===tail[0].i)&&Math.max(...scores)-Math.min(...scores)<=120&&Math.abs(scores[0])<9000000&&(moves.length===1||moves[0].score-moves[1].score>=80);
+}
+if(typeof module!=='undefined')module.exports={createEngine,autoStable};
+</script>
+<script id="appSource">const $=id=>document.getElementById(id),canvas=$('board'),ctx=canvas.getContext('2d');
+let N=15,b=Array(225).fill(0),mode=2,history=[],focus=112,last=-1,result=null,selected=0,pvStep=0,worker=null,token=0,pendingAction=null,analysisColor=1,busy=false,inspection=null,reviewMoves=null,reviewPly=0,reviewJump=93,reviewPreset=null;
+function parseOmokRecord(text,N=15){
+  const makeEngine=typeof module!=='undefined'?require('./engine').createEngine:createEngine;
+  if(typeof text!=='string'||!text.trim())throw Error('기보를 입력하세요.');
+  const pattern=/(\d+)\.\s*(흑|백)\s*([A-S])(\d{1,2})\b/gi;
+  const matches=[...text.matchAll(pattern)];
+  if(!matches.length||text.replace(pattern,'').replace(/[\s·,;]/g,''))throw Error('기보 형식은 “1. 백 H8 · 2. 흑 G9”입니다.');
+  const board=Array(N*N).fill(0),moves=[];let first=null;
+  for(const [k,m]of matches.entries()){
+    if(Number(m[1])!==k+1)throw Error(`${k+1}번째 수 번호가 빠졌거나 순서가 맞지 않습니다.`);
+    const p=m[2]==='흑'?1:2,x=m[3].toUpperCase().charCodeAt(0)-65,row=Number(m[4]),i=(N-row)*N+x;
+    if(x<0||x>=N||row<1||row>N)throw Error(`${k+1}수 좌표가 ${N}×${N} 판 밖입니다.`);
+    if(k===0)first=p;else if(p!==(k%2?3-first:first))throw Error(`${k+1}수 돌 색이 번갈아 놓는 순서와 맞지 않습니다.`);
+    const e=makeEngine(N,board),state=e.state();if(state.winners.length||state.full)throw Error(`${k+1}수 전에 이미 대국이 종료되었습니다.`);
+    const info=e.moveInfo(i,p);if(!info.legal)throw Error(`${k+1}수 ${m[3].toUpperCase()+row}: ${info.reason==='occupied'?'이미 돌이 있습니다.':'3·3 금수입니다.'}`);
+    board[i]=p;moves.push({i,p});
+  }
+  return {board,moves,first,next:moves.length%2?3-first:first};
+}
+function validateOmokAnalysis(N,board,p,result){
+  const makeEngine=typeof module!=='undefined'?require('./engine').createEngine:createEngine;
+  if(!result||!Array.isArray(result.moves))return false;
+  for(const m of result.moves){if(!Array.isArray(m.pv)||!m.pv.length||m.pv[0]!==m.i)return false;let copy=board.slice();
+    for(let k=0;k<m.pv.length;k++){const e=makeEngine(N,copy),q=k%2?3-p:p,i=m.pv[k],state=e.state();if(state.winners.length||state.full||!e.legal(i,q))return false;copy[i]=q;}
+  }return true;
+}
+if(typeof module!=='undefined')module.exports={parseOmokRecord,validateOmokAnalysis};
+
+const GAME95=["H8","G9","I8","G8","G7","I9","H9","G10","G11","H7","F9","H10","F10","F8","I11","D8","H11","F11","H12","E7","D6","E8","C8","E9","E10","J10","J11","K11","I10","F6","I13","J14","C9","L12","M13","K13","K12","L13","I12","I14","M11","G5","H4","E5","E6","G12","H13","K10","H14","H15","G13","F13","F5","D7","C7","C6","M12","M10","L10","J8","F12","C11","E11","I15","D10","F14","M14","M15","K9","J7","C10","B10","N12","O13","D11","D12","E13","J6","J9","K7","L6","J5","J4","L7","I7","I6","K4","M7","N7","K8","L9","G6","H6","H5","G4"];
+const GAME47=["I7","H8","G6","I8","H6","J8","G8","G7","F6","E6","I6","J6","H7","J5","F9","E10","J7","K8","L8","F5","K7","L7","D7","M6","N5","K6","I4","E8","H5","E7","E9","I10","J9","N9","M8","N6","L6","E4","E5","J3","G4","F3","H4","H3","J4","K4","F4"];
+const GAME33=["H8","G9","F9","F8","H10","H9","G11","I9","I10","G10","J9","I8","J7","G7","J10","G8","G6","J8","K8","L7","K10","L10","K9","K11","L8","F11","E12","I11","M9","L9","K7","K6","J6"];
+const GAME31=["J10","I9","I11","K9","J9","J8","H10","I7","L10","I10","J12","G9","I8","H7","H6","J7","K7","G7","F7","G8","J11","J13","K13","L14","G6","G10","G11","H8","H11","F10","F11"];
+const GAME29=["H9","G8","H7","H8","I8","E8","J7","G10","K6","L5","I7","G7","G6","F8","D8","G9","G11","J9","F5","E4","I6","I9","I4","I5","L7","K7","J5","H3","M8"];
+const GAME48=["L4","K5","L5","L6","J4","K4","K6","J7","K3","I5","L3","I6","M3","N3","I3","J3","M5","J2","M4","M2","M7","M6","N6","O7","L8","K9","L2","L1","H5","I7","I8","H6","J8","K8","L9","H7","K7","G8","J5","F9","E10","G6","F6","G7","F7","G5","G9","G4"];
+const name=p=>p===1?'흑':'백',coord=i=>String.fromCharCode(65+i%N)+(N-Math.floor(i/N));
+const mine=()=>Number($('mine').value),next=()=>Number($('next').value),starter=()=>Number($('starter').value),isLive=()=>$('inputMode').value==='live';
+function say(t){$('notice').textContent=t;}
+function counts(){return [0,b.filter(v=>v===1).length,b.filter(v=>v===2).length];}
+function expected(){let c=counts(),p=starter();if(c[p]===c[3-p])return p;if(c[p]===c[3-p]+1)return 3-p;return 0;}
+function kill(){token++;if(worker){worker.terminate();worker=null;}busy=false;$('analyze').disabled=false;$('cancel').style.display='none';}
+function invalidate(){kill();$('timeStatus').textContent=$('time').value==='auto'?'자동 시간 조절 · 최대 8초':'수동 시간 설정';$('rejectedPanel').hidden=true;$('rejectedLines').replaceChildren();inspection=null;$('forbiddenNote').hidden=true;result=null;selected=0;pvStep=0;$('badge').textContent='분석 준비';$('badge').classList.remove('dangerText');$('move').textContent='—';$('move').classList.remove('dangerText');$('reason').textContent='상대 착수를 입력한 뒤 1순위 추천을 확인하세요.';$('rankHelp').textContent='분석이 완료되면 1순위 한 수를 확인하세요.';$('variation').textContent='예상 응수는 확정된 진행이 아닙니다.';$('alternatives').replaceChildren();$('compare').hidden=true;$('apply').disabled=true;$('apply').textContent='실제 판에 둔 뒤 이 수 기록';$('prevPV').disabled=true;$('nextPV').disabled=true;$('stats').textContent='모든 수를 끝까지 탐색하지 않으므로 항상 이기는 수는 보장할 수 없습니다.';}
+function choose(v){mode=v;for(let [id,val]of [['black',1],['white',2],['erase',0]]){$(id).classList.toggle('active',v===val);$(id).setAttribute('aria-pressed',String(v===val));}render();}
+function render(){let S=900,pad=48,step=(S-pad*2)/(N-1);ctx.clearRect(0,0,S,S);ctx.fillStyle='#d9ae72';ctx.fillRect(0,0,S,S);ctx.strokeStyle='#816344';ctx.lineWidth=1.3;for(let k=0;k<N;k++){let v=pad+k*step;ctx.beginPath();ctx.moveTo(pad,v);ctx.lineTo(S-pad,v);ctx.moveTo(v,pad);ctx.lineTo(v,S-pad);ctx.stroke();}ctx.fillStyle='#66503a';ctx.font='19px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';for(let k=0;k<N;k++){ctx.fillText(String.fromCharCode(65+k),pad+k*step,22);ctx.fillText(String(N-k),22,pad+k*step);}for(let [x,y]of [[3,3],[N-4,3],[3,N-4],[N-4,N-4],[(N-1)/2,(N-1)/2]]){ctx.beginPath();ctx.arc(pad+x*step,pad+y*step,4.5,0,Math.PI*2);ctx.fill();}
+ let ghost=new Map(),m=result?.moves[selected];if(m&&pvStep)for(let k=0;k<Math.min(pvStep,m.pv.length);k++)ghost.set(m.pv[k],{p:k%2?3-analysisColor:analysisColor,k:k+1});
+ for(let i=0;i<b.length;i++){let g=ghost.get(i),p=b[i]||g?.p;if(!p)continue;let x=pad+i%N*step,y=pad+Math.floor(i/N)*step,r=step*.43;ctx.save();ctx.shadowColor='#0005';ctx.shadowBlur=5;ctx.shadowOffsetY=3;let grad=ctx.createRadialGradient(x-r*.3,y-r*.4,1,x,y,r);grad.addColorStop(0,p===1?'#4b5059':'#ffffff');grad.addColorStop(1,p===1?'#10141c':'#dce1e7');ctx.fillStyle=grad;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.restore();if(g){ctx.fillStyle=p===1?'#5de4ba':'#087b5b';ctx.font=`bold ${step*.42}px system-ui`;ctx.fillText(g.k,x,y);}else if(i===last){ctx.strokeStyle=p===1?'#fff':'#27364a';ctx.lineWidth=2;ctx.strokeRect(x-4,y-4,8,8);}}
+ if(result&&!pvStep)result.moves.forEach((v,k)=>{if(b[v.i]||k!==selected)return;let x=pad+v.i%N*step,y=pad+Math.floor(v.i/N)*step;ctx.fillStyle=k===selected?'#087c60':'#254357';ctx.beginPath();ctx.arc(x,y,step*.33,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#91ffda';ctx.lineWidth=k===selected?3:1;ctx.stroke();ctx.fillStyle='#fff';ctx.font=`bold ${step*.37}px system-ui`;ctx.fillText(k+1,x,y);});
+ if(document.activeElement===canvas){let x=pad+focus%N*step,y=pad+Math.floor(focus/N)*step;ctx.strokeStyle='#a2371b';ctx.lineWidth=3;ctx.strokeRect(x-step*.46,y-step*.46,step*.92,step*.92);}
+ let counts=[b.filter(x=>x===1).length,b.filter(x=>x===2).length];$('turnLabel').textContent=`흑 ${counts[0]} · 백 ${counts[1]} / ${mode?name(mode)+'돌 입력':'돌 지우기'}`;$('history').textContent=history.length?history.map((h,k)=>`${k+1}. ${h.after?name(h.after):'삭제'} ${coord(h.i)}`).join('  ·  '):'아직 놓인 돌이 없습니다.';$('undo').disabled=!history.length;renderExtra();
+}
+
+function context(){let c=counts(),p=expected();$('setupSummary').textContent=`나: ${name(mine())}돌 · ${mine()===starter()?'선공':'후공'} / 상대: ${name(3-mine())}돌 · ${mine()===starter()?'후공':'선공'} / ${p?name(p)+' 차례':'돌 개수 확인 필요'}`;$('starter').options[0].textContent='백돌 먼저';$('starter').options[1].textContent='흑돌 먼저';$('next').disabled=isLive();}
+function setNextFromCounts(){const p=expected();if(p){$('next').value=String(p);if(isLive())mode=p;}}
+function renderExtra(){context();let S=900,pad=48,step=804/(N-1),eng=createEngine(N,b),st=eng.state();for(let line of st.lines){ctx.strokeStyle='#e14d32';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(pad+line[0]%N*step,pad+Math.floor(line[0]/N)*step);let end=line[4];ctx.lineTo(pad+end%N*step,pad+Math.floor(end/N)*step);ctx.stroke();}for(let i of result?.danger||[]){if(b[i])continue;ctx.strokeStyle='#bd3827';ctx.lineWidth=4;ctx.beginPath();ctx.arc(pad+i%N*step,pad+Math.floor(i/N)*step,step*.43,0,Math.PI*2);ctx.stroke();}
+ if($('showForbidden').checked&&!pvStep){for(let i=0;i<b.length;i++)if(!b[i]&&!eng.legal(i,next())){const x=pad+i%N*step,y=pad+Math.floor(i/N)*step,r=step*.15;ctx.strokeStyle='#a0213c';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x-r,y-r);ctx.lineTo(x+r,y+r);ctx.moveTo(x-r,y+r);ctx.lineTo(x+r,y-r);ctx.stroke();}}
+ if(inspection&&!pvStep)for(let [k,t]of inspection.threes.entries()){ctx.strokeStyle=k%2?'#7b238d':'#007478';ctx.lineWidth=4;ctx.beginPath();t.stones.forEach((i,n)=>{const x=pad+i%N*step,y=pad+Math.floor(i/N)*step;n?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();}
+ $('before94').textContent=`${reviewJump+1}수 직전`;$('reviewNav').hidden=!reviewMoves;if(reviewMoves){$('recordPly').max=String(reviewMoves.length);$('recordPly').value=String(reviewPly);$('recordState').textContent=`${reviewPly} / ${reviewMoves.length}수 · 다음 ${name(next())} · ${reviewPly?'마지막 '+name(reviewMoves[reviewPly-1].p)+' '+coord(reviewMoves[reviewPly-1].i):'시작 전'}`;$('recordPrev').disabled=reviewPly===0;$('recordNext').disabled=reviewPly===reviewMoves.length;}
+}
+function explainForbidden(info){inspection=info;$('forbiddenNote').hidden=false;$('forbiddenNote').textContent=`${coord(info.i)}: 3·3 금수. `+info.threes.map(t=>`${t.direction} ${t.stones.map(coord).join('–')} (${coord(t.extension)}에 이어 열린 4, 양끝 ${t.ends.map(coord).join('·')})`).join(' / ');render();}
+function put(i,p=mode){
+ if(!Number.isInteger(i)||i<0||i>=b.length)return false;
+ if(isLive()){
+   const st=createEngine(N,b).state();if(st.winners.length||st.full){say('대국이 끝났습니다. 수정하려면 판 복원·수정으로 전환하세요.');return false;}
+   if(!expected()){say('돌 개수와 선후공이 맞지 않습니다. 판 복원·수정에서 확인하세요.');return false;}
+   if(p!==next()){say(`지금은 ${name(next())}돌 차례입니다. 다른 색은 판 복원·수정에서 입력하세요.`);return false;}
+ }
+ if(p&&b[i]){say('이미 돌이 있습니다. 지우개로 지운 뒤 입력하세요.');return false;}if(!p&&!b[i])return false;
+ if(p&&isLive()&&!createEngine(N,b).legal(i,p)){explainForbidden(createEngine(N,b).moveInfo(i,p));say(`${coord(i)}은 3·3 금수입니다. 판 아래에 두 방향을 표시했습니다.`);return false;}
+ inspection=null;$('forbiddenNote').hidden=true;reviewMoves=null;
+ history.push({i,before:b[i],after:p,next:next(),mode,last});invalidate();b[i]=p;last=p?i:-1;focus=i;setNextFromCounts();choose(mode);say('');
+ const st=createEngine(N,b).state();if(st.winners.length||st.full){showTerminal(st);return true;}
+ if(isLive()&&p&&next()!==mine()){$('move').textContent='상대 차례';$('reason').textContent='상대가 실제로 둔 수를 입력해 주세요.';}
+ if(isLive()&&$('auto').checked&&p&&next()===mine())analyze();return true;
+}
+canvas.addEventListener('click',e=>{let r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*900,y=(e.clientY-r.top)/r.height*900,s=804/(N-1),xx=Math.round((x-48)/s),yy=Math.round((y-48)/s);if(xx>=0&&xx<N&&yy>=0&&yy<N)put(yy*N+xx);});
+canvas.addEventListener('keydown',e=>{let x=focus%N,y=Math.floor(focus/N);if(e.key==='ArrowLeft')x--;else if(e.key==='ArrowRight')x++;else if(e.key==='ArrowUp')y--;else if(e.key==='ArrowDown')y++;else if(e.key==='Enter'||e.key===' '){e.preventDefault();put(focus);return;}else return;e.preventDefault();focus=Math.max(0,Math.min(N-1,y))*N+Math.max(0,Math.min(N-1,x));canvas.setAttribute('aria-label',`${coord(focus)}, ${b[focus]?name(b[focus])+'돌':'빈칸'}. Enter로 입력`);render();});canvas.onfocus=render;canvas.onblur=render;
+function showTerminal(st){$('badge').textContent='대국 종료';$('move').textContent=st.winners.length?st.winners.map(name).join('·')+' 5목':'빈자리 없음';$('reason').textContent=st.winners.length?'정확히 5목이 완성되었습니다. 이 판의 승리 수를 추천하지 않습니다.':'빈자리가 없습니다.';$('apply').disabled=true;render();}
+function showResult(){
+ const m=result?.moves[selected],kind=result?.kind;const bad=['lost','incomplete','none'].includes(kind);$('move').classList.toggle('dangerText',bad);$('badge').classList.toggle('dangerText',bad);if(!m)$('rankHelp').textContent='현재 권장할 승리 수가 없습니다.';
+ if(result?.rejectedMoves?.length){$('rejectedPanel').hidden=false;$('rejectedLines').replaceChildren();for(let item of result.rejectedMoves.slice(0,3)){const el=document.createElement('p');el.textContent=item.line.map((i,k)=>name(k%2?3-analysisColor:analysisColor)+' '+coord(i)).join(' → ');$('rejectedLines').append(el);}}
+ if(!m){$('compare').hidden=true;$('apply').disabled=true;const forbidden=result.lossReason==='forbidden-defense';$('move').textContent=kind==='lost'?(forbidden?'방어점이 금수':result.lossReason==='immediate'?'방어 불가':result.lossReason==='forcing-line'?'상대 강제 공격':'방어 수 미발견'):'분석 미완료';$('badge').textContent=kind==='lost'?'승리 추천 없음':'다시 분석 필요';$('reason').textContent=forbidden?`${name(3-analysisColor)}의 승리 자리 ${result.danger.map(coord).join(', ')}를 막아야 하지만, ${name(analysisColor)}은 그 자리에 3·3 금수로 둘 수 없습니다. 다른 빈칸에 둘 수 있어도 상대의 5목을 막지 못합니다.`:kind==='lost'?(result.lossReason==='immediate'?`상대 즉시 승리 자리: ${result.danger.map(coord).join(', ')}. 내 즉시 승리 수가 없고 한 수로 막을 수 없습니다.`:result.lossReason==='forcing-line'?`현재 차례의 방어 후보 ${result.screened}개 모두에 대해 상대의 강제 공격 경로가 확인됐습니다. 이 수들을 승리 추천으로 표시하지 않습니다. 아래에서 응수 예시를 확인하세요.`:'검사한 후보에서 상대의 강제 공격을 막을 수 있는 수를 찾지 못했습니다.'):'시간 안에 안전 검사를 마치지 못했습니다. 수읽기 시간을 늘려 다시 분석하세요.';$('variation').textContent='추천 수를 억지로 표시하지 않습니다. 이전 착수부터 복기하세요.';$('stats').textContent=`${result.nodes.toLocaleString()}개 탐색 노드 · ${(result.elapsed||0).toFixed(1)}초`;if(forbidden&&result.forbiddenDefenses?.length)explainForbidden(result.forbiddenDefenses[0]);render();return;}
+ const main=selected===0;
+ if(result.fallback){
+   $('badge').textContent=busy?'계산 중 · 임시 착수 후보':kind==='lost'?'위험 경고 · 계속 둘 수 있는 수':'검사 미완료 · 임시 착수 후보';
+   $('move').textContent=coord(m.i);
+   $('reason').textContent=kind==='lost'?(result.lossReason==='immediate'?'상대의 즉시 승리 자리가 여러 곳이라 모두 막을 수 없습니다.':result.lossReason==='forbidden-defense'?'상대 승리 자리를 막는 수가 3·3 금수입니다.':'검사한 후보에서 상대의 강제 공격이 확인됐습니다.')+' 대국은 아직 끝나지 않았습니다. 계속 둘 수 있는 합법 수를 표시합니다. 상대가 다른 응수를 하면 판세가 달라질 수 있습니다.':(busy?'검사 중입니다.':'시간 안에 검사를 끝내지 못했습니다.')+' 아래 수는 합법이지만 안전성은 확인되지 않은 임시 후보입니다.';
+   const threatText=(result.immediateThreats||[]).map(t=>coord(t.i)+' → '+t.lines.map(l=>l.map(coord).join('–')).join(' / ')).join('; ');
+   if(result.mandatoryDefense){$('badge').textContent=busy?'계산 중 · 필수 방어':'필수 방어 · 이후 위험';$('reason').textContent=coord(result.danger[0])+'을 막아야 상대의 즉시 5목을 막습니다. 다른 후보는 표시하지 않습니다. '+threatText+' 이후의 강제 공격 위험은 남아 있습니다.';}
+   else if(result.lossReason==='immediate'){$('badge').textContent='동시 승리 위협 · 한 수로 방어 불가';$('reason').textContent='상대 승리 자리 '+result.danger.map(coord).join('·')+' 중 하나를 막아도 다른 곳에서 5목이 됩니다. '+threatText+' 표시한 수는 대국을 계속하기 위한 후보이며, 모두 막는 수가 아닙니다.';}
+   $('rankHelp').textContent=busy?'계산 중입니다. 급하면 분석 중지를 눌러 임시 후보를 사용할 수 있습니다.':'필승 또는 최선 수의 증명은 아닙니다. 실제 착수 후 기록하면 다음 상대 수에 맞춰 다시 분석합니다.';
+   $('variation').textContent='착수 후보 · '+name(analysisColor)+' '+coord(m.i);
+   $('compare').hidden=result.moves.length<2;$('alternatives').replaceChildren();result.moves.forEach((v,k)=>{const bt=document.createElement('button');bt.textContent='후보 '+(k+1)+' '+coord(v.i);bt.onclick=()=>{selected=k;pvStep=0;showResult();};$('alternatives').append(bt);});
+   $('apply').disabled=busy;$('apply').textContent='실제 판에 '+name(analysisColor)+' '+coord(m.i)+'을 둔 뒤 기록';$('prevPV').disabled=true;$('nextPV').disabled=true;
+   $('stats').textContent=result.nodes.toLocaleString()+'개 노드 · '+(result.elapsed||0).toFixed(1)+'초 · 합법 수 제공';render();return;
+ }
+ $('badge').textContent=(main?'1순위 · ':'비교 '+(selected+1)+'순위 · ')+(kind==='win'?'즉시 승리':kind==='forced'?'연속 4목 강제 승리 확인':kind==='block'?'필수 방어':'제한 탐색 추천');$('move').textContent=coord(m.i);
+ $('reason').textContent=kind==='win'?`${coord(m.i)}에 두면 정확히 5목입니다.`:kind==='forced'?'상대가 필수 방어를 하더라도 이어지는 4목 공격으로 승리하는 경로를 확인했습니다.':kind==='block'?`상대가 ${result.danger.map(coord).join(', ')}에서 바로 이깁니다. 먼저 막아야 합니다. 이후 승리는 보장되지 않습니다.`:'즉시 위협·금수 방어·상대의 연속 4목·3목 준비 공격을 검사하고 남은 후보를 비교했습니다. 필승 판정은 아닙니다.';
+ if(m.score<-9000000&&kind!=='win'&&kind!=='forced')$('reason').textContent+=' 탐색한 진행에서 패배 위협이 발견되었습니다.';
+ if(analysisColor!==mine())$('reason').textContent+=' 주의: 현재 상대 돌의 수를 분석 중입니다.';
+ if(!main)$('reason').textContent+=' 다른 후보를 비교 중입니다. 권장 수는 1순위입니다.';
+ $('rankHelp').textContent=busy?'아직 계산 중인 잠정 후보입니다. 분석이 끝날 때까지 기다려 주세요.':main?'이 좌표 한 곳에 두세요. 후보를 반복해서 누를 필요가 없습니다.':'비교 후보입니다. 다시 권장 수를 보려면 1순위로 돌아가세요.';if(busy)$('badge').textContent='계산 중 · 잠정 후보';
+ if(!busy&&m.score<-9000000){$('badge').textContent='패배 경로 발견 · 제한 탐색';$('move').classList.add('dangerText');$('rankHelp').textContent='승리 수가 아닙니다. 탐색한 진행에서는 불리하며, 더 앞선 장면을 복기하세요.';}if(!busy&&result.depth===0&&m.status!=='opening'){$('badge').textContent='비교 탐색 미완료 · 임시 후보';$('rankHelp').textContent='후보 비교를 완료하지 못했습니다. 이 수는 임시 후보입니다.';}if(!busy&&m.score>=-9000000&&m.status==='unverified'){$('badge').textContent='연속 공격 검사 미완료';$('rankHelp').textContent='시간 안에 이 후보의 상대 강제 공격 검사를 마치지 못했습니다. 시간을 늘려 재분석하세요.';}
+ $('compare').hidden=result.moves.length<2;$('alternatives').replaceChildren();result.moves.forEach((v,k)=>{let bt=document.createElement('button');bt.textContent=`${k+1}순위 ${coord(v.i)}`;bt.classList.toggle('active',k===selected);bt.onclick=()=>{selected=k;pvStep=0;showResult();};$('alternatives').append(bt);});
+ $('variation').textContent=(pvStep?'미리보기 '+pvStep+'수 · ':'예상 진행 · ')+m.pv.map((v,k)=>`${name(k%2?3-analysisColor:analysisColor)} ${coord(v)}`).join(' → ')+(kind==='forced'?' (상대 필수 방어 기준)':'');
+ $('prevPV').disabled=pvStep===0;$('nextPV').disabled=pvStep>=m.pv.length;$('apply').disabled=busy;$('apply').textContent=`실제 판에 ${name(analysisColor)} ${coord(m.i)}을 둔 뒤 기록`;
+ $('stats').textContent=`${busy?'분석 중 · ':''}완료 깊이 ${result.depth}수 · ${result.nodes.toLocaleString()}개 노드 · ${(result.elapsed||0).toFixed(1)}초${result.rejected?' · 위험 후보 '+result.rejected+'개 제외':''}${result.screeningComplete===false?' · 후보 검사 일부 완료':''}`;render();
+}
+function analyze(){
+ invalidate();let p=next(),eng=createEngine(N,b),st=eng.state();if(st.winners.length||st.full){showTerminal(st);return;}
+ const expectedColor=expected();if(!expectedColor||expectedColor!==p){$('move').textContent='차례 확인';$('reason').textContent='돌 개수·먼저 두는 색·이번 차례가 서로 맞지 않습니다. 설정이나 누락된 돌을 확인하세요.';say('잘못된 차례의 추천을 막기 위해 분석을 중단했습니다.');render();return;}
+ if(isLive()&&p!==mine()){$('move').textContent='상대 차례';$('reason').textContent='백/흑을 바꾸지 말고, 상대의 실제 착수부터 입력하세요. 상대 분석은 판 복원·수정에서 가능합니다.';render();return;}
+ analysisColor=p;let mineToken=token,start=performance.now();busy=true;$('badge').textContent='위협 검사와 수읽기 중';$('move').textContent='•••';$('reason').textContent='검사가 완료되면 1순위 한 수를 표시합니다.';$('analyze').disabled=true;$('cancel').style.display='block';
+ const src=$('engineSource').textContent+'\nonmessage=e=>{try{const {N,b,p,ms}=e.data;const result=createEngine(N,b).analyze(p,ms,r=>postMessage({result:r,partial:true}));postMessage({result});}catch(err){postMessage({error:err.message});}}';
+ try{let url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));worker=new Worker(url);URL.revokeObjectURL(url);
+ worker.onmessage=e=>{if(mineToken!==token)return;const data=e.data;if(!data.partial)kill();if(data.error){say('분석 오류: '+data.error);$('badge').textContent='분석 실패';return;}if(!validateOmokAnalysis(N,b,p,data.result)){invalidate();$('badge').textContent='추천 검증 실패';$('move').textContent='추천 중단';say('추천 또는 예상 진행에 금수·불가능한 착수가 포함되어 표시를 중단했습니다.');return;}result=data.result;result.elapsed=(performance.now()-start)/1000;selected=0;pvStep=0;showResult();$('timeStatus').textContent=result.automatic?'자동 · '+result.elapsed.toFixed(1)+'초 · '+(result.autoReason||'분석 중'):'수동 · '+result.elapsed.toFixed(1)+'초';};
+ worker.onerror=()=>{kill();$('badge').textContent='분석 실패';say('분석을 실행하지 못했습니다. Chrome 또는 Edge로 열어 주세요.');};worker.postMessage({N,b,p,ms:$('time').value==='auto'?'auto':Number($('time').value)});
+ }catch(e){kill();$('badge').textContent='분석 실패';say('이 브라우저에서 분석을 실행할 수 없습니다.');}
+}
+for(let [id,p]of [['black',1],['white',2],['erase',0]])$(id).onclick=()=>{if(!p){$('inputMode').value='setup';invalidate();say('판 복원·수정으로 전환했습니다.');}choose(p);};
+$('time').onchange=()=>{invalidate();render();};$('analyze').onclick=analyze;$('cancel').onclick=()=>{kill();if(result){showResult();$('timeStatus').textContent='사용자가 분석 중지 · 마지막 완료 결과';}else invalidate();say('분석을 중지했습니다. 표시된 결과는 중지 전까지 완료한 검사입니다.');};
+$('apply').onclick=()=>{if(busy)return;let m=result?.moves[selected];if(m)put(m.i,analysisColor);};$('prevPV').onclick=()=>{pvStep--;showResult();};$('nextPV').onclick=()=>{pvStep++;showResult();};$('backBest').onclick=()=>{selected=0;pvStep=0;showResult();};
+$('undo').onclick=()=>{if(reviewMoves){showRecordPly(reviewPly-1);return;}let h=history.pop();if(!h)return;invalidate();b[h.i]=h.before;$('next').value=String(h.next);last=h.last;mode=h.mode;setNextFromCounts();choose(mode);say('한 수를 취소했습니다.');};
+$('next').onchange=()=>{invalidate();render();};$('mine').onchange=()=>{invalidate();render();};$('starter').onchange=()=>{invalidate();setNextFromCounts();choose(mode);};$('inputMode').onchange=()=>{invalidate();setNextFromCounts();choose(mode);say(isLive()?'현재 돌 개수에 맞춰 차례를 설정했습니다.':'돌 위치를 자유롭게 복원합니다. 모두 입력한 뒤 추천 찾기를 누르세요.');};
+function clearBoard(size=N){invalidate();inspection=null;reviewMoves=null;$('forbiddenNote').hidden=true;N=size;b=Array(N*N).fill(0);history=[];last=-1;focus=Math.floor(N/2)*(N+1);$('size').value=String(N);$('next').value=String(starter());mode=starter();$('reviewNote').hidden=true;reviewPreset=null;choose(mode);say('새 판입니다. 먼저 두는 색부터 입력하세요.');}
+function confirmAction(action){if(!b.some(Boolean)){action();return;}pendingAction=action;$('confirm').showModal();}
+$('reset').onclick=()=>confirmAction(()=>clearBoard());$('size').onchange=()=>{const n=Number($('size').value);$('size').value=String(N);confirmAction(()=>clearBoard(n));};$('keep').onclick=()=>{$('confirm').close();pendingAction=null;};$('clear').onclick=()=>{const action=pendingAction;$('confirm').close();pendingAction=null;action?.();};
+$('imageInput').onchange=e=>{const f=e.target.files[0];if(!f)return;if(!f.type.startsWith('image/')){say('이미지 파일을 선택하세요.');return;}if($('reference').src.startsWith('blob:'))URL.revokeObjectURL($('reference').src);$('reference').src=URL.createObjectURL(f);$('reference').hidden=false;};
+function review(){clearBoard(15);$('mine').value='1';$('starter').value='2';$('inputMode').value='setup';const black='L12 F10 I10 G9 F8 G8 E7 F7 G7 H7 F6 C5 G5',white='K11 H10 J10 F9 I9 H8 I8 D7 I7 D6 G6 H6 I6 J6';const ix=s=>(15-Number(s.slice(1)))*15+s.charCodeAt(0)-65;for(let s of black.split(' '))b[ix(s)]=1;for(let s of white.split(' '))b[ix(s)]=2;$('next').value='1';mode=1;choose(1);$('reviewNote').hidden=false;$('reviewNote').textContent='실제 진행: 백 I6 → 흑 I5 → 백 K6. 지금은 백 I6 직후입니다. 백은 가로 G6–J6과 세로 I6–I9의 4목을 동시에 갖고 있어, K6과 I5 중 하나만 막을 수 있습니다. 이보다 앞선 착수에서 예방해야 했습니다.';analyze();}
+$('review').onclick=()=>confirmAction(review);
+$('showForbidden').onchange=render;
+function showRecordPly(n){if(!reviewMoves)return;invalidate();inspection=null;$('forbiddenNote').hidden=true;reviewPly=Math.max(0,Math.min(reviewMoves.length,Number(n)));b=Array(N*N).fill(0);history=[];last=-1;for(let {i,p}of reviewMoves.slice(0,reviewPly)){history.push({i,before:0,after:p,next:p,mode:p,last});b[i]=p;last=i;}setNextFromCounts();mode=next();$('inputMode').value='live';choose(mode);say(`기보 ${reviewPly}수까지 복원했습니다. 추천 찾기로 해당 차례를 분석할 수 있습니다.`);if(reviewPreset==='47'){$('reviewNote').hidden=false;$('reviewNote').textContent=reviewPly>=45?'45수 백 J4로 F4·K4 두 승리 자리가 생겼습니다. 흑 K4 이후 백 F4에서 5목이 완성됩니다.':reviewPly>=37?'이 구간에서는 백의 연속 공격이 핵심입니다. 흑 J3 → 백 G4 → 흑 F3 → 백 H4 → 흑 H3 → 백 J4로 두 승리 자리가 생깁니다. 다른 후보의 방어 가능성도 추천 찾기에서 검사합니다.':'이번 47수 대국입니다. 더 앞선 장면에서 공격·방어의 선택을 비교할 수 있습니다.';}if(reviewPreset==='48'){$('reviewNote').hidden=false;$('reviewNote').textContent=reviewPly>=46?'46수 백 G5로 G5–G8의 열린 4목이 됐습니다. G4·G9 중 한 곳을 막아도 다른 곳에서 백이 이깁니다.':reviewPly>=38?'이 구간은 백의 강제 공격이 이어집니다. G6 → G7 → G5로 두 승리 자리가 생깁니다. 당장의 방어만으로 해결되지 않으므로 더 앞선 장면에서 비교해야 합니다.':'이전 버전은 28수·34수 직후 10초 분석에서 위험 검사에 시간을 소진해 비교 깊이가 0이었습니다. 이제 검사 시간을 제한하고 남은 시간에 후보를 비교합니다. 안전 검사가 끝나지 않은 수는 미완료로 표시합니다.';}if(reviewPreset==='29'){$('reviewNote').hidden=false;$('reviewNote').textContent=reviewPly>=27?'27수 백 J5로 승리 자리 M8과 H3이 동시에 생겼습니다. 흑 H3은 한쪽을 막았지만 백 M8이 I4–J5–K6–L7–M8의 5목을 완성했습니다.':reviewPly>=25?'25수 백 L7 뒤 K7은 H7–I7–J7–빈 K7–L7의 5목을 막는 필수 방어입니다. 하지만 백 J5가 이어지는 양끝이 열린 4목 위협이 있어 더 앞서 예방해야 합니다.':'이번 흑 후공 29수 대국입니다. 이전 장면으로 이동해 공격과 방어를 비교하세요.';}if(reviewPreset==='31'){$('reviewNote').hidden=false;$('reviewNote').textContent='흑 선공 대국입니다. 24수 백 L14 뒤 추천이 중단됐던 장면을 복원했습니다. 이제 위험 경고와 합법 착수 후보를 함께 표시합니다. 실제 진행은 흑 G6 이후 계속되어 31수 F11에서 흑 F11–J11의 5목으로 승리했습니다.';}if(reviewPreset==='33'){$('reviewNote').hidden=false;$('reviewNote').textContent=reviewPly>=33?'33수 백 J6: J6–K7–L8–M9가 열린 4목입니다. I5와 N10 중 한 곳만 막을 수 있어 방어 불가입니다.':reviewPly>=29?'백 M9 이후에는 이미 강제 공격이 있습니다. 실제 진행: 흑 L9 → 백 K7 → 흑 K6 → 백 J6. 흑 K6은 K열의 즉시 5목을 막는 필수 방어였습니다.':reviewPly>=25?'이 구간의 흑 F11은 백 E12를 강제하지만 위기를 해결하지 못합니다. 3초·10초에서 놓칠 수 있는 더 긴 패배 경로를 30초로 확인하세요.':'24수 흑 K11 직전입니다. 30초 분석에서 K7도 방어 후보로 비교됩니다. 이 수의 승리를 증명한 것은 아닙니다.';}const st=createEngine(N,b).state();if(st.winners.length||st.full)showTerminal(st);}
+function loadRecord(text,n,size=N,jump=null,preset=null){let parsed;try{parsed=parseOmokRecord(text,size);}catch(e){say(e.message);return;}confirmAction(()=>{clearBoard(size);$('starter').value=String(parsed.first);$('mine').value='1';reviewMoves=parsed.moves;reviewJump=jump??Math.max(0,parsed.moves.length-2);reviewPreset=preset;showRecordPly(n??parsed.moves.length);});}
+$('loadRecord').onclick=()=>loadRecord($('recordText').value);
+$('load95').onclick=()=>{let text=GAME95.map((s,k)=>`${k+1}. ${k%2?'흑':'백'} ${s}`).join(' · ');$('recordText').value=text;loadRecord(text,95,15,93,'95');};
+$('load47').onclick=()=>{const text=GAME47.map((s,k)=>`${k+1}. ${k%2?'흑':'백'} ${s}`).join(' · ');$('recordText').value=text;loadRecord(text,47,15,37,'47');};
+$('load48').onclick=()=>{const text=GAME48.map((s,k)=>`${k+1}. ${k%2?'백':'흑'} ${s}`).join(' · ');$('recordText').value=text;loadRecord(text,34,15,28,'48');};
+$('load29').onclick=()=>{const text=GAME29.map((s,k)=>`${k+1}. ${k%2?'흑':'백'} ${s}`).join(' · ');$('recordText').value=text;loadRecord(text,27,15,25,'29');};
+$('load31').onclick=()=>{const text=GAME31.map((s,k)=>`${k+1}. ${k%2?'백':'흑'} ${s}`).join(' · ');$('recordText').value=text;loadRecord(text,24,15,24,'31');};
+$('load33').onclick=()=>{const text=GAME33.map((s,k)=>`${k+1}. ${k%2?'흑':'백'} ${s}`).join(' · ');$('recordText').value=text;loadRecord(text,33,15,23,'33');};
+$('recordPly').oninput=e=>showRecordPly(e.target.value);$('recordPrev').onclick=()=>showRecordPly(reviewPly-1);$('recordNext').onclick=()=>showRecordPly(reviewPly+1);
+$('before94').onclick=()=>{if(reviewMoves)showRecordPly(Math.min(reviewJump,reviewMoves.length));};
+$('demo').onclick=()=>confirmAction(()=>{clearBoard(15);$('inputMode').value='setup';$('starter').value='1';$('mine').value='1';b[7*15+4]=2;for(let x=5;x<=8;x++)b[7*15+x]=1;for(let [x,y]of [[6,6],[7,6],[9,9]])b[y*15+x]=2;setNextFromCounts();choose(1);say('승리 예제: 흑이 J8에 두면 5목입니다.');analyze();});
+if(document.modelContext?.registerTool){try{Promise.resolve(document.modelContext.registerTool({name:'read_omok_board',description:'Read current board, turn, move history and analysis.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:input=>{if(input===null||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length)throw Error('No input fields are accepted');return {version:10,size:N,next:next(),mine:mine(),first:starter(),stones:b.flatMap((p,i)=>p?[{coordinate:coord(i),color:name(p)}]:[]),history:history.map(h=>({coordinate:coord(h.i),color:h.after?name(h.after):'erase'})),analysis:result?{kind:result.kind,danger:result.danger.map(coord),recommendation:result.moves.map(m=>coord(m.i))}:null};}})).catch(()=>{});}catch{}}
+choose(2);
+</script></body></html>

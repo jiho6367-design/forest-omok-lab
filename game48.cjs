@@ -1,0 +1,5 @@
+const coords='L4 K5 L5 L6 J4 K4 K6 J7 K3 I5 L3 I6 M3 N3 I3 J3 M5 J2 M4 M2 M7 M6 N6 O7 L8 K9 L2 L1 H5 I7 I8 H6 J8 K8 L9 H7 K7 G8 J5 F9 E10 G6 F6 G7 F7 G5 G9 G4'.split(' ');
+const idx=s=>(15-Number(s.slice(1)))*15+s.charCodeAt(0)-65,coord=i=>String.fromCharCode(65+i%15)+(15-Math.floor(i/15));
+const position=(n=coords.length)=>{const b=Array(225).fill(0);coords.slice(0,n).forEach((s,k)=>b[idx(s)]=k%2?2:1);return b;};
+module.exports={coords,idx,coord,position};
+if(require.main===module){const {createEngine}=require('./engine');for(let n=0;n<48;n++){const e=createEngine(15,position(n));if(!e.legal(idx(coords[n]),n%2?2:1))console.log('ILLEGAL',n+1,coords[n]);}for(const n of [36,38,40,42,44,46,48]){const e=createEngine(15,position(n)),r=e.analyze(1,3000);console.log(JSON.stringify({n,kind:r.kind,danger:r.danger.map(coord),moves:r.moves.map(m=>({i:coord(m.i),score:m.score,pv:m.pv.map(coord)})),ref:r.rejectedMoves?.slice(0,2).map(m=>({...m,i:coord(m.i),line:m.line.map(coord)})),lines:e.state().lines.map(l=>l.map(coord))}));}}
