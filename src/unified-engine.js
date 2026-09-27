@@ -34,38 +34,84 @@ function createEngine(options={}) {
   }
   function suggestBudget(board,p,remaining=40000) {
     if(urgent(board,p))return {ms:100,automatic:true,reason:'즉시 승리·필수 방어 우선'};
-    const count=board.filter(Boolean).length,cap=count<6?2500:8000;
-    return {ms:Math.max(30,Math.min(cap,remaining-3000)),automatic:true,reason:'최대 '+cap/1000+'초 · 후보 안정 시 조기 종료'};
+    const count=board.filter(Boolean).length,base=count<6?2500:8000,tactical=forest.suggestBudget(board,p,remaining);
+    const cap=Math.max(base,Math.min(15000,tactical.ms));
+    const reason=cap>8000?`위협이 얽힌 국면 · 심층 방어 최대 ${cap/1000}초`:`최대 ${cap/1000}초 · 후보 안정 시 조기 종료`;
+    return {ms:Math.max(30,Math.min(cap,remaining-3000)),automatic:true,reason};
   }
   function analyze(board,p,budget='auto',lessons=[],progress=()=>{}) {
     lessons=lessons.filter(l=>(l.rules?.fivePriority!==false)===rules.fivePriority);
     const started=Date.now(),automatic=budget==='auto'||budget?.automatic===true;
     const limit=automatic?(budget?.ms||8000):Math.max(30,Number(budget)||1000);
-    const deep=!automatic&&limit>8000;
+    const immediate=urgent(board,p);if(immediate)return immediate;
+    const pattern=forest.patternDefense(board,p);if(pattern)return {...pattern,automatic,autoReason:'새 게임에도 적용되는 대칭 패턴 방어',ms:Date.now()-started};
+    const deep=limit>8000;
     const e=fast(board);
-    let best=convert(board,p,e.analyze(p,automatic?{automatic:true,maxMs:limit}:deep?Math.min(2000,limit*.2):limit,
+    let best=convert(board,p,e.analyze(p,deep?Math.min(2000,limit*.2):automatic?{automatic:true,maxMs:limit}:limit,
       r=>progress(convert(board,p,r,started))),started);
     const can=forest.canonical(board,p),memory=lessons.filter(l=>l.key===can.key);
     best.memory=memory.length;
     best.patternHint=forest.patternDefense(board,p)?.i??null;
     if(!deep||best.proven||best.lossProven||best.kind==='terminal'||best.i==null)return best;
+    const refuted=new Set();
+    if(limit>=20000&&limit-(Date.now()-started)>12000){
+      const risky=(best.candidates||[]).find(m=>{
+        const shape=inspect(board,m.i,p);if(!shape.legal||!shape.fours.length)return false;
+        const after=board.slice();after[m.i]=p;
+        return forest.winning(after,p).length===1&&!forest.winning(after,3-p).length;
+      });
+      if(risky){
+        const after=board.slice();after[risky.i]=p;
+        const trap=forest.forcedReplyTrap(after,p,Math.min(18000,limit-(Date.now()-started)-2000),null,19,true);
+        if(trap.proof||!trap.complete){
+          refuted.add(risky.i);
+          const rejected={i:risky.i,reason:trap.proof?'강제 방어 뒤 상대 승리 수순 확인':'강제 방어 뒤 응수 검사 미완료',replyTrap:trap.proof||null};
+          const alternative=best.candidates.find(m=>m.i!==risky.i&&inspect(board,m.i,p).legal&&
+            !inspect(board,m.i,p).fours.length);
+          best={...best,i:best.i===risky.i?(alternative?.i??best.i):best.i,
+            pv:best.i===risky.i?(alternative?.pv||[best.i]):best.pv,
+            shape:best.i===risky.i&&alternative?inspect(board,alternative.i,p):best.shape,
+            reason:alternative?'위험 후보 제외 · 대안 추가 검증':'현재 후보의 방어 미증명 · 대안 추가 검증',
+            rejected:[...(best.rejected||[]),rejected],unverifiedDefense:true};
+        }
+      }
+    }
     progress({...best,reason:best.reason+' · 심층 위협 검사 중'});
     const remaining=limit-(Date.now()-started);
     if(remaining>50){
       const extended=forest.analyze(board,p,remaining,lessons);
-      if(extended.i!=null&&inspect(board,extended.i,p).legal){
+      if(extended.i!=null&&inspect(board,extended.i,p).legal&&!refuted.has(extended.i)){
+        const opponentProof=i=>{
+          if(i==null)return null;
+          const shape=inspect(board,i,p);if(!shape.legal||shape.win.length)return null;
+          const after=board.slice();after[i]=p;
+          const proof=fast(after).forcingWin(3-p,13,Math.max(100,Math.min(500,limit*.04)));
+          return proof?validPV(after,3-p,proof):null;
+        };
+        const deepProof=opponentProof(extended.i),fastProof=opponentProof(best.i);
+        if(extended.lossProven&&deepProof&&!fastProof){
+          best={...best,reason:'모든 후보의 강제패배 확인 · 즉시 패배를 늦추는 저항 수',
+            rejected:[...(best.rejected||[]),{i:extended.i,reason:'착수 뒤 상대 강제승 확인',pv:deepProof}],
+            deepConflict:true,lossProven:true,forcedLoss:true,kind:'lost',engineVersion:'unified-4.3-honest-loss'};
+          best.ms=Date.now()-started;
+          return best;
+        }
         // A finite-width search score is not a proof. Only the engine's
         // separately verified forcing certificates set proven/lossProven.
         const pv=validPV(board,p,extended.pv);
         best={...extended,pv,proven:!!extended.proven&&pv.length===(extended.pv||[]).length,
           candidates:[{i:extended.i,pv,score:extended.score,status:extended.lossProven?'fallback':'deep'}],
-          engineVersion:'unified-4.0-deep',automatic:false};
+          rejected:[...(best.rejected||[]),...(extended.rejected||[])],
+          unverifiedDefense:!!refuted.size&&!extended.proven,
+          engineVersion:'unified-4.1-deep',automatic,autoReason:automatic?'위협 국면 심층 방어 검사 완료':extended.autoReason};
       }else{
-        const rejected=new Set((extended.rejected||[]).map(m=>m.i));
-        const alternative=best.candidates.find(m=>!rejected.has(m.i));
-        if(alternative)best={...best,i:alternative.i,pv:alternative.pv,score:alternative.score};
+        const rejected=new Set([...refuted,...(extended.rejected||[]).map(m=>m.i)]);
+        const alternative=best.candidates.find(m=>m.i===best.i&&!rejected.has(m.i))||
+          best.candidates.find(m=>!rejected.has(m.i)&&(!refuted.size||!inspect(board,m.i,p).fours.length));
+        if(alternative)best={...best,i:alternative.i,pv:alternative.pv,score:alternative.score,shape:inspect(board,alternative.i,p)};
         best.reason+=' · 심층 검사 미완료, 합법 후보 유지';best.fallback=true;
         best.rejected=[...(best.rejected||[]),...(extended.rejected||[])];
+        if(extended.lossProven){best.lossProven=true;best.forcedLoss=true;best.kind='lost';}
       }
     }
     best.ms=Date.now()-started;

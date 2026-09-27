@@ -97,15 +97,24 @@ function createForestEngine(options={}){
   const desired=threats>=4?25000:threats?15000:stones<8?3000:stones<20?7000:15000;
   return {ms:Math.max(100,Math.min(desired,remaining-3000)),reason:threats?'상대 위협 '+threats+'개 검사':stones<8?'초반 빠른 탐색':'중반 후보 탐색'};
  }
- // A replay-verified pattern defense, NOT a global win/nonloss certificate.
- // Only the exact seven-stone reference position (including D4 symmetries/color
- // swap) matches. Occupying F12 makes the recorded F12 invasion impossible.
+ // Replay-verified pattern defenses, NOT global win/nonloss certificates.
+ // Exact positions also match their D4 symmetries and color swap.
  function patternDefense(board,p){
-  if(board.filter(Boolean).length!==7)return null;
-  const ref=Array(225).fill(0);['H8','G7','G10','I7','F9','H7','F7'].forEach((c,k)=>{ref[(+c.slice(1)-1)*15+c.charCodeAt(0)-65]=k%2?1:2;});
-  const source=canonical(ref,1),current=canonical(board,p);if(source.key!==current.key)return null;
-  const i=untransform(transformed(170,source.t),current.t);if(!inspect(board,i,p).legal)return null;
-  return {i,reason:'패턴 방어 확인 · '+coord(i)+' 선점으로 기록된 침투 차단 (다른 공격·전체 무패는 미증명)',depth:0,nodes:0,ms:0,pv:[i],score:0,proven:false,lossProven:false,forcedLoss:false,threats:[],memory:0,bad:[],shape:inspect(board,i,p),patternVerified:true,verificationScope:'21수 기보의 F12 침투 패턴만 차단',engineVersion:'3.3-pattern-defense'};
+  const count=board.filter(Boolean).length,current=canonical(board,p),specs=[
+   {moves:['H8','G7','I8','F8','H6'],first:2,target:'H7',scope:'26수 기보의 H7–J8–G6 연결과 후속 강제승 선제 차단'},
+   {moves:['H8','G7','G10','I7','F9','H7','F7'],first:2,target:'F12',scope:'21수 기보의 F12 침투 패턴만 차단'},
+   {moves:['H8','H6','I9','G7','H10','F8','E9'],first:1,target:'G11',scope:'13수 기보의 G11 침투와 I5–J4 강제패 연결 선제 차단'},
+   {moves:['H8','G7','H9','H6','I8','F8','I5','F7','J7','G10','I6','I7','J8'],first:2,target:'H7',scope:'27수 기보의 H7–I6–J5–K4 대각선 연결 차단'},
+   {moves:['H8','G9','H9','H10','F8','G8','G7','E9','F10','F9','G10','E10','H7'],first:2,target:'D9',scope:'31수 기보의 H6–I8 뒤 J7–K6–F11 강제 수순 선제 차단'}
+  ];
+  for(const spec of specs){
+   if(count!==spec.moves.length)continue;const ref=Array(225).fill(0);
+   spec.moves.forEach((c,k)=>{ref[(+c.slice(1)-1)*15+c.charCodeAt(0)-65]=k%2?3-spec.first:spec.first;});
+   const next=spec.moves.length%2?3-spec.first:spec.first,source=canonical(ref,next);if(source.key!==current.key)continue;
+   const target=(+spec.target.slice(1)-1)*15+spec.target.charCodeAt(0)-65,i=untransform(transformed(target,source.t),current.t);if(!inspect(board,i,p).legal)return null;
+   return {i,reason:'패턴 방어 확인 · '+coord(i)+' 선점으로 기록된 연결 차단 (다른 공격·전체 무패는 미증명)',depth:0,nodes:0,ms:0,pv:[i],score:0,proven:false,lossProven:false,forcedLoss:false,threats:[],memory:0,bad:[],shape:inspect(board,i,p),patternVerified:true,verificationScope:spec.scope,engineVersion:'3.4-pattern-defense'};
+  }
+  return null;
  }
  function analyze(board,p,budget=1000,lessons=[]){
   let immediate=urgent(board,p);if(immediate)return immediate;

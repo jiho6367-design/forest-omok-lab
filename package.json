@@ -1,6 +1,6 @@
 {
   "name": "forest-omok-unified",
-  "version": "4.0.0",
+  "version": "5.7.0",
   "private": true,
   "description": "Offline Gomoku with green slime and yellow mushroom characters",
   "scripts": {
