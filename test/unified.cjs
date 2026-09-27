@@ -205,4 +205,20 @@ test('new-game search traces the 33-ply green loss back through three forced blo
   assert((at16.counterThreats||[]).some(x=>x.i===idx('D7')&&x.block===idx('C7')));
   const at18=strict.analyze(before(18),2,15000,[]);assert(at18.lossProven);
 });
+test('22-ply green loss exposes the forbidden E10 defense and rejects the earlier C8 trap',()=>{
+  const moves='H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7 G10 E6 C8 E7 E5 E9 B7'.split(' '),board=blank();
+  moves.forEach((c,k)=>{const p=k%2?2:1,s=strict.inspect(board,idx(c),p);assert(s.legal,`${k+1}/${c}`);assert.equal(s.win.length,0);board[idx(c)]=p;});
+  const before22=blank();moves.slice(0,21).forEach((c,k)=>before22[idx(c)]=k%2?2:1);
+  assert(!strict.inspect(before22,idx('E10'),2).legal);
+  const loss=strict.analyze(before22,2,25000,[]);
+  assert(loss.lossProven);assert.equal(loss.forbiddenDefense,idx('E10'));
+  assert.notEqual(loss.i,idx('E10'));assert.match(loss.reason,/E10.*3×3/);
+  const before18=blank();moves.slice(0,17).forEach((c,k)=>before18[idx(c)]=k%2?2:1);
+  const afterC8=before18.slice();afterC8[idx('C8')]=2;
+  const trap=strict.quietTrap(afterC8,2,12000,12,25,true);
+  assert(trap.complete&&trap.proof);assert.equal(trap.proof.block,idx('E7'));
+  const defense=strict.analyze(before18,2,25000,[]);
+  assert.notEqual(defense.i,idx('C8'));
+  assert((defense.rejected||[]).some(x=>x.i===idx('C8')&&x.replyTrap));
+});
 console.log(`${count} unified scenarios passed`);

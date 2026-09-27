@@ -13,14 +13,16 @@ function createEngine(options={}) {
   }
   function convert(board,p,r,started) {
     const first=r.moves?.[0],i=first?.i??null;
+    const forbiddenDefense=r.kind==='lost'?(r.danger||[]).find(j=>!inspect(board,j,p).legal):null;
     const reason=r.kind==='terminal'?'대국 종료':r.kind==='none'?'합법적인 착수 없음':
       r.kind==='win'?'정확한 5목 완성':r.kind==='forced'?'연속 위협 강제승 확인':
-      r.kind==='lost'?'강제패배 확인 · 계속 둘 수 있는 합법 후보':
+      r.kind==='lost'?(forbiddenDefense!=null?`상대 5목 방어점 ${forest.coord(forbiddenDefense)}은 3×3 금수 · 강제패배 확인`:'강제패배 확인 · 계속 둘 수 있는 합법 후보'):
       r.kind==='block'?'상대의 다음 5목을 막는 필수 방어':
       r.kind==='incomplete'?'임시 합법 후보 · 추가 계산 중':'공격과 방어를 비교한 추천';
     return {i,reason,depth:r.depth||0,nodes:r.nodes||0,ms:Date.now()-started,score:first?.score||0,
       pv:validPV(board,p,first?.pv),proven:['win','forced'].includes(r.kind),lossProven:r.kind==='lost',forcedLoss:r.kind==='lost',
       threats:r.danger||[],shape:i==null?null:inspect(board,i,p),urgent:r.kind==='win'||!!r.mandatoryDefense||(r.kind==='lost'&&!!r.danger?.length),
+      forbiddenDefense,
       defenseChecked:first?.status==='screened',fallback:!!r.fallback,kind:r.kind,
       autoReason:r.autoReason,automatic:r.automatic,screeningComplete:r.screeningComplete,
       candidates:(r.moves||[]).map(m=>({...m,pv:validPV(board,p,m.pv)})),rejected:r.rejectedMoves||[],
@@ -70,12 +72,22 @@ function createEngine(options={}) {
     // A quiet counterattack can refute a forced-looking defensive move even
     // when it creates no four. Reserve a bounded proof check before minimax
     // spends the whole 15-second budget on the same losing candidate.
-    if(limit>=12000&&board.filter(Boolean).length>=20&&board.filter(Boolean).length<=40&&best.i!=null&&!inspect(board,best.i,p).fours.length&&
+    if(limit>=12000&&board.filter(Boolean).length>=16&&board.filter(Boolean).length<=40&&
       forest.forcing(board,3-p,19,120).proof&&limit-(Date.now()-started)>7000){
-      const after=board.slice();after[best.i]=p;
-      const trap=forest.quietTrap(after,p,Math.min(5500,limit-(Date.now()-started)-6000),10,19,true);
-      if(trap.proof){refuted.add(best.i);best={...best,rejected:[...(best.rejected||[]),
-        {i:best.i,reason:'상대의 조용한 준비 수 뒤 강제패배 확인',replyTrap:trap.proof}],unverifiedDefense:true};}
+      for(const m of (best.candidates||[]).slice(0,limit>=20000?3:2)){
+        const shape=inspect(board,m.i,p);if(!shape.legal||shape.win.length||Date.now()-started>limit-6000)continue;
+        const after=board.slice();after[m.i]=p;
+        const direct=forest.forcing(after,3-p,19,Math.min(140,limit-(Date.now()-started)-6000));
+        const trap=direct.proof?null:forest.quietTrap(after,p,Math.min(5500,limit-(Date.now()-started)-6000),10,19,true);
+        if(direct.proof||trap?.proof){refuted.add(m.i);best={...best,rejected:[...(best.rejected||[]),
+          {i:m.i,reason:direct.proof?'상대의 직접 강제승 확인':'상대의 조용한 준비 수 뒤 강제패배 확인',
+            pv:direct.proof?.pv||[],replyTrap:trap?.proof||null}],unverifiedDefense:true};}
+      }
+      if(refuted.has(best.i)){
+        const alternative=best.candidates.find(m=>!refuted.has(m.i)&&!counterRisk.has(m.i)&&inspect(board,m.i,p).legal);
+        if(alternative)best={...best,i:alternative.i,pv:alternative.pv,shape:inspect(board,alternative.i,p),
+          reason:'강제패배 후보 제외 · 대안 추가 검증',unverifiedDefense:true};
+      }
     }
     if(limit>=20000&&limit-(Date.now()-started)>12000){
       const risky=(best.candidates||[]).find(m=>{

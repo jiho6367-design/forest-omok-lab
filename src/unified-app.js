@@ -13,7 +13,7 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority"><option value="strict">3·3 금지 우선 (수읽기 기존 규칙)</option><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.9.0';versionBadge.title='독립 공격축 평가와 강제 방어 뒤 반격 검사 · 상대 수 1초 예측';versionBadge.setAttribute('aria-label','통합 버전 5.9.0');
+versionBadge.textContent='통합 v5.10.0';versionBadge.title='금수 방어와 조용한 강제승 준비 수 검사 · 상대 수 1초 예측';versionBadge.setAttribute('aria-label','통합 버전 5.10.0');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
 wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 아래에서 선택한 시간으로 분석합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 $('budget').replaceChildren();
@@ -66,7 +66,9 @@ function acceptResult(result,partial=false){
   rec=result;lastProgress=result;
   if(partial)setAnalysisStatus('분석 중','현재 표시는 임시 후보입니다. 계산이 끝나면 최종 추천으로 바뀝니다.','thinking');
   else if(result.proven)setAnalysisStatus('분석 완료 · 강제승','확인한 강제승 수순입니다. 추천 좌표를 두세요.','urgent');
-  else if(result.lossProven)setAnalysisStatus('분석 완료 · 불리','강제패배가 확인되었지만, 계속 둘 수 있는 합법 후보를 표시합니다.','warning');
+  else if(result.lossProven)setAnalysisStatus('분석 완료 · 강제패배',result.forbiddenDefense!=null?
+    `상대의 ${E.coord(result.forbiddenDefense)} 5목을 막는 수가 3×3 금수입니다. 표시된 합법 수는 승리 수가 아닙니다.`:
+    '강제패배가 확인되었습니다. 표시된 합법 수는 승리 수가 아닙니다.','warning');
   else if(result.i==null)setAnalysisStatus('분석 완료 · 추천 없음','검사한 후보가 배제되었고 안전한 대안을 확인하지 못했습니다. 더 이른 수에서 복기하세요.','warning');
   else if(result.unverifiedDefense)setAnalysisStatus('분석 완료 · 방어 미증명','강제패배가 확인되었거나 응수 검사가 끝나지 않은 위험 후보를 제외했습니다. 현재 좌표는 합법 대안이며 무패는 확인되지 않았습니다.','warning');
   else setAnalysisStatus('분석 완료','아래 1순위가 최종 추천입니다. 해당 좌표를 두세요.','complete');
