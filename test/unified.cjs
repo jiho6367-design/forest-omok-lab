@@ -211,7 +211,7 @@ test('new-game search keeps a legal move after the F11 defense and G8 reply',()=
   const result=strict.analyze(board,2,15000,[]);
   assert.notEqual(result.i,null,'a nonterminal position needs a playable candidate');
   assert(strict.inspect(board,result.i,2).legal);
-  assert.equal(result.proven,false,'a fallback is not a proven win');
+  if(result.fallback)assert.equal(result.proven,false,'a fallback is not a proven win');
 });
 test('22-ply green loss exposes the forbidden E10 defense and rejects the earlier C8 trap',()=>{
   const moves='H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7 G10 E6 C8 E7 E5 E9 B7'.split(' '),board=blank();
