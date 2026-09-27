@@ -167,4 +167,28 @@ test('25-second analysis rejects the I5 forced-reply trap without claiming a saf
   assert((r.rejected||[]).some(x=>x.i===idx('I5')));
   assert(strict.inspect(board,r.i,2).legal);
 });
+test('new-game search catches the forced-block counterattack in the 15-ply green loss',()=>{
+  const moves='H8 H6 H10 G7 F8 I5 G9 E7 F10 I7 G10 F7 H7 J4 K3'.split(' '),board=blank();
+  moves.forEach((c,k)=>{const p=k%2?2:1,s=strict.inspect(board,idx(c),p);assert(s.legal,`${k+1}/${c}`);assert.equal(s.win.length,0);board[idx(c)]=p;});
+  assert(strict.analyze(board,2,1000,[]).lossProven);
+  const pre=blank();moves.slice(0,11).forEach((c,k)=>pre[idx(c)]=k%2?2:1);
+  const defense=strict.analyze(pre,2,15000,[]);
+  assert.equal(defense.i,idx('E10'));
+  assert((defense.counterThreats||[]).some(x=>x.i===idx('F7')&&x.block===idx('H7')));
+  pre[idx('E10')]=2;assert(!strict.forcing(pre,1,21,1000).proof);
+});
+test('new-game search rejects the 30-ply loss setup and never reuses a refuted fallback',()=>{
+  const moves='K4 K5 L5 M6 J5 J4 L3 I6 L6 L4 L7 J7 M8 K6 L8 L9 K8 J8 K3 I7 M2 N1 N8 O8 J6 H6 K9 G5 F4 G7'.split(' '),board=blank();
+  moves.forEach((c,k)=>{const p=k%2?1:2,s=strict.inspect(board,idx(c),p);assert(s.legal,`${k+1}/${c}`);assert.equal(s.win.length,0);board[idx(c)]=p;});
+  assert(strict.analyze(board,2,1000,[]).lossProven);
+  const pre=blank();moves.slice(0,22).forEach((c,k)=>pre[idx(c)]=k%2?1:2);
+  const defense=strict.analyze(pre,2,15000,[]);
+  assert.equal(defense.i,idx('J6'));
+  assert((defense.counterThreats||[]).some(x=>x.i===idx('N8')&&x.block===idx('O8')));
+  const late=blank();moves.slice(0,24).forEach((c,k)=>late[idx(c)]=k%2?1:2);
+  const result=strict.analyze(late,2,15000,[]);
+  assert.notEqual(result.i,idx('J6'));
+  assert((result.rejected||[]).some(x=>x.i===idx('J6')));
+  assert(result.unverifiedDefense||result.lossProven);
+});
 console.log(`${count} unified scenarios passed`);

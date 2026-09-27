@@ -102,14 +102,19 @@ function createEngine(options={}) {
         best={...extended,pv,proven:!!extended.proven&&pv.length===(extended.pv||[]).length,
           candidates:[{i:extended.i,pv,score:extended.score,status:extended.lossProven?'fallback':'deep'}],
           rejected:[...(best.rejected||[]),...(extended.rejected||[])],
-          unverifiedDefense:!!refuted.size&&!extended.proven,
+          unverifiedDefense:!!extended.unverifiedDefense||!!refuted.size&&!extended.proven,
           engineVersion:'unified-4.1-deep',automatic,autoReason:automatic?'위협 국면 심층 방어 검사 완료':extended.autoReason};
       }else{
-        const rejected=new Set([...refuted,...(extended.rejected||[]).map(m=>m.i)]);
+        const rejected=new Set([...refuted,...(extended.rejected||[]).map(m=>m.i)]),risky=new Set((extended.counterThreats||[]).map(m=>m.i));
         const alternative=best.candidates.find(m=>m.i===best.i&&!rejected.has(m.i))||
-          best.candidates.find(m=>!rejected.has(m.i)&&(!refuted.size||!inspect(board,m.i,p).fours.length));
+          best.candidates.find(m=>!rejected.has(m.i)&&!risky.has(m.i)&&(!refuted.size||!inspect(board,m.i,p).fours.length));
         if(alternative)best={...best,i:alternative.i,pv:alternative.pv,score:alternative.score,shape:inspect(board,alternative.i,p)};
-        best.reason+=' · 심층 검사 미완료, 합법 후보 유지';best.fallback=true;
+        else if(rejected.has(best.i)||risky.has(best.i)){
+          const pool=forest.candidates(board).filter(i=>!rejected.has(i)&&!risky.has(i)&&inspect(board,i,p).legal);
+          pool.sort((a,c)=>{const x=board.slice(),y=board.slice();x[a]=p;y[c]=p;return forest.evaluate(y,p)-forest.evaluate(x,p);});
+          const i=pool[0]??null;best={...best,i,pv:i==null?[]:[i],shape:i==null?null:inspect(board,i,p)};
+        }
+        best.reason+=' · 심층 검사 미완료, 방어 미증명';best.fallback=true;best.unverifiedDefense=true;
         best.rejected=[...(best.rejected||[]),...(extended.rejected||[])];
         if(extended.lossProven){best.lossProven=true;best.forcedLoss=true;best.kind='lost';}
       }

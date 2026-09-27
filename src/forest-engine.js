@@ -136,17 +136,24 @@ function createForestEngine(options={}){
   for(let m of roots)m.order=m.score+(m.a.fours.length?1600000:0)+(dangerLine.includes(m.i)?800000:0)+(good.includes(m.i)?1000:0)-(bad.includes(m.i)?12000:0);
   roots.sort((a,c)=>c.order-a.order);
   let screenEnd=Math.min(deadline,start+budget*.64),checked=[],unknown=[],screenSlice=Math.max(22,budget*.04);
-  for(let m of roots){if(Date.now()>=screenEnd){unknown.push(m);continue;}b[m.i]=p;let r;try{r=timedProof(3-p,Math.min(screenSlice,screenEnd-Date.now()));if(!r.proof&&r.complete&&m.a.fours.length){let trap=forcedReplyTrap(b,p,Math.max(1,Math.min(budget*.3,screenEnd-Date.now())),null,limits.forcing,true);m.replyTrap=trap.proof;r.complete=trap.complete;}else if(!r.proof&&r.complete&&checked.length<limits.screen){let trap=quietTrap(b,p,Math.max(1,Math.min(budget*.12,screenEnd-Date.now())),limits.quiet,limits.forcing,true);m.replyTrap=trap.proof;m.quietChecked=trap.complete;r.complete=trap.complete;}}finally{b[m.i]=0;}m.lossProof=r.proof;m.screened=r.complete;checked.push(m);}
+  for(let m of roots){if(Date.now()>=screenEnd){unknown.push(m);continue;}b[m.i]=p;let r;try{
+   // A single winning endpoint is a forced reply, not proof that the attack is safe.
+   // Search the opponent's counterattack on the board after that exact block.
+   if(m.a.fours.length&&Date.now()<screenEnd){const ends=winning(b,p);if(ends.length===1&&!winning(b,3-p).length&&inspect(b,ends[0],3-p).legal){
+    b[ends[0]]=3-p;try{const counter=forcing(b,3-p,limits.forcing,Math.max(1,Math.min(140,screenEnd-Date.now())),proofCache);if(counter.complete&&counter.proof)m.counterThreat={block:ends[0],pv:counter.proof.pv};}finally{b[ends[0]]=0;}
+   }}
+   r=timedProof(3-p,Math.min(screenSlice,screenEnd-Date.now()));if(!r.proof&&r.complete&&m.a.fours.length){let trap=forcedReplyTrap(b,p,Math.max(1,Math.min(budget*.3,screenEnd-Date.now())),null,limits.forcing,true);m.replyTrap=trap.proof;r.complete=trap.complete;}else if(!r.proof&&r.complete&&checked.length<limits.screen){let trap=quietTrap(b,p,Math.max(1,Math.min(budget*.12,screenEnd-Date.now())),limits.quiet,limits.forcing,true);m.replyTrap=trap.proof;m.quietChecked=trap.complete;r.complete=trap.complete;}
+  }finally{b[m.i]=0;}m.lossProof=r.proof;m.screened=r.complete;checked.push(m);}
   // 전체 패배를 선언할 때만 주변 후보 밖의 합법적인 빈칸까지 확인한다.
   // 근처 후보만 모두 졌다고 전역 패배를 확정하면 안 된다.
   if(!enemyWins.length&&!unknown.length&&checked.every(m=>m.lossProof||m.replyTrap))for(let i=0;i<225;i++){
    if(b[i]||roots.some(m=>m.i===i))continue;let a=inspect(b,i,p);if(!a.legal)continue;let m={i,a,score:0,order:0};roots.push(m);
    if(Date.now()>=deadline){unknown.push(m);continue;}b[i]=p;let r;try{r=timedProof(3-p,screenSlice);}finally{b[i]=0;}m.lossProof=r.proof;m.screened=r.complete;checked.push(m);
   }
-  let safe=checked.filter(m=>m.screened&&!m.lossProof&&!m.replyTrap),undecided=[...checked.filter(m=>!m.screened&&!m.lossProof&&!m.replyTrap),...unknown],losing=checked.filter(m=>m.lossProof||m.replyTrap);
+  let safe=checked.filter(m=>m.screened&&!m.lossProof&&!m.replyTrap&&!m.counterThreat),undecided=[...checked.filter(m=>!m.screened&&!m.lossProof&&!m.replyTrap&&!m.counterThreat),...unknown],risky=checked.filter(m=>m.counterThreat&&!m.lossProof&&!m.replyTrap),losing=checked.filter(m=>m.lossProof||m.replyTrap);
   // 증명된 패배 수는 평가점수나 기억 보너스로 다시 추천하지 않는다.
-  let options=safe.length?safe:undecided.length?undecided:losing;
-  let lossProven=!safe.length&&!undecided.length&&losing.length===roots.length;
+  let options=safe.length?safe:undecided.length?undecided:risky.length?risky:losing;
+  let lossProven=!safe.length&&!undecided.length&&!risky.length&&losing.length===roots.length;
   options.sort((a,c)=>(c.score-(bad.includes(c.i)?12000:0))-(a.score-(bad.includes(a.i)?12000:0)));
   const staticEval=q=>evaluate(b,q),rankCache=new Map();
   const searchMoves=q=>{const key=b.join('')+q;let r=rankCache.get(key);if(!r){r=ranked(b,q);if(rankCache.size<10000)rankCache.set(key,r);}return r;};
@@ -168,15 +175,15 @@ function createForestEngine(options={}){
     if(direct.proof||!direct.complete)finalGuard={complete:direct.complete,proof:null,directProof:direct.proof};
     else finalGuard=best.a.fours.length?forcedReplyTrap(b,p,Math.max(1,totalDeadline-Date.now()),null,limits.forcing,true):quietTrap(b,p,Math.max(1,totalDeadline-Date.now()),limits.quiet,limits.forcing,true);
    }finally{b[best.i]=0;}
-   if(finalGuard.proof||finalGuard.directProof){best.replyTrap=finalGuard.proof;best.lossProof=finalGuard.directProof||best.lossProof;if(!losing.includes(best))losing.push(best);let alternative=options.find(m=>m!==best&&!m.lossProof&&!m.replyTrap);
-    if(!alternative)return finish(null,'검사한 추천 후보에서 강제패배 발견 · 더 이른 국면 복기 필요',{rejected:losing.map(m=>({i:m.i,pv:m.lossProof?.pv||[],replyTrap:m.replyTrap})),finalGuard,limits});
+   if(finalGuard.proof||finalGuard.directProof){best.replyTrap=finalGuard.proof;best.lossProof=finalGuard.directProof||best.lossProof;if(!losing.includes(best))losing.push(best);let alternative=options.find(m=>m!==best&&!m.lossProof&&!m.replyTrap&&!m.counterThreat);
+    if(!alternative)return finish(null,'검사한 추천 후보에서 강제패배 발견 · 더 이른 국면 복기 필요',{rejected:losing.map(m=>({i:m.i,pv:m.lossProof?.pv||[],replyTrap:m.replyTrap})),counterThreats:checked.filter(m=>m.counterThreat).map(m=>({i:m.i,...m.counterThreat})),finalGuard,limits});
     best=alternative;pv=[best.i];score=best.score;depth=0;best.screened=false;avoidedTrap=true;
    }
   }
   let reason=enemyWins.length?'상대의 다음 5목 차단':dangerLine.length?'4-3·연속 4 강제 공격 선제 방어':enemy43.length?'상대 4-3 위협 대응 후보':best.a.fork43?'4-3 동시 위협 생성':'공격과 수비를 함께 고려한 추천';
   if(lossProven)reason='모든 방어 후보에서 연속 4 강제 패배 확인';else if(!safe.length)reason='계산 완료 (제한 탐색) · 방어 증명은 아직 없음';
   if(avoidedTrap)reason=(finalGuard.directProof?'연속 4':'준비 수 뒤')+' 강제패배 후보 제외 · 대안은 추가 검증 필요';else if(finalGuard&&!finalGuard.complete){best.screened=false;reason+=' · 계산 종료, 최종 방어 증명 없음';}
-  return finish(best,reason,{depth,pv,score:lossProven?-MATE:score,forcedLoss:lossProven,lossProven,threats:[...new Set([...enemyWins,...enemy43,...dangerLine.slice(0,1)])],dangerLine,rejected:losing.map(m=>({i:m.i,pv:m.lossProof?.pv||[],replyTrap:m.replyTrap})),defenseChecked:!!best.screened,safety:'연속 4 및 강제 방어 뒤 역공 제한 탐색 · 무패 보장 아님'});
+  return finish(best,reason,{depth,pv,score:lossProven?-MATE:score,forcedLoss:lossProven,lossProven,threats:[...new Set([...enemyWins,...enemy43,...dangerLine.slice(0,1)])],dangerLine,rejected:losing.map(m=>({i:m.i,pv:m.lossProof?.pv||[],replyTrap:m.replyTrap})),counterThreats:checked.filter(m=>m.counterThreat).map(m=>({i:m.i,...m.counterThreat})),unverifiedDefense:!!best.counterThreat,defenseChecked:!!best.screened&&!best.counterThreat,safety:'연속 4 및 강제 방어 뒤 역공 제한 탐색 · 무패 보장 아님'});
  }
  function reviewMove(board,p,i,budget=1300,lessons=[]){
   let s=inspect(board,i,p);if(!s.legal)return {i:null,reason:'불법 착수',reviewLabel:'기보 규칙 오류'};
