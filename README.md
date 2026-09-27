@@ -72,6 +72,7 @@ npm test
 - `src/app.js`, `src/unified-app.js`, `src/template.html`: 통합 화면 및 저장
 - `test/reader`: 수읽기 원본의 60개 회귀 시나리오
 - `test/unified.cjs`: 규칙 일치, 기존 기보, 필수 방어, 진행 결과, 시간 상한, 심층 분석, 가져오기, 오프라인 패키징 검사
+- `tools/prove-loss.cjs`: 오프라인 강제승 연구 도구. 예: `node tools/prove-loss.cjs "H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9" 5 180 "" white black-first "" wide`. `proof`가 있으면 모든 합법 응수를 검사한 수순이고, `proof:null`은 표시된 깊이·후보 범위에서 승리를 찾지 못했다는 뜻입니다. `searchComplete:false`는 시간 초과 또는 내부 위협 검사 미완료를 뜻합니다. 어느 경우에도 대국 전체의 승패 판정으로 확대하지 않습니다.
 
 `build.cjs`가 두 실행 경로를 같은 내용으로 생성합니다. 생성된 HTML을 직접 수정하지 마세요.
 
