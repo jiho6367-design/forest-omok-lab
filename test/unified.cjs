@@ -170,7 +170,7 @@ test('25-second analysis rejects the I5 forced-reply trap without claiming a saf
 test('new-game search catches the forced-block counterattack in the 15-ply green loss',()=>{
   const moves='H8 H6 H10 G7 F8 I5 G9 E7 F10 I7 G10 F7 H7 J4 K3'.split(' '),board=blank();
   moves.forEach((c,k)=>{const p=k%2?2:1,s=strict.inspect(board,idx(c),p);assert(s.legal,`${k+1}/${c}`);assert.equal(s.win.length,0);board[idx(c)]=p;});
-  assert(strict.analyze(board,2,1000,[]).lossProven);
+  assert(strict.forcing(board,1,21,1000).proof);
   const pre=blank();moves.slice(0,11).forEach((c,k)=>pre[idx(c)]=k%2?2:1);
   const defense=strict.analyze(pre,2,15000,[]);
   assert.equal(defense.i,idx('E10'));
@@ -190,5 +190,19 @@ test('new-game search rejects the 30-ply loss setup and never reuses a refuted f
   assert.notEqual(result.i,idx('J6'));
   assert((result.rejected||[]).some(x=>x.i===idx('J6')));
   assert(result.unverifiedDefense||result.lossProven);
+});
+test('new-game search traces the 33-ply green loss back through three forced blocks',()=>{
+  const moves='H8 H6 H10 G7 F8 I5 G9 E7 F10 I7 G10 E10 F9 F7 H7 D7 C7 J4 K3 H9 I10 J10 E11 D12 F11 F12 I11 J12 H11 G11 I12 E8 J13'.split(' '),board=blank();
+  moves.forEach((c,k)=>{const p=k%2?2:1,s=strict.inspect(board,idx(c),p);assert(s.legal,`${k+1}/${c}`);assert.equal(!!s.win.length,k===32,`finish ${k+1}`);board[idx(c)]=p;});
+  const before=n=>{const b=blank();moves.slice(0,n-1).forEach((c,k)=>b[idx(c)]=k%2?2:1);return b;};
+  const sixth=before(6),i5=sixth.slice(),i7=sixth.slice();i5[idx('I5')]=2;i7[idx('I7')]=2;
+  assert(strict.evaluate(i7,2)>strict.evaluate(i5,2),'independent attack axes outrank the single line');
+  assert.equal(strict.analyze(before(4),2,15000,[]).i,idx('G6'));
+  assert.equal(strict.analyze(sixth,2,15000,[]).i,idx('I7'));
+  const at14=strict.analyze(before(14),2,15000,[]);assert.equal(at14.i,idx('F11'));
+  assert((at14.counterThreats||[]).some(x=>x.i===idx('F7')&&x.block===idx('H7')));
+  const at16=strict.analyze(before(16),2,15000,[]);assert.equal(at16.i,idx('H11'));
+  assert((at16.counterThreats||[]).some(x=>x.i===idx('D7')&&x.block===idx('C7')));
+  const at18=strict.analyze(before(18),2,15000,[]);assert(at18.lossProven);
 });
 console.log(`${count} unified scenarios passed`);

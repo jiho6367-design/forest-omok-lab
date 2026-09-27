@@ -53,7 +53,30 @@ function createEngine(options={}) {
     best.memory=memory.length;
     best.patternHint=forest.patternDefense(board,p)?.i??null;
     if(!deep||best.proven||best.lossProven||best.kind==='terminal'||best.i==null)return best;
-    const refuted=new Set();
+    const refuted=new Set(),counterRisk=new Map();
+    if(limit>=8000&&board.filter(Boolean).length<=40)for(const m of (best.candidates||[]).slice(0,3)){
+      const shape=inspect(board,m.i,p);if(!shape.legal||!shape.fours.length||shape.win.length)continue;
+      const after=board.slice();after[m.i]=p;const ends=forest.winning(after,p);
+      if(ends.length!==1||forest.winning(after,3-p).length||!inspect(after,ends[0],3-p).legal)continue;
+      after[ends[0]]=3-p;
+      const counter=forest.forcing(after,3-p,19,Math.min(140,Math.max(1,limit-(Date.now()-started)-1000)));
+      if(counter.complete&&counter.proof)counterRisk.set(m.i,{i:m.i,block:ends[0],pv:counter.proof.pv});
+    }
+    if(counterRisk.has(best.i)){
+      const alternative=best.candidates.find(m=>!counterRisk.has(m.i)&&inspect(board,m.i,p).legal);
+      if(alternative)best={...best,i:alternative.i,pv:alternative.pv,shape:inspect(board,alternative.i,p),
+        reason:'상대가 강제 방어한 뒤의 반격 위험 제외 · 대안 추가 검증',unverifiedDefense:true};
+    }
+    // A quiet counterattack can refute a forced-looking defensive move even
+    // when it creates no four. Reserve a bounded proof check before minimax
+    // spends the whole 15-second budget on the same losing candidate.
+    if(limit>=12000&&board.filter(Boolean).length>=20&&board.filter(Boolean).length<=40&&best.i!=null&&!inspect(board,best.i,p).fours.length&&
+      forest.forcing(board,3-p,19,120).proof&&limit-(Date.now()-started)>7000){
+      const after=board.slice();after[best.i]=p;
+      const trap=forest.quietTrap(after,p,Math.min(5500,limit-(Date.now()-started)-6000),10,19,true);
+      if(trap.proof){refuted.add(best.i);best={...best,rejected:[...(best.rejected||[]),
+        {i:best.i,reason:'상대의 조용한 준비 수 뒤 강제패배 확인',replyTrap:trap.proof}],unverifiedDefense:true};}
+    }
     if(limit>=20000&&limit-(Date.now()-started)>12000){
       const risky=(best.candidates||[]).find(m=>{
         const shape=inspect(board,m.i,p);if(!shape.legal||!shape.fours.length)return false;
@@ -66,7 +89,7 @@ function createEngine(options={}) {
         if(trap.proof||!trap.complete){
           refuted.add(risky.i);
           const rejected={i:risky.i,reason:trap.proof?'강제 방어 뒤 상대 승리 수순 확인':'강제 방어 뒤 응수 검사 미완료',replyTrap:trap.proof||null};
-          const alternative=best.candidates.find(m=>m.i!==risky.i&&inspect(board,m.i,p).legal&&
+          const alternative=best.candidates.find(m=>m.i!==risky.i&&!counterRisk.has(m.i)&&inspect(board,m.i,p).legal&&
             !inspect(board,m.i,p).fours.length);
           best={...best,i:best.i===risky.i?(alternative?.i??best.i):best.i,
             pv:best.i===risky.i?(alternative?.pv||[best.i]):best.pv,
@@ -80,7 +103,7 @@ function createEngine(options={}) {
     const remaining=limit-(Date.now()-started);
     if(remaining>50){
       const extended=forest.analyze(board,p,remaining,lessons);
-      if(extended.i!=null&&inspect(board,extended.i,p).legal&&!refuted.has(extended.i)){
+      if(extended.i!=null&&inspect(board,extended.i,p).legal&&!refuted.has(extended.i)&&(!counterRisk.has(extended.i)||extended.proven)){
         const opponentProof=i=>{
           if(i==null)return null;
           const shape=inspect(board,i,p);if(!shape.legal||shape.win.length)return null;
@@ -102,11 +125,12 @@ function createEngine(options={}) {
         best={...extended,pv,proven:!!extended.proven&&pv.length===(extended.pv||[]).length,
           candidates:[{i:extended.i,pv,score:extended.score,status:extended.lossProven?'fallback':'deep'}],
           rejected:[...(best.rejected||[]),...(extended.rejected||[])],
+          counterThreats:[...counterRisk.values(),...(extended.counterThreats||[])],
           unverifiedDefense:!!extended.unverifiedDefense||!!refuted.size&&!extended.proven,
           engineVersion:'unified-4.1-deep',automatic,autoReason:automatic?'위협 국면 심층 방어 검사 완료':extended.autoReason};
       }else{
-        const rejected=new Set([...refuted,...(extended.rejected||[]).map(m=>m.i)]),risky=new Set((extended.counterThreats||[]).map(m=>m.i));
-        const alternative=best.candidates.find(m=>m.i===best.i&&!rejected.has(m.i))||
+        const rejected=new Set([...refuted,...(extended.rejected||[]).map(m=>m.i)]),risky=new Set([...counterRisk.keys(),...(extended.counterThreats||[]).map(m=>m.i)]);
+        const alternative=best.candidates.find(m=>m.i===best.i&&!rejected.has(m.i)&&!risky.has(m.i))||
           best.candidates.find(m=>!rejected.has(m.i)&&!risky.has(m.i)&&(!refuted.size||!inspect(board,m.i,p).fours.length));
         if(alternative)best={...best,i:alternative.i,pv:alternative.pv,score:alternative.score,shape:inspect(board,alternative.i,p)};
         else if(rejected.has(best.i)||risky.has(best.i)){
@@ -116,6 +140,7 @@ function createEngine(options={}) {
         }
         best.reason+=' · 심층 검사 미완료, 방어 미증명';best.fallback=true;best.unverifiedDefense=true;
         best.rejected=[...(best.rejected||[]),...(extended.rejected||[])];
+        best.counterThreats=[...counterRisk.values(),...(extended.counterThreats||[])];
         if(extended.lossProven){best.lossProven=true;best.forcedLoss=true;best.kind='lost';}
       }
     }

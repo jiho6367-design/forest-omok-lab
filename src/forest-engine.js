@@ -82,13 +82,22 @@ function createForestEngine(options={}){
  }
  const limitsFor=budget=>budget>=24000?{forcing:25,quiet:14,screen:16,root:32,branch:18,depth:12}:budget>=12000?{forcing:19,quiet:10,screen:12,root:28,branch:16,depth:10}:budget>=7000?{forcing:15,quiet:6,screen:8,root:22,branch:12,depth:8}:{forcing:11,quiet:4,screen:4,root:16,branch:9,depth:6};
  const windows=[];
- for(let y=0;y<15;y++)for(let x=0;x<15;x++)for(let [dx,dy]of D){if(!inside(x+4*dx,y+4*dy))continue;windows.push({cells:Array.from({length:5},(_,k)=>(y+k*dy)*15+x+k*dx),before:inside(x-dx,y-dy)?(y-dy)*15+x-dx:-1,after:inside(x+5*dx,y+5*dy)?(y+5*dy)*15+x+5*dx:-1});}
+ for(let y=0;y<15;y++)for(let x=0;x<15;x++)for(let [axis,[dx,dy]]of D.entries()){if(!inside(x+4*dx,y+4*dy))continue;windows.push({axis,cells:Array.from({length:5},(_,k)=>(y+k*dy)*15+x+k*dx),before:inside(x-dx,y-dy)?(y-dy)*15+x-dx:-1,after:inside(x+5*dx,y+5*dy)?(y+5*dy)*15+x+5*dx:-1});}
  function evaluate(b,p){
-  let score=0,weights=[0,2,18,160,3500,0];
-  for(const w of windows){let mine=0,theirs=0;for(const i of w.cells){mine+=b[i]===p?1:0;theirs+=b[i]===3-p?1:0;}
+  let score=0,weights=[0,2,18,160,3500,0],early=b.filter(Boolean).length<=12;
+  if(!early){for(const w of windows){let mine=0,theirs=0;for(const i of w.cells){mine+=b[i]===p?1:0;theirs+=b[i]===3-p?1:0;}
    if(!theirs&&b[w.before]!==p&&b[w.after]!==p)score+=weights[mine];
    if(!mine&&b[w.before]!==3-p&&b[w.after]!==3-p)score-=weights[theirs];
-  }return Math.max(-1e6,Math.min(1e6,score));
+  }return Math.max(-1e6,Math.min(1e6,score));}
+  const mineAxes=[false,false,false,false],theirAxes=[false,false,false,false];
+  for(const w of windows){let mine=0,theirs=0;for(const i of w.cells){mine+=b[i]===p?1:0;theirs+=b[i]===3-p?1:0;}
+   if(!theirs&&b[w.before]!==p&&b[w.after]!==p){score+=weights[mine];if(mine>=2)mineAxes[w.axis]=true;}
+   if(!mine&&b[w.before]!==3-p&&b[w.after]!==3-p){score-=weights[theirs];if(theirs>=2)theirAxes[w.axis]=true;}
+  }
+  // A single long line is brittle when the opponent has several independent
+  // open axes. Keep this positional bonus small beside a real four or five.
+  score+=60*(Math.max(0,mineAxes.filter(Boolean).length-1)-Math.max(0,theirAxes.filter(Boolean).length-1));
+  return Math.max(-1e6,Math.min(1e6,score));
  }
  function suggestBudget(board,p,remaining=40000){
   const immediate=urgent(board,p);if(immediate)return {ms:100,reason:'즉시 승리·필수 방어'};
@@ -119,7 +128,7 @@ function createForestEngine(options={}){
  function analyze(board,p,budget=1000,lessons=[]){
   let immediate=urgent(board,p);if(immediate)return immediate;
   const pattern=patternDefense(board,p);if(pattern)return pattern;
-  let b=board.slice(),start=Date.now(),totalDeadline=start+budget,deadline=start+budget*(budget>=12000?.72:1),nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget);
+  let b=board.slice(),start=Date.now(),totalDeadline=start+budget,deadline=start+budget*(budget>=12000?.72:1),nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),counterGuard=b.filter(Boolean).length<=40;
   const check=()=>{nodes++;if(Date.now()>=deadline)throw TIME;};
   const timedProof=(q,ms)=>{let r=forcing(b,q,limits.forcing,Math.max(1,Math.min(ms,deadline-Date.now())),proofCache);nodes+=r.nodes;return r;};
   let roots=ranked(b,p),can=canonical(b,p),memory=lessons.filter(l=>l.key===can.key),bad=memory.map(l=>untransform(l.bad,can.t)),good=memory.map(l=>untransform(l.good,can.t));
@@ -139,7 +148,7 @@ function createForestEngine(options={}){
   for(let m of roots){if(Date.now()>=screenEnd){unknown.push(m);continue;}b[m.i]=p;let r;try{
    // A single winning endpoint is a forced reply, not proof that the attack is safe.
    // Search the opponent's counterattack on the board after that exact block.
-   if(m.a.fours.length&&Date.now()<screenEnd){const ends=winning(b,p);if(ends.length===1&&!winning(b,3-p).length&&inspect(b,ends[0],3-p).legal){
+   if(counterGuard&&m.a.fours.length&&Date.now()<screenEnd){const ends=winning(b,p);if(ends.length===1&&!winning(b,3-p).length&&inspect(b,ends[0],3-p).legal){
     b[ends[0]]=3-p;try{const counter=forcing(b,3-p,limits.forcing,Math.max(1,Math.min(140,screenEnd-Date.now())),proofCache);if(counter.complete&&counter.proof)m.counterThreat={block:ends[0],pv:counter.proof.pv};}finally{b[ends[0]]=0;}
    }}
    r=timedProof(3-p,Math.min(screenSlice,screenEnd-Date.now()));if(!r.proof&&r.complete&&m.a.fours.length){let trap=forcedReplyTrap(b,p,Math.max(1,Math.min(budget*.3,screenEnd-Date.now())),null,limits.forcing,true);m.replyTrap=trap.proof;r.complete=trap.complete;}else if(!r.proof&&r.complete&&checked.length<limits.screen){let trap=quietTrap(b,p,Math.max(1,Math.min(budget*.12,screenEnd-Date.now())),limits.quiet,limits.forcing,true);m.replyTrap=trap.proof;m.quietChecked=trap.complete;r.complete=trap.complete;}
