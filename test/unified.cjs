@@ -205,6 +205,14 @@ test('new-game search traces the 33-ply green loss back through three forced blo
   assert((at16.counterThreats||[]).some(x=>x.i===idx('D7')&&x.block===idx('C7')));
   const at18=strict.analyze(before(18),2,15000,[]);assert(at18.lossProven);
 });
+test('new-game search keeps a legal move after the F11 defense and G8 reply',()=>{
+  const moves='H8 H6 H10 G7 F8 I5 G9 E7 F10 I7 G10 E10 F9 F11 G8'.split(' '),board=blank();
+  moves.forEach((c,k)=>{const p=k%2?2:1,s=strict.inspect(board,idx(c),p);assert(s.legal);assert.equal(s.win.length,0);board[idx(c)]=p;});
+  const result=strict.analyze(board,2,15000,[]);
+  assert.notEqual(result.i,null,'a nonterminal position needs a playable candidate');
+  assert(strict.inspect(board,result.i,2).legal);
+  assert.equal(result.proven,false,'a fallback is not a proven win');
+});
 test('22-ply green loss exposes the forbidden E10 defense and rejects the earlier C8 trap',()=>{
   const moves='H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7 G10 E6 C8 E7 E5 E9 B7'.split(' '),board=blank();
   moves.forEach((c,k)=>{const p=k%2?2:1,s=strict.inspect(board,idx(c),p);assert(s.legal,`${k+1}/${c}`);assert.equal(s.win.length,0);board[idx(c)]=p;});

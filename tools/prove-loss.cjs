@@ -12,6 +12,15 @@ function rankedAttack(b){return engine.candidates(b).filter(i=>engine.inspect(b,
  const s=engine.inspect(b,i,attacker);b[i]=attacker;const evalScore=engine.evaluate(b,attacker);b[i]=0;
  return {i,score:(s.win.length?1e9:0)+(s.fours.length?1e6:0)+(s.threes.length?1e4:0)+evalScore};
 }).sort((a,c)=>c.score-a.score).map(x=>x.i).sort((a,c)=>preferred?(c===idx(preferred))-(a===idx(preferred)):0);}
+function rankedDefenses(b){
+ const near=engine.candidates(b).map(i=>{
+  const own=engine.inspect(b,i,defender),block=engine.inspect(b,i,attacker);
+  return {i,score:(own.win.length?1e9:0)+(block.win.length?8e8:0)+
+   (own.fours.length?1e6:0)+(block.fours.length?8e5:0)+
+   (own.threes.length?1e4:0)+(block.threes.length?8e3:0)};
+ }).sort((a,c)=>c.score-a.score||a.i-c.i).map(x=>x.i);
+ const seen=new Set(near);return [...near,...Array.from({length:225},(_,i)=>i).filter(i=>!seen.has(i))];
+}
 function solve(b,left){if(Date.now()>=deadline)return null;stats.nodes++;
  const key=b.join('')+'|'+left;if(cache.has(key))return cache.get(key);
  const forcing=engine.forcing(b,attacker,25,Math.max(1,Math.min(800,deadline-Date.now())),proofCache);
@@ -21,7 +30,7 @@ function solve(b,left){if(Date.now()>=deadline)return null;stats.nodes++;
   if(Date.now()>=deadline)break;const shape=engine.inspect(b,move,attacker);b[move]=attacker;
   if(shape.win.length){b[move]=0;return {type:'five',move:coord(move)};}
   let all=true,exceptions=[],count=0;
-  for(let response=0;response<225;response++){
+  for(const response of rankedDefenses(b)){
    if(Date.now()>=deadline){all=false;break;}const shape=engine.inspect(b,response,defender);if(!shape.legal)continue;
    stats.defenderReplies++;count++;if(shape.win.length){all=false;break;}
    b[response]=defender;const child=solve(b,left-1);b[response]=0;
@@ -34,7 +43,7 @@ function solve(b,left){if(Date.now()>=deadline)return null;stats.nodes++;
 }
 const started=Date.now();const next=moves.length%2?3-first:first;
 if(next===attacker){const proof=solve(board,depth);console.log(JSON.stringify({next:attacker===1?'black':'white',proof,ms:Date.now()-started,stats},null,2));}
-else{let legal=0,proved=0,unknown=[];for(let i=0;i<225;i++){
+else{let legal=0,proved=0,unknown=[];for(const i of rankedDefenses(board)){
  if(Date.now()>=deadline)break;if(!engine.inspect(board,i,defender).legal)continue;legal++;board[i]=defender;
  const proof=solve(board,depth);board[i]=0;if(proof)proved++;else unknown.push(coord(i));
  if(!proof)console.log('unproved',coord(i),'elapsed',Date.now()-started);

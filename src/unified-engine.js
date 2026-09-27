@@ -49,12 +49,32 @@ function createEngine(options={}) {
     const pattern=forest.patternDefense(board,p);if(pattern)return {...pattern,automatic,autoReason:'새 게임에도 적용되는 대칭 패턴 방어',ms:Date.now()-started};
     const deep=limit>8000;
     const e=fast(board);
+    const ensureLegalCandidate=result=>{
+      if(result.i!=null||result.kind==='terminal')return result;
+      const nearby=forest.candidates(board),near=new Set(nearby);
+      const pool=[...new Set([...(result.candidates||[]).map(m=>m.i),...nearby,
+        ...Array.from({length:225},(_,i)=>i)])].filter(j=>inspect(board,j,p).legal);
+      const rejected=new Set((result.rejected||[]).map(m=>m.i));
+      const provenRejected=new Set((result.rejected||[]).filter(m=>m.pv?.length||m.replyTrap).map(m=>m.i));
+      const scores=new Map(),rank=j=>{if(scores.has(j))return scores.get(j);
+        const after=board.slice();after[j]=p;const shape=inspect(board,j,p);
+        const value=forest.evaluate(after,p)+(near.has(j)?250:0)+shape.fours.length*5000+shape.threes.length*300;
+        scores.set(j,value);return value;};
+      const choose=xs=>xs.length?xs.reduce((best,j)=>rank(j)>rank(best)?j:best):null;
+      const i=choose(pool.filter(j=>!rejected.has(j)))??
+        choose(pool.filter(j=>!provenRejected.has(j)))??choose(pool);
+      if(i==null)return result;
+      return {...result,i,pv:[i],shape:inspect(board,i,p),fallback:true,
+        unverifiedDefense:!result.lossProven,
+        reason:result.lossProven?'강제패배 확인 · 합법적인 저항 수':
+          '방어가 증명된 수 없음 · 합법 후보 표시 (안전 미확인)'};
+    };
     let best=convert(board,p,e.analyze(p,deep?Math.min(2000,limit*.2):automatic?{automatic:true,maxMs:limit}:limit,
       r=>progress(convert(board,p,r,started))),started);
     const can=forest.canonical(board,p),memory=lessons.filter(l=>l.key===can.key);
     best.memory=memory.length;
     best.patternHint=forest.patternDefense(board,p)?.i??null;
-    if(!deep||best.proven||best.lossProven||best.kind==='terminal'||best.i==null)return best;
+    if(!deep||best.proven||best.lossProven||best.kind==='terminal'||best.i==null)return ensureLegalCandidate(best);
     const refuted=new Set(),counterRisk=new Map();
     if(limit>=8000&&board.filter(Boolean).length<=40)for(const m of (best.candidates||[]).slice(0,3)){
       const shape=inspect(board,m.i,p);if(!shape.legal||!shape.fours.length||shape.win.length)continue;
@@ -157,7 +177,7 @@ function createEngine(options={}) {
       }
     }
     best.ms=Date.now()-started;
-    return best;
+    return ensureLegalCandidate(best);
   }
   function assessMove(board,p,i) {
     if(!inspect(board,i,p).legal)return {mustWarn:false};
