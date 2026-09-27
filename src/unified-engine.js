@@ -55,7 +55,7 @@ function createEngine(options={}) {
       const pool=[...new Set([...(result.candidates||[]).map(m=>m.i),...nearby,
         ...Array.from({length:225},(_,i)=>i)])].filter(j=>inspect(board,j,p).legal);
       const rejected=new Set((result.rejected||[]).map(m=>m.i));
-      const provenRejected=new Set((result.rejected||[]).filter(m=>m.pv?.length||m.replyTrap).map(m=>m.i));
+      const provenRejected=new Set((result.rejected||[]).filter(m=>m.pv?.length||m.replyTrap||m.verifiedRefutation).map(m=>m.i));
       const scores=new Map(),rank=j=>{if(scores.has(j))return scores.get(j);
         const after=board.slice();after[j]=p;const shape=inspect(board,j,p);
         const value=forest.evaluate(after,p)+(near.has(j)?250:0)+shape.fours.length*5000+shape.threes.length*300;
@@ -71,11 +71,22 @@ function createEngine(options={}) {
     };
     let best=convert(board,p,e.analyze(p,deep?Math.min(2000,limit*.2):automatic?{automatic:true,maxMs:limit}:limit,
       r=>progress(convert(board,p,r,started))),started);
+    const known=forest.knownRefutations(board,p),knownBad=new Set(known.map(m=>m.i));
+    if(known.length){
+      best.rejected=[...(best.rejected||[]),...known.map(m=>({...m,verifiedRefutation:true}))];
+      if(knownBad.has(best.i)){
+        const alternative=(best.candidates||[]).map(m=>m.i).find(i=>!knownBad.has(i)&&inspect(board,i,p).legal)??
+          forest.candidates(board).find(i=>!knownBad.has(i)&&inspect(board,i,p).legal);
+        if(alternative!=null)best={...best,i:alternative,pv:[alternative],shape:inspect(board,alternative,p),
+          proven:false,reason:'검증된 강제패배 수 제외 · 대안의 승리·안전은 미증명',unverifiedDefense:true};
+      }
+      if(!best.proven)best.reason=`${forest.coord(known[0].i)} 강제패배 수 제외 · `+best.reason;
+    }
     const can=forest.canonical(board,p),memory=lessons.filter(l=>l.key===can.key);
     best.memory=memory.length;
     best.patternHint=forest.patternDefense(board,p)?.i??null;
     if(!deep||best.proven||best.lossProven||best.kind==='terminal'||best.i==null)return ensureLegalCandidate(best);
-    const refuted=new Set(),counterRisk=new Map();
+    const refuted=new Set(knownBad),counterRisk=new Map();
     if(limit>=8000&&board.filter(Boolean).length<=40)for(const m of (best.candidates||[]).slice(0,3)){
       const shape=inspect(board,m.i,p);if(!shape.legal||!shape.fours.length||shape.win.length)continue;
       const after=board.slice();after[m.i]=p;const ends=forest.winning(after,p);
@@ -176,6 +187,8 @@ function createEngine(options={}) {
         if(extended.lossProven){best.lossProven=true;best.forcedLoss=true;best.kind='lost';}
       }
     }
+    if(known.length&&!best.proven&&!best.reason.includes('강제패배 수 제외'))
+      best.reason=`${forest.coord(known[0].i)} 강제패배 수 제외 · `+best.reason+' · 대안의 전체 승리는 미증명';
     best.ms=Date.now()-started;
     return ensureLegalCandidate(best);
   }

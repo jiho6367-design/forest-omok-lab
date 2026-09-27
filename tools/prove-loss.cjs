@@ -6,9 +6,12 @@ const moves=process.argv[2]?.split(/\s+/).filter(Boolean)||[];
 const depth=Math.max(0,Number(process.argv[3]??2)),seconds=Math.max(1,Number(process.argv[4]??120)),preferred=process.argv[5]||null;
 const attacker=process.argv[6]==='white'?2:1,defender=3-attacker;
 const first=process.argv[7]==='white-first'?2:1;
+const threatOnly=process.argv[8]==='threats';
 const board=Array(225).fill(0);moves.forEach((c,k)=>{const p=k%2?3-first:first,s=engine.inspect(board,idx(c),p);if(!s.legal||s.win.length)throw Error(`invalid move ${k+1} ${c}`);board[idx(c)]=p;});
 const deadline=Date.now()+seconds*1000,cache=new Map(),proofCache=new Map(),stats={nodes:0,direct:0,unknown:0,defenderReplies:0};
-function rankedAttack(b){return engine.candidates(b).filter(i=>engine.inspect(b,i,attacker).legal).map(i=>{
+function rankedAttack(b){return engine.candidates(b).filter(i=>{const s=engine.inspect(b,i,attacker);
+ return s.legal&&(!threatOnly||s.threes.length||s.fours.length||s.win.length);
+}).map(i=>{
  const s=engine.inspect(b,i,attacker);b[i]=attacker;const evalScore=engine.evaluate(b,attacker);b[i]=0;
  return {i,score:(s.win.length?1e9:0)+(s.fours.length?1e6:0)+(s.threes.length?1e4:0)+evalScore};
 }).sort((a,c)=>c.score-a.score).map(x=>x.i).sort((a,c)=>preferred?(c===idx(preferred))-(a===idx(preferred)):0);}
