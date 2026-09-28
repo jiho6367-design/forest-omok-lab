@@ -1,0 +1,36 @@
+{
+  "next": "black",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": [
+    "G8"
+  ],
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "G8",
+      "status": "unproved",
+      "elapsed_ms": 3850,
+      "defensesChecked": 1,
+      "unrefutedResponse": "E8",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": true,
+  "ms": 3854,
+  "stats": {
+    "nodes": 269,
+    "direct": 1,
+    "unknown": 268,
+    "defenderReplies": 268,
+    "timedOut": 0,
+    "incompleteForcing": 0,
+    "cacheHits": 0,
+    "forcingExtensions": 4,
+    "certifiedPrunes": 0,
+    "forcedDefenseExtensionsEnabled": true
+  },
+  "prefix": "H8 G7 G6 H6 F8 F7",
+  "interpretation": "No black win certificate within selected G8 scope; white E8 remains unrefuted, not globally safe."
+}
