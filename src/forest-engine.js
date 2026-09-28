@@ -129,12 +129,13 @@ function createForestEngine(options={}){
  // This is a losing-move exclusion in new games, not a winning-book move.
  function knownRefutations(board,p){
   if(options.fivePriority!==false)return [];
-  const count=board.filter(Boolean).length;if(count!==9&&count!==11)return [];
+  const count=board.filter(Boolean).length;if(count!==9&&count!==11&&count!==15)return [];
   // Entries must have independent all-defense certificates, not just a
   // principal variation or a timeout. F10 deliberately has no entry.
   const specs=[
    {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7',bad:'H5',attack:'F9'}, // h5-loss-certificate.json
-   {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9',bad:'F6',attack:'G10'} // f6-loss-certificate.json
+   {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9',bad:'F6',attack:'G10'}, // f6-loss-certificate.json
+   {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7',bad:'C6',attack:'E6'} // c6-loss-certificate.json
   ],index=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65,current=canonical(board,p);
   for(const spec of specs){
    const moves=spec.prefix.split(' ');if(moves.length!==count)continue;

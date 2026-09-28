@@ -79,6 +79,8 @@ npm test
 `omok-reader` 루트에 남아 있는 이전 버전의 개발 파일은 보관 자료입니다. 통합판은 위의 `src/`와 `build.cjs`를 사용합니다.
 # 패배 기보 역분석 API
 
+v5.12.2는 16.C6 대안을 흑 E6의 모든 응수 반증으로 제외합니다. 독립 증명은 `reports/c6-loss-certificate.json`, 후반 합법 후보 전수검사는 `tools/screen-replay.cjs`와 `reports/later-root-screen.json`에 있습니다. 새 게임의 동일 국면과 대칭·색 교환에도 반영합니다. G10이 안전하거나 승리한다는 증명은 아닙니다.
+
 기존 게임 규칙과 보드 엔진을 재사용하는 Node API입니다. UI에 새 복기 버튼을 추가하지 않습니다.
 
 ```js

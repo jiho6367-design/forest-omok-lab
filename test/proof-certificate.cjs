@@ -2,6 +2,8 @@ const assert=require('node:assert/strict'),verify=require('../tools/verify-attac
 const certificate=require('../reports/h5-loss-certificate.json');
 const result=verify(certificate);assert(result.verified,JSON.stringify(result));
 assert.equal(result.defenses,1898);
+const c6=verify(require('../reports/c6-loss-certificate.json'));
+assert(c6.verified,JSON.stringify(c6));assert.equal(c6.defenses,620);
 const audit=require('../reports/f10-proof-audit.json'),incomplete=verify(audit);
 assert.equal(incomplete.verified,false,'a partially verified tree is not a loss certificate');
 assert.equal(incomplete.reason,audit.expected_verification.reason);
