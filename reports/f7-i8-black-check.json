@@ -1,0 +1,36 @@
+{
+  "next": "black",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": [
+    "D8",
+    "H7"
+  ],
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "D8",
+      "status": "incomplete",
+      "elapsed_ms": 24997,
+      "defensesChecked": 1,
+      "unrefutedResponse": "E8",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": false,
+  "ms": 25004,
+  "stats": {
+    "nodes": 1828,
+    "direct": 12,
+    "unknown": 1742,
+    "defenderReplies": 1827,
+    "timedOut": 4,
+    "incompleteForcing": 0,
+    "cacheHits": 74,
+    "forcingExtensions": 85,
+    "certifiedPrunes": 0
+  },
+  "prefix": "H8 G7 G6 H6 F8 F7 E7 G9 G8 I8",
+  "interpretation": "No certificate; completion applies only to reported depth and roots. No safety or loss conclusion."
+}

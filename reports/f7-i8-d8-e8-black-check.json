@@ -1,0 +1,113 @@
+{
+  "next": "black",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": null,
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "F6",
+      "status": "unproved",
+      "elapsed_ms": 4360,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G5",
+      "responseWins": false
+    },
+    {
+      "move": "C9",
+      "status": "unproved",
+      "elapsed_ms": 3974,
+      "defensesChecked": 1,
+      "unrefutedResponse": "F6",
+      "responseWins": false
+    },
+    {
+      "move": "G5",
+      "status": "unproved",
+      "elapsed_ms": 4293,
+      "defensesChecked": 1,
+      "unrefutedResponse": "C9",
+      "responseWins": false
+    },
+    {
+      "move": "B10",
+      "status": "unproved",
+      "elapsed_ms": 2725,
+      "defensesChecked": 1,
+      "unrefutedResponse": "F6",
+      "responseWins": false
+    },
+    {
+      "move": "D6",
+      "status": "unproved",
+      "elapsed_ms": 1586,
+      "defensesChecked": 1,
+      "unrefutedResponse": "C5",
+      "responseWins": false
+    },
+    {
+      "move": "C5",
+      "status": "unproved",
+      "elapsed_ms": 1419,
+      "defensesChecked": 1,
+      "unrefutedResponse": "D6",
+      "responseWins": false
+    },
+    {
+      "move": "B4",
+      "status": "unproved",
+      "elapsed_ms": 1467,
+      "defensesChecked": 1,
+      "unrefutedResponse": "D6",
+      "responseWins": false
+    },
+    {
+      "move": "H4",
+      "status": "unproved",
+      "elapsed_ms": 1335,
+      "defensesChecked": 1,
+      "unrefutedResponse": "F6",
+      "responseWins": false
+    },
+    {
+      "move": "A11",
+      "status": "unproved",
+      "elapsed_ms": 1399,
+      "defensesChecked": 1,
+      "unrefutedResponse": "C9",
+      "responseWins": false
+    },
+    {
+      "move": "H7",
+      "status": "unproved",
+      "elapsed_ms": 1345,
+      "defensesChecked": 1,
+      "unrefutedResponse": "F9",
+      "responseWins": false
+    },
+    {
+      "move": "F9",
+      "status": "incomplete",
+      "elapsed_ms": 1080,
+      "defensesChecked": 1,
+      "unrefutedResponse": "H7",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": false,
+  "ms": 25002,
+  "stats": {
+    "nodes": 1849,
+    "direct": 9,
+    "unknown": 1790,
+    "defenderReplies": 1884,
+    "timedOut": 3,
+    "incompleteForcing": 0,
+    "cacheHits": 50,
+    "forcingExtensions": 140,
+    "certifiedPrunes": 0
+  },
+  "prefix": "H8 G7 G6 H6 F8 F7 E7 G9 G8 I8 D8 E8",
+  "interpretation": "No certificate; completion applies only to reported depth and roots. No safety or loss conclusion."
+}
