@@ -1,0 +1,44 @@
+{
+  "next": "black",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": [
+    "G8",
+    "E8"
+  ],
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "G8",
+      "status": "unproved",
+      "elapsed_ms": 5137,
+      "defensesChecked": 2,
+      "unrefutedResponse": "I8",
+      "responseWins": false
+    },
+    {
+      "move": "E8",
+      "status": "unproved",
+      "elapsed_ms": 3280,
+      "defensesChecked": 1,
+      "unrefutedResponse": "D8",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": true,
+  "ms": 8421,
+  "stats": {
+    "nodes": 569,
+    "direct": 5,
+    "unknown": 549,
+    "defenderReplies": 568,
+    "timedOut": 0,
+    "incompleteForcing": 0,
+    "cacheHits": 15,
+    "forcingExtensions": 26,
+    "certifiedPrunes": 0
+  },
+  "prefix": "H8 G7 G6 H6 F8 J4 K3 I7",
+  "interpretation": "No certified win in the reported scope; not proof of safety or loss. Root response is not necessarily globally best."
+}

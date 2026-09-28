@@ -1,0 +1,201 @@
+{
+  "next": "white",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": null,
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "I7",
+      "status": "unproved",
+      "elapsed_ms": 1221,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "J8",
+      "status": "unproved",
+      "elapsed_ms": 1404,
+      "defensesChecked": 1,
+      "unrefutedResponse": "E8",
+      "responseWins": false
+    },
+    {
+      "move": "H7",
+      "status": "unproved",
+      "elapsed_ms": 1191,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "H4",
+      "status": "unproved",
+      "elapsed_ms": 1172,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "J7",
+      "status": "unproved",
+      "elapsed_ms": 1304,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "J6",
+      "status": "unproved",
+      "elapsed_ms": 1211,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "L6",
+      "status": "unproved",
+      "elapsed_ms": 1231,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "F4",
+      "status": "unproved",
+      "elapsed_ms": 1219,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "H2",
+      "status": "unproved",
+      "elapsed_ms": 1072,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "J5",
+      "status": "unproved",
+      "elapsed_ms": 1094,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "K5",
+      "status": "unproved",
+      "elapsed_ms": 1105,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "F7",
+      "status": "unproved",
+      "elapsed_ms": 1075,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "G8",
+      "status": "unproved",
+      "elapsed_ms": 1311,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G9",
+      "responseWins": false
+    },
+    {
+      "move": "I4",
+      "status": "unproved",
+      "elapsed_ms": 990,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "K4",
+      "status": "unproved",
+      "elapsed_ms": 1034,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "G5",
+      "status": "unproved",
+      "elapsed_ms": 972,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "E7",
+      "status": "unproved",
+      "elapsed_ms": 1117,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "E8",
+      "status": "unproved",
+      "elapsed_ms": 1350,
+      "defensesChecked": 1,
+      "unrefutedResponse": "I8",
+      "responseWins": false
+    },
+    {
+      "move": "I8",
+      "status": "unproved",
+      "elapsed_ms": 1324,
+      "defensesChecked": 1,
+      "unrefutedResponse": "E8",
+      "responseWins": false
+    },
+    {
+      "move": "I3",
+      "status": "unproved",
+      "elapsed_ms": 927,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "J3",
+      "status": "unproved",
+      "elapsed_ms": 970,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "L4",
+      "status": "incomplete",
+      "elapsed_ms": 688,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": false,
+  "ms": 25000,
+  "stats": {
+    "nodes": 1930,
+    "direct": 0,
+    "unknown": 1776,
+    "defenderReplies": 2168,
+    "timedOut": 3,
+    "incompleteForcing": 0,
+    "cacheHits": 154,
+    "forcingExtensions": 239,
+    "certifiedPrunes": 0
+  },
+  "prefix": "H8 G7 G6 H6 F8 J4 K3",
+  "interpretation": "No certified win in the reported scope; not proof of safety or loss. Root response is not necessarily globally best."
+}
