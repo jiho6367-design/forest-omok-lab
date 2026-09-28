@@ -2,32 +2,32 @@
   "done": true,
   "proof": null,
   "searchComplete": true,
-  "elapsed_ms": 15682,
+  "elapsed_ms": 15759,
   "stats": {
-    "nodes": 42272,
-    "defenses": 42271,
-    "cacheHits": 2341,
-    "vcfChecks": 39933,
+    "nodes": 1745,
+    "defenses": 1744,
+    "cacheHits": 74,
+    "vcfChecks": 1671,
     "vcfIncomplete": 0,
-    "forcingExtensions": 9821,
-    "defenseExtensions": 5793,
-    "immediatePrunes": 26755,
-    "counterVcfChecks": 179818,
-    "counterVcfPrunes": 152467,
-    "counterVcfIncomplete": 15,
+    "forcingExtensions": 474,
+    "defenseExtensions": 438,
+    "immediatePrunes": 13294,
+    "counterVcfChecks": 8636,
+    "counterVcfPrunes": 6898,
+    "counterVcfIncomplete": 0,
     "certifiedPrunes": 0,
-    "slices": 11
+    "slices": 1
   },
   "rootChecks": [
     {
       "move": "E8",
       "status": "unproved",
-      "unrefutedResponse": "F7"
+      "unrefutedResponse": "I8"
     }
   ],
   "activeLine": [],
   "scope": {
-    "prefix": "H8 G7 G6 H6 F8 H7 G8 I8 D8",
+    "prefix": "H8 G7 G6 H6 F8",
     "attacker": 2,
     "quietDepth": 3,
     "extensions": 8,
