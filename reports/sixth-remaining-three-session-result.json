@@ -4,20 +4,20 @@
   "searchComplete": false,
   "elapsed_ms": 25000,
   "stats": {
-    "nodes": 135398,
-    "defenses": 135397,
-    "cacheHits": 10058,
-    "vcfChecks": 125353,
+    "nodes": 174642,
+    "defenses": 174641,
+    "cacheHits": 10803,
+    "vcfChecks": 163856,
     "vcfIncomplete": 0,
-    "forcingExtensions": 13392,
-    "defenseExtensions": 736,
-    "threeExtensions": 5735,
-    "immediatePrunes": 6349,
-    "counterVcfChecks": 20152,
-    "counterVcfPrunes": 6445,
-    "counterVcfIncomplete": 76,
+    "forcingExtensions": 15815,
+    "defenseExtensions": 952,
+    "threeExtensions": 7080,
+    "immediatePrunes": 7219,
+    "counterVcfChecks": 23625,
+    "counterVcfPrunes": 7412,
+    "counterVcfIncomplete": 80,
     "certifiedPrunes": 0,
-    "slices": 15
+    "slices": 21
   },
   "rootChecks": [
     {
@@ -164,24 +164,49 @@
       "move": "D2",
       "status": "unproved",
       "unrefutedResponse": "G8"
+    },
+    {
+      "move": "I8",
+      "status": "unproved",
+      "unrefutedResponse": "E8"
+    },
+    {
+      "move": "D8",
+      "status": "unproved",
+      "unrefutedResponse": "I8"
+    },
+    {
+      "move": "F5",
+      "status": "unproved",
+      "unrefutedResponse": "G8"
+    },
+    {
+      "move": "J5",
+      "status": "unproved",
+      "unrefutedResponse": "G8"
     }
   ],
   "activeLine": [
-    "I8",
-    "E8",
-    "I5",
-    "D8",
+    "F9",
     "G8",
-    "B8",
-    "C8",
-    "J4",
-    "I7",
+    "I8",
+    "D8",
+    "E8",
+    "C6",
+    "G10",
+    "I12",
+    "D7",
+    "H11",
+    "H9",
+    "J7",
+    "F11",
+    "E12",
     "I9",
-    "I6",
-    "I4",
-    "K9",
-    "H5",
-    "F7"
+    "J9",
+    "I10",
+    "I7",
+    "E7",
+    "C1"
   ],
   "scope": {
     "prefix": "H8 G7 G6 H6 F8",
