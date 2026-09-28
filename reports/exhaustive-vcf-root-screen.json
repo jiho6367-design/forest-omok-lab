@@ -1,0 +1,17 @@
+{
+  "rules": {"fivePriority": false},
+  "method": "After each legal white move, black-to-move VCF depth 19; 200ms maximum per candidate; 25s wall limit per position",
+  "roots": [
+    {"ply": 8, "legal": 218, "refuted": 215, "unrefuted": ["D8", "G8", "I8"], "incomplete": [], "elapsed_ms": 123, "nodes": 239},
+    {"ply": 10, "legal": 216, "refuted": 214, "unrefuted": ["H5", "D9"], "incomplete": [], "elapsed_ms": 472, "nodes": 846},
+    {"ply": 12, "legal": 214, "refuted": 212, "unrefuted": ["F6", "F10"], "incomplete": [], "elapsed_ms": 679, "nodes": 1178}
+  ],
+  "d8_branch": {
+    "prefix": "H8 G7 G6 H6 F8 I7 E8 D8 G8 I8",
+    "white_i8_is_only_immediate_block": true,
+    "black_3000ms_depth4_pv": ["F7", "D9", "F9", "F6"],
+    "black_pv_proven": false,
+    "white_proof_after_f7": {"quiet_depth": 2, "scope": "aligned-through-four", "proof": null, "searchComplete": true, "elapsed_ms": 8200, "nodes": 175, "defenderReplies": 9542}
+  },
+  "interpretation": "Refuted root moves have black VCF certificates. Unrefuted root moves have no found VCF in this scope and are not certified wins or nonlosses. The D8 branch also has no found white forced win in the tested scope."
+}

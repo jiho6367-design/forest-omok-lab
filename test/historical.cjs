@@ -8,6 +8,16 @@ assert.equal(board[index('B7')],2);
 assert.equal(positions[9][index('D9')],0);
 assert.equal(positions[19][index('E5')],0);
 const engine=createEngine({fivePriority:false});
+for(const [ply,expected] of [[8,'D8 G8 I8'],[10,'H5 D9'],[12,'F6 F10']]){
+  const b=positions[ply-1].slice(),survivors=[];
+  for(let i=0;i<225;i++){
+    if(!engine.inspect(b,i,2).legal)continue;
+    b[i]=2;const r=engine.forcing(b,1,19,1000);b[i]=0;
+    assert(r.complete,`incomplete root screen at ${ply}/${engine.coord(i)}`);
+    if(!r.proof)survivors.push(engine.coord(i));
+  }
+  assert.equal(survivors.join(' '),expected,'only scoped unrefuted moves remain');
+}
 for(const [n,c] of [[10,'F9'],[20,'G9']])assert(engine.inspect(positions[n-1],index(c),2).legal);
 let after=positions[9].slice();after[index('F9')]=2;
 assert.equal(engine.forcing(after,1,19,1000).proof.pv.map(engine.coord).join(' '),'H5 I4 D9');
