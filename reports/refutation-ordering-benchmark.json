@@ -1,0 +1,77 @@
+{
+  "adopted": false,
+  "reason": "Negative D6 scope expanded from 144 to 522 nodes and became slower; experimental code reverted.",
+  "method": "Keep two most recent unrefuted defender indices keyed by remaining quiet depth and extension budget. Try those first, then every other board point in existing order; legality and proof checks unchanged.",
+  "samples": [
+    {
+      "spec": {
+        "prefix": "H8 G7 G6 F7 H7 F5 H6 H9 H4 H5 F6 I6 E6",
+        "attacker": 2,
+        "roots": [
+          "D6"
+        ],
+        "quietDepth": 2,
+        "extensions": 8,
+        "forcedDefenseExtensions": true,
+        "counterVcfPruning": true
+      },
+      "before": {
+        "elapsed_ms": 1270,
+        "nodes": 144,
+        "defenses": 143
+      },
+      "after": {
+        "elapsed_ms": 2547,
+        "nodes": 522,
+        "defenses": 521
+      },
+      "proved": false
+    },
+    {
+      "spec": {
+        "prefix": "H8 G7 G6 H6 F8 I7 E8 D8 F7 H5",
+        "attacker": 1,
+        "roots": [
+          "F5"
+        ],
+        "quietDepth": 0,
+        "extensions": 1,
+        "threeExtensions": true
+      },
+      "before": {
+        "elapsed_ms": 1308,
+        "nodes": 215,
+        "defenses": 214
+      },
+      "after": {
+        "elapsed_ms": 1020,
+        "nodes": 215,
+        "defenses": 214
+      },
+      "proved": true
+    },
+    {
+      "spec": {
+        "prefix": "B8 O15 C8 O14",
+        "attacker": 1,
+        "roots": [
+          "D8"
+        ],
+        "quietDepth": 0,
+        "extensions": 1,
+        "threeExtensions": true
+      },
+      "before": {
+        "elapsed_ms": 5,
+        "nodes": 2,
+        "defenses": 1
+      },
+      "after": {
+        "elapsed_ms": 6,
+        "nodes": 2,
+        "defenses": 1
+      },
+      "proved": false
+    }
+  ]
+}
