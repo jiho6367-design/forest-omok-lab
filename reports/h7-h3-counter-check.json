@@ -1,0 +1,625 @@
+{
+  "done": false,
+  "proof": null,
+  "searchComplete": false,
+  "elapsed_ms": 25000,
+  "stats": {
+    "nodes": 4041,
+    "defenses": 4040,
+    "cacheHits": 581,
+    "vcfChecks": 3460,
+    "vcfIncomplete": 0,
+    "forcingExtensions": 1530,
+    "defenseExtensions": 539,
+    "immediatePrunes": 62394,
+    "certifiedPrunes": 0,
+    "slices": 1
+  },
+  "rootChecks": [
+    {
+      "move": "F1",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "G1",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "H1",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I1",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J1",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "F2",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "G2",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "H2",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I2",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J2",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "F3",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "G3",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I3",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J3",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "F4",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "G4",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I4",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J4",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "G5",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I5",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J5",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "D3",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "E3",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "D4",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "E4",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "D5",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "E5",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "D6",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "E6",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "F6",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "D7",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "E7",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I6",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J6",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I7",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J7",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "G8",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I8",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J8",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "D9",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "E9",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "F9",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "G9",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "H9",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I9",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J9",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "B6",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "C6",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "B7",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "C7",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "B8",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "C8",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "B9",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "C9",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "B10",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "C10",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "D10",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "E10",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "F10",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "G10",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "H10",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I10",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J10",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "B5",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "C5",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "B1",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "C2",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "K6",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "K10",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "K2",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "F11",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "B3",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "C4",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J11",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "B11",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "A8",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "E11",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "E12",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "A4",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "H11",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I12",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "A12",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "F12",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "B4",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "I11",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "J12",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "B12",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "C11",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "K8",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "L8",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "H12",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "K11",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "L12",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "D12",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "K5",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    },
+    {
+      "move": "L4",
+      "status": "unproved",
+      "unrefutedResponse": "H4",
+      "responseWins": true
+    }
+  ],
+  "activeLine": [
+    "H4",
+    "F9",
+    "G8",
+    "I8",
+    "F4",
+    "F6",
+    "D9",
+    "C10",
+    "E4",
+    "D4",
+    "I4",
+    "G4",
+    "D3",
+    "C2",
+    "G10",
+    "C3",
+    "E5",
+    "E7"
+  ],
+  "scope": {
+    "prefix": "H8 G7 G6 H6 F8 H7 E8 D8 F7 H5 F5 H3",
+    "attacker": 1,
+    "quietDepth": 2,
+    "extensions": 8,
+    "forcedDefenseExtensions": true,
+    "roots": null,
+    "vcfDepth": 25
+  }
+}

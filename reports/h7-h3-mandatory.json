@@ -1,0 +1,9 @@
+{
+  "prefix": "H8 G7 G6 H6 F8 H7 E8 D8 F7 H5 F5 H3",
+  "legalBlackMoves": 213,
+  "blackImmediateWins": [],
+  "responsesAvoidingImmediateLoss": [
+    "H4"
+  ],
+  "scope": "all legal black moves; H4 safety after blocking is unproved"
+}
