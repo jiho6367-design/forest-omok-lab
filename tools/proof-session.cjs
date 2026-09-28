@@ -23,13 +23,17 @@ module.exports=function createProofSession(input){
   }
   return [...out];
  }
- function* attacks(ply){
+ function* attacks(ply,left,ext,mandatory){
   const bad=new Map(E.knownRefutations(b,attacker).map(m=>[m.i,m])),rank=[];
   const threats=spec.immediatePruning===false?[]:E.winning(b,defender);
   for(const i of ply===0&&roots?[...roots]:candidates()){
    yield;
    if(bad.has(i)){stats.certifiedPrunes++;if(ply===0)rootChecks.push({move:E.coord(i),status:'certified_loss'});continue;}
    const s=E.inspect(b,i,attacker);if(!s.legal)continue;
+   // At the quiet horizon solve() only explores wins, fours, or its unique
+   // mandatory block. Other moves cannot be searched, so do not evaluate them.
+   // A four still passes the existing legal winning-point check in solve().
+   if(spec.horizonPruning!==false&&left<=0&&!s.win.length&&!(ext>0&&(i===mandatory||s.fours.length)))continue;
    b[i]=attacker;let score,reply;try{
     if(!s.win.length)reply=threats.find(j=>{if(b[j])return false;const t=E.inspect(b,j,defender);return t.legal&&t.win.length;});
     if(reply===undefined)score=E.evaluate(b,attacker);
@@ -72,7 +76,7 @@ module.exports=function createProofSession(input){
   if(left<=0&&ext<=0){cache.set(key,null);return null;}
   const threats=spec.forcedDefenseExtensions&&ext>0?E.winning(b,defender):[];
   const mandatory=threats.length===1?threats[0]:null;
-  for(const move of yield* attacks(ply)){
+  for(const move of yield* attacks(ply,left,ext,mandatory)){
    yield;
    const shape=E.inspect(b,move,attacker),before=stats.vcfIncomplete;
    b[move]=attacker;activeLine.push(E.coord(move));
@@ -120,6 +124,6 @@ module.exports=function createProofSession(input){
   const start=Date.now();deadline=start+ms;if(ms>0&&!done)stats.slices++;
   while(!done&&Date.now()<deadline){const result=iterator.next();if(result.done){done=true;proof=result.value;}}
   return JSON.parse(JSON.stringify({done,proof:done?proof:null,searchComplete:done&&stats.vcfIncomplete===0,elapsed_ms:Date.now()-start,stats,rootChecks,activeLine:done?[]:activeLine,...(spec.auditCounterPrunes?{counterAudit}:{}),
-   scope:{prefix:spec.prefix,attacker,quietDepth:quiet,extensions,forcedDefenseExtensions:!!spec.forcedDefenseExtensions,counterVcfPruning:!!spec.counterVcfPruning,roots:spec.roots||null,vcfDepth:25}}));
+   scope:{prefix:spec.prefix,attacker,quietDepth:quiet,extensions,forcedDefenseExtensions:!!spec.forcedDefenseExtensions,counterVcfPruning:!!spec.counterVcfPruning,horizonPruning:spec.horizonPruning!==false,roots:spec.roots||null,vcfDepth:25}}));
  }};
 };

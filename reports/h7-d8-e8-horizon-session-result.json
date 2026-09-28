@@ -4,28 +4,29 @@
   "searchComplete": false,
   "elapsed_ms": 25000,
   "stats": {
-    "nodes": 37623,
-    "defenses": 37622,
-    "cacheHits": 2177,
-    "vcfChecks": 35447,
+    "nodes": 18109,
+    "defenses": 18108,
+    "cacheHits": 1190,
+    "vcfChecks": 16920,
     "vcfIncomplete": 0,
-    "forcingExtensions": 8475,
-    "defenseExtensions": 4647,
-    "immediatePrunes": 550625,
-    "counterVcfChecks": 133401,
-    "counterVcfPrunes": 110271,
-    "counterVcfIncomplete": 6,
+    "forcingExtensions": 3942,
+    "defenseExtensions": 1755,
+    "immediatePrunes": 1822,
+    "counterVcfChecks": 33529,
+    "counterVcfPrunes": 22848,
+    "counterVcfIncomplete": 5,
     "certifiedPrunes": 0,
-    "slices": 17
+    "slices": 3
   },
   "rootChecks": [],
   "activeLine": [
     "E8",
     "F7",
-    "H3",
-    "H4",
-    "H2",
-    "D5"
+    "J7",
+    "I7",
+    "B5",
+    "H9",
+    "L9"
   ],
   "scope": {
     "prefix": "H8 G7 G6 H6 F8 H7 G8 I8 D8",
@@ -34,6 +35,7 @@
     "extensions": 8,
     "forcedDefenseExtensions": true,
     "counterVcfPruning": true,
+    "horizonPruning": true,
     "roots": [
       "E8"
     ],
