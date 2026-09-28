@@ -15,6 +15,13 @@ const wide=process.argv[9]==='wide';
 const extensionLimit=process.argv.includes('--forcing-extensions')?8:0;
 const rootChecks=[];
 const board=Array(225).fill(0);moves.forEach((c,k)=>{const p=k%2?3-first:first,s=engine.inspect(board,idx(c),p);if(!s.legal||s.win.length)throw Error(`invalid move ${k+1} ${c}`);board[idx(c)]=p;});
+const rootArg=process.argv.find(a=>a.startsWith('--root-moves='));
+const rootMoveScope=rootArg?[...new Set(rootArg.slice('--root-moves='.length).split(','))]:null;
+if(rootMoveScope){
+ if((moves.length%2?3-first:first)!==attacker)throw Error('Root selection requires attacker to move');
+ for(const c of rootMoveScope)if(!/^[A-O](?:[1-9]|1[0-5])$/.test(c)||!engine.inspect(board,idx(c),attacker).legal)throw Error('Invalid selected root '+c);
+}
+const selectedRoots=rootMoveScope?new Set(rootMoveScope.map(idx)):null;
 const deadline=Date.now()+seconds*1000,cache=new Map(),proofCache=new Map(),stats={nodes:0,direct:0,unknown:0,defenderReplies:0,timedOut:0,incompleteForcing:0,cacheHits:0,forcingExtensions:0,certifiedPrunes:0};
 function attackCandidates(b){
  const set=new Set(engine.candidates(b));
@@ -29,7 +36,7 @@ function attackCandidates(b){
 }
 function rankedAttack(b,ply){
  const rejected=new Map(engine.knownRefutations(b,attacker).map(m=>[m.i,m]));
- return attackCandidates(b).filter(i=>{
+ return (ply===0&&selectedRoots?[...selectedRoots]:attackCandidates(b)).filter(i=>{
  if(rejected.has(i)){
   stats.certifiedPrunes++;
   if(ply===0)rootChecks.push({move:coord(i),status:'certified_loss',winningReply:coord(rejected.get(i).attack),defensesChecked:0,elapsed_ms:0});
@@ -58,8 +65,12 @@ function rankedDefenses(b,strategic=false){
 function solve(b,left,extensions=extensionLimit,ply=0){if(Date.now()>=deadline){stats.timedOut++;return null;}stats.nodes++;
  const key=b.join('')+'|'+left+'|'+extensions;if(cache.has(key)){stats.cacheHits++;return cache.get(key);}
  const incompleteBefore=stats.incompleteForcing,timeoutsBefore=stats.timedOut;
+ if(ply===0&&selectedRoots){
+  const winning=engine.winning(b,attacker).find(i=>selectedRoots.has(i));
+  if(winning!==undefined)return {type:'five',move:coord(winning)};
+ }
  const forcing=engine.forcing(b,attacker,25,Math.max(1,Math.min(800,deadline-Date.now())),proofCache);
- if(forcing.proof){stats.direct++;const proof={type:'forcing',pv:forcing.proof.pv.map(coord)};cache.set(key,proof);return proof;}
+ if(forcing.proof&&!(ply===0&&selectedRoots&&!selectedRoots.has(forcing.proof.pv[0]))){stats.direct++;const proof={type:'forcing',pv:forcing.proof.pv.map(coord)};cache.set(key,proof);return proof;}
  if(!forcing.complete){stats.incompleteForcing++;return null;}if(left<=0&&extensions<=0){cache.set(key,null);return null;}
  for(const move of rankedAttack(b,ply)){
   if(Date.now()>=deadline){stats.timedOut++;break;}const shape=engine.inspect(b,move,attacker);b[move]=attacker;
@@ -87,7 +98,7 @@ function solve(b,left,extensions=extensionLimit,ply=0){if(Date.now()>=deadline){
  stats.unknown++;return null;
 }
 const started=Date.now();const next=moves.length%2?3-first:first;
-if(next===attacker){const proof=solve(board,depth);console.log(JSON.stringify({next:attacker===1?'black':'white',depth,forcingExtensionLimit:extensionLimit,scope:wide?'aligned-through-four':'near-two',proof,rootChecks,searchComplete:stats.timedOut===0&&stats.incompleteForcing===0,ms:Date.now()-started,stats},null,2));}
+if(next===attacker){const proof=solve(board,depth);console.log(JSON.stringify({next:attacker===1?'black':'white',depth,forcingExtensionLimit:extensionLimit,scope:wide?'aligned-through-four':'near-two',rootMoveScope,proof,rootChecks,searchComplete:stats.timedOut===0&&stats.incompleteForcing===0,ms:Date.now()-started,stats},null,2));}
 else{let legal=0,proved=0,unknown=[];for(const i of rankedDefenses(board)){
  if(Date.now()>=deadline){stats.timedOut++;break;}if(!engine.inspect(board,i,defender).legal)continue;legal++;board[i]=defender;
  const proof=solve(board,depth,extensionLimit,1);board[i]=0;if(proof)proved++;else unknown.push(coord(i));
