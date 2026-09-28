@@ -1,0 +1,48 @@
+{
+  "scope": {
+    "prefix": "H8 G7 G6",
+    "attacker": 2,
+    "quietDepth": 3,
+    "extensions": 8,
+    "forcedDefenseExtensions": true,
+    "threeExtensions": true,
+    "retryIncompleteVcf": true,
+    "forcingHints": true,
+    "counterVcfPruning": true,
+    "horizonPruning": true,
+    "vcfDepth": 25
+  },
+  "selected_roots": [
+    "F7",
+    "F8",
+    "H7"
+  ],
+  "selected_scope_complete": true,
+  "winning_proof": null,
+  "whole_position_solved": false,
+  "conclusion": "No white winning proof in this bounded three-root search; this does not prove white loss.",
+  "roots": [
+    {
+      "move": "F7",
+      "source": "reports/fourth-three-hints-session-result.json",
+      "sha256": "b7113f1bbb05239163f2b34f5aafb19b332d8272cee31508f85cf000e078f7b9",
+      "status": "unproved",
+      "remaining_response": "H7"
+    },
+    {
+      "move": "F8",
+      "source": "reports/fourth-f8-three-session-result.json",
+      "sha256": "32f4d7e4d52a836ca009aa0945d2aff100671bcdd363ea07fbfd59a0b00598e6",
+      "status": "unproved",
+      "remaining_response": "H6"
+    },
+    {
+      "move": "H7",
+      "source": "reports/fourth-h7-three-session-result.json",
+      "sha256": "915a3bc1a96a19c1c0d210350ee8d82f700f6f9704b5d3e535b04cf38c6f6e69",
+      "status": "unproved",
+      "remaining_response": "F7",
+      "resolution": "reports/fourth-h7-scope-resolution.json"
+    }
+  ]
+}
