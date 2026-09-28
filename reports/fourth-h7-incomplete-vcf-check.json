@@ -1,0 +1,17 @@
+{
+  "spec": {
+    "prefix": "H8 G7 G6 H7 F7 H5 F3 J5 K4 I5 G5 K5 L5 J4 H6 I3 L6 J3 J6 I6 I4 L3 H3 J7 G4",
+    "attacker": 2,
+    "first": 1,
+    "rules": {
+      "fivePriority": false
+    },
+    "vcfDepth": 25,
+    "quietLeft": 0,
+    "extensionsLeft": 0
+  },
+  "elapsed_ms": 3199,
+  "complete": true,
+  "nodes": 10773,
+  "proof": null
+}
