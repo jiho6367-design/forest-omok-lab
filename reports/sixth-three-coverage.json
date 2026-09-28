@@ -4,28 +4,10 @@
   "extensions": 8,
   "threeExtensions": true,
   "forcedDefenseExtensions": true,
-  "completed": 17,
+  "completed": 35,
   "in_scope": 60,
   "outside_scope_legal": 160,
   "pending": [
-    "D7",
-    "H3",
-    "E3",
-    "G11",
-    "G10",
-    "K6",
-    "K7",
-    "E5",
-    "J6",
-    "I6",
-    "L6",
-    "L10",
-    "F6",
-    "D4",
-    "C7",
-    "H2",
-    "C3",
-    "D2",
     "I8",
     "D8",
     "F5",
@@ -151,6 +133,114 @@
     },
     "H4": {
       "move": "H4",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "D7": {
+      "move": "D7",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "H3": {
+      "move": "H3",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "E3": {
+      "move": "E3",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "G11": {
+      "move": "G11",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "K6": {
+      "move": "K6",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "K7": {
+      "move": "K7",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "G10": {
+      "move": "G10",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "E5": {
+      "move": "E5",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "J6": {
+      "move": "J6",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "I6": {
+      "move": "I6",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "L6": {
+      "move": "L6",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "L10": {
+      "move": "L10",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "D4": {
+      "move": "D4",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "F6": {
+      "move": "F6",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "C7": {
+      "move": "C7",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "H2": {
+      "move": "H2",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "C3": {
+      "move": "C3",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "D2": {
+      "move": "D2",
       "status": "unproved",
       "unrefutedResponse": "G8",
       "source": "sixth-remaining-three-session-result.json"
