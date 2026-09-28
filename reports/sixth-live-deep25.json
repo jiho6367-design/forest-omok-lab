@@ -1,0 +1,107 @@
+{
+  "prefix": "H8 G7 G6 H6 F8",
+  "move": "F7",
+  "line": [
+    "F7",
+    "E7",
+    "G9",
+    "G8",
+    "I8",
+    "H7"
+  ],
+  "result": {
+    "i": 95,
+    "reason": "I7 강제패배 수 제외 · 공격과 수비를 함께 고려한 추천 · 대안의 전체 승리는 미증명",
+    "depth": 6,
+    "score": -426,
+    "pv": [
+      95,
+      94,
+      126,
+      111,
+      113,
+      97
+    ],
+    "ms": 18596,
+    "nodes": 62297,
+    "proven": false,
+    "forcedLoss": false,
+    "threats": [],
+    "memory": 0,
+    "bad": [],
+    "shape": {
+      "threes": [],
+      "fours": [],
+      "details": [
+        {
+          "axis": 0,
+          "three": [],
+          "four": []
+        },
+        {
+          "axis": 1,
+          "three": [],
+          "four": []
+        },
+        {
+          "axis": 2,
+          "three": [],
+          "four": []
+        },
+        {
+          "axis": 3,
+          "three": [],
+          "four": []
+        }
+      ],
+      "win": [],
+      "legal": true,
+      "reason": "",
+      "fork43": false
+    },
+    "limits": {
+      "forcing": 19,
+      "quiet": 10,
+      "screen": 12,
+      "root": 28,
+      "branch": 16,
+      "depth": 10
+    },
+    "engineVersion": "unified-4.1-deep",
+    "lossProven": false,
+    "dangerLine": [],
+    "rejected": [
+      {
+        "i": 98,
+        "attack": 109,
+        "reason": "이 수 뒤 상대 E8부터 모든 합법 응수에 강제승 확인",
+        "verifiedRefutation": true
+      },
+      {
+        "i": 98,
+        "reason": "이 수 뒤 상대 E8부터 모든 합법 응수에 강제승 확인",
+        "verifiedRefutation": true
+      }
+    ],
+    "counterThreats": [],
+    "unverifiedDefense": true,
+    "defenseChecked": true,
+    "safety": "연속 4 및 강제 방어 뒤 역공 제한 탐색 · 무패 보장 아님",
+    "candidates": [
+      {
+        "i": 95,
+        "pv": [
+          95,
+          94,
+          126,
+          111,
+          113,
+          97
+        ],
+        "score": -426,
+        "status": "deep"
+      }
+    ],
+    "automatic": false
+  }
+}
