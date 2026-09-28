@@ -54,5 +54,15 @@
     },
     "transferred_h5_e10_certificate": {"verified": false, "reason": "Unrefuted reply A1", "interpretation": "Certificate from the H5 board does not establish a win on the different D9 board."}
   },
-  "interpretation": "H11 and the conditional later H10/E7 defenses are unrefuted in the checked threat scopes, not white win or nonloss certificates. The indicated black replies are bounded-search candidates, not proved globally strongest."
+  "later_h10_refutation": {
+    "certificate": "h10-e9-loss-certificate.json",
+    "black_move": "E9",
+    "exceptional_white_reply": "E7",
+    "black_answer_to_e7": "D8",
+    "verification_batches": [
+      {"verified": false, "reason": "VCF timeout at C13", "elapsed_ms": 25000, "defenses": 368, "vcf": 367},
+      {"verified": true, "elapsed_ms": 4871, "defenses": 206, "vcf": 43, "reused_verified_branches": 163}
+    ]
+  },
+  "interpretation": "The earlier shallow nonproofs for conditional H10/E7 are superseded: H10 loses to E9, and E7 then loses to D8. This does not yet refute every alternative to H10 or the original F6 move."
 }

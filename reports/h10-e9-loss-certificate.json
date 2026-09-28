@@ -1,0 +1,6 @@
+{
+  "rules": {"fivePriority": false},
+  "attacker": 1,
+  "prefix": "H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F6 G10 H11 F10 F11 E10 H10",
+  "certificate": {"move": "E9", "replies": {"E7": {"move": "D8"}}}
+}

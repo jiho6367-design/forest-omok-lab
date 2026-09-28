@@ -6,4 +6,8 @@ const counterwin=verify({prefix:'H8 A1 H9 B1 H10 C1 F5 D1',attacker:1,certificat
 assert.equal(counterwin.verified,false);assert.match(counterwin.reason,/Defender wins|Unrefuted reply/);
 const immediate=verify({prefix:'H8 A1 H9 B1 H10 C1 H11 D2',attacker:1,certificate:{move:'H12'}});
 assert.equal(immediate.verified,true);assert.equal(immediate.defenses,0);
+const session=verify.createSession({prefix:'H8 A1 H9 B1 H10 C1',attacker:1,certificate:{move:'H7'}});
+assert.equal(session.run(0).verified,false,'interruption is not a certificate');
+const resumed=session.run(3000);assert(resumed.verified,JSON.stringify(resumed));
+const reused=session.run(3000);assert(reused.verified);assert(reused.cached>0);assert.equal(reused.vcf,0);
 console.log('PASS prescribed attack certificate, defender counterwin, terminal five');
