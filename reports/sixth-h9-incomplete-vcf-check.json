@@ -1,0 +1,41 @@
+[
+  {
+    "spec": {
+      "prefix": "H8 G7 G6 H6 F8 H9 G8 I8 D8 E8 K6 G10 F11 F9 D7 H11 I12 I9 J9 I7 I10 J8 K9 K7 L5",
+      "attacker": 2,
+      "first": 1,
+      "rules": {
+        "fivePriority": false
+      },
+      "vcfDepth": 25,
+      "quietLeft": 0,
+      "extensionsLeft": 0
+    },
+    "complete": true,
+    "proof": {
+      "pv": [
+        "M5",
+        "L6",
+        "F4",
+        "G5",
+        "I5",
+        "I6",
+        "H7",
+        "J7",
+        "E7",
+        "F7",
+        "E9",
+        "G9",
+        "E6",
+        "E5",
+        "E10"
+      ],
+      "finish": "double",
+      "endpoints": [
+        64,
+        139
+      ]
+    },
+    "elapsed_ms": 958
+  }
+]

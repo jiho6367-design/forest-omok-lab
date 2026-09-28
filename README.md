@@ -83,6 +83,8 @@ npm test
 
 연구 세션의 `threeExtensions:true`는 합법적인 열린 3 착수에도 기존 추가 탐색 예산을 사용합니다. 상대 응수를 특정 방어점으로 제한하지 않고 모든 합법 응수를 검사하므로, 열린 3 자체를 승리나 강제 응수로 간주하지 않습니다. 4목·필수 방어와 공유하는 `extensions` 한도 내에서만 작동하며 기본값은 꺼짐입니다. 준비 수 한도에서 놓쳤던 시험 공격의 상대 응수 214개를 독립 검증했습니다. 실제 백 승리 대안이 입증됐다는 뜻은 아닙니다. 검증: `node test/proof-three-extensions.cjs`.
 
+내부 연속 4 검사의 시간 상한에 걸리면 `incompleteVcf`에 정확한 수순과 남은 탐색 예산을 기록합니다. 선택 옵션 `retryIncompleteVcf:true`는 800ms 내부 상한에 걸린 국면만 1,600ms 상한으로 한 번 더 검사하며, 각 호출은 현재 구간의 남은 시간 이내로 제한됩니다. 두 번째 검사도 미완료면 여전히 미확정입니다. 기본값은 꺼짐이며 브라우저 분석 시간은 바꾸지 않습니다. 검증: `node test/proof-incomplete-path.cjs`, `node test/proof-vcf-retry.cjs`.
+
 독립 증명 검증기의 실패 결과에는 `variation`이 포함됩니다. 입력 prefix 이후 실패한 공격/방어 수순이며, 마지막 좌표만으로 다른 분기를 혼동하지 않도록 제공합니다. 미해결 분기는 상대의 안전 증명이 아닙니다. 검증: `node test/proof-failure-path.cjs`.
 
 연구용 세션은 상대의 즉시 승리를 남기는 후보를 정적 평가와 응수 분기 전에 제외합니다. 실제 후보 착수 후 기존 규칙으로 상대 승리 수의 합법성과 정확한 5목을 재검사하며, 내 즉시 승리는 먼저 인정합니다. `immediatePruning:false`로 비교 실행할 수 있습니다. 검증: `node test/proof-immediate-pruning.cjs`. 브라우저 엔진 변경은 아닙니다.

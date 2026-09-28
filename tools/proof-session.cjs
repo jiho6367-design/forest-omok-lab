@@ -12,8 +12,8 @@ module.exports=function createProofSession(input){
  if((moves.length%2?3-first:first)!==attacker)throw Error('Attacker must move next');
  const roots=spec.roots?new Set(spec.roots.map(index)):null;
  if(roots&&(!roots.size||[...roots].some(i=>!E.inspect(b,i,attacker).legal)))throw Error('Invalid root selection');
- const cache=new Map(),vcfCache=new Map(),rootChecks=[],activeLine=[],counterAudit=[];
- const stats={nodes:0,defenses:0,cacheHits:0,vcfChecks:0,vcfIncomplete:0,forcingExtensions:0,defenseExtensions:0,threeExtensions:0,immediatePrunes:0,counterVcfChecks:0,counterVcfPrunes:0,counterVcfIncomplete:0,certifiedPrunes:0,slices:0};
+ const cache=new Map(),vcfCache=new Map(),rootChecks=[],activeLine=[],counterAudit=[],incompleteVcf=[];
+ const stats={nodes:0,defenses:0,cacheHits:0,vcfChecks:0,vcfRetries:0,vcfIncomplete:0,forcingExtensions:0,defenseExtensions:0,threeExtensions:0,immediatePrunes:0,counterVcfChecks:0,counterVcfPrunes:0,counterVcfIncomplete:0,certifiedPrunes:0,slices:0};
  let deadline=0,done=false,proof=null;
  function candidates(){
   const out=new Set(E.candidates(b));
@@ -60,15 +60,18 @@ module.exports=function createProofSession(input){
   if(cache.has(key)){stats.cacheHits++;return cache.get(key);}
   const incompleteBefore=stats.vcfIncomplete;
   if(ply===0&&roots){const win=E.winning(b,attacker).find(i=>roots.has(i));if(win!==undefined)return {type:'five',move:E.coord(win)};}
-  let forcing;
+  let forcing,probeMs=800;
   for(;;){
    yield;
    if(Date.now()>=deadline)continue;
    stats.vcfChecks++;
-   forcing=E.forcing(b,attacker,25,Math.max(1,Math.min(800,deadline-Date.now())),vcfCache);
+   forcing=E.forcing(b,attacker,25,Math.max(1,Math.min(probeMs,deadline-Date.now())),vcfCache);
    if(forcing.complete)break;
    if(Date.now()>=deadline)continue; // Retry only this interrupted leaf next slice.
-   stats.vcfIncomplete++;return null; // Internal VCF cap, never cache as refuted.
+   if(spec.retryIncompleteVcf&&probeMs===800){probeMs=1600;stats.vcfRetries++;continue;}
+   stats.vcfIncomplete++;
+   incompleteVcf.push({prefix:[...moves,...activeLine].join(' '),attacker,first,rules:spec.rules||{fivePriority:false},vcfDepth:25,quietLeft:left,extensionsLeft:ext});
+   return null; // Internal VCF cap, never cache as refuted.
   }
   if(forcing.proof&&!(ply===0&&roots&&!roots.has(forcing.proof.pv[0]))){
    const result={type:'forcing',pv:forcing.proof.pv.map(E.coord)};cache.set(key,result);return result;
@@ -127,7 +130,7 @@ module.exports=function createProofSession(input){
   if(!Number.isFinite(ms)||ms<0||ms>25000)throw Error('Slice must be 0..25000 ms');
   const start=Date.now();deadline=start+ms;if(ms>0&&!done)stats.slices++;
   while(!done&&Date.now()<deadline){const result=iterator.next();if(result.done){done=true;proof=result.value;}}
-  return JSON.parse(JSON.stringify({done,proof:done?proof:null,searchComplete:done&&stats.vcfIncomplete===0,elapsed_ms:Date.now()-start,stats,rootChecks,activeLine:done?[]:activeLine,...(spec.auditCounterPrunes?{counterAudit}:{}),
-   scope:{prefix:spec.prefix,attacker,quietDepth:quiet,extensions,forcedDefenseExtensions:!!spec.forcedDefenseExtensions,threeExtensions:!!spec.threeExtensions,counterVcfPruning:!!spec.counterVcfPruning,horizonPruning:spec.horizonPruning!==false,roots:spec.roots||null,vcfDepth:25}}));
+  return JSON.parse(JSON.stringify({done,proof:done?proof:null,searchComplete:done&&stats.vcfIncomplete===0,elapsed_ms:Date.now()-start,stats,rootChecks,incompleteVcf,activeLine:done?[]:activeLine,...(spec.auditCounterPrunes?{counterAudit}:{}),
+   scope:{prefix:spec.prefix,attacker,quietDepth:quiet,extensions,forcedDefenseExtensions:!!spec.forcedDefenseExtensions,threeExtensions:!!spec.threeExtensions,retryIncompleteVcf:!!spec.retryIncompleteVcf,counterVcfPruning:!!spec.counterVcfPruning,horizonPruning:spec.horizonPruning!==false,roots:spec.roots||null,vcfDepth:25}}));
  }};
 };

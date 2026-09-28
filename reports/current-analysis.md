@@ -207,3 +207,11 @@ G9–E8–G8–G10 국면에서 앞서 끝낸 18개를 제외한 나머지 66개
 새 범위의 집계는 sixth-three-coverage.json이다. I7의 독립 확정 패배와 완료된 58개 미증명 후보를 합해 60개 중 59개가 범위 완료, H9 한 개가 불완전 상태로 남았다. 이 범위 밖 합법 후보 160개도 있으므로 전체 국면 해결을 주장하지 않는다. 새 승리수나 브라우저 변경은 없다.
 
 후보 순회 종료 시 done=true이지만 searchComplete=false다. 이는 내부 VCF 상한 1회로 H9가 incomplete인 결과이며 전체 검증 완료로 해석하지 않는다. 상대 VCF 보조 검사 80회 시간 초과는 가지치기를 하지 않고 본 탐색으로 돌아간 경우다. 범위 밖 160개 합법수와 더 긴 전략 가능성도 남아 있어 백이 이길 수 없다는 결론은 아니다. 이번 세션은 종료됐고 실행 중인 검증 프로세스는 없다.
+
+## H9 불완전 검사의 원인과 보완
+
+H9만 분리한 진단 검사에서 내부 VCF 상한에 걸리는 정확한 국면을 확보했다(sixth-h9-three-session-result.json). 이 국면은 원래 기보가 아니라 6.H9에서 파생된 25수 조건부 수순이다. 별도 VCF 검사 958ms에 백 M5–L6–F4–G5–I5–I6–H7–J7–E7–F7–E9–G9–E6–E5–E10 공격 증명이 나왔고, 상대 합법 방어 199개를 985ms에 독립 검증했다(sixth-h9-incomplete-vcf-check.json, sixth-h9-leaf-certificate.json, sixth-h9-leaf-verification.json). 이 조건부 백 승리를 6.H9 전체 승리로 보고하지 않는다.
+
+연구 도구에 incompleteVcf 수순 기록 및 선택적인 내부 VCF 재검사 1회(800→1,600ms)를 추가했다. 남은 구간 시간으로 호출을 제한하며 두 번 모두 미완료이면 unknown을 유지한다. fault injection으로 성공 복구·재검사 소진·기본 비활성·경로 합법성·상태 격리를 검증했고 기존 proof-session 회귀도 통과했다.
+
+재검사 경로를 켠 H9 검사는 82,616ms에 범위 완료했다. vcfRetries=1, vcfIncomplete=0, searchComplete=true이지만 proof=null이며 흑 G8이 남았다(sixth-h9-retry-session-result.json). 최적화 세션과 기존 진단 세션은 모두 종료했다. 현재 실행 중 프로세스는 없다. 새 집계에서 근접/직선 후보 60개는 모두 지정 범위 완료(확정 패배 I7 1개, 승리 미증명 59개)이며, 범위 밖 합법수 160개와 더 긴 전략은 미해결이다. 기존 순회 파일은 H9 incomplete라는 당시 기록을 유지한다. 브라우저나 승리 추천 변경은 하지 않았다.

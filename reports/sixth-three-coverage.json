@@ -4,12 +4,10 @@
   "extensions": 8,
   "threeExtensions": true,
   "forcedDefenseExtensions": true,
-  "completed": 59,
+  "completed": 60,
   "in_scope": 60,
   "outside_scope_legal": 160,
-  "pending": [
-    "H9"
-  ],
+  "pending": [],
   "whole_position_solved": false,
   "white_win_found": false,
   "results": {
@@ -295,9 +293,9 @@
     },
     "H9": {
       "move": "H9",
-      "status": "incomplete",
+      "status": "unproved",
       "unrefutedResponse": "G8",
-      "source": "sixth-remaining-three-session-result.json"
+      "source": "sixth-h9-retry-session-result.json"
     },
     "J10": {
       "move": "J10",
@@ -373,7 +371,6 @@
     }
   },
   "visited_roots": 60,
-  "incomplete_roots": [
-    "H9"
-  ]
+  "incomplete_roots": [],
+  "probe_policy": "H9 completed with one bounded internal VCF retry; quiet and extension scope unchanged"
 }

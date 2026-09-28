@@ -1,0 +1,10 @@
+{
+  "prefix": "H8 G7 G6 H6 F8 H9 G8 I8 D8 E8 K6 G10 F11 F9 D7 H11 I12 I9 J9 I7 I10 J8 K9 K7 L5",
+  "attacker": 2,
+  "rules": {
+    "fivePriority": false
+  },
+  "certificate": {
+    "move": "M5"
+  }
+}
