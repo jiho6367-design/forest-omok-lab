@@ -1,0 +1,38 @@
+{
+  "rules": {"fivePriority": false},
+  "method": "Two quiet setup stages, aligned-through-four candidates, VCF depth 25, all legal defender replies",
+  "checks": [
+    {
+      "prefix": "H8 G7 G6 H6 F8 I5 G8 I8",
+      "attacker": "black",
+      "preferred": "E8",
+      "proof": null,
+      "searchComplete": true,
+      "elapsed_ms": 8064,
+      "nodes": 559,
+      "defenderReplies": 9098,
+      "cacheHits": 3
+    },
+    {
+      "prefix": "H8 G7 G6 H6 F8 I5 G8",
+      "attacker": "white",
+      "proof": null,
+      "searchComplete": true,
+      "elapsed_ms": 5679,
+      "nodes": 305,
+      "defenderReplies": 6496,
+      "cacheHits": 0
+    },
+    {
+      "prefix": "H8 G7 G6",
+      "attacker": "white",
+      "proof": null,
+      "searchComplete": true,
+      "elapsed_ms": 3881,
+      "nodes": 3567,
+      "defenderReplies": 3566,
+      "cacheHits": 282
+    }
+  ],
+  "interpretation": "No forcing win was found within the stated finite scope. I5-G8-I8 is not a certified safe or winning variation. The earlier white move-four position likewise has no win certificate at this scope; this does not prove a win is impossible. No winning-book entry or guaranteed defense was added."
+}
