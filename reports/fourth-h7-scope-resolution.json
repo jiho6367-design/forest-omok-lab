@@ -1,0 +1,47 @@
+{
+  "source": "reports/fourth-h7-three-session-result.json",
+  "source_sha256": "915a3bc1a96a19c1c0d210350ee8d82f700f6f9704b5d3e535b04cf38c6f6e69",
+  "raw_search_complete": false,
+  "scope": {
+    "prefix": "H8 G7 G6",
+    "attacker": 2,
+    "quietDepth": 3,
+    "extensions": 8,
+    "forcedDefenseExtensions": true,
+    "threeExtensions": true,
+    "retryIncompleteVcf": true,
+    "forcingHints": true,
+    "counterVcfPruning": true,
+    "horizonPruning": true,
+    "roots": [
+      "H7"
+    ],
+    "vcfDepth": 25
+  },
+  "resolved_leaf": {
+    "spec": {
+      "prefix": "H8 G7 G6 H7 F7 H5 F3 J5 K4 I5 G5 K5 L5 J4 H6 I3 L6 J3 J6 I6 I4 L3 H3 J7 G4",
+      "attacker": 2,
+      "first": 1,
+      "rules": {
+        "fivePriority": false
+      },
+      "vcfDepth": 25,
+      "quietLeft": 0,
+      "extensionsLeft": 0
+    },
+    "elapsed_ms": 4171,
+    "complete": true,
+    "proof": null,
+    "nodes": 10773
+  },
+  "scope_complete": true,
+  "winning_proof": null,
+  "conclusion": "No white win found within the specified bounded search. Not a proof of white loss.",
+  "root": {
+    "move": "H7",
+    "status": "incomplete",
+    "unrefutedResponse": "F7"
+  },
+  "reason": "The only incomplete leaf has zero quiet and extension budget. A complete negative VCF result makes that leaf return null under the original solver, preserving its existing branch outcome."
+}
