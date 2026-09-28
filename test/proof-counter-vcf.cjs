@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict'),create=require('../tools/proof-session.cjs'),verify=require('../tools/verify-attack.cjs');
+const prefix='H8 G7 G6 F7 H7 F5 H6';
+const r=create({prefix,attacker:2,quietDepth:2,extensions:8,roots:['F6'],counterVcfPruning:true}).run(3000);
+assert(r.done&&r.searchComplete);assert.equal(r.proof,null);assert(r.stats.counterVcfPrunes>0);
+assert.equal(r.rootChecks[0].status,'certified_loss');
+assert(verify({prefix:prefix+' F6',attacker:1,certificate:{move:r.rootChecks[0].winningReply}},3000).verified);
+const spec={prefix:'H8 G7 G6 H6 F8 I7 E8 D8 F7 H5',attacker:1,quietDepth:1,extensions:0,roots:['F5']};
+const plain=create(spec).run(5000),pruned=create({...spec,counterVcfPruning:true}).run(5000);
+assert(plain.done&&pruned.done);assert(plain.proof&&pruned.proof);
+const tree=p=>({move:p.move||p.pv[0],replies:Object.fromEntries((p.exceptions||[]).map(e=>[e.response,tree(e.proof)]))});
+assert(verify({prefix:spec.prefix,attacker:1,certificate:tree(pruned.proof)},5000).verified);
+const win=create({prefix:'H8 A1 H9 B1 H10 C1 H11 D1',attacker:1,quietDepth:0,extensions:0,roots:['H12'],counterVcfPruning:true}).run(1000);
+assert(win.proof);assert.equal(win.stats.counterVcfChecks,0);
+console.log('PASS counter-VCF exclusion, independent certificates and immediate win priority');

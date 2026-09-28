@@ -1,0 +1,41 @@
+{
+  "done": true,
+  "proof": null,
+  "searchComplete": true,
+  "elapsed_ms": 1185,
+  "stats": {
+    "nodes": 18,
+    "defenses": 17,
+    "cacheHits": 0,
+    "vcfChecks": 18,
+    "vcfIncomplete": 0,
+    "forcingExtensions": 10,
+    "defenseExtensions": 6,
+    "immediatePrunes": 586,
+    "counterVcfChecks": 349,
+    "counterVcfPrunes": 334,
+    "counterVcfIncomplete": 0,
+    "certifiedPrunes": 0,
+    "slices": 1
+  },
+  "rootChecks": [
+    {
+      "move": "J6",
+      "status": "unproved",
+      "unrefutedResponse": "G8"
+    }
+  ],
+  "activeLine": [],
+  "scope": {
+    "prefix": "H8 G7 G6 F7 H7 F5 H6 H9 H4 H5 F6 E6 I6",
+    "attacker": 2,
+    "quietDepth": 2,
+    "extensions": 8,
+    "forcedDefenseExtensions": true,
+    "counterVcfPruning": true,
+    "roots": [
+      "J6"
+    ],
+    "vcfDepth": 25
+  }
+}

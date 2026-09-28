@@ -12,8 +12,8 @@ module.exports=function createProofSession(input){
  if((moves.length%2?3-first:first)!==attacker)throw Error('Attacker must move next');
  const roots=spec.roots?new Set(spec.roots.map(index)):null;
  if(roots&&(!roots.size||[...roots].some(i=>!E.inspect(b,i,attacker).legal)))throw Error('Invalid root selection');
- const cache=new Map(),vcfCache=new Map(),rootChecks=[],activeLine=[];
- const stats={nodes:0,defenses:0,cacheHits:0,vcfChecks:0,vcfIncomplete:0,forcingExtensions:0,defenseExtensions:0,immediatePrunes:0,certifiedPrunes:0,slices:0};
+ const cache=new Map(),vcfCache=new Map(),rootChecks=[],activeLine=[],counterAudit=[];
+ const stats={nodes:0,defenses:0,cacheHits:0,vcfChecks:0,vcfIncomplete:0,forcingExtensions:0,defenseExtensions:0,immediatePrunes:0,counterVcfChecks:0,counterVcfPrunes:0,counterVcfIncomplete:0,certifiedPrunes:0,slices:0};
  let deadline=0,done=false,proof=null;
  function candidates(){
   const out=new Set(E.candidates(b));
@@ -81,6 +81,20 @@ module.exports=function createProofSession(input){
     const defense=ext>0&&move===mandatory;
     const extend=defense||ext>0&&shape.fours.length>0&&E.winning(b,attacker).length>0;
     if(left<=0&&!extend)continue;
+    if(spec.counterVcfPruning){
+     yield;
+     stats.counterVcfChecks++;
+     const counter=E.forcing(b,defender,19,Math.max(1,Math.min(20,deadline-Date.now())),vcfCache);
+     if(counter.proof){
+      stats.counterVcfPrunes++;
+      if(spec.auditCounterPrunes)counterAudit.push({prefix:[...moves,...activeLine].join(' '),attacker:defender,rules:spec.rules||{fivePriority:false},certificate:{move:E.coord(counter.proof.pv[0])}});
+      if(ply===0)rootChecks.push({move:E.coord(move),status:'certified_loss',winningReply:E.coord(counter.proof.pv[0]),counterLine:counter.proof.pv.map(E.coord)});
+      continue;
+     }
+     // Optional shortcut only: an interrupted counterprobe never prunes or
+     // changes the completeness of the exhaustive search below.
+     if(!counter.complete)stats.counterVcfIncomplete++;
+    }
     if(extend)stats.forcingExtensions++;
     if(defense)stats.defenseExtensions++;
     let all=true,count=0,response=null,exceptions=[];
@@ -105,7 +119,7 @@ module.exports=function createProofSession(input){
   if(!Number.isFinite(ms)||ms<0||ms>25000)throw Error('Slice must be 0..25000 ms');
   const start=Date.now();deadline=start+ms;if(ms>0&&!done)stats.slices++;
   while(!done&&Date.now()<deadline){const result=iterator.next();if(result.done){done=true;proof=result.value;}}
-  return JSON.parse(JSON.stringify({done,proof:done?proof:null,searchComplete:done&&stats.vcfIncomplete===0,elapsed_ms:Date.now()-start,stats,rootChecks,activeLine:done?[]:activeLine,
-   scope:{prefix:spec.prefix,attacker,quietDepth:quiet,extensions,forcedDefenseExtensions:!!spec.forcedDefenseExtensions,roots:spec.roots||null,vcfDepth:25}}));
+  return JSON.parse(JSON.stringify({done,proof:done?proof:null,searchComplete:done&&stats.vcfIncomplete===0,elapsed_ms:Date.now()-start,stats,rootChecks,activeLine:done?[]:activeLine,...(spec.auditCounterPrunes?{counterAudit}:{}),
+   scope:{prefix:spec.prefix,attacker,quietDepth:quiet,extensions,forcedDefenseExtensions:!!spec.forcedDefenseExtensions,counterVcfPruning:!!spec.counterVcfPruning,roots:spec.roots||null,vcfDepth:25}}));
  }};
 };
