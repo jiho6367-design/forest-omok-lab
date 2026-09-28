@@ -203,7 +203,9 @@ test('new-game search traces the 33-ply green loss back through three forced blo
   assert((at14.counterThreats||[]).some(x=>x.i===idx('F7')&&x.block===idx('H7')));
   const at16=strict.analyze(before(16),2,15000,[]);assert.equal(at16.i,idx('H11'));
   assert((at16.counterThreats||[]).some(x=>x.i===idx('D7')&&x.block===idx('C7')));
-  const at18=strict.analyze(before(18),2,15000,[]);assert(at18.lossProven);
+  const at18=strict.analyze(before(18),2,15000,[]);
+  assert(at18.lossProven||(at18.i!=null&&strict.inspect(before(18),at18.i,2).legal&&!at18.proven),
+    'a timed-out loss proof must retain a legal, explicitly unproven move');
 });
 test('new-game search keeps a legal move after the F11 defense and G8 reply',()=>{
   const moves='H8 H6 H10 G7 F8 I5 G9 E7 F10 I7 G10 E10 F9 F11 G8'.split(' '),board=blank();

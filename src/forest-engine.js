@@ -135,7 +135,7 @@ function createForestEngine(options={}){
   if(source.key!==current.key)return [];
   const bad=untransform(transformed(9*15+5,source.t),current.t); // F10
   const attack=untransform(transformed(4*15+5,source.t),current.t); // F5
-  return [{i:bad,reason:`이 수 뒤 상대 ${coord(attack)}부터 모든 합법 응수에 강제승 확인`}];
+  return [{i:bad,attack,reason:`이 수 뒤 상대 ${coord(attack)}부터 모든 합법 응수에 강제승 확인`}];
  }
  function analyze(board,p,budget=1000,lessons=[]){
   let immediate=urgent(board,p);if(immediate)return immediate;

@@ -77,3 +77,19 @@ npm test
 `build.cjs`가 두 실행 경로를 같은 내용으로 생성합니다. 생성된 HTML을 직접 수정하지 마세요.
 
 `omok-reader` 루트에 남아 있는 이전 버전의 개발 파일은 보관 자료입니다. 통합판은 위의 `src/`와 `build.cjs`를 사용합니다.
+# 패배 기보 역분석 API
+
+기존 게임 규칙과 보드 엔진을 재사용하는 Node API입니다. UI에 새 복기 버튼을 추가하지 않습니다.
+
+```js
+const {analyze_game}=require('./src/historical-analysis.cjs');
+const moves='H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7 G10 E6 C8 E7 E5 E9 B7'.split(' ');
+const result=await analyze_game(moves,'white','deep25',{rules:{fivePriority:false}});
+console.log(result);
+```
+
+모드는 `fast`(0.9초), `compare`(3초), `precise`/`auto`(8초), `deep15`(15초), `deep25`(25초)입니다. 숫자 밀리초도 받습니다. 전체 기보의 분석 상한이며, 끝나지 않은 위치는 `timeout`으로 표시합니다. `LEVEL 0`은 해당 착수 뒤 상대의 강제승이 증명됐거나 기존 엔진에 이미 검증된 반증이 있는 경우, `LEVEL 1`은 그 증명이 없지만 전체 무패가 확인되지 않은 경우, `LEVEL 4`는 상대의 합법 대응까지 검사한 강제승인 경우에만 사용합니다. 중간 등급은 근거가 확보되기 전까지 표시하지 않습니다.
+
+독립 국면만 Worker에 분배합니다. 고사양 장치에서도 짧은 런타임 측정에서 처리량이 25% 이상 늘어난 경우에만 최대 2개를 쓰며, 다른 앱을 위해 CPU를 남깁니다. `opts.load`를 제공하면 높은 부하에서 1개로 줄이고, 장치 정보가 없으면 1개로 실행합니다. 브라우저에서 분석 Worker는 선택 시간 뒤 강제 종료되고 마지막 완료 깊이의 결과를 유지합니다.
+
+전후 비교: `node tools/bench-history.cjs 900 3000 8000 15000 25000`. 기존 `HEAD`와 작업 중 소스의 같은 10수 직전 판을 비교합니다. 성능 수치는 장치 부하에 따라 달라지며, 심층 경로에는 추가 위협 검사가 포함됩니다.

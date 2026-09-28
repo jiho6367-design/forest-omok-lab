@@ -335,7 +335,7 @@ function createForestEngine(options={}){
   if(source.key!==current.key)return [];
   const bad=untransform(transformed(9*15+5,source.t),current.t); // F10
   const attack=untransform(transformed(4*15+5,source.t),current.t); // F5
-  return [{i:bad,reason:`이 수 뒤 상대 ${coord(attack)}부터 모든 합법 응수에 강제승 확인`}];
+  return [{i:bad,attack,reason:`이 수 뒤 상대 ${coord(attack)}부터 모든 합법 응수에 강제승 확인`}];
  }
  function analyze(board,p,budget=1000,lessons=[]){
   let immediate=urgent(board,p);if(immediate)return immediate;
@@ -879,8 +879,24 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   const src=$('engineSource').textContent+'\nonmessage=e=>{try{const E=createEngine(e.data.rules);const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r}));postMessage({result:r})}catch(x){postMessage({error:String(x)})}}';
   const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));let w;
   try{w=new Worker(url);}finally{URL.revokeObjectURL(url);}
-  w.onmessage=e=>{if(e.data.error){w.terminate();onError(e.data.error);}else if(e.data.progress)onProgress(e.data.result);else{w.terminate();onDone(e.data.result);}};
-  w.onerror=e=>{w.terminate();onError(e.message||'Worker 오류');};
+  const limit=typeof budget==='object'?budget.ms:Number(budget),started=performance.now();
+  let finished=false,lastVerified=null,lastLegal=null;
+  const finish=(result,error)=>{if(finished)return;finished=true;clearTimeout(timer);w.terminate();if(result)onDone({...result,ms:Math.round(performance.now()-started),timedOut:!!error});else onError(error||'Worker 오류');};
+  // A terminated Worker cannot finish an incomplete depth. Only retain a
+  // completed progress report; the initial provisional candidate is excluded.
+  const timer=setTimeout(()=>{
+    const fallback=lastVerified||(lastLegal?{...lastLegal,depth:0,
+      reason:'시간 상한 도달 · 임시 합법 후보 (깊이 검증 미완료)',unverifiedDefense:true}:null)||E.urgent(board,p)||{
+      i:Array.from({length:225},(_,i)=>i).find(i=>E.inspect(board,i,p).legal)??null,
+      depth:0,nodes:0,pv:[],reason:'시간 상한 도달 · 합법 후보 (심층 검증 미완료)',
+      unverifiedDefense:true,candidates:[]};
+    finish(fallback,'시간 상한 도달');
+  },Math.max(30,limit)+80);
+  w.onmessage=e=>{if(finished)return;if(e.data.error)finish(lastVerified,e.data.error);
+    else if(e.data.progress){const r=e.data.result;if(r?.i!=null&&E.inspect(board,r.i,p).legal)lastLegal=r;
+      if(r?.depth>0||r?.proven||r?.lossProven)lastVerified=r;onProgress(r);}
+    else finish(e.data.result);};
+  w.onerror=e=>finish(lastVerified,e.message||'Worker 오류');
   w.postMessage({b:board,p,ms:budget,lessons:db.lessons,rules:g?.rules||{}});return w;
 }
 function acceptResult(result,partial=false){
