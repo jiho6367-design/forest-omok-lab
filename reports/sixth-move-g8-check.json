@@ -1,0 +1,30 @@
+{
+  "rules": {"fivePriority": false},
+  "scope": "aligned-through-four candidates, two quiet setup stages, VCF depth 25, every legal defense",
+  "original_before_move_6": {
+    "prefix": "H8 G7 G6 H6 F8",
+    "white_proof": null,
+    "searchComplete": true,
+    "elapsed_ms": 5350,
+    "nodes": 4744,
+    "defenderReplies": 4743,
+    "cacheHits": 1432
+  },
+  "alternative": "6.W G8",
+  "black_response_search": {
+    "budget_ms": 3000,
+    "completed_depth": 4,
+    "pv": ["G9", "I5", "E7", "H10"],
+    "proven": false
+  },
+  "white_proof_after_black_g9": {
+    "prefix": "H8 G7 G6 H6 F8 G8 G9",
+    "proof": null,
+    "searchComplete": true,
+    "elapsed_ms": 8752,
+    "nodes": 6555,
+    "defenderReplies": 6554,
+    "cacheHits": 1670
+  },
+  "interpretation": "G8 blocks the F8-H8 axis, but neither a white win nor nonloss is certified. G9 is only a bounded-search black reply. Do not replace a live-game recommendation with a claimed winning G8 on this evidence."
+}
