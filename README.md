@@ -79,6 +79,8 @@ npm test
 `omok-reader` 루트에 남아 있는 이전 버전의 개발 파일은 보관 자료입니다. 통합판은 위의 `src/`와 `build.cjs`를 사용합니다.
 # 패배 기보 역분석 API
 
+오프라인 증명 탐색의 선택 옵션 `--forcing-extensions`는 강제 4 교환을 준비 수 깊이와 분리해 최대 8회 추가 검사합니다. 예: `node tools/prove-loss.cjs "H8 G7 G6 H6 F8 I5 G8" 2 25 "" white black-first "" wide --forcing-extensions`. 모든 방어 응수와 금수 검사를 유지하며, 시간 초과는 증명으로 취급하지 않습니다. 검증: `npm run test:forcing-extensions`. 실제 게임의 분석 시간이나 기본 탐색은 변경하지 않습니다.
+
 v5.12.3은 실제 6.I7 뒤 흑 E8의 강제승을 모든 합법 응수 증명으로 확인했습니다. 새 게임의 같은 국면·회전·반전·색 교환에서 I7을 제외하고, 분석 중 임시 후보에도 같은 제외 규칙을 적용합니다. 기존 12.F10의 미완성 G10 증명 대신 완성된 D7 분기 증명을 적용했습니다. 백 승리 대안은 아직 증명되지 않았습니다. 증명 재현: `npm run verify:opening` (오프라인 검증, 각 배치 최대 25초).
 
 v5.12.2는 16.C6 대안을 흑 E6의 모든 응수 반증으로 제외합니다. 독립 증명은 `reports/c6-loss-certificate.json`, 후반 합법 후보 전수검사는 `tools/screen-replay.cjs`와 `reports/later-root-screen.json`에 있습니다. 새 게임의 동일 국면과 대칭·색 교환에도 반영합니다. G10이 안전하거나 승리한다는 증명은 아닙니다.

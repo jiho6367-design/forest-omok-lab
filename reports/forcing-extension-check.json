@@ -1,0 +1,13 @@
+{
+  "prefix": "H8 G7 G6 H6 F8 I5 G8",
+  "attacker": "white",
+  "quiet_depth": 2,
+  "forcing_extension_limit": 8,
+  "vcf_depth": 25,
+  "scope": "aligned-through-four; every legal defender reply",
+  "proof": null,
+  "searchComplete": true,
+  "elapsed_ms": 22863,
+  "stats": {"nodes": 467, "direct": 0, "unknown": 467, "defenderReplies": 23262, "timedOut": 0, "incompleteForcing": 0, "cacheHits": 0, "forcingExtensions": 262},
+  "interpretation": "Forced-four exchanges are now traversed without consuming quiet preparation stages, under a separate finite cap. This expanded scope still yields no white win certificate. It does not prove a win is impossible. The extension is opt-in in the offline research tool; browser budgets and recommendations are unchanged."
+}
