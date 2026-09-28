@@ -1,0 +1,26 @@
+{
+  "rules": {"fivePriority": false},
+  "base_prefix": "H8 G7 G6 H6 F8 I7 E8",
+  "D8": {
+    "black_proof": {
+      "move": "F7",
+      "all_legal_white_replies_checked": 216,
+      "exceptions_to_direct_vcf": [
+        {"white": "H5", "black": "F5", "all_legal_white_replies_checked": 214, "all_followups_direct_vcf": true},
+        {"white": "D9", "black": "F5", "all_legal_white_replies_checked": 214, "all_followups_direct_vcf": true}
+      ]
+    },
+    "research_search_ms": 3196,
+    "engine_forcedReplyTrap_crosscheck": {"complete": true, "proved": true, "elapsed_ms": 3259, "replies": 216}
+  },
+  "I8": {
+    "black_proof": null,
+    "scope": "aligned-through-four, two quiet setup stages, VCF depth 25",
+    "searchComplete": true,
+    "elapsed_ms": 9212,
+    "nodes": 7946,
+    "defenderReplies": 7945,
+    "cacheHits": 2724
+  },
+  "conclusion": "White D8 is proven losing. I8 and G8 remain unresolved at move 8; neither is certified a white win."
+}

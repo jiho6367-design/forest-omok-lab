@@ -8,6 +8,13 @@ assert.equal(board[index('B7')],2);
 assert.equal(positions[9][index('D9')],0);
 assert.equal(positions[19][index('E5')],0);
 const engine=createEngine({fivePriority:false});
+{
+  const b=positions[7].slice();b[index('D8')]=2;const original=b.join('');
+  const r=engine.forcedReplyTrap(b,2,10000,index('F7'),19,true);
+  assert(r.complete&&r.proof,'D8 is refuted by black F7 including quiet followups');
+  assert.equal(r.proof.branches.length,216);
+  assert.equal(b.join(''),original);
+}
 for(const [ply,expected] of [[8,'D8 G8 I8'],[10,'H5 D9'],[12,'F6 F10']]){
   const b=positions[ply-1].slice(),survivors=[];
   for(let i=0;i<225;i++){
