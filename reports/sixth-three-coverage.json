@@ -4,16 +4,10 @@
   "extensions": 8,
   "threeExtensions": true,
   "forcedDefenseExtensions": true,
-  "completed": 11,
+  "completed": 17,
   "in_scope": 60,
   "outside_scope_legal": 160,
   "pending": [
-    "E7",
-    "F4",
-    "J7",
-    "K9",
-    "H5",
-    "H4",
     "D7",
     "H3",
     "E3",
@@ -121,6 +115,42 @@
     },
     "G5": {
       "move": "G5",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "E7": {
+      "move": "E7",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "F4": {
+      "move": "F4",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "J7": {
+      "move": "J7",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "K9": {
+      "move": "K9",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "H5": {
+      "move": "H5",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "H4": {
+      "move": "H4",
       "status": "unproved",
       "unrefutedResponse": "G8",
       "source": "sixth-remaining-three-session-result.json"
