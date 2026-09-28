@@ -4,29 +4,29 @@
   "searchComplete": false,
   "elapsed_ms": 25000,
   "stats": {
-    "nodes": 29633,
-    "defenses": 29632,
-    "cacheHits": 1999,
-    "vcfChecks": 27635,
+    "nodes": 36557,
+    "defenses": 36556,
+    "cacheHits": 2162,
+    "vcfChecks": 34396,
     "vcfIncomplete": 0,
-    "forcingExtensions": 6350,
-    "defenseExtensions": 2562,
-    "immediatePrunes": 296936,
-    "counterVcfChecks": 44043,
-    "counterVcfPrunes": 28686,
-    "counterVcfIncomplete": 5,
+    "forcingExtensions": 8069,
+    "defenseExtensions": 4245,
+    "immediatePrunes": 502414,
+    "counterVcfChecks": 117240,
+    "counterVcfPrunes": 95175,
+    "counterVcfIncomplete": 6,
     "certifiedPrunes": 0,
-    "slices": 10
+    "slices": 16
   },
   "rootChecks": [],
   "activeLine": [
     "E8",
     "F7",
-    "I5",
+    "J4",
     "K3",
-    "J6",
+    "G4",
     "D5",
-    "H9"
+    "K9"
   ],
   "scope": {
     "prefix": "H8 G7 G6 H6 F8 H7 G8 I8 D8",
