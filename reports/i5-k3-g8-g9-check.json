@@ -1,0 +1,140 @@
+{
+  "next": "white",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "I7",
+      "status": "unproved",
+      "elapsed_ms": 2881,
+      "defensesChecked": 1,
+      "unrefutedResponse": "H10",
+      "responseWins": false
+    },
+    {
+      "move": "H7",
+      "status": "unproved",
+      "elapsed_ms": 1815,
+      "defensesChecked": 1,
+      "unrefutedResponse": "I7",
+      "responseWins": false
+    },
+    {
+      "move": "I6",
+      "status": "unproved",
+      "elapsed_ms": 1536,
+      "defensesChecked": 1,
+      "unrefutedResponse": "I7",
+      "responseWins": false
+    },
+    {
+      "move": "F7",
+      "status": "unproved",
+      "elapsed_ms": 1844,
+      "defensesChecked": 1,
+      "unrefutedResponse": "E7",
+      "responseWins": false
+    },
+    {
+      "move": "J6",
+      "status": "unproved",
+      "elapsed_ms": 1902,
+      "defensesChecked": 1,
+      "unrefutedResponse": "H10",
+      "responseWins": false
+    },
+    {
+      "move": "G5",
+      "status": "unproved",
+      "elapsed_ms": 1782,
+      "defensesChecked": 1,
+      "unrefutedResponse": "I7",
+      "responseWins": false
+    },
+    {
+      "move": "J5",
+      "status": "unproved",
+      "elapsed_ms": 1862,
+      "defensesChecked": 1,
+      "unrefutedResponse": "F10",
+      "responseWins": false
+    },
+    {
+      "move": "H5",
+      "status": "unproved",
+      "elapsed_ms": 1900,
+      "defensesChecked": 1,
+      "unrefutedResponse": "F10",
+      "responseWins": false
+    },
+    {
+      "move": "H4",
+      "status": "unproved",
+      "elapsed_ms": 1630,
+      "defensesChecked": 1,
+      "unrefutedResponse": "J6",
+      "responseWins": false
+    },
+    {
+      "move": "K7",
+      "status": "unproved",
+      "elapsed_ms": 1731,
+      "defensesChecked": 1,
+      "unrefutedResponse": "J6",
+      "responseWins": false
+    },
+    {
+      "move": "E7",
+      "status": "unproved",
+      "elapsed_ms": 1710,
+      "defensesChecked": 1,
+      "unrefutedResponse": "F10",
+      "responseWins": false
+    },
+    {
+      "move": "E5",
+      "status": "unproved",
+      "elapsed_ms": 1771,
+      "defensesChecked": 1,
+      "unrefutedResponse": "F10",
+      "responseWins": false
+    },
+    {
+      "move": "K5",
+      "status": "unproved",
+      "elapsed_ms": 1723,
+      "defensesChecked": 1,
+      "unrefutedResponse": "F10",
+      "responseWins": false
+    },
+    {
+      "move": "F9",
+      "status": "incomplete",
+      "elapsed_ms": 884,
+      "defensesChecked": 1,
+      "unrefutedResponse": "H10",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": false,
+  "ms": 25002,
+  "stats": {
+    "nodes": 1354,
+    "direct": 0,
+    "unknown": 1326,
+    "defenderReplies": 1623,
+    "timedOut": 3,
+    "incompleteForcing": 0,
+    "cacheHits": 28,
+    "forcingExtensions": 270,
+    "certifiedPrunes": 0
+  },
+  "prefix": "H8 G7 G6 H6 F8 I5 K3 G8 G9",
+  "rules": {
+    "fivePriority": false
+  },
+  "rootDefenseOrdering": "tactical score plus bounded existing evaluation",
+  "interpretation": "Bounded white attack search; no winning certificate. Incomplete root coverage is not proof of no win. The first unrefuted response is a search witness, not a certified strongest defense."
+}

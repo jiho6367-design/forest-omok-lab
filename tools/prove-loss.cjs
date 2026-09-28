@@ -41,12 +41,17 @@ function rankedAttack(b,ply){
  const s=engine.inspect(b,i,attacker);b[i]=attacker;const evalScore=engine.evaluate(b,attacker);b[i]=0;
  return {i,score:(s.win.length?1e9:0)+(s.fours.length?1e6:0)+(s.threes.length?1e4:0)+evalScore};
 }).sort((a,c)=>c.score-a.score).map(x=>x.i).sort((a,c)=>preferred?(c===idx(preferred))-(a===idx(preferred)):0);}
-function rankedDefenses(b){
+function rankedDefenses(b,strategic=false){
  const near=engine.candidates(b).map(i=>{
   const own=engine.inspect(b,i,defender),block=engine.inspect(b,i,attacker);
+  let positional=0;
+  // At the root, break tactical ties by the existing evaluation, not the
+  // coordinate index. Do not confuse the first unrefuted reply with a proof
+  // of the globally strongest reply. Every legal reply is still considered.
+  if(strategic&&own.legal){b[i]=defender;try{positional=Math.max(-3000,Math.min(3000,engine.evaluate(b,defender)));}finally{b[i]=0;}}
   return {i,score:(own.win.length?1e9:0)+(block.win.length?8e8:0)+
    (own.fours.length?1e6:0)+(block.fours.length?8e5:0)+
-   (own.threes.length?1e4:0)+(block.threes.length?8e3:0)};
+   (own.threes.length?1e4:0)+(block.threes.length?8e3:0)+positional};
  }).sort((a,c)=>c.score-a.score||a.i-c.i).map(x=>x.i);
  const seen=new Set(near);return [...near,...Array.from({length:225},(_,i)=>i).filter(i=>!seen.has(i))];
 }
@@ -64,7 +69,7 @@ function solve(b,left,extensions=extensionLimit,ply=0){if(Date.now()>=deadline){
   if(extend)stats.forcingExtensions++;
   const attemptStart=Date.now(),timeoutBefore=stats.timedOut,incompleteAtStart=stats.incompleteForcing;
   let all=true,exceptions=[],count=0,unrefutedResponse=null,responseWins=false;
-  for(const response of rankedDefenses(b)){
+  for(const response of rankedDefenses(b,ply===0)){
    if(Date.now()>=deadline){stats.timedOut++;all=false;break;}const shape=engine.inspect(b,response,defender);if(!shape.legal)continue;
    stats.defenderReplies++;count++;if(shape.win.length){all=false;unrefutedResponse=coord(response);responseWins=true;break;}
    b[response]=defender;const child=solve(b,left-(extend?0:1),extensions-(extend?1:0),ply+1);b[response]=0;
