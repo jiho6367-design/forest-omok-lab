@@ -1,0 +1,129 @@
+{
+  "prefix": "H8 G7 G6 H6 F8",
+  "quietDepth": 2,
+  "extensions": 8,
+  "threeExtensions": true,
+  "forcedDefenseExtensions": true,
+  "completed": 11,
+  "in_scope": 60,
+  "outside_scope_legal": 160,
+  "pending": [
+    "E7",
+    "F4",
+    "J7",
+    "K9",
+    "H5",
+    "H4",
+    "D7",
+    "H3",
+    "E3",
+    "G11",
+    "G10",
+    "K6",
+    "K7",
+    "E5",
+    "J6",
+    "I6",
+    "L6",
+    "L10",
+    "F6",
+    "D4",
+    "C7",
+    "H2",
+    "C3",
+    "D2",
+    "I8",
+    "D8",
+    "F5",
+    "J5",
+    "F9",
+    "E10",
+    "F10",
+    "J9",
+    "I10",
+    "H10",
+    "K11",
+    "E6",
+    "H9",
+    "J10",
+    "E4",
+    "I4",
+    "E9",
+    "I9",
+    "D9",
+    "D6",
+    "G4",
+    "D10",
+    "G3",
+    "C11",
+    "L2"
+  ],
+  "whole_position_solved": false,
+  "white_win_found": false,
+  "results": {
+    "I7": {
+      "status": "certified_loss",
+      "source": "i7-loss-certificate.json"
+    },
+    "F7": {
+      "move": "F7",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-f7-three-session-result.json"
+    },
+    "H7": {
+      "move": "H7",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-alternatives-three-session-result.json"
+    },
+    "I5": {
+      "move": "I5",
+      "status": "unproved",
+      "unrefutedResponse": "J4",
+      "source": "sixth-alternatives-three-session-result.json"
+    },
+    "G9": {
+      "move": "G9",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-alternatives-three-session-result.json"
+    },
+    "E8": {
+      "move": "E8",
+      "status": "unproved",
+      "unrefutedResponse": "I8",
+      "source": "sixth-alternatives-three-session-result.json"
+    },
+    "J4": {
+      "move": "J4",
+      "status": "unproved",
+      "unrefutedResponse": "I5",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "K3": {
+      "move": "K3",
+      "status": "unproved",
+      "unrefutedResponse": "I5",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "J8": {
+      "move": "J8",
+      "status": "unproved",
+      "unrefutedResponse": "E8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "G8": {
+      "move": "G8",
+      "status": "unproved",
+      "unrefutedResponse": "G9",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "G5": {
+      "move": "G5",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    }
+  }
+}

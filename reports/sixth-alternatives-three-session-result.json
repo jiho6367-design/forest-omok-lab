@@ -1,0 +1,62 @@
+{
+  "done": true,
+  "proof": null,
+  "searchComplete": true,
+  "elapsed_ms": 22325,
+  "stats": {
+    "nodes": 32492,
+    "defenses": 32491,
+    "cacheHits": 1593,
+    "vcfChecks": 30901,
+    "vcfIncomplete": 0,
+    "forcingExtensions": 2816,
+    "defenseExtensions": 215,
+    "threeExtensions": 989,
+    "immediatePrunes": 715,
+    "counterVcfChecks": 4213,
+    "counterVcfPrunes": 1240,
+    "counterVcfIncomplete": 2,
+    "certifiedPrunes": 0,
+    "slices": 3
+  },
+  "rootChecks": [
+    {
+      "move": "H7",
+      "status": "unproved",
+      "unrefutedResponse": "G8"
+    },
+    {
+      "move": "I5",
+      "status": "unproved",
+      "unrefutedResponse": "J4"
+    },
+    {
+      "move": "G9",
+      "status": "unproved",
+      "unrefutedResponse": "G8"
+    },
+    {
+      "move": "E8",
+      "status": "unproved",
+      "unrefutedResponse": "I8"
+    }
+  ],
+  "activeLine": [],
+  "scope": {
+    "prefix": "H8 G7 G6 H6 F8",
+    "attacker": 2,
+    "quietDepth": 2,
+    "extensions": 8,
+    "forcedDefenseExtensions": true,
+    "threeExtensions": true,
+    "counterVcfPruning": true,
+    "horizonPruning": true,
+    "roots": [
+      "I5",
+      "G9",
+      "H7",
+      "E8"
+    ],
+    "vcfDepth": 25
+  }
+}
