@@ -4,31 +4,11 @@
   "extensions": 8,
   "threeExtensions": true,
   "forcedDefenseExtensions": true,
-  "completed": 39,
+  "completed": 59,
   "in_scope": 60,
   "outside_scope_legal": 160,
   "pending": [
-    "F9",
-    "E10",
-    "F10",
-    "J9",
-    "I10",
-    "H10",
-    "K11",
-    "E6",
-    "H9",
-    "J10",
-    "E4",
-    "I4",
-    "E9",
-    "I9",
-    "D9",
-    "D6",
-    "G4",
-    "D10",
-    "G3",
-    "C11",
-    "L2"
+    "H9"
   ],
   "whole_position_solved": false,
   "white_win_found": false,
@@ -264,6 +244,136 @@
       "status": "unproved",
       "unrefutedResponse": "G8",
       "source": "sixth-remaining-three-session-result.json"
+    },
+    "F9": {
+      "move": "F9",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "J9": {
+      "move": "J9",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "E10": {
+      "move": "E10",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "F10": {
+      "move": "F10",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "I10": {
+      "move": "I10",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "H10": {
+      "move": "H10",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "K11": {
+      "move": "K11",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "E6": {
+      "move": "E6",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "H9": {
+      "move": "H9",
+      "status": "incomplete",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "J10": {
+      "move": "J10",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "E4": {
+      "move": "E4",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "I4": {
+      "move": "I4",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "D9": {
+      "move": "D9",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "E9": {
+      "move": "E9",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "I9": {
+      "move": "I9",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "D6": {
+      "move": "D6",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "G4": {
+      "move": "G4",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "D10": {
+      "move": "D10",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "G3": {
+      "move": "G3",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "C11": {
+      "move": "C11",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
+    },
+    "L2": {
+      "move": "L2",
+      "status": "unproved",
+      "unrefutedResponse": "G8",
+      "source": "sixth-remaining-three-session-result.json"
     }
-  }
+  },
+  "visited_roots": 60,
+  "incomplete_roots": [
+    "H9"
+  ]
 }
