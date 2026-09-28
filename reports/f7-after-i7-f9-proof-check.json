@@ -1,0 +1,35 @@
+{
+  "next": "white",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": [
+    "F9"
+  ],
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "F9",
+      "status": "unproved",
+      "elapsed_ms": 1850,
+      "defensesChecked": 1,
+      "unrefutedResponse": "C6",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": true,
+  "ms": 1856,
+  "stats": {
+    "nodes": 113,
+    "direct": 0,
+    "unknown": 113,
+    "defenderReplies": 154,
+    "timedOut": 0,
+    "incompleteForcing": 0,
+    "cacheHits": 0,
+    "forcingExtensions": 42,
+    "certifiedPrunes": 0
+  },
+  "prefix": "H8 G7 G6 H6 F8 F7 E7 G9 G8 I8 D8 E8 F6 G5 C9 B10 I7",
+  "interpretation": "No certificate in bounded scope; heuristic PV is not a forced win. No safety or loss conclusion."
+}

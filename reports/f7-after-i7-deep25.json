@@ -1,0 +1,92 @@
+{
+  "prefix": "H8 G7 G6 H6 F8 F7 E7 G9 G8 I8 D8 E8 F6 G5 C9 B10 I7",
+  "move": "F9",
+  "line": [
+    "F9",
+    "D6",
+    "H9",
+    "E9",
+    "D7"
+  ],
+  "result": {
+    "i": 125,
+    "reason": "공격과 수비를 함께 고려한 추천",
+    "depth": 5,
+    "score": 336,
+    "pv": [
+      125,
+      78,
+      127,
+      124,
+      93
+    ],
+    "ms": 18667,
+    "nodes": 54260,
+    "proven": false,
+    "forcedLoss": false,
+    "threats": [],
+    "memory": 0,
+    "bad": [],
+    "shape": {
+      "threes": [],
+      "fours": [],
+      "details": [
+        {
+          "axis": 0,
+          "three": [],
+          "four": []
+        },
+        {
+          "axis": 1,
+          "three": [],
+          "four": []
+        },
+        {
+          "axis": 2,
+          "three": [],
+          "four": []
+        },
+        {
+          "axis": 3,
+          "three": [],
+          "four": []
+        }
+      ],
+      "win": [],
+      "legal": true,
+      "reason": "",
+      "fork43": false
+    },
+    "limits": {
+      "forcing": 19,
+      "quiet": 10,
+      "screen": 12,
+      "root": 28,
+      "branch": 16,
+      "depth": 10
+    },
+    "engineVersion": "unified-4.1-deep",
+    "lossProven": false,
+    "dangerLine": [],
+    "rejected": [],
+    "counterThreats": [],
+    "unverifiedDefense": false,
+    "defenseChecked": true,
+    "safety": "연속 4 및 강제 방어 뒤 역공 제한 탐색 · 무패 보장 아님",
+    "candidates": [
+      {
+        "i": 125,
+        "pv": [
+          125,
+          78,
+          127,
+          124,
+          93
+        ],
+        "score": 336,
+        "status": "deep"
+      }
+    ],
+    "automatic": false
+  }
+}
