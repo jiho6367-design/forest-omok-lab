@@ -1,0 +1,41 @@
+{
+  "done": true,
+  "proof": null,
+  "searchComplete": true,
+  "elapsed_ms": 19170,
+  "stats": {
+    "nodes": 6815,
+    "defenses": 7127,
+    "cacheHits": 2415,
+    "vcfChecks": 4400,
+    "vcfIncomplete": 0,
+    "forcingExtensions": 313,
+    "certifiedPrunes": 0,
+    "slices": 4
+  },
+  "rootChecks": [
+    {
+      "move": "I5",
+      "status": "unproved",
+      "unrefutedResponse": "J4"
+    }
+  ],
+  "scope": {
+    "prefix": "H8 G7 G6 H6 F8",
+    "attacker": 2,
+    "quietDepth": 3,
+    "extensions": 8,
+    "roots": [
+      "I5"
+    ],
+    "vcfDepth": 25
+  },
+  "verification_slices_ms": [
+    25000,
+    25000,
+    25003,
+    19170
+  ],
+  "offline_search_total_ms": 94173,
+  "interpretation": "Selected root I5 only, three quiet stages plus up to eight forced exchanges and VCF depth 25. The retained search stack completed in four bounded offline slices. No white winning certificate was found; J4 is the first unrefuted defense in this scope, not a proof of black victory or of strongest play. Browser game deadlines are unchanged."
+}
