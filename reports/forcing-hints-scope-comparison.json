@@ -1,0 +1,63 @@
+[
+  {
+    "spec": {
+      "prefix": "H8 G7 G6 H6 F8 I7 E8 D8 F7 H5",
+      "attacker": 1,
+      "roots": [
+        "F5"
+      ],
+      "quietDepth": 1,
+      "extensions": 0
+    },
+    "baseline_ms": 787,
+    "hints_ms": 131,
+    "baseline_nodes": 215,
+    "hints_nodes": 215,
+    "hints": {
+      "attempts": 219,
+      "hits": 211
+    },
+    "proof": {
+      "type": "quiet",
+      "move": "F5",
+      "replies": 214,
+      "exceptions": []
+    },
+    "rootChecks": [
+      {
+        "move": "F5",
+        "status": "proved",
+        "unrefutedResponse": null
+      }
+    ]
+  },
+  {
+    "spec": {
+      "prefix": "H8 G7 G6 F7 H7 F5 H6 H9 H4 H5 F6 I6 E6",
+      "attacker": 2,
+      "roots": [
+        "D6"
+      ],
+      "quietDepth": 2,
+      "extensions": 8,
+      "forcedDefenseExtensions": true,
+      "counterVcfPruning": true
+    },
+    "baseline_ms": 890,
+    "hints_ms": 874,
+    "baseline_nodes": 144,
+    "hints_nodes": 144,
+    "hints": {
+      "attempts": 520,
+      "hits": 0
+    },
+    "proof": null,
+    "rootChecks": [
+      {
+        "move": "D6",
+        "status": "unproved",
+        "unrefutedResponse": "G5"
+      }
+    ]
+  }
+]

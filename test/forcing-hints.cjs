@@ -1,0 +1,32 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const create=require('../tools/forcing-hints.cjs'),E=require('../src/node-engine.cjs')({fivePriority:false}),verify=require('../tools/verify-attack.cjs');
+const sample=JSON.parse(fs.readFileSync(require.resolve('../reports/sixth-h9-incomplete-vcf-check.json')))[0];
+const idx=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65,b=Array(225).fill(0);
+sample.spec.prefix.split(' ').forEach((c,k)=>b[idx(c)]=k%2?2:1);
+const before=b.slice(),line=sample.proof.pv.map(idx);
+const tree=(pv,k=0)=>({move:E.coord(pv[k]),...(k+2<pv.length?{replies:{[E.coord(pv[k+1])]:tree(pv,k+2)}}:{})});
+const proof=create.replay(E,b,2,line,25,Date.now()+3000);
+assert(proof);assert.deepEqual(b,before);
+assert(verify({prefix:sample.spec.prefix,attacker:2,rules:sample.spec.rules,certificate:tree(proof.pv)},5000).verified);
+assert.equal(create.replay(E,b,2,line,3,Date.now()+3000),null);
+assert.equal(create.replay(E,b,2,line,25,Date.now()),null);
+assert.equal(create.replay(E,b,2,[idx('H8'),...line.slice(1)],25,Date.now()+3000),null);
+const counter=Array(225).fill(0);['H8','H9','H10'].forEach(c=>counter[idx(c)]=1);['A1','B1','C1','D1'].forEach(c=>counter[idx(c)]=2);
+assert.equal(create.replay(E,counter,1,[idx('H11')],25,Date.now()+3000),null);
+// Seed with a real proof, then revalidate it after a remote defender stone.
+const cached=create(E);assert(cached.forcing(b,2,25,3000).proof);
+const related=b.slice();related[idx('O15')]=2;related[idx('A1')]=1;
+const result=cached.forcing(related,2,25,3000);assert(result.proof&&result.hinted);
+assert(verify({prefix:sample.spec.prefix+' O15 A1',attacker:2,rules:sample.spec.rules,certificate:tree(result.proof.pv)},5000).verified);
+assert(cached.stats.hits>0);assert.deepEqual(b,before);
+const failedHints=cached.forcing(counter.map(v=>v?3-v:0),2,25,1000);
+assert(failedHints.complete&&!failedHints.proof);
+// An expired budget never becomes a complete negative result.
+const expired=cached.forcing(b,2,25,0);assert(!expired.complete&&!expired.proof);
+const session=require('../tools/proof-session.cjs');
+const spec={prefix:'H8 G7 G6 H6 F8 I7 E8 D8 F7 H5',attacker:1,roots:['F5'],quietDepth:1,extensions:0};
+const plain=session(spec).run(5000),hinted=session({...spec,forcingHints:true}).run(5000);
+assert(plain.done&&plain.searchComplete&&hinted.done&&hinted.searchComplete);
+assert.deepEqual(hinted.proof,plain.proof);assert.deepEqual(hinted.rootChecks,plain.rootChecks);
+assert.equal(hinted.stats.nodes,plain.stats.nodes);assert(hinted.forcingHintStats.hits>0);
+console.log('PASS forcing hint validation, independent certificate, depth, counterwin and deadline');

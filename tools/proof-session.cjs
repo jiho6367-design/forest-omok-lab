@@ -13,6 +13,8 @@ module.exports=function createProofSession(input){
  const roots=spec.roots?new Set(spec.roots.map(index)):null;
  if(roots&&(!roots.size||[...roots].some(i=>!E.inspect(b,i,attacker).legal)))throw Error('Invalid root selection');
  const cache=new Map(),vcfCache=new Map(),rootChecks=[],activeLine=[],counterAudit=[],incompleteVcf=[];
+ const hintProbe=spec.forcingHints?require('./forcing-hints.cjs')(E,vcfCache):null;
+ const force=(p,depth,ms)=>hintProbe?hintProbe.forcing(b,p,depth,ms):E.forcing(b,p,depth,ms,vcfCache);
  const stats={nodes:0,defenses:0,cacheHits:0,vcfChecks:0,vcfRetries:0,vcfIncomplete:0,forcingExtensions:0,defenseExtensions:0,threeExtensions:0,immediatePrunes:0,counterVcfChecks:0,counterVcfPrunes:0,counterVcfIncomplete:0,certifiedPrunes:0,slices:0};
  let deadline=0,done=false,proof=null;
  function candidates(){
@@ -65,7 +67,7 @@ module.exports=function createProofSession(input){
    yield;
    if(Date.now()>=deadline)continue;
    stats.vcfChecks++;
-   forcing=E.forcing(b,attacker,25,Math.max(1,Math.min(probeMs,deadline-Date.now())),vcfCache);
+   forcing=force(attacker,25,Math.max(1,Math.min(probeMs,deadline-Date.now())));
    if(forcing.complete)break;
    if(Date.now()>=deadline)continue; // Retry only this interrupted leaf next slice.
    if(spec.retryIncompleteVcf&&probeMs===800){probeMs=1600;stats.vcfRetries++;continue;}
@@ -94,7 +96,7 @@ module.exports=function createProofSession(input){
     if(spec.counterVcfPruning){
      yield;
      stats.counterVcfChecks++;
-     const counter=E.forcing(b,defender,19,Math.max(1,Math.min(20,deadline-Date.now())),vcfCache);
+     const counter=force(defender,19,Math.max(1,Math.min(20,deadline-Date.now())));
      if(counter.proof){
       stats.counterVcfPrunes++;
       if(spec.auditCounterPrunes)counterAudit.push({prefix:[...moves,...activeLine].join(' '),attacker:defender,rules:spec.rules||{fivePriority:false},certificate:{move:E.coord(counter.proof.pv[0])}});
@@ -130,7 +132,7 @@ module.exports=function createProofSession(input){
   if(!Number.isFinite(ms)||ms<0||ms>25000)throw Error('Slice must be 0..25000 ms');
   const start=Date.now();deadline=start+ms;if(ms>0&&!done)stats.slices++;
   while(!done&&Date.now()<deadline){const result=iterator.next();if(result.done){done=true;proof=result.value;}}
-  return JSON.parse(JSON.stringify({done,proof:done?proof:null,searchComplete:done&&stats.vcfIncomplete===0,elapsed_ms:Date.now()-start,stats,rootChecks,incompleteVcf,activeLine:done?[]:activeLine,...(spec.auditCounterPrunes?{counterAudit}:{}),
-   scope:{prefix:spec.prefix,attacker,quietDepth:quiet,extensions,forcedDefenseExtensions:!!spec.forcedDefenseExtensions,threeExtensions:!!spec.threeExtensions,retryIncompleteVcf:!!spec.retryIncompleteVcf,counterVcfPruning:!!spec.counterVcfPruning,horizonPruning:spec.horizonPruning!==false,roots:spec.roots||null,vcfDepth:25}}));
+  return JSON.parse(JSON.stringify({done,proof:done?proof:null,searchComplete:done&&stats.vcfIncomplete===0,elapsed_ms:Date.now()-start,stats,...(hintProbe?{forcingHintStats:hintProbe.stats}:{}),rootChecks,incompleteVcf,activeLine:done?[]:activeLine,...(spec.auditCounterPrunes?{counterAudit}:{}),
+   scope:{prefix:spec.prefix,attacker,quietDepth:quiet,extensions,forcedDefenseExtensions:!!spec.forcedDefenseExtensions,threeExtensions:!!spec.threeExtensions,retryIncompleteVcf:!!spec.retryIncompleteVcf,forcingHints:!!spec.forcingHints,counterVcfPruning:!!spec.counterVcfPruning,horizonPruning:spec.horizonPruning!==false,roots:spec.roots||null,vcfDepth:25}}));
  }};
 };
