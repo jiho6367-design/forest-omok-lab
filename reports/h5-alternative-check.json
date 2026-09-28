@@ -15,5 +15,7 @@
     {"quiet_depth": 2, "proof": null, "searchComplete": true, "elapsed_ms": 9117, "nodes": 175, "defenderReplies": 8625},
     {"quiet_depth": 3, "proof": null, "searchComplete": true, "elapsed_ms": 18034, "nodes": 262, "defenderReplies": 17667, "cacheHits": 0}
   ],
-  "interpretation": "Neither side has a found forced-win proof in the stated scopes. H5 is not established as a winning or nonlosing alternative; absence of a black proof does not certify safety."
+  "later_certificate": "h5-loss-certificate.json",
+  "verification": {"verified": true, "defenses": 1898, "fresh_vcf_checks": 1890, "elapsed_ms": 6561},
+  "interpretation": "The shallow negative searches were superseded by the composed black F9 attack certificate. White H5 is proven losing. At original move 10 only D9 remains unrefuted; D9 is not thereby certified a white win."
 }

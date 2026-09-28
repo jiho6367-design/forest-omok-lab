@@ -1,0 +1,9 @@
+const assert=require('node:assert/strict'),verify=require('../tools/verify-attack.cjs');
+const certificate=require('../reports/h5-loss-certificate.json');
+const result=verify(certificate);assert(result.verified,JSON.stringify(result));
+assert.equal(result.defenses,1898);
+const counterwin=verify({prefix:'H8 A1 H9 B1 H10 C1 F5 D1',attacker:1,certificate:{move:'H7'}});
+assert.equal(counterwin.verified,false);assert.match(counterwin.reason,/Defender wins|Unrefuted reply/);
+const immediate=verify({prefix:'H8 A1 H9 B1 H10 C1 H11 D2',attacker:1,certificate:{move:'H12'}});
+assert.equal(immediate.verified,true);assert.equal(immediate.defenses,0);
+console.log('PASS prescribed attack certificate, defender counterwin, terminal five');
