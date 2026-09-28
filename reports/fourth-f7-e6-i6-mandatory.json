@@ -1,0 +1,16 @@
+[
+  {
+    "prefix": "H8 G7 G6 F7 H7 F5 H6 H9 H4 H5 F6 E6 I6",
+    "legal": 212,
+    "responsesAvoidingImmediateLoss": [
+      "J6"
+    ]
+  },
+  {
+    "prefix": "H8 G7 G6 F7 H7 F5 H6 H9 H4 H5 F6 I6 E6",
+    "legal": 212,
+    "responsesAvoidingImmediateLoss": [
+      "D6"
+    ]
+  }
+]

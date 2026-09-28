@@ -1,0 +1,48 @@
+{
+  "done": false,
+  "proof": null,
+  "searchComplete": false,
+  "elapsed_ms": 25000,
+  "stats": {
+    "nodes": 3892,
+    "defenses": 3891,
+    "cacheHits": 475,
+    "vcfChecks": 3417,
+    "vcfIncomplete": 0,
+    "forcingExtensions": 1737,
+    "defenseExtensions": 1080,
+    "immediatePrunes": 136655,
+    "certifiedPrunes": 0,
+    "slices": 1
+  },
+  "rootChecks": [],
+  "activeLine": [
+    "J6",
+    "G8",
+    "G4",
+    "K4",
+    "J5",
+    "F9",
+    "E10",
+    "D7",
+    "G5",
+    "I5",
+    "E5",
+    "D5",
+    "J8",
+    "J4",
+    "J7",
+    "J9"
+  ],
+  "scope": {
+    "prefix": "H8 G7 G6 F7 H7 F5 H6 H9 H4 H5 F6 E6 I6",
+    "attacker": 2,
+    "quietDepth": 2,
+    "extensions": 8,
+    "forcedDefenseExtensions": true,
+    "roots": [
+      "J6"
+    ],
+    "vcfDepth": 25
+  }
+}
