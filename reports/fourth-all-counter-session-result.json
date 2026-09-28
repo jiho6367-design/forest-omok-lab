@@ -1,0 +1,274 @@
+{
+  "done": true,
+  "proof": null,
+  "searchComplete": true,
+  "elapsed_ms": 5257,
+  "stats": {
+    "nodes": 3204,
+    "defenses": 3203,
+    "cacheHits": 574,
+    "vcfChecks": 2630,
+    "vcfIncomplete": 0,
+    "forcingExtensions": 0,
+    "defenseExtensions": 0,
+    "immediatePrunes": 0,
+    "counterVcfChecks": 3203,
+    "counterVcfPrunes": 0,
+    "counterVcfIncomplete": 0,
+    "certifiedPrunes": 1,
+    "slices": 2
+  },
+  "rootChecks": [
+    {
+      "move": "H6",
+      "status": "unproved",
+      "unrefutedResponse": "F8"
+    },
+    {
+      "move": "F7",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "H7",
+      "status": "unproved",
+      "unrefutedResponse": "F7"
+    },
+    {
+      "move": "F8",
+      "status": "unproved",
+      "unrefutedResponse": "H6"
+    },
+    {
+      "move": "I5",
+      "status": "unproved",
+      "unrefutedResponse": "H6"
+    },
+    {
+      "move": "E7",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "I7",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "E9",
+      "status": "unproved",
+      "unrefutedResponse": "H6"
+    },
+    {
+      "move": "J7",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "J4",
+      "status": "unproved",
+      "unrefutedResponse": "H6"
+    },
+    {
+      "move": "D7",
+      "status": "unproved",
+      "unrefutedResponse": "F7"
+    },
+    {
+      "move": "D10",
+      "status": "unproved",
+      "unrefutedResponse": "F8"
+    },
+    {
+      "move": "G11",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "K7",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "G10",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "E5",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "G9",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "F6",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "G8",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "D4",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "F5",
+      "status": "unproved",
+      "unrefutedResponse": "H6"
+    },
+    {
+      "move": "H5",
+      "status": "unproved",
+      "unrefutedResponse": "I8"
+    },
+    {
+      "move": "E6",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "I6",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "J6",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "E8",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "I8",
+      "status": "unproved",
+      "unrefutedResponse": "H6"
+    },
+    {
+      "move": "J8",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "F9",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "H9",
+      "status": "unproved",
+      "unrefutedResponse": "I8"
+    },
+    {
+      "move": "J9",
+      "status": "unproved",
+      "unrefutedResponse": "H6"
+    },
+    {
+      "move": "F10",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "H10",
+      "status": "unproved",
+      "unrefutedResponse": "I8"
+    },
+    {
+      "move": "I10",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "K3",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "C7",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "C11",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "K11",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "J10",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "E4",
+      "status": "unproved",
+      "unrefutedResponse": "H6"
+    },
+    {
+      "move": "F4",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "H4",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "I4",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "G5",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "I9",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "C3",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "G4",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    },
+    {
+      "move": "G3",
+      "status": "unproved",
+      "unrefutedResponse": "H7"
+    }
+  ],
+  "activeLine": [],
+  "scope": {
+    "prefix": "H8 G7 G6",
+    "attacker": 2,
+    "quietDepth": 2,
+    "extensions": 8,
+    "forcedDefenseExtensions": true,
+    "counterVcfPruning": true,
+    "roots": null,
+    "vcfDepth": 25
+  }
+}

@@ -1,0 +1,684 @@
+{
+  "done": true,
+  "proof": null,
+  "searchComplete": true,
+  "elapsed_ms": 2854,
+  "stats": {
+    "nodes": 209,
+    "defenses": 208,
+    "cacheHits": 6,
+    "vcfChecks": 203,
+    "vcfIncomplete": 0,
+    "forcingExtensions": 26,
+    "defenseExtensions": 2,
+    "immediatePrunes": 159,
+    "counterVcfChecks": 270,
+    "counterVcfPrunes": 64,
+    "counterVcfIncomplete": 0,
+    "certifiedPrunes": 0,
+    "slices": 1
+  },
+  "rootChecks": [
+    {
+      "move": "I7",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "F7",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "E7",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "J7",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "I8",
+      "status": "unproved",
+      "unrefutedResponse": "D8"
+    },
+    {
+      "move": "E8",
+      "status": "unproved",
+      "unrefutedResponse": "I8"
+    },
+    {
+      "move": "J8",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "D8",
+      "status": "certified_loss",
+      "winningReply": "I8",
+      "counterLine": [
+        "I8",
+        "E8",
+        "J8"
+      ]
+    },
+    {
+      "move": "H5",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "I5",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "H4",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "J4",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "H3",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "K3",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "K7",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "D7",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "G5",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "F4",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "K9",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "E3",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "K10",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "E5",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "J9",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "L11",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "L10",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "D4",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "F6",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "D8",
+        "I8"
+      ]
+    },
+    {
+      "move": "C3",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "D2",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "I6",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "K6",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "J5",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "J6",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "L6",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "K4",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "F10",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "I10",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "G11",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "H11",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "K11",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "L3",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "E6",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "D8",
+        "I8"
+      ]
+    },
+    {
+      "move": "E10",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "G10",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "H10",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "J10",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "I4",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "F5",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "D9",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "E9",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "F9",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "G9",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "H9",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "I9",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "D6",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "D8",
+        "I8"
+      ]
+    },
+    {
+      "move": "D11",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "E4",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "G4",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "D10",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "G3",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "C11",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "D3",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "L7",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "C7",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "H2",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    },
+    {
+      "move": "L2",
+      "status": "certified_loss",
+      "winningReply": "E8",
+      "counterLine": [
+        "E8",
+        "I8",
+        "D8"
+      ]
+    }
+  ],
+  "activeLine": [],
+  "scope": {
+    "prefix": "H8 G7 G6 H6 F8 H7 G8",
+    "attacker": 2,
+    "quietDepth": 2,
+    "extensions": 8,
+    "forcedDefenseExtensions": true,
+    "counterVcfPruning": true,
+    "roots": null,
+    "vcfDepth": 25
+  }
+}
