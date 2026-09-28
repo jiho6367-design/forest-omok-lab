@@ -35,7 +35,7 @@ function replay(moves,options={fivePriority:false}){
   }
   return {board,positions};
 }
-function analyzePosition({board,moveNumber,actual,loser,ms,rules,forcedCandidates=[]}){
+function analyzePosition({board,moveNumber,actual,loser,ms,rules,forcedCandidates=[]},onProgress=()=>{}){
   const engine=createEngine(rules),p=loser,started=Date.now();
   const knownRefutations=new Map(engine.knownRefutations(board,p).map(x=>[x.i,x]));
   const legal=i=>engine.inspect(board,i,p).legal;
@@ -47,15 +47,17 @@ function analyzePosition({board,moveNumber,actual,loser,ms,rules,forcedCandidate
   for(const m of (search.candidates||[]).slice(0,2))names.add(engine.coord(m.i));
   if(search.i!=null)names.add(engine.coord(search.i));
   const candidates=[];
+  // Publish only whole candidate evaluations; never expose a half-tested candidate.
+  const publish=()=>onProgress(snapshot(false));
   for(const c of names){
     const i=index(c),shape=engine.inspect(board,i,p);
-    if(!shape.legal){candidates.push({move:c,legal:false,level:null,reason:shape.reason});continue;}
+    if(!shape.legal){candidates.push({move:c,legal:false,level:null,reason:shape.reason});publish();continue;}
     // The game ends at this move. Do not let a hypothetical opponent turn
     // override an already completed legal five.
     if(shape.win.length){candidates.push({move:c,legal:true,level:4,reason:'합법적인 정확한 5목 완성',
       black_vcf_complete:true,black_vcf_nodes:0,black_line:[],white_line:[],
       strongest_reply:null,reply_forcing:false,reply_scope:'대국 종료',
-      counter_vcf_if_unanswered:null,evaluation:1e8});continue;}
+      counter_vcf_if_unanswered:null,evaluation:1e8});publish();continue;}
     const after=board.slice();after[i]=p;
     const known=knownRefutations.get(i);
     const remain=()=>Math.max(1,ms-(Date.now()-started)-12);
@@ -95,16 +97,21 @@ function analyzePosition({board,moveNumber,actual,loser,ms,rules,forcedCandidate
       counter_vcf_if_unanswered:counterRisk,
       defense_candidate:defenseCandidate,defense_scope:defenseCandidate?'검사한 연속 4 반증이 없는 합법 응수 · 무패 미증명':null,
       evaluation:engine.evaluate(after,p)});
+    publish();
   }
-  candidates.sort((a,b)=>(b.level??-1)-(a.level??-1)||b.evaluation-a.evaluation);
-  const actualResult=candidates.find(x=>x.move===actual);
-  const alternate=candidates.find(x=>x.move!==actual&&x.legal)||null;
-  return {move_number:moveNumber,actual_move:actual,actual:actualResult,recommended:alternate,
-    position_loss_proven:!!engine.certifiedLoss(board,p),
-    candidates,search:{elapsed_ms:Date.now()-started,completed_depth:completed.depth||0,
-      nodes:completed.nodes||0,nodes_per_second:Math.round((completed.nodes||0)*1000/Math.max(1,Date.now()-started)),
-      candidate_count:candidates.length,best_move:completed.i==null?null:engine.coord(completed.i),
-      method:'VCF + limited alpha-beta',tt_hit_rate:completed.ttHitRate??null,vcf_checks:candidates.length,workers:1}};
+  return snapshot(true);
+  function snapshot(complete){
+    const ranked=candidates.slice();
+    ranked.sort((a,b)=>(b.level??-1)-(a.level??-1)||b.evaluation-a.evaluation);
+    const actualResult=ranked.find(x=>x.move===actual);
+    const alternate=ranked.find(x=>x.move!==actual&&x.legal)||null;
+    return {move_number:moveNumber,actual_move:actual,actual:actualResult,recommended:alternate,
+      position_loss_proven:!!engine.certifiedLoss(board,p),
+      complete,candidates:ranked,search:{elapsed_ms:Date.now()-started,completed_depth:completed.depth||0,
+        nodes:completed.nodes||0,nodes_per_second:Math.round((completed.nodes||0)*1000/Math.max(1,Date.now()-started)),
+        candidate_count:candidates.length,best_move:completed.i==null?null:engine.coord(completed.i),
+        method:'VCF + limited alpha-beta',tt_hit_rate:completed.ttHitRate??null,vcf_checks:candidates.length,workers:1}};
+  }
 }
 async function analyze_game(moves,loser='white',mode='auto',opts={}){
   const player=loser==='white'?2:loser==='black'?1:loser;
@@ -129,9 +136,9 @@ async function analyze_game(moves,loser='white',mode='auto',opts={}){
     if(remaining<=50){results[n]={move_number:job.moveNumber,actual_move:job.actual,timeout:true,candidates:[]};continue;}
     const taskMs=Math.min(perTask,Math.max(30,remaining-30));
     const w=new Worker(__filename,{workerData:{job:{...job,ms:taskMs}}});
-    const result=await new Promise(resolve=>{let settled=false;const end=x=>{if(settled)return;settled=true;clearTimeout(timer);w.terminate();resolve(x);};
-      const timer=setTimeout(()=>end({move_number:job.moveNumber,actual_move:job.actual,timeout:true,candidates:[]}),Math.min(taskMs+30,remaining));
-      w.once('message',end);w.once('error',e=>end({move_number:job.moveNumber,error:String(e),candidates:[]}));});results[n]=result;
+    const result=await new Promise(resolve=>{let settled=false,latest=null;const end=x=>{if(settled)return;settled=true;clearTimeout(timer);w.terminate();resolve(x);};
+      const timer=setTimeout(()=>end(latest?{...latest,timeout:true,complete:false}:{move_number:job.moveNumber,actual_move:job.actual,timeout:true,complete:false,candidates:[]}),Math.min(taskMs+30,remaining));
+      w.on('message',message=>{if(message.type==='progress'){latest=message.result;return;}end(message.result);});w.once('error',e=>end({move_number:job.moveNumber,error:String(e),candidates:[]}));});results[n]=result;
   }}
   await Promise.all(Array.from({length:workers},run));
   const verified=results.filter(r=>r?.recommended&&r.actual?.level===0&&r.recommended.level>0);
@@ -150,4 +157,4 @@ async function analyze_game(moves,loser='white',mode='auto',opts={}){
 }
 if(isMainThread)module.exports={analyze_game,analyzePosition,replay,workerPolicy,benchmarkWorkers,MODES,index};
 else if(workerData.benchmark){const {board,p,ms}=workerData.benchmark;parentPort.postMessage({nodes:createEngine({fivePriority:false}).analyze(board,p,ms).nodes||0});}
-else parentPort.postMessage(analyzePosition(workerData.job));
+else parentPort.postMessage({type:'result',result:analyzePosition(workerData.job,result=>parentPort.postMessage({type:'progress',result}))});
