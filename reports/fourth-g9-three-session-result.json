@@ -1,0 +1,67 @@
+{
+  "done": false,
+  "proof": null,
+  "searchComplete": false,
+  "elapsed_ms": 25000,
+  "stats": {
+    "nodes": 80148,
+    "defenses": 80147,
+    "cacheHits": 5358,
+    "vcfChecks": 74791,
+    "vcfRetries": 0,
+    "vcfIncomplete": 0,
+    "forcingExtensions": 4950,
+    "defenseExtensions": 298,
+    "threeExtensions": 2442,
+    "immediatePrunes": 2977,
+    "counterVcfChecks": 7390,
+    "counterVcfPrunes": 2225,
+    "counterVcfIncomplete": 112,
+    "certifiedPrunes": 0,
+    "slices": 3
+  },
+  "forcingHintStats": {
+    "attempts": 100137,
+    "hits": 69409
+  },
+  "rootChecks": [],
+  "incompleteVcf": [],
+  "activeLine": [
+    "G9",
+    "H7",
+    "E9",
+    "H6",
+    "H9",
+    "H4",
+    "H5",
+    "I9",
+    "F8",
+    "F9",
+    "E7",
+    "D6",
+    "I11",
+    "H10",
+    "E10",
+    "E6",
+    "F6",
+    "D10",
+    "D8",
+    "F12"
+  ],
+  "scope": {
+    "prefix": "H8 G7 G6",
+    "attacker": 2,
+    "quietDepth": 3,
+    "extensions": 8,
+    "forcedDefenseExtensions": true,
+    "threeExtensions": true,
+    "retryIncompleteVcf": true,
+    "forcingHints": true,
+    "counterVcfPruning": true,
+    "horizonPruning": true,
+    "roots": [
+      "G9"
+    ],
+    "vcfDepth": 25
+  }
+}

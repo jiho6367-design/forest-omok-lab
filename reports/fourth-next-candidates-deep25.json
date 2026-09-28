@@ -1,0 +1,32 @@
+{
+  "prefix": "H8 G7 G6",
+  "elapsed_ms": 18621,
+  "depth": 5,
+  "nodes": 47299,
+  "proven": false,
+  "lossProven": false,
+  "move": "H6",
+  "score": 200,
+  "pv": [
+    82,
+    97,
+    110,
+    68,
+    126
+  ],
+  "candidates": [
+    {
+      "i": 82,
+      "pv": [
+        82,
+        97,
+        110,
+        68,
+        126
+      ],
+      "score": 200,
+      "status": "deep",
+      "coordinate": "H6"
+    }
+  ]
+}
