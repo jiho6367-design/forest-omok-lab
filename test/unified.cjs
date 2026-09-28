@@ -231,19 +231,21 @@ test('22-ply green loss exposes the forbidden E10 defense and rejects the earlie
   assert.notEqual(defense.i,idx('C8'));
   assert((defense.rejected||[]).some(x=>x.i===idx('C8')&&x.replyTrap));
 });
-test('new games reject the verified F10 loss before the 22-ply green collapse',()=>{
+test('new games identify all legal roots lost before move twelve',()=>{
   const moves='H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9'.split(' '),board=blank();
   moves.forEach((c,k)=>board[idx(c)]=k%2?2:1);
   for(let t=0;t<8;t++)for(const swap of [false,true]){
     const rotated=blank();board.forEach((p,i)=>{if(p)rotated[strict.transformed(i,t)]=swap?3-p:p;});
     const known=strict.knownRefutations(rotated,swap?1:2);
-    assert.equal(known.length,1);
+    assert.equal(known.length,2);
     assert.equal(known[0].i,strict.transformed(idx('F10'),t));
+    assert.equal(known[1].i,strict.transformed(idx('F6'),t));
+    assert(strict.analyze(rotated,swap?1:2,30).lossProven);
   }
   const recommendation=strict.analyze(board,2,25000,[]);
   assert.equal(recommendation.i,idx('F6'));
   assert(!recommendation.proven);
   assert((recommendation.rejected||[]).some(m=>m.i===idx('F10')&&m.verifiedRefutation));
-  assert.match(recommendation.reason,/F10 강제패배 수 제외/);
+  assert(recommendation.lossProven);assert.match(recommendation.reason,/모든 합법 수의 강제패배/);
 });
 console.log(`${count} unified scenarios passed`);

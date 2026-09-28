@@ -100,6 +100,7 @@ function analyzePosition({board,moveNumber,actual,loser,ms,rules,forcedCandidate
   const actualResult=candidates.find(x=>x.move===actual);
   const alternate=candidates.find(x=>x.move!==actual&&x.legal)||null;
   return {move_number:moveNumber,actual_move:actual,actual:actualResult,recommended:alternate,
+    position_loss_proven:!!engine.certifiedLoss(board,p),
     candidates,search:{elapsed_ms:Date.now()-started,completed_depth:completed.depth||0,
       nodes:completed.nodes||0,nodes_per_second:Math.round((completed.nodes||0)*1000/Math.max(1,Date.now()-started)),
       candidate_count:candidates.length,best_move:completed.i==null?null:engine.coord(completed.i),
@@ -137,6 +138,7 @@ async function analyze_game(moves,loser='white',mode='auto',opts={}){
   const critical=results.find(r=>r?.recommended?.level===4)||verified[0]||results.find(r=>r?.recommended&&r.recommended.level>r.actual?.level)||null;
   const rec=critical?.recommended;
   return {critical_move_number:critical?.move_number??null,actual_move:critical?.actual_move??null,
+    earliest_proven_lost_position:results.find(r=>r?.position_loss_proven)?.move_number??null,
     recommended_move:rec?.move??null,level:rec?.level??null,
     reason:critical?`${critical.actual?.reason}; ${rec.reason}`:'검증된 반증 대안 없음',
     main_line:rec?[`${critical.move_number}.${player===2?'W':'B'} ${rec.move}`,...(rec.strongest_reply?[`${critical.move_number+1}.${player===2?'B':'W'} ${rec.strongest_reply}`]:[]),

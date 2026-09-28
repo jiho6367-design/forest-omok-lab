@@ -8,6 +8,12 @@ assert.equal(board[index('B7')],2);
 assert.equal(positions[9][index('D9')],0);
 assert.equal(positions[19][index('E5')],0);
 const engine=createEngine({fivePriority:false});
+for(let t=0;t<8;t++)for(const swap of [false,true]){
+  const b=Array(225).fill(0);positions[11].forEach((p,i)=>{if(p)b[engine.transformed(i,t)]=swap?3-p:p;});
+  const p=swap?1:2,r=engine.analyze(b,p,30);
+  assert(r.lossProven&&!r.proven);assert(engine.inspect(b,r.i,p).legal);
+  assert.equal(createEngine({fivePriority:true}).certifiedLoss(b,p),null);
+}
 {
   const b=positions[7].slice();b[index('D8')]=2;const original=b.join('');
   const r=engine.forcedReplyTrap(b,2,10000,index('F7'),19,true);
@@ -74,7 +80,8 @@ for(const p of [1,2]){
     const twenty=result.alternatives.find(x=>x.move_number===20);
     assert.equal(ten.candidates.find(x=>x.move==='F9')?.level,0);
     assert.equal(twelve.candidates.find(x=>x.move==='F10')?.level,0);
-    assert(twelve.candidates.find(x=>x.move==='F6')?.level>0);
+    assert.equal(twelve.candidates.find(x=>x.move==='F6')?.level,0);
+    assert.equal(twelve.position_loss_proven,true);
     assert.equal(twenty.candidates.find(x=>x.move==='E5')?.level,0);
     assert(twenty.candidates.find(x=>x.move==='G9')?.level>0);
     assert(!result.alternatives.some(x=>x.candidates?.some(c=>c.level===4&&c.reason.includes('미증명'))));

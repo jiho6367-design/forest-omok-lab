@@ -46,6 +46,7 @@ function createEngine(options={}) {
     const started=Date.now(),automatic=budget==='auto'||budget?.automatic===true;
     const limit=automatic?(budget?.ms||8000):Math.max(30,Number(budget)||1000);
     const immediate=urgent(board,p);if(immediate)return immediate;
+    const certified=forest.certifiedLoss(board,p);if(certified)return certified;
     const pattern=forest.patternDefense(board,p);if(pattern)return {...pattern,automatic,autoReason:'새 게임에도 적용되는 대칭 패턴 방어',ms:Date.now()-started};
     const deep=limit>8000;
     const e=fast(board);

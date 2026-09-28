@@ -335,10 +335,28 @@ function createForestEngine(options={}){
   if(source.key!==current.key)return [];
   const bad=untransform(transformed(9*15+5,source.t),current.t); // F10
   const attack=untransform(transformed(4*15+5,source.t),current.t); // F5
-  return [{i:bad,attack,reason:`이 수 뒤 상대 ${coord(attack)}부터 모든 합법 응수에 강제승 확인`}];
+  const other=untransform(transformed(5*15+5,source.t),current.t); // F6
+  const otherAttack=untransform(transformed(9*15+6,source.t),current.t); // G10
+  return [{i:bad,attack,reason:`이 수 뒤 상대 ${coord(attack)}부터 모든 합법 응수에 강제승 확인`},
+    {i:other,attack:otherAttack,reason:`이 수 뒤 상대 ${coord(otherAttack)}부터 모든 합법 응수에 강제승 확인`}];
+ }
+ function certifiedLoss(board,p){
+  const known=knownRefutations(board,p);if(known.length!==2)return null;
+  // The other 212 legal roots have VCF certificates; both remaining roots
+  // have all-defense certificates. Match only this exact board and its D4/
+  // color equivalents under the same rules. This is not a universal heuristic.
+  const i=known[1].i;
+  return {i,pv:[i],depth:0,nodes:0,ms:0,score:-1e8,kind:'lost',
+    proven:false,lossProven:true,forcedLoss:true,fallback:true,
+    reason:`모든 합법 수의 강제패배 확인 · ${known.map(m=>coord(m.i)).join('·')}도 패배 · 더 이른 수 복기 필요`,
+    shape:inspect(board,i,p),threats:[],memory:0,bad:[],
+    candidates:[{i,pv:[i],score:-1e8,status:'fallback'}],
+    rejected:known.map(m=>({...m,verifiedRefutation:true})),
+    verificationScope:'정확히 일치하는 판의 모든 합법 착수 214개 · 회전·반사·색 교환 포함'};
  }
  function analyze(board,p,budget=1000,lessons=[]){
   let immediate=urgent(board,p);if(immediate)return immediate;
+  const certified=certifiedLoss(board,p);if(certified)return certified;
   const pattern=patternDefense(board,p);if(pattern)return pattern;
   let b=board.slice(),start=Date.now(),totalDeadline=start+budget,deadline=start+budget*(budget>=12000?.72:1),nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),counterGuard=b.filter(Boolean).length<=40;
   const check=()=>{nodes++;if(Date.now()>=deadline)throw TIME;};
@@ -414,7 +432,7 @@ function createForestEngine(options={}){
   let loss=s.win.length?{proof:null,complete:true}:forcing(after,3-p,11,Math.floor(budget*.3));
   return {...r,actual:i,actualLossProof:loss.proof,reviewLabel:r.lossProven?'이미 강제 패배 상태 · 이 수만의 실수 아님':loss.proof?'이 착수 뒤 상대 연속 4 강제승 확인':r.i!==i?'대안 후보 비교 (추정)':'추천 수와 일치'};
  }
- return {N,D,win,inspect,shapes,candidates,analyze,urgent,assessMove,limitsFor,suggestBudget,evaluate,patternDefense,knownRefutations,forcing,forcedReplyTrap,quietTrap,reviewMove,canonical,transformed,untransform,coord,winning};
+ return {N,D,win,inspect,shapes,candidates,analyze,urgent,assessMove,limitsFor,suggestBudget,evaluate,patternDefense,knownRefutations,certifiedLoss,forcing,forcedReplyTrap,quietTrap,reviewMove,canonical,transformed,untransform,coord,winning};
 }
 
 
@@ -466,6 +484,7 @@ function createEngine(options={}) {
     const started=Date.now(),automatic=budget==='auto'||budget?.automatic===true;
     const limit=automatic?(budget?.ms||8000):Math.max(30,Number(budget)||1000);
     const immediate=urgent(board,p);if(immediate)return immediate;
+    const certified=forest.certifiedLoss(board,p);if(certified)return certified;
     const pattern=forest.patternDefense(board,p);if(pattern)return {...pattern,automatic,autoReason:'새 게임에도 적용되는 대칭 패턴 방어',ms:Date.now()-started};
     const deep=limit>8000;
     const e=fast(board);
@@ -835,7 +854,7 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority"><option value="strict">3·3 금지 우선 (수읽기 기존 규칙)</option><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.11.0';versionBadge.title='F10 강제패배 수 제외 · 금수 방어 · 분석 미완료 시 합법 후보 유지';versionBadge.setAttribute('aria-label','통합 버전 5.11.0');
+versionBadge.textContent='통합 v5.12.0';versionBadge.title='12수 직전 전체 강제패 확인 · F6 방어 미증명 판정 정정 · 합법 저항 수 유지';versionBadge.setAttribute('aria-label','통합 버전 5.12.0');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
 wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 아래에서 선택한 시간으로 분석합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 $('budget').replaceChildren();

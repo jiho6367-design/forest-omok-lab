@@ -10,4 +10,7 @@ const session=verify.createSession({prefix:'H8 A1 H9 B1 H10 C1',attacker:1,certi
 assert.equal(session.run(0).verified,false,'interruption is not a certificate');
 const resumed=session.run(3000);assert(resumed.verified,JSON.stringify(resumed));
 const reused=session.run(3000);assert(reused.verified);assert(reused.cached>0);assert.equal(reused.vcf,0);
+const f6=verify.createSession(require('../reports/f6-loss-certificate.json'));let f6Result;
+for(let k=0;k<3;k++){f6Result=f6.run(25000);if(f6Result.verified||!f6Result.reason.includes('timeout'))break;}
+assert(f6Result.verified,JSON.stringify(f6Result));
 console.log('PASS prescribed attack certificate, defender counterwin, terminal five');

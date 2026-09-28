@@ -1,0 +1,17 @@
+{
+  "rules": {"fivePriority": false},
+  "attacker": 1,
+  "prefix": "H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F6",
+  "certificate": {
+    "move": "G10",
+    "replies": {
+      "D7": {"move": "H5", "replies": {"I4": {"move": "H10"}}},
+      "H11": {"move": "F10", "replies": {
+        "F11": {"move": "E10", "replies": {
+          "D10": {"move": "E7"},
+          "H10": {"move": "E9", "replies": {"E7": {"move": "D8"}}}
+        }}
+      }}
+    }
+  }
+}

@@ -64,5 +64,13 @@
       {"verified": true, "elapsed_ms": 4871, "defenses": 206, "vcf": 43, "reused_verified_branches": 163}
     ]
   },
-  "interpretation": "The earlier shallow nonproofs for conditional H10/E7 are superseded: H10 loses to E9, and E7 then loses to D8. This does not yet refute every alternative to H10 or the original F6 move."
+  "complete_f6_refutation": {
+    "certificate": "f6-loss-certificate.json",
+    "verified": true,
+    "batches": [
+      {"elapsed_ms": 25000, "verified": false, "defenses": 1402, "vcf": 1395},
+      {"elapsed_ms": 6399, "verified": true, "defenses": 836, "vcf": 263, "cached": 570}
+    ]
+  },
+  "interpretation": "All earlier F6/H11/H10/E7 nonproofs are superseded by the complete F6 loss certificate. Black G10 refutes every legal white reply, including D7 and H11. White has no winning move at the original move-12 position when combined with the F10 certificate and the 212 other root VCF refutations."
 }
