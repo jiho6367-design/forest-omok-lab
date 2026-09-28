@@ -13,7 +13,7 @@ module.exports=function createProofSession(input){
  const roots=spec.roots?new Set(spec.roots.map(index)):null;
  if(roots&&(!roots.size||[...roots].some(i=>!E.inspect(b,i,attacker).legal)))throw Error('Invalid root selection');
  const cache=new Map(),vcfCache=new Map(),rootChecks=[],activeLine=[];
- const stats={nodes:0,defenses:0,cacheHits:0,vcfChecks:0,vcfIncomplete:0,forcingExtensions:0,certifiedPrunes:0,slices:0};
+ const stats={nodes:0,defenses:0,cacheHits:0,vcfChecks:0,vcfIncomplete:0,forcingExtensions:0,defenseExtensions:0,certifiedPrunes:0,slices:0};
  let deadline=0,done=false,proof=null;
  function candidates(){
   const out=new Set(E.candidates(b));
@@ -65,15 +65,19 @@ module.exports=function createProofSession(input){
    const result={type:'forcing',pv:forcing.proof.pv.map(E.coord)};cache.set(key,result);return result;
   }
   if(left<=0&&ext<=0){cache.set(key,null);return null;}
+  const threats=spec.forcedDefenseExtensions&&ext>0?E.winning(b,defender):[];
+  const mandatory=threats.length===1?threats[0]:null;
   for(const move of yield* attacks(ply)){
    yield;
    const shape=E.inspect(b,move,attacker),before=stats.vcfIncomplete;
    b[move]=attacker;activeLine.push(E.coord(move));
    try{
     if(shape.win.length)return {type:'five',move:E.coord(move)};
-    const extend=ext>0&&shape.fours.length>0&&E.winning(b,attacker).length>0;
+    const defense=ext>0&&move===mandatory;
+    const extend=defense||ext>0&&shape.fours.length>0&&E.winning(b,attacker).length>0;
     if(left<=0&&!extend)continue;
     if(extend)stats.forcingExtensions++;
+    if(defense)stats.defenseExtensions++;
     let all=true,count=0,response=null,exceptions=[];
     for(const i of yield* defenses(ply)){
      yield;
@@ -97,6 +101,6 @@ module.exports=function createProofSession(input){
   const start=Date.now();deadline=start+ms;if(ms>0&&!done)stats.slices++;
   while(!done&&Date.now()<deadline){const result=iterator.next();if(result.done){done=true;proof=result.value;}}
   return JSON.parse(JSON.stringify({done,proof:done?proof:null,searchComplete:done&&stats.vcfIncomplete===0,elapsed_ms:Date.now()-start,stats,rootChecks,activeLine:done?[]:activeLine,
-   scope:{prefix:spec.prefix,attacker,quietDepth:quiet,extensions,roots:spec.roots||null,vcfDepth:25}}));
+   scope:{prefix:spec.prefix,attacker,quietDepth:quiet,extensions,forcedDefenseExtensions:!!spec.forcedDefenseExtensions,roots:spec.roots||null,vcfDepth:25}}));
  }};
 };

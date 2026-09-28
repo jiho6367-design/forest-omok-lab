@@ -13,6 +13,7 @@ const wide=process.argv[9]==='wide';
 // A forced four/block exchange need not consume a quiet preparation stage.
 // Keep a separate finite cap, and include it in the transposition key.
 const extensionLimit=process.argv.includes('--forcing-extensions')?8:0;
+const defenseExtensions=process.argv.includes('--defense-extensions');
 const rootChecks=[];
 const board=Array(225).fill(0);moves.forEach((c,k)=>{const p=k%2?3-first:first,s=engine.inspect(board,idx(c),p);if(!s.legal||s.win.length)throw Error(`invalid move ${k+1} ${c}`);board[idx(c)]=p;});
 const rootArg=process.argv.find(a=>a.startsWith('--root-moves='));
@@ -23,6 +24,7 @@ if(rootMoveScope){
 }
 const selectedRoots=rootMoveScope?new Set(rootMoveScope.map(idx)):null;
 const deadline=Date.now()+seconds*1000,cache=new Map(),proofCache=new Map(),stats={nodes:0,direct:0,unknown:0,defenderReplies:0,timedOut:0,incompleteForcing:0,cacheHits:0,forcingExtensions:0,certifiedPrunes:0};
+stats.forcedDefenseExtensionsEnabled=defenseExtensions;
 function attackCandidates(b){
  const set=new Set(engine.candidates(b));
  if(wide)for(let i=0;i<225;i++)if(b[i]===attacker){
@@ -72,12 +74,16 @@ function solve(b,left,extensions=extensionLimit,ply=0){if(Date.now()>=deadline){
  const forcing=engine.forcing(b,attacker,25,Math.max(1,Math.min(800,deadline-Date.now())),proofCache);
  if(forcing.proof&&!(ply===0&&selectedRoots&&!selectedRoots.has(forcing.proof.pv[0]))){stats.direct++;const proof={type:'forcing',pv:forcing.proof.pv.map(coord)};cache.set(key,proof);return proof;}
  if(!forcing.complete){stats.incompleteForcing++;return null;}if(left<=0&&extensions<=0){cache.set(key,null);return null;}
+ const threats=defenseExtensions&&extensions>0?engine.winning(b,defender):[];
+ const mandatory=threats.length===1?threats[0]:null;
  for(const move of rankedAttack(b,ply)){
   if(Date.now()>=deadline){stats.timedOut++;break;}const shape=engine.inspect(b,move,attacker);b[move]=attacker;
   if(shape.win.length){b[move]=0;return {type:'five',move:coord(move)};}
-  const extend=extensions>0&&shape.fours.length>0&&engine.winning(b,attacker).length>0;
+  const defense=extensions>0&&move===mandatory;
+  const extend=defense||extensions>0&&shape.fours.length>0&&engine.winning(b,attacker).length>0;
   if(left<=0&&!extend){b[move]=0;continue;}
   if(extend)stats.forcingExtensions++;
+  if(defense)stats.defenseExtensions=(stats.defenseExtensions||0)+1;
   const attemptStart=Date.now(),timeoutBefore=stats.timedOut,incompleteAtStart=stats.incompleteForcing;
   let all=true,exceptions=[],count=0,unrefutedResponse=null,responseWins=false;
   for(const response of rankedDefenses(b,ply===0)){

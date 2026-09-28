@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),create=require('../tools/proof-session.cjs');
+const prefix='H8 G7 G6 H6 F8 F7 E7 G9 G8 I8 D8 E8 F6 G5 C9 B10 I7 F9 C6 H9 D6';
+const spec={prefix,attacker:2,quietDepth:0,extensions:1,roots:['E6'],rules:{fivePriority:false}};
+const base=create(spec).run(3000);
+assert(base.done&&base.searchComplete);assert.equal(base.stats.defenseExtensions,0);
+const enabled=create({...spec,forcedDefenseExtensions:true}).run(3000);
+assert(enabled.done&&enabled.searchComplete);assert.equal(enabled.stats.defenseExtensions,1);
+assert(enabled.stats.defenses>base.stats.defenses,'mandatory block must reach opponent reply checks');
+assert.equal(enabled.proof,null,'exploring a defense is not a win certificate');
+const zero=create({...spec,extensions:0,forcedDefenseExtensions:true}).run(3000);
+assert.equal(zero.stats.defenseExtensions,0,'finite extension budget is respected');
+const paused=create({...spec,forcedDefenseExtensions:true});assert.equal(paused.run(0).done,false);
+const resumed=paused.run(3000);assert.deepEqual(resumed.proof,enabled.proof);
+assert.equal(resumed.stats.defenseExtensions,1);
+const counter=create({prefix:'H8 A1 H9 B1 H10 C1 F5 D1',attacker:1,quietDepth:0,extensions:1,forcedDefenseExtensions:true,roots:['H7'],rules:{fivePriority:false}}).run(3000);
+assert(counter.done);assert.equal(counter.proof,null,'non-blocking four must still lose to immediate five');
+console.log('PASS forced defense extension, finite cap, counterwin and resume');
