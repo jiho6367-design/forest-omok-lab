@@ -1,0 +1,11 @@
+{
+  "prefix": "H8 G7 G6 H6 F8 F7 E7 G9 G8 I8 D8 E8 F6 G5 C9 B10 I7 F9 C6 H9 D6",
+  "blackImmediateWins": [
+    "E6"
+  ],
+  "whiteImmediateWins": [],
+  "legalWhiteMoves": 203,
+  "responsesAvoidingImmediateLoss": [
+    "E6"
+  ]
+}
