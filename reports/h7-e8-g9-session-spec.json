@@ -1,0 +1,12 @@
+{
+  "prefix": "H8 G7 G6 H6 F8 H7 G8 E8",
+  "attacker": 1,
+  "quietDepth": 2,
+  "extensions": 8,
+  "forcedDefenseExtensions": true,
+  "counterVcfPruning": true,
+  "roots": [
+    "G9"
+  ],
+  "vcfDepth": 25
+}
