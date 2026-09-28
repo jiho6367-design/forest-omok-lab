@@ -1,0 +1,35 @@
+{
+  "next": "black",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": [
+    "H7"
+  ],
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "H7",
+      "status": "unproved",
+      "elapsed_ms": 1382,
+      "defensesChecked": 1,
+      "unrefutedResponse": "E8",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": true,
+  "ms": 1388,
+  "stats": {
+    "nodes": 102,
+    "direct": 2,
+    "unknown": 99,
+    "defenderReplies": 101,
+    "timedOut": 0,
+    "incompleteForcing": 0,
+    "cacheHits": 1,
+    "forcingExtensions": 8,
+    "certifiedPrunes": 0
+  },
+  "prefix": "H8 G7 G6 H6 F8 F7 E7 G9 G8 I8",
+  "interpretation": "Complete bounded scope, no certificate. Not proof of safety or loss."
+}
