@@ -1,0 +1,56 @@
+{
+  "next": "black",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": [
+    "H6",
+    "H7",
+    "I8"
+  ],
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "H6",
+      "status": "unproved",
+      "elapsed_ms": 1143,
+      "defensesChecked": 1,
+      "unrefutedResponse": "H7",
+      "responseWins": false
+    },
+    {
+      "move": "H7",
+      "status": "unproved",
+      "elapsed_ms": 955,
+      "defensesChecked": 1,
+      "unrefutedResponse": "H6",
+      "responseWins": false
+    },
+    {
+      "move": "I8",
+      "status": "unproved",
+      "elapsed_ms": 1125,
+      "defensesChecked": 1,
+      "unrefutedResponse": "H6",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": true,
+  "ms": 3230,
+  "stats": {
+    "nodes": 227,
+    "direct": 2,
+    "unknown": 223,
+    "defenderReplies": 270,
+    "timedOut": 0,
+    "incompleteForcing": 0,
+    "cacheHits": 2,
+    "forcingExtensions": 52,
+    "certifiedPrunes": 0
+  },
+  "prefix": "H8 G7 G6 F8",
+  "rules": {
+    "fivePriority": false
+  },
+  "interpretation": "Selected-root bounded attack search only. No certificate was found in this scope; unrefuted replies are not proven safe or winning. This result does not establish a superior fourth move."
+}
