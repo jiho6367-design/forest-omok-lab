@@ -4,6 +4,12 @@ const result=verify(certificate);assert(result.verified,JSON.stringify(result));
 assert.equal(result.defenses,1898);
 const c6=verify(require('../reports/c6-loss-certificate.json'));
 assert(c6.verified,JSON.stringify(c6));assert.equal(c6.defenses,620);
+const c8=verify(require('../reports/c8-loss-certificate.json'));
+assert(c8.verified,JSON.stringify(c8));assert.equal(c8.defenses,611);
+for(const name of ['g9-move20','g11-move20']){
+  const checked=verify(require(`../reports/${name}-loss-certificate.json`));
+  assert(checked.verified,JSON.stringify(checked));assert.equal(checked.defenses,203);
+}
 const audit=require('../reports/f10-proof-audit.json'),incomplete=verify(audit);
 assert.equal(incomplete.verified,false,'a partially verified tree is not a loss certificate');
 assert.equal(incomplete.reason,audit.expected_verification.reason);

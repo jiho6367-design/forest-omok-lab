@@ -97,7 +97,7 @@ for(const p of [1,2]){
     assert.equal(twelve.candidates.find(x=>x.move==='F6')?.level,0);
     assert.equal(twelve.position_loss_proven,false);
     assert.equal(twenty.candidates.find(x=>x.move==='E5')?.level,0);
-    assert(twenty.candidates.find(x=>x.move==='G9')?.level>0);
+    assert.equal(twenty.candidates.find(x=>x.move==='G9')?.level,0,'verified G11 refutation must not reappear as an unproven defense');
     assert(!result.alternatives.some(x=>x.candidates?.some(c=>c.level===4&&c.reason.includes('미증명'))));
   }
   console.log('PASS historical replay, hypotheses, deadlines, adaptive workers, single/multi agreement');

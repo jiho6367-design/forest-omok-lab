@@ -1,0 +1,38 @@
+{
+  "next": "black",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": [
+    "J4"
+  ],
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "J4",
+      "status": "unproved",
+      "elapsed_ms": 1581,
+      "defensesChecked": 1,
+      "unrefutedResponse": "I8",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": true,
+  "ms": 1585,
+  "stats": {
+    "nodes": 92,
+    "direct": 0,
+    "unknown": 92,
+    "defenderReplies": 91,
+    "timedOut": 0,
+    "incompleteForcing": 0,
+    "cacheHits": 0,
+    "forcingExtensions": 0,
+    "certifiedPrunes": 0
+  },
+  "prefix": "H8 G7 G6 H6 F8 I5",
+  "rules": {
+    "fivePriority": false
+  },
+  "interpretation": "Black J4 alone was checked in the given scope; white I8 remains unrefuted. This does not prove I5 safe or winning."
+}

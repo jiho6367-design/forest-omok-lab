@@ -4,6 +4,22 @@
  제한 깊이 negamax 결과는 증명이 아니다. */
 function createForestEngine(options={}){
  const N=15,D=[[1,0],[0,1],[1,1],[1,-1]],inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
+ const forcingWindows=[];
+ for(let y=0;y<N;y++)for(let x=0;x<N;x++)for(const [dx,dy]of D)if(inside(x+4*dx,y+4*dy)){
+  forcingWindows.push(Array.from({length:5},(_,k)=>(y+k*dy)*N+x+k*dx));
+ }
+ // Necessary, not sufficient: a first four/instant five needs at least three
+ // existing friendly stones in an opponent-free five-cell window. Overlines
+ // and forbidden moves are deliberately left to the unchanged rule checker.
+ function mayStartForcing(b,p){
+  let stones=0;for(const v of b)if(v===p&&++stones===3)break;
+  if(stones<3)return false;
+  for(const window of forcingWindows){let own=0,blocked=false;
+   for(const i of window){if(b[i]===3-p){blocked=true;break;}if(b[i]===p)own++;}
+   if(!blocked&&own>=3)return true;
+  }
+  return false;
+ }
  const at=(b,x,y)=>inside(x,y)?b[y*N+x]:-1;
  function line(b,i,p,d){let x=i%N,y=i/N|0,a=[i];for(const s of [-1,1]){let k=1;while(at(b,x+d[0]*k*s,y+d[1]*k*s)===p){let j=(y+d[1]*k*s)*N+x+d[0]*k*s;s<0?a.unshift(j):a.push(j);k++;}}return a;}
  function win(b,i,p){if(b[i]!==p)return [];return D.flatMap(d=>{let a=line(b,i,p,d);return a.length===5?a:[];});}
@@ -30,8 +46,9 @@ function createForestEngine(options={}){
  // 유일 방어가 있으면 실제로 착수한다. 반격/금수/장목을 모두 같은 규칙으로 검사.
  // proof 없음은 안전의 증명이 아니다. 시간 초과는 unknown으로 구분한다.
  function forcing(board,p,maxPlies=11,budget=100,cache=new Map()){
-  let b=board.slice(),end=Date.now()+budget,nodes=0,TIME={};
+  let b=board.slice(),end=Date.now()+budget,nodes=0,TIME={},prefiltered=false;
   function solve(left){if(Date.now()>=end)throw TIME;nodes++;let key=b.join('')+p+':'+left;if(cache.has(key))return cache.get(key);
+   if(nodes===1&&options.vcfPrefilter!==false&&!mayStartForcing(b,p)){prefiltered=true;cache.set(key,null);return null;}
    let wins=winning(b,p);if(wins.length)return {pv:[wins[0]],finish:'five'};
    if(left<3)return null;
    let enemy=winning(b,3-p);if(enemy.length>1)return null;
@@ -44,7 +61,7 @@ function createForestEngine(options={}){
     }finally{b[i]=0;}}
    cache.set(key,null);return null;
   }
-  try{let proof=solve(maxPlies);return {proof,complete:true,nodes};}catch(e){if(e!==TIME)throw e;return {proof:null,complete:false,nodes};}
+  try{let proof=solve(maxPlies);return {proof,complete:true,nodes,prefiltered};}catch(e){if(e!==TIME)throw e;return {proof:null,complete:false,nodes,prefiltered};}
  }
  // Search-independent exact-five guard, also usable before starting a Worker.
  function urgent(board,p){
@@ -129,7 +146,7 @@ function createForestEngine(options={}){
  // This is a losing-move exclusion in new games, not a winning-book move.
  function knownRefutations(board,p){
   if(options.fivePriority!==false)return [];
-  const count=board.filter(Boolean).length;if(count!==5&&count!==9&&count!==11&&count!==15)return [];
+  const count=board.filter(Boolean).length;if(count!==5&&count!==9&&count!==11&&count!==15&&count!==17&&count!==19)return [];
   // Entries must have independent all-defense certificates, not just a
   // principal variation or a timeout. F10 uses the verified D7 tree, not
   // the incomplete G10 tree retained as a negative verification fixture.
@@ -138,7 +155,10 @@ function createForestEngine(options={}){
    {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7',bad:'H5',attack:'F9'}, // h5-loss-certificate.json
    {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9',bad:'F6',attack:'G10'}, // f6-loss-certificate.json
    {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9',bad:'F10',attack:'F5'}, // f10-loss-certificate.json
-   {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7',bad:'C6',attack:'E6'} // c6-loss-certificate.json
+   {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7',bad:'C6',attack:'E6'}, // c6-loss-certificate.json
+   {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7 G10 E6',bad:'C8',attack:'E7'}, // c8-loss-certificate.json
+   {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7 G10 E6 C8 E7',bad:'G9',attack:'G11'}, // g9-move20-loss-certificate.json
+   {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7 G10 E6 C8 E7',bad:'G11',attack:'G9'} // g11-move20-loss-certificate.json
   ],index=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65,current=canonical(board,p),matches=[];
   for(const spec of specs){
    const moves=spec.prefix.split(' ');if(moves.length!==count)continue;

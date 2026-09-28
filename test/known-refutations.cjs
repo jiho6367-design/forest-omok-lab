@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),create=require('../src/node-engine.cjs');
 const E=create({fivePriority:false}),index=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65;
-const cases=[['i7','I7','E8'],['h5','H5','F9'],['f6','F6','G10'],['f10','F10','F5'],['c6','C6','E6']];
+const cases=[['i7','I7','E8'],['h5','H5','F9'],['f6','F6','G10'],['f10','F10','F5'],['c6','C6','E6'],['c8','C8','E7'],['g9-move20','G9','G11'],['g11-move20','G11','G9']];
 for(const [file,bad,attack] of cases){
   const spec=require(`../reports/${file}-loss-certificate.json`),coords=spec.prefix.split(' ');
   assert.equal(coords.pop(),bad);
@@ -22,4 +22,4 @@ for(const [file,bad,attack] of cases){
     }
   }
 }
-console.log('PASS verified certificate mappings, 80 symmetries/colors, rule isolation and interim exclusion');
+console.log(`PASS verified certificate mappings, ${cases.length*16} symmetries/colors, rule isolation and interim exclusion`);

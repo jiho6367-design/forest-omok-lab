@@ -1,0 +1,14 @@
+{
+  "method": "Sequential isolated runs, 100 repetitions of three early positions, new VCF cache per call, same engine with the necessary-condition prefilter disabled/enabled",
+  "positions": ["H8 G7 G6 H6 F8", "H8 G7 G6 H6 F8 I5 K3", "H8 G7 G6 H6 F8 I5 K3 G8 G9"],
+  "attacker": 2,
+  "rules": {"fivePriority": false},
+  "results": [
+    {"runtime":"native","enabled":false,"calls":300,"skipped":0,"elapsed_ms":112.46},
+    {"runtime":"native","enabled":true,"calls":300,"skipped":300,"elapsed_ms":12.55},
+    {"runtime":"vm","enabled":false,"calls":300,"skipped":0,"elapsed_ms":123.2},
+    {"runtime":"vm","enabled":true,"calls":300,"skipped":300,"elapsed_ms":13.01}
+  ],
+  "correctness": {"rule_modes":2,"colors":2,"oracle_checked_skips":96,"preserved_winning_results":6,"oracle":"Every legal move checked by existing inspect(): skipped boards have no immediate five or first four"},
+  "limitation": "This measures the VCF subroutine on three sparse positions, not whole-game analysis. A concurrent full-session timing run is not a valid overall speed comparison."
+}

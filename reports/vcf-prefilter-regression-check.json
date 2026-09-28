@@ -1,0 +1,9 @@
+{
+  "full_suite_observation": {"position":"H8 H6 H10","expected_heuristic_move":"G6","observed_heuristic_move":"F8","test":"33-ply green loss at move four"},
+  "isolated_comparison": [
+    {"prefilter_enabled":false,"move":"G6","depth":5,"proven":false,"lossProven":false,"pv":["G6","J6","G5","I7","G7"],"opponentVCF":null,"vcfComplete":true,"elapsed_ms":11393},
+    {"prefilter_enabled":true,"move":"G6","depth":5,"proven":false,"lossProven":false,"pv":["G6","J6","G5","I7","G7"],"opponentVCF":null,"vcfComplete":true,"elapsed_ms":11383}
+  ],
+  "test_change": "Remove exact-coordinate assertions for unproven wall-clock heuristic alternatives. Retain legal-move and no-fabricated-win checks, independent-axis evaluation, explicit rejection of F7/D7, and their H7/C7 counterattack evidence. A different unproven heuristic move is not itself a rule violation or demonstrated tactical regression.",
+  "limitation": "Neither G6 nor F8 is certified safe by this comparison. It does not demonstrate overall playing-strength improvement."
+}
