@@ -1,0 +1,24 @@
+{
+  "source": "i7-loss-certificate.json",
+  "prefix": "H8 G7 G6 H6 F8 H7",
+  "rules": {
+    "fivePriority": false
+  },
+  "result": {
+    "verified": false,
+    "reason": "Unrefuted reply H3",
+    "variation": [
+      "E8",
+      "D8",
+      "F7",
+      "H5",
+      "F5",
+      "H3"
+    ],
+    "defenses": 211,
+    "vcf": 209,
+    "cached": 0,
+    "elapsed_ms": 558
+  },
+  "interpretation": "Transfer rejected. This is an unproved prescribed branch, not a white safety certificate."
+}
