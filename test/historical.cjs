@@ -25,7 +25,7 @@ for(let t=0;t<8;t++)for(const swap of [false,true]){
   const b=Array(225).fill(0);positions[11].forEach((p,i)=>{if(p)b[engine.transformed(i,t)]=swap?3-p:p;});
   const p=swap?1:2;
   assert.equal(engine.certifiedLoss(b,p),null,'incomplete F10 proof cannot certify whole-board loss');
-  assert.equal(engine.knownRefutations(b,p).length,1);
+  assert.equal(engine.knownRefutations(b,p).length,2);
   assert.equal(createEngine({fivePriority:true}).certifiedLoss(b,p),null);
 }
 {
@@ -93,7 +93,7 @@ for(const p of [1,2]){
     const twelve=result.alternatives.find(x=>x.move_number===12);
     const twenty=result.alternatives.find(x=>x.move_number===20);
     assert.equal(ten.candidates.find(x=>x.move==='F9')?.level,0);
-    assert.equal(twelve.candidates.find(x=>x.move==='F10')?.level,1);
+    assert.equal(twelve.candidates.find(x=>x.move==='F10')?.level,0);
     assert.equal(twelve.candidates.find(x=>x.move==='F6')?.level,0);
     assert.equal(twelve.position_loss_proven,false);
     assert.equal(twenty.candidates.find(x=>x.move==='E5')?.level,0);

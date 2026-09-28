@@ -1,0 +1,194 @@
+{
+  "rules": {
+    "fivePriority": false
+  },
+  "attacker": 1,
+  "prefix": "H8 G7 G6 H6 F8 I7",
+  "certificate": {
+    "move": "E8",
+    "replies": {
+      "D8": {
+        "move": "F7",
+        "replies": {
+          "H5": {
+            "move": "F5"
+          },
+          "D9": {
+            "move": "F5"
+          }
+        }
+      },
+      "I8": {
+        "move": "F7",
+        "replies": {
+          "H5": {
+            "move": "F9",
+            "replies": {
+              "F10": {
+                "move": "D7"
+              }
+            }
+          },
+          "D9": {
+            "move": "F9",
+            "replies": {
+              "F6": {
+                "move": "D7"
+              },
+              "F10": {
+                "move": "D7"
+              }
+            }
+          }
+        }
+      },
+      "G8": {
+        "move": "F7",
+        "replies": {
+          "H5": {
+            "move": "F9",
+            "replies": {
+              "F10": {
+                "move": "G10",
+                "replies": {
+                  "D7": {
+                    "move": "H9"
+                  },
+                  "H11": {
+                    "move": "E9"
+                  }
+                }
+              },
+              "F6": {
+                "move": "E10",
+                "replies": {
+                  "D9": {
+                    "move": "G10"
+                  },
+                  "C10": {
+                    "move": "G10"
+                  },
+                  "F10": {
+                    "move": "E9"
+                  },
+                  "F11": {
+                    "move": "E9"
+                  }
+                }
+              }
+            }
+          },
+          "D9": {
+            "move": "F9",
+            "replies": {
+              "F6": {
+                "move": "G10",
+                "replies": {
+                  "D7": {
+                    "move": "H5",
+                    "replies": {
+                      "I4": {
+                        "move": "H10"
+                      }
+                    }
+                  },
+                  "H11": {
+                    "move": "F10",
+                    "replies": {
+                      "F11": {
+                        "move": "E10",
+                        "replies": {
+                          "D10": {
+                            "move": "E7"
+                          },
+                          "H10": {
+                            "move": "E9",
+                            "replies": {
+                              "E7": {
+                                "move": "D8"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "F10": {
+                "move": "F5",
+                "replies": {
+                  "F6": {
+                    "move": "D7",
+                    "replies": {
+                      "C6": {
+                        "move": "E6",
+                        "replies": {
+                          "G4": {
+                            "move": "E4"
+                          },
+                          "C8": {
+                            "move": "E7"
+                          }
+                        }
+                      },
+                      "G10": {
+                        "move": "E6",
+                        "replies": {
+                          "G4": {
+                            "move": "E4",
+                            "replies": {
+                              "G9": {
+                                "move": "G11"
+                              },
+                              "G11": {
+                                "move": "G9"
+                              }
+                            }
+                          },
+                          "C8": {
+                            "move": "E7",
+                            "replies": {
+                              "G9": {
+                                "move": "G11"
+                              },
+                              "G11": {
+                                "move": "G9"
+                              }
+                            }
+                          },
+                          "G9": {
+                            "move": "G11",
+                            "replies": {
+                              "G4": {
+                                "move": "E4"
+                              },
+                              "C8": {
+                                "move": "E7"
+                              }
+                            }
+                          },
+                          "G11": {
+                            "move": "G9",
+                            "replies": {
+                              "G4": {
+                                "move": "E4"
+                              },
+                              "C8": {
+                                "move": "E4"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

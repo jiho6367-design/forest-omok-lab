@@ -70,9 +70,9 @@ function createEngine(options={}) {
         reason:result.lossProven?'강제패배 확인 · 합법적인 저항 수':
           '방어가 증명된 수 없음 · 합법 후보 표시 (안전 미확인)'};
     };
-    let best=convert(board,p,e.analyze(p,deep?Math.min(2000,limit*.2):automatic?{automatic:true,maxMs:limit}:limit,
-      r=>progress(convert(board,p,r,started))),started);
     const known=forest.knownRefutations(board,p),knownBad=new Set(known.map(m=>m.i));
+    const excludeKnown=result=>{
+      let best=result;
     if(known.length){
       best.rejected=[...(best.rejected||[]),...known.map(m=>({...m,verifiedRefutation:true}))];
       if(knownBad.has(best.i)){
@@ -83,6 +83,12 @@ function createEngine(options={}) {
       }
       if(!best.proven)best.reason=`${forest.coord(known[0].i)} 강제패배 수 제외 · `+best.reason;
     }
+      return best;
+    };
+    // Apply the same evidence gate to interim candidates and final results.
+    // Otherwise a user can play a certified losing move while deep search runs.
+    let best=excludeKnown(convert(board,p,e.analyze(p,deep?Math.min(2000,limit*.2):automatic?{automatic:true,maxMs:limit}:limit,
+      r=>progress(excludeKnown(convert(board,p,r,started)))),started));
     const can=forest.canonical(board,p),memory=lessons.filter(l=>l.key===can.key);
     best.memory=memory.length;
     best.patternHint=forest.patternDefense(board,p)?.i??null;

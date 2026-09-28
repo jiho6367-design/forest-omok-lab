@@ -52,7 +52,7 @@
       "reader_black_vcf": {"depth": 25, "budget_ms": 3000, "elapsed_ms": 972, "proof": null},
       "forest_black_vcf": {"depth": 25, "budget_ms": 3000, "elapsed_ms": 410, "complete": true, "proof": null}
     },
-    "transferred_h5_e10_certificate": {"verified": false, "reason": "Unrefuted reply A1", "interpretation": "The complete F6 loss certificate supersedes the earlier F6/H11/H10/E7 nonproofs. It proves F6 loses to G10, but does not establish a whole-position loss: the F10 certificate remains incomplete (see f10-proof-audit.json)."
+    "transferred_h5_e10_certificate": {"verified": false, "reason": "Unrefuted reply A1", "interpretation": "The complete F6 loss certificate supersedes the earlier F6/H11/H10/E7 nonproofs. It proves F6 loses to G10, but does not establish a whole-position loss: the former F10 tree remains incomplete, while the new D7 tree is verified in f10-loss-certificate.json."
   },
   "later_h10_refutation": {
     "certificate": "h10-e9-loss-certificate.json",

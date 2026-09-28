@@ -1,0 +1,49 @@
+[
+  {
+    "verified": false,
+    "reason": "VCF timeout at B11",
+    "defenses": 4108,
+    "vcf": 4081,
+    "cached": 5,
+    "elapsed_ms": 25000
+  },
+  {
+    "verified": false,
+    "reason": "VCF timeout at H5",
+    "defenses": 1665,
+    "vcf": 720,
+    "cached": 934,
+    "elapsed_ms": 25000
+  },
+  {
+    "verified": false,
+    "reason": "VCF timeout at K10",
+    "defenses": 1698,
+    "vcf": 1068,
+    "cached": 619,
+    "elapsed_ms": 25000
+  },
+  {
+    "verified": false,
+    "reason": "VCF timeout at O6",
+    "defenses": 2621,
+    "vcf": 1127,
+    "cached": 1479,
+    "elapsed_ms": 25000
+  },
+  {
+    "verified": false,
+    "reason": "VCF timeout at N12",
+    "defenses": 2810,
+    "vcf": 2013,
+    "cached": 784,
+    "elapsed_ms": 25000
+  },
+  {
+    "verified": true,
+    "defenses": 434,
+    "vcf": 158,
+    "cached": 275,
+    "elapsed_ms": 1008
+  }
+]

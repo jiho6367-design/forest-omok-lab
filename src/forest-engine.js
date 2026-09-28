@@ -129,23 +129,26 @@ function createForestEngine(options={}){
  // This is a losing-move exclusion in new games, not a winning-book move.
  function knownRefutations(board,p){
   if(options.fivePriority!==false)return [];
-  const count=board.filter(Boolean).length;if(count!==9&&count!==11&&count!==15)return [];
+  const count=board.filter(Boolean).length;if(count!==5&&count!==9&&count!==11&&count!==15)return [];
   // Entries must have independent all-defense certificates, not just a
-  // principal variation or a timeout. F10 deliberately has no entry.
+  // principal variation or a timeout. F10 uses the verified D7 tree, not
+  // the incomplete G10 tree retained as a negative verification fixture.
   const specs=[
+   {prefix:'H8 G7 G6 H6 F8',bad:'I7',attack:'E8'}, // i7-loss-certificate.json
    {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7',bad:'H5',attack:'F9'}, // h5-loss-certificate.json
    {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9',bad:'F6',attack:'G10'}, // f6-loss-certificate.json
+   {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9',bad:'F10',attack:'F5'}, // f10-loss-certificate.json
    {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7',bad:'C6',attack:'E6'} // c6-loss-certificate.json
-  ],index=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65,current=canonical(board,p);
+  ],index=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65,current=canonical(board,p),matches=[];
   for(const spec of specs){
    const moves=spec.prefix.split(' ');if(moves.length!==count)continue;
    const ref=Array(225).fill(0);moves.forEach((c,k)=>{ref[index(c)]=k%2?2:1;});
    const source=canonical(ref,2);if(source.key!==current.key)continue;
    const i=untransform(transformed(index(spec.bad),source.t),current.t);
    const attack=untransform(transformed(index(spec.attack),source.t),current.t);
-   return [{i,attack,reason:`이 수 뒤 상대 ${coord(attack)}부터 모든 합법 응수에 강제승 확인`}];
+   matches.push({i,attack,reason:`이 수 뒤 상대 ${coord(attack)}부터 모든 합법 응수에 강제승 확인`});
   }
-  return [];
+  return matches;
  }
  function certifiedLoss(board,p){
   // No cached whole-position certificate is currently complete. A count of

@@ -1,0 +1,17 @@
+[
+  {
+    "verified": false,
+    "reason": "VCF timeout at H9",
+    "defenses": 1760,
+    "vcf": 1747,
+    "cached": 3,
+    "elapsed_ms": 25000
+  },
+  {
+    "verified": true,
+    "defenses": 2467,
+    "vcf": 1323,
+    "cached": 1133,
+    "elapsed_ms": 22931
+  }
+]

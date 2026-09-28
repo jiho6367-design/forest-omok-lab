@@ -14,5 +14,5 @@
     {"quiet_depth": 2, "budget_ms": 25000, "proof": null, "searchComplete": false},
     {"quiet_depth": 3, "preferred": "E10", "budget_ms": 25000, "proof": null, "searchComplete": false}
   ],
-  "interpretation": "This proposed F10 loss certificate is incomplete. H11 is not a proven draw or win for white. Withdraw cached F10 loss and whole-position loss claims; retain independently verified F6 certificate. This report supersedes the F10/whole-position conclusions in v5.12.0 and f6-g10-defense-check.json."
+  "interpretation": "This proposed G10 attack tree remains incomplete and must still fail verification at H11. A different, independently verified D7 tree now establishes F10 loss: see f10-loss-certificate.json and f10-loss-verification.json. Never accept the incomplete tree just because another tree proves the result."
 }
