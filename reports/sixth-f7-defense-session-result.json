@@ -1,0 +1,43 @@
+{
+  "done": false,
+  "proof": null,
+  "searchComplete": false,
+  "elapsed_ms": 25000,
+  "stats": {
+    "nodes": 13166,
+    "defenses": 24555,
+    "cacheHits": 864,
+    "vcfChecks": 12302,
+    "vcfIncomplete": 0,
+    "forcingExtensions": 9790,
+    "defenseExtensions": 5140,
+    "certifiedPrunes": 0,
+    "slices": 7
+  },
+  "rootChecks": [],
+  "activeLine": [
+    "F7",
+    "G8",
+    "F10",
+    "D8",
+    "E8",
+    "I8",
+    "J8",
+    "H7",
+    "K8",
+    "E4",
+    "F5",
+    "J9"
+  ],
+  "scope": {
+    "prefix": "H8 G7 G6 H6 F8",
+    "attacker": 2,
+    "quietDepth": 3,
+    "extensions": 8,
+    "forcedDefenseExtensions": true,
+    "roots": [
+      "F7"
+    ],
+    "vcfDepth": 25
+  }
+}
