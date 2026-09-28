@@ -1,0 +1,37 @@
+{
+  "rules": {"fivePriority": false},
+  "prefix": "H8 G7 G6 H6 F8",
+  "scope": "Black attacker; two quiet setup stages; aligned-through-four candidates; VCF depth 25; every legal defensive response",
+  "candidate_discovery": {
+    "budget_ms": 3000,
+    "completed_depth": 4,
+    "candidates": ["I5", "G9", "J4"],
+    "interpretation": "Limited-search ranking, not a win certificate"
+  },
+  "black_refutation_checks": [
+    {"white_move": "I5", "proof": null, "searchComplete": true, "elapsed_ms": 7251, "nodes": 340, "defenderReplies": 7898, "cacheHits": 1},
+    {"white_move": "G9", "proof": null, "searchComplete": true, "elapsed_ms": 6710, "nodes": 6521, "defenderReplies": 6520, "cacheHits": 1976},
+    {"white_move": "J4", "proof": null, "searchComplete": true, "elapsed_ms": 7505, "nodes": 353, "defenderReplies": 8556, "cacheHits": 1}
+  ],
+  "white_followup_check": {
+    "prefix": "H8 G7 G6 H6 F8 I5 E8",
+    "quiet_depth": 2,
+    "proof": null,
+    "searchComplete": true,
+    "elapsed_ms": 5779,
+    "nodes": 413,
+    "defenderReplies": 6907
+  },
+  "api_check": {
+    "mode": "deep25",
+    "workers": 1,
+    "elapsed_ms": 6790,
+    "critical_move_number": 6,
+    "actual_move": "I7",
+    "recommended_move": "I5",
+    "level": 1,
+    "main_line": ["6.W I5", "7.B G8", "8.W I8"],
+    "full_result": "current-api-result.json"
+  },
+  "interpretation": "All three alternatives remain unrefuted only within this finite black threat-search scope. No white forced win, draw or balanced position is certified. The historical API now points to move 6 instead of treating late-game moves as a demonstrated cure. Its I5 recommendation remains LEVEL 1. G8 is a bounded-search black reply, not proven globally strongest."
+}
