@@ -1,0 +1,36 @@
+{
+  "next": "black",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": [
+    "I7"
+  ],
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "I7",
+      "status": "unproved",
+      "elapsed_ms": 1356,
+      "defensesChecked": 1,
+      "unrefutedResponse": "E8",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": true,
+  "ms": 1363,
+  "stats": {
+    "nodes": 100,
+    "direct": 2,
+    "unknown": 97,
+    "defenderReplies": 99,
+    "timedOut": 0,
+    "incompleteForcing": 0,
+    "cacheHits": 1,
+    "forcingExtensions": 8,
+    "certifiedPrunes": 0,
+    "forcedDefenseExtensionsEnabled": true
+  },
+  "prefix": "H8 G7 G6 H6 F8 F7 G8 I8",
+  "interpretation": "Only rootChecks report attempted roots; timeout is not safety or loss proof."
+}
