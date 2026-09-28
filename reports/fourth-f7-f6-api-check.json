@@ -1,0 +1,131 @@
+{
+  "prefix": "H8 G7 G6 F7 H7 F5 H6",
+  "result": {
+    "move_number": 8,
+    "actual_move": "F6",
+    "actual": {
+      "move": "F6",
+      "legal": true,
+      "level": 0,
+      "reason": "상대의 연속 4 강제승 증명",
+      "black_vcf_complete": true,
+      "black_vcf_nodes": 4,
+      "black_line": [
+        "H5",
+        "H4",
+        "H9"
+      ],
+      "white_line": [],
+      "strongest_reply": null,
+      "reply_forcing": false,
+      "reply_scope": "미검증",
+      "counter_vcf_if_unanswered": null,
+      "defense_candidate": null,
+      "defense_scope": null,
+      "evaluation": 0
+    },
+    "recommended": {
+      "move": "H9",
+      "legal": true,
+      "level": 1,
+      "reason": "흑 응수 뒤 추가 연속 4 위협 · 방어 미증명",
+      "black_vcf_complete": true,
+      "black_vcf_nodes": 3,
+      "black_line": [],
+      "white_line": [],
+      "strongest_reply": "I6",
+      "reply_forcing": false,
+      "reply_scope": "제한 탐색 후보",
+      "counter_vcf_if_unanswered": [
+        "H4",
+        "H5",
+        "F6",
+        "J6",
+        "E6"
+      ],
+      "defense_candidate": "F6",
+      "defense_scope": "검사한 연속 4 반증이 없는 합법 응수 · 무패 미증명",
+      "evaluation": -114
+    },
+    "position_loss_proven": false,
+    "candidates": [
+      {
+        "move": "H9",
+        "legal": true,
+        "level": 1,
+        "reason": "흑 응수 뒤 추가 연속 4 위협 · 방어 미증명",
+        "black_vcf_complete": true,
+        "black_vcf_nodes": 3,
+        "black_line": [],
+        "white_line": [],
+        "strongest_reply": "I6",
+        "reply_forcing": false,
+        "reply_scope": "제한 탐색 후보",
+        "counter_vcf_if_unanswered": [
+          "H4",
+          "H5",
+          "F6",
+          "J6",
+          "E6"
+        ],
+        "defense_candidate": "F6",
+        "defense_scope": "검사한 연속 4 반증이 없는 합법 응수 · 무패 미증명",
+        "evaluation": -114
+      },
+      {
+        "move": "H5",
+        "legal": true,
+        "level": 1,
+        "reason": "흑 응수 뒤 추가 연속 4 위협 · 방어 미증명",
+        "black_vcf_complete": true,
+        "black_vcf_nodes": 3,
+        "black_line": [],
+        "white_line": [],
+        "strongest_reply": "I6",
+        "reply_forcing": false,
+        "reply_scope": "제한 탐색 후보",
+        "counter_vcf_if_unanswered": [
+          "F6",
+          "E6",
+          "J6"
+        ],
+        "defense_candidate": "F6",
+        "defense_scope": "검사한 연속 4 반증이 없는 합법 응수 · 무패 미증명",
+        "evaluation": -180
+      },
+      {
+        "move": "F6",
+        "legal": true,
+        "level": 0,
+        "reason": "상대의 연속 4 강제승 증명",
+        "black_vcf_complete": true,
+        "black_vcf_nodes": 4,
+        "black_line": [
+          "H5",
+          "H4",
+          "H9"
+        ],
+        "white_line": [],
+        "strongest_reply": null,
+        "reply_forcing": false,
+        "reply_scope": "미검증",
+        "counter_vcf_if_unanswered": null,
+        "defense_candidate": null,
+        "defense_scope": null,
+        "evaluation": 0
+      }
+    ],
+    "search": {
+      "elapsed_ms": 874,
+      "completed_depth": 5,
+      "nodes": 19240,
+      "nodes_per_second": 22014,
+      "candidate_count": 3,
+      "best_move": "H9",
+      "method": "VCF + limited alpha-beta",
+      "tt_hit_rate": null,
+      "vcf_checks": 3,
+      "workers": 1
+    }
+  }
+}

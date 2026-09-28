@@ -1,0 +1,27 @@
+{
+  "prefix": "H8 G7 G6 F7 H7 F5 H6 F6",
+  "forcing": {
+    "proof": {
+      "pv": [
+        "H5",
+        "H4",
+        "H9"
+      ],
+      "finish": "double",
+      "endpoints": [
+        52,
+        127
+      ]
+    },
+    "complete": true,
+    "nodes": 4,
+    "prefiltered": false
+  },
+  "independent": {
+    "verified": true,
+    "defenses": 216,
+    "vcf": 216,
+    "cached": 0,
+    "elapsed_ms": 24
+  }
+}
