@@ -15,5 +15,28 @@
     "nodes": 3,
     "defenderReplies": 221
   },
+  "continuation_check": {
+    "line": ["15.B F10", "16.W F11", "17.B E10", "18.W H10"],
+    "white_f11_is_only_immediate_block": true,
+    "black_proof_before_white_h10": {
+      "quiet_depth": 2,
+      "budget_ms": 25000,
+      "tested_legal_replies": 7,
+      "refuted_replies": 6,
+      "incomplete_reply": "H10",
+      "other_replies_unvisited": true,
+      "searchComplete": false,
+      "nodes": 1465
+    },
+    "black_proof_after_white_h10": {
+      "quiet_depth": 1,
+      "scope": "aligned-through-four",
+      "proof": null,
+      "searchComplete": true,
+      "elapsed_ms": 2324,
+      "nodes": 134,
+      "defenderReplies": 133
+    }
+  },
   "interpretation": "H11 is an unrefuted defense candidate under the checked threat scope, not a white win or nonloss certificate. Black F10 is a bounded-search reply, not a proof of the strongest possible reply."
 }
