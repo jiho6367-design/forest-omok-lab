@@ -1,0 +1,18 @@
+{
+  "rules": {"fivePriority": false},
+  "attacker": 1,
+  "prefix": "H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10",
+  "certificate": {
+    "move": "F5",
+    "replies": {"F6": {"move": "G10", "replies": {
+      "D7": {"move": "H7", "replies": {"I8": {"move": "E7"}}}
+    }}}
+  },
+  "expected_verification": {"verified": false, "reason": "Unrefuted reply H11"},
+  "unresolved_prefix": "H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 G10 H11",
+  "bounded_searches": [
+    {"quiet_depth": 2, "budget_ms": 25000, "proof": null, "searchComplete": false},
+    {"quiet_depth": 3, "preferred": "E10", "budget_ms": 25000, "proof": null, "searchComplete": false}
+  ],
+  "interpretation": "This proposed F10 loss certificate is incomplete. H11 is not a proven draw or win for white. Withdraw cached F10 loss and whole-position loss claims; retain independently verified F6 certificate. This report supersedes the F10/whole-position conclusions in v5.12.0 and f6-g10-defense-check.json."
+}

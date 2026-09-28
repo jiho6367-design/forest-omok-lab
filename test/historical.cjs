@@ -9,9 +9,23 @@ assert.equal(positions[9][index('D9')],0);
 assert.equal(positions[19][index('E5')],0);
 const engine=createEngine({fivePriority:false});
 for(let t=0;t<8;t++)for(const swap of [false,true]){
+  const b=Array(225).fill(0);positions[9].forEach((p,i)=>{if(p)b[engine.transformed(i,t)]=swap?3-p:p;});
+  const known=engine.knownRefutations(b,swap?1:2);
+  assert.equal(known.length,1);
+  assert.equal(known[0].i,engine.transformed(index('H5'),t));
+  assert.equal(known[0].attack,engine.transformed(index('F9'),t));
+  assert.equal(createEngine({fivePriority:true}).knownRefutations(b,swap?1:2).length,0);
+}
+{
+  const r=analyzePosition({board:positions[9],moveNumber:10,actual:'D9',loser:2,ms:600,
+    rules:{fivePriority:false},forcedCandidates:['H5']});
+  assert.equal(r.candidates.find(c=>c.move==='H5').level,0,'verified H5 proof reaches the reusable API');
+}
+for(let t=0;t<8;t++)for(const swap of [false,true]){
   const b=Array(225).fill(0);positions[11].forEach((p,i)=>{if(p)b[engine.transformed(i,t)]=swap?3-p:p;});
-  const p=swap?1:2,r=engine.analyze(b,p,30);
-  assert(r.lossProven&&!r.proven);assert(engine.inspect(b,r.i,p).legal);
+  const p=swap?1:2;
+  assert.equal(engine.certifiedLoss(b,p),null,'incomplete F10 proof cannot certify whole-board loss');
+  assert.equal(engine.knownRefutations(b,p).length,1);
   assert.equal(createEngine({fivePriority:true}).certifiedLoss(b,p),null);
 }
 {
@@ -79,9 +93,9 @@ for(const p of [1,2]){
     const twelve=result.alternatives.find(x=>x.move_number===12);
     const twenty=result.alternatives.find(x=>x.move_number===20);
     assert.equal(ten.candidates.find(x=>x.move==='F9')?.level,0);
-    assert.equal(twelve.candidates.find(x=>x.move==='F10')?.level,0);
+    assert.equal(twelve.candidates.find(x=>x.move==='F10')?.level,1);
     assert.equal(twelve.candidates.find(x=>x.move==='F6')?.level,0);
-    assert.equal(twelve.position_loss_proven,true);
+    assert.equal(twelve.position_loss_proven,false);
     assert.equal(twenty.candidates.find(x=>x.move==='E5')?.level,0);
     assert(twenty.candidates.find(x=>x.move==='G9')?.level>0);
     assert(!result.alternatives.some(x=>x.candidates?.some(c=>c.level===4&&c.reason.includes('미증명'))));

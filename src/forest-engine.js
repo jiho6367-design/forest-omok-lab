@@ -128,31 +128,29 @@ function createForestEngine(options={}){
  // Verified by exhaustive legal replies under the symmetric double-three rule.
  // This is a losing-move exclusion in new games, not a winning-book move.
  function knownRefutations(board,p){
-  if(options.fivePriority!==false||board.filter(Boolean).length!==11)return [];
-  const moves=['H8','G7','G6','H6','F8','I7','E8','G8','F7','D9','F9'],ref=Array(225).fill(0);
-  moves.forEach((c,k)=>{ref[(+c.slice(1)-1)*15+c.charCodeAt(0)-65]=k%2?2:1;});
-  const source=canonical(ref,2),current=canonical(board,p);
-  if(source.key!==current.key)return [];
-  const bad=untransform(transformed(9*15+5,source.t),current.t); // F10
-  const attack=untransform(transformed(4*15+5,source.t),current.t); // F5
-  const other=untransform(transformed(5*15+5,source.t),current.t); // F6
-  const otherAttack=untransform(transformed(9*15+6,source.t),current.t); // G10
-  return [{i:bad,attack,reason:`이 수 뒤 상대 ${coord(attack)}부터 모든 합법 응수에 강제승 확인`},
-    {i:other,attack:otherAttack,reason:`이 수 뒤 상대 ${coord(otherAttack)}부터 모든 합법 응수에 강제승 확인`}];
+  if(options.fivePriority!==false)return [];
+  const count=board.filter(Boolean).length;if(count!==9&&count!==11)return [];
+  // Entries must have independent all-defense certificates, not just a
+  // principal variation or a timeout. F10 deliberately has no entry.
+  const specs=[
+   {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7',bad:'H5',attack:'F9'}, // h5-loss-certificate.json
+   {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9',bad:'F6',attack:'G10'} // f6-loss-certificate.json
+  ],index=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65,current=canonical(board,p);
+  for(const spec of specs){
+   const moves=spec.prefix.split(' ');if(moves.length!==count)continue;
+   const ref=Array(225).fill(0);moves.forEach((c,k)=>{ref[index(c)]=k%2?2:1;});
+   const source=canonical(ref,2);if(source.key!==current.key)continue;
+   const i=untransform(transformed(index(spec.bad),source.t),current.t);
+   const attack=untransform(transformed(index(spec.attack),source.t),current.t);
+   return [{i,attack,reason:`이 수 뒤 상대 ${coord(attack)}부터 모든 합법 응수에 강제승 확인`}];
+  }
+  return [];
  }
  function certifiedLoss(board,p){
-  const known=knownRefutations(board,p);if(known.length!==2)return null;
-  // The other 212 legal roots have VCF certificates; both remaining roots
-  // have all-defense certificates. Match only this exact board and its D4/
-  // color equivalents under the same rules. This is not a universal heuristic.
-  const i=known[1].i;
-  return {i,pv:[i],depth:0,nodes:0,ms:0,score:-1e8,kind:'lost',
-    proven:false,lossProven:true,forcedLoss:true,fallback:true,
-    reason:`모든 합법 수의 강제패배 확인 · ${known.map(m=>coord(m.i)).join('·')}도 패배 · 더 이른 수 복기 필요`,
-    shape:inspect(board,i,p),threats:[],memory:0,bad:[],
-    candidates:[{i,pv:[i],score:-1e8,status:'fallback'}],
-    rejected:known.map(m=>({...m,verifiedRefutation:true})),
-    verificationScope:'정확히 일치하는 판의 모든 합법 착수 214개 · 회전·반사·색 교환 포함'};
+  // No cached whole-position certificate is currently complete. A count of
+  // rejected candidates cannot certify that every legal root has been refuted.
+  // Runtime search may still prove a loss independently.
+  return null;
  }
  function analyze(board,p,budget=1000,lessons=[]){
   let immediate=urgent(board,p);if(immediate)return immediate;

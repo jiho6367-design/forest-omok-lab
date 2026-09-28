@@ -2,6 +2,9 @@ const assert=require('node:assert/strict'),verify=require('../tools/verify-attac
 const certificate=require('../reports/h5-loss-certificate.json');
 const result=verify(certificate);assert(result.verified,JSON.stringify(result));
 assert.equal(result.defenses,1898);
+const audit=require('../reports/f10-proof-audit.json'),incomplete=verify(audit);
+assert.equal(incomplete.verified,false,'a partially verified tree is not a loss certificate');
+assert.equal(incomplete.reason,audit.expected_verification.reason);
 const counterwin=verify({prefix:'H8 A1 H9 B1 H10 C1 F5 D1',attacker:1,certificate:{move:'H7'}});
 assert.equal(counterwin.verified,false);assert.match(counterwin.reason,/Defender wins|Unrefuted reply/);
 const immediate=verify({prefix:'H8 A1 H9 B1 H10 C1 H11 D2',attacker:1,certificate:{move:'H12'}});
