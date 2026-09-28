@@ -11,7 +11,7 @@ const first=process.argv[7]==='white-first'?2:1;
 const threatOnly=process.argv[8]==='threats';
 const wide=process.argv[9]==='wide';
 const board=Array(225).fill(0);moves.forEach((c,k)=>{const p=k%2?3-first:first,s=engine.inspect(board,idx(c),p);if(!s.legal||s.win.length)throw Error(`invalid move ${k+1} ${c}`);board[idx(c)]=p;});
-const deadline=Date.now()+seconds*1000,cache=new Map(),proofCache=new Map(),stats={nodes:0,direct:0,unknown:0,defenderReplies:0,timedOut:0,incompleteForcing:0};
+const deadline=Date.now()+seconds*1000,cache=new Map(),proofCache=new Map(),stats={nodes:0,direct:0,unknown:0,defenderReplies:0,timedOut:0,incompleteForcing:0,cacheHits:0};
 function attackCandidates(b){
  const set=new Set(engine.candidates(b));
  if(wide)for(let i=0;i<225;i++)if(b[i]===attacker){
@@ -39,10 +39,11 @@ function rankedDefenses(b){
  const seen=new Set(near);return [...near,...Array.from({length:225},(_,i)=>i).filter(i=>!seen.has(i))];
 }
 function solve(b,left){if(Date.now()>=deadline){stats.timedOut++;return null;}stats.nodes++;
- const key=b.join('')+'|'+left;if(cache.has(key))return cache.get(key);
+ const key=b.join('')+'|'+left;if(cache.has(key)){stats.cacheHits++;return cache.get(key);}
+ const incompleteBefore=stats.incompleteForcing,timeoutsBefore=stats.timedOut;
  const forcing=engine.forcing(b,attacker,25,Math.max(1,Math.min(800,deadline-Date.now())),proofCache);
  if(forcing.proof){stats.direct++;const proof={type:'forcing',pv:forcing.proof.pv.map(coord)};cache.set(key,proof);return proof;}
- if(!forcing.complete){stats.incompleteForcing++;return null;}if(left<=0)return null;
+ if(!forcing.complete){stats.incompleteForcing++;return null;}if(left<=0){cache.set(key,null);return null;}
  for(const move of rankedAttack(b)){
   if(Date.now()>=deadline){stats.timedOut++;break;}const shape=engine.inspect(b,move,attacker);b[move]=attacker;
   if(shape.win.length){b[move]=0;return {type:'five',move:coord(move)};}
@@ -56,6 +57,9 @@ function solve(b,left){if(Date.now()>=deadline){stats.timedOut++;return null;}st
   b[move]=0;
   if(all){const proof={type:'quiet',move:coord(move),replies:count,exceptions};cache.set(key,proof);return proof;}
  }
+ // Cache a negative result only for a fully explored scope. A timeout must
+ // never become a reusable claim that no attack exists.
+ if(stats.incompleteForcing===incompleteBefore&&stats.timedOut===timeoutsBefore)cache.set(key,null);
  stats.unknown++;return null;
 }
 const started=Date.now();const next=moves.length%2?3-first:first;

@@ -1,0 +1,19 @@
+{
+  "rules": {"fivePriority": false},
+  "alternative": "10.W H5",
+  "prefix": "H8 G7 G6 H6 F8 I7 E8 G8 F7 H5",
+  "scope": "aligned-through-four attack candidates; all legal defenses; VCF depth 25",
+  "black_counterattack": {
+    "quiet_depth": 1,
+    "proof": null,
+    "searchComplete": true,
+    "elapsed_ms": 173,
+    "nodes": 90,
+    "defenderReplies": 89
+  },
+  "white_attack_after_black_f9": [
+    {"quiet_depth": 2, "proof": null, "searchComplete": true, "elapsed_ms": 9117, "nodes": 175, "defenderReplies": 8625},
+    {"quiet_depth": 3, "proof": null, "searchComplete": true, "elapsed_ms": 18034, "nodes": 262, "defenderReplies": 17667, "cacheHits": 0}
+  ],
+  "interpretation": "Neither side has a found forced-win proof in the stated scopes. H5 is not established as a winning or nonlosing alternative; absence of a black proof does not certify safety."
+}
