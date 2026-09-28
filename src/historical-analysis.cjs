@@ -50,6 +50,12 @@ function analyzePosition({board,moveNumber,actual,loser,ms,rules,forcedCandidate
   for(const c of names){
     const i=index(c),shape=engine.inspect(board,i,p);
     if(!shape.legal){candidates.push({move:c,legal:false,level:null,reason:shape.reason});continue;}
+    // The game ends at this move. Do not let a hypothetical opponent turn
+    // override an already completed legal five.
+    if(shape.win.length){candidates.push({move:c,legal:true,level:4,reason:'합법적인 정확한 5목 완성',
+      black_vcf_complete:true,black_vcf_nodes:0,black_line:[],white_line:[],
+      strongest_reply:null,reply_forcing:false,reply_scope:'대국 종료',
+      counter_vcf_if_unanswered:null,evaluation:1e8});continue;}
     const after=board.slice();after[i]=p;
     const known=knownRefutations.get(i);
     const remain=()=>Math.max(1,ms-(Date.now()-started)-12);
@@ -58,7 +64,7 @@ function analyzePosition({board,moveNumber,actual,loser,ms,rules,forcedCandidate
     const legalBlocks=whiteWins.filter(j=>engine.inspect(after,j,3-p).legal);
     // The opponent moves next. A white VCF starting on this board is only an
     // attack opportunity; it is not a forced win unless every reply is covered.
-    const forcedWin=!blackWins.length&&whiteWins.length>=2;
+    const forcedWin=!blackWins.length&&(whiteWins.length>=2||whiteWins.length===1&&!legalBlocks.length);
     let reply=null,followup=null;
     if(whiteWins.length===1&&legalBlocks.length===1){
       reply=legalBlocks[0];const defended=after.slice();defended[reply]=3-p;
@@ -78,7 +84,7 @@ function analyzePosition({board,moveNumber,actual,loser,ms,rules,forcedCandidate
     const blackLine=proof.proof?.pv.map(engine.coord)||(known?[engine.coord(known.attack)]:[]);
     const whiteLine=followup?.proof?.pv.map(engine.coord)||[];
     const level=proof.proof||known?0:forcedWin||(!blackWins.length&&followup?.proof)?4:1;
-    candidates.push({move:c,legal:true,level,reason:proof.proof?'상대의 연속 4 강제승 증명':known?known.reason:forcedWin?'상대의 모든 합법 방어를 넘는 즉시 승리':
+    candidates.push({move:c,legal:true,level,reason:proof.proof?'상대의 연속 4 강제승 증명':known?known.reason:forcedWin?'상대의 모든 합법 방어를 넘는 즉시 승리':level===4?'상대의 유일 방어 뒤 연속 4 강제승 증명':
       whiteWins.length?'백의 위협 생성 · 흑의 방어 뒤 전체 승리 미증명':counterRisk?'흑 응수 뒤 추가 연속 4 위협 · 방어 미증명':'즉시 강제승 미발견 · 전체 무패 미증명',
       black_vcf_complete:proof.complete,black_vcf_nodes:proof.nodes,black_line:blackLine,white_line:whiteLine,
       strongest_reply:reply==null?null:engine.coord(reply),reply_forcing:!!followup?.proof,
@@ -124,7 +130,7 @@ async function analyze_game(moves,loser='white',mode='auto',opts={}){
   }}
   await Promise.all(Array.from({length:workers},run));
   const verified=results.filter(r=>r?.recommended&&r.actual?.level===0&&r.recommended.level>0);
-  const critical=verified[0]||results.find(r=>r?.recommended&&r.recommended.level>r.actual?.level)||null;
+  const critical=results.find(r=>r?.recommended?.level===4)||verified[0]||results.find(r=>r?.recommended&&r.recommended.level>r.actual?.level)||null;
   const rec=critical?.recommended;
   return {critical_move_number:critical?.move_number??null,actual_move:critical?.actual_move??null,
     recommended_move:rec?.move??null,level:rec?.level??null,
@@ -136,6 +142,6 @@ async function analyze_game(moves,loser='white',mode='auto',opts={}){
       nodes_per_second:Math.round(results.reduce((a,r)=>a+(r.search?.nodes||0),0)*1000/Math.max(1,Date.now()-start)),
       method:'VCF + limited alpha-beta',tt_hit_rate:null}};
 }
-if(isMainThread)module.exports={analyze_game,replay,workerPolicy,benchmarkWorkers,MODES,index};
+if(isMainThread)module.exports={analyze_game,analyzePosition,replay,workerPolicy,benchmarkWorkers,MODES,index};
 else if(workerData.benchmark){const {board,p,ms}=workerData.benchmark;parentPort.postMessage({nodes:createEngine({fivePriority:false}).analyze(board,p,ms).nodes||0});}
 else parentPort.postMessage(analyzePosition(workerData.job));

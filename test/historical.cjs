@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict');
-const {analyze_game,replay,workerPolicy,MODES,index}=require('../src/historical-analysis.cjs');
+const {analyze_game,analyzePosition,replay,workerPolicy,MODES,index}=require('../src/historical-analysis.cjs');
 const createEngine=require('./engine.cjs');
 const moves='H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7 G10 E6 C8 E7 E5 E9 B7'.split(' ');
 const {board,positions}=replay(moves);
@@ -21,6 +21,17 @@ assert.equal(workerPolicy({logical:8,throughputGain:1}),1);
 assert.equal(workerPolicy({logical:8,throughputGain:1.5}),2);
 assert.equal(workerPolicy({logical:8,throughputGain:1.5,load:.9}),1);
 assert.equal(MODES.deep25,25000);
+for(const p of [1,2]){
+  const board=Array(225).fill(0);
+  for(const c of ['A1','B1','C1','D1'])board[index(c)]=p;
+  for(const c of ['A3','B3','C3','D3'])board[index(c)]=3-p;
+  const r=analyzePosition({board,moveNumber:9,actual:'F1',loser:p,ms:500,
+    rules:{fivePriority:false},forcedCandidates:['E1']});
+  const win=r.candidates.find(c=>c.move==='E1');
+  assert.equal(win.level,4,'an actual five ends the game before an opposing threat');
+  assert.equal(win.strongest_reply,null);
+  assert.equal(r.recommended.move,'E1');
+}
 (async()=>{
   for(const mode of [900,3000,8000]){
     const t=Date.now(),r=await analyze_game(moves,'white',mode,{workers:1});

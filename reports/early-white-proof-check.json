@@ -1,0 +1,29 @@
+{
+  "rules": {"fivePriority": false},
+  "method": "tools/prove-loss.cjs, white attacker, wide aligned-through-four candidates, two quiet setup stages, VCF depth 25",
+  "interpretation": "No proof within this candidate/depth scope. This does not prove white cannot win.",
+  "checks": [
+    {
+      "before_move": 8,
+      "prefix": "H8 G7 G6 H6 F8 I7 E8",
+      "proof": null,
+      "searchComplete": true,
+      "elapsed_ms": 5804,
+      "nodes": 222,
+      "defenderReplies": 6476,
+      "timedOut": 0,
+      "incompleteForcing": 0
+    },
+    {
+      "before_move": 10,
+      "prefix": "H8 G7 G6 H6 F8 I7 E8 G8 F7",
+      "proof": null,
+      "searchComplete": true,
+      "elapsed_ms": 6943,
+      "nodes": 155,
+      "defenderReplies": 7424,
+      "timedOut": 0,
+      "incompleteForcing": 0
+    }
+  ]
+}
