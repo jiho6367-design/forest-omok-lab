@@ -62,11 +62,11 @@ function createForestEngine(options={}){
   let block=setup??threats[0];if(!inspect(b,block,3-p).legal)return {complete:true,proof:null};b[block]=3-p;
   const near=ranked(b,p).map(m=>m.i),seen=new Set(near),defenses=[...near,...Array.from({length:225},(_,i)=>i).filter(i=>!seen.has(i))];
   for(const i of defenses){if(Date.now()>=end)return {complete:false,proof:null};if(!inspect(b,i,p).legal)continue;
-   b[i]=p;if(win(b,i,p).length){b[i]=0;return {complete:true,proof:null};}
+   b[i]=p;if(win(b,i,p).length){b[i]=0;return {complete:true,proof:null,unrefutedReply:i,replyWins:true};}
    let r=forcing(b,3-p,maxPlies,Math.max(1,end-Date.now()),cache),quiet=null;
    if(r.complete&&!r.proof&&includeQuiet&&Date.now()<end){quiet=winning(b,p).length===1?forcedReplyTrap(b,p,end-Date.now(),null,maxPlies,false):quietTrap(b,p,end-Date.now(),10,maxPlies);}
    b[i]=0;
-   if(!r.complete||quiet&&!quiet.complete)return {complete:false,proof:null};if(!r.proof&&!quiet?.proof)return {complete:true,proof:null};branches.push({i,proof:r.proof,quietProof:quiet?.proof});
+   if(!r.complete||quiet&&!quiet.complete)return {complete:false,proof:null};if(!r.proof&&!quiet?.proof)return {complete:true,proof:null,unrefutedReply:i,replyWins:false};branches.push({i,proof:r.proof,quietProof:quiet?.proof});
   }
   branches.sort((a,c)=>a.i-c.i);return {complete:true,proof:branches.length?{block,branches}:null};
  }

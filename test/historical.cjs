@@ -21,6 +21,15 @@ assert.equal(workerPolicy({logical:8,throughputGain:1}),1);
 assert.equal(workerPolicy({logical:8,throughputGain:1.5}),2);
 assert.equal(workerPolicy({logical:8,throughputGain:1.5,load:.9}),1);
 assert.equal(MODES.deep25,25000);
+{
+  const b=positions[11].slice();b[index('F6')]=2;const before=b.join('');
+  const r=engine.forcedReplyTrap(b,2,1000,index('G10'),25,true);
+  assert.equal(r.proof,null);assert.equal(r.complete,true);
+  assert.equal(engine.coord(r.unrefutedReply),'H11');
+  assert.equal(r.replyWins,false);assert.equal(b.join(''),before);
+  b[index('G10')]=1;assert(engine.inspect(b,r.unrefutedReply,2).legal);
+  b[r.unrefutedReply]=2;assert.equal(engine.forcing(b,1,25,1000).proof,null);
+}
 for(const p of [1,2]){
   const board=Array(225).fill(0);
   for(const c of ['A1','B1','C1','D1'])board[index(c)]=p;

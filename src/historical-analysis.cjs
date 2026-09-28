@@ -74,11 +74,14 @@ function analyzePosition({board,moveNumber,actual,loser,ms,rules,forcedCandidate
       const counter=engine.analyze(after,3-p,Math.min(100,remain()-20));
       reply=counter.i;
     }
-    let counterRisk=null;
+    let counterRisk=null,defenseCandidate=null;
     if(reply!=null&&!known&&!proof.proof&&remain()>35){
       const replied=after.slice();replied[reply]=3-p;
       const probe=engine.forcing(replied,3-p,13,Math.min(90,remain()));
-      if(probe.proof)counterRisk=probe.proof.pv.map(engine.coord);
+      if(probe.proof){counterRisk=probe.proof.pv.map(engine.coord);
+        if(remain()>35){const rebuttal=engine.forcedReplyTrap(after,p,Math.min(120,remain()),reply,13,false);
+          if(rebuttal.complete&&rebuttal.unrefutedReply!=null)defenseCandidate=engine.coord(rebuttal.unrefutedReply);}
+      }
     }
     // A missing proof is never a global safety certificate.
     const blackLine=proof.proof?.pv.map(engine.coord)||(known?[engine.coord(known.attack)]:[]);
@@ -90,6 +93,7 @@ function analyzePosition({board,moveNumber,actual,loser,ms,rules,forcedCandidate
       strongest_reply:reply==null?null:engine.coord(reply),reply_forcing:!!followup?.proof,
       reply_scope:whiteWins.length===1?'필수 방어':known?'검증된 반증 시작':reply==null?'미검증':'제한 탐색 후보',
       counter_vcf_if_unanswered:counterRisk,
+      defense_candidate:defenseCandidate,defense_scope:defenseCandidate?'검사한 연속 4 반증이 없는 합법 응수 · 무패 미증명':null,
       evaluation:engine.evaluate(after,p)});
   }
   candidates.sort((a,b)=>(b.level??-1)-(a.level??-1)||b.evaluation-a.evaluation);
@@ -136,7 +140,7 @@ async function analyze_game(moves,loser='white',mode='auto',opts={}){
     recommended_move:rec?.move??null,level:rec?.level??null,
     reason:critical?`${critical.actual?.reason}; ${rec.reason}`:'검증된 반증 대안 없음',
     main_line:rec?[`${critical.move_number}.${player===2?'W':'B'} ${rec.move}`,...(rec.strongest_reply?[`${critical.move_number+1}.${player===2?'B':'W'} ${rec.strongest_reply}`]:[]),
-      ...rec.white_line.map((c,k)=>`${critical.move_number+k+2}.${k%2?(player===2?'B':'W'):(player===2?'W':'B')} ${c}`)]:[],
+      ...(rec.white_line.length?rec.white_line:rec.defense_candidate?[rec.defense_candidate]:[]).map((c,k)=>`${critical.move_number+k+2}.${k%2?(player===2?'B':'W'):(player===2?'W':'B')} ${c}`)]:[],
     alternatives:results,search:{elapsed_ms:Date.now()-start,mode,budget_ms:ms,workers,
       completed_depth:Math.max(0,...results.map(r=>r.search?.completed_depth||0)),nodes:results.reduce((a,r)=>a+(r.search?.nodes||0),0),
       nodes_per_second:Math.round(results.reduce((a,r)=>a+(r.search?.nodes||0),0)*1000/Math.max(1,Date.now()-start)),

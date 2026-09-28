@@ -1,0 +1,19 @@
+{
+  "rules": {"fivePriority": false},
+  "prefix": "H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F6",
+  "black_setup": "G10",
+  "unrefuted_white_reply": "H11",
+  "white_reply_wins_immediately": false,
+  "black_vcf_after_reply": {"depth": 25, "proof": null},
+  "black_limited_search_after_reply": {"budget_ms": 3000, "completed_depth": 3, "pv": ["F10", "F11", "E10"], "proven": false},
+  "white_proof_after_black_f10": {
+    "quiet_depth": 2,
+    "scope": "aligned-through-four",
+    "proof": null,
+    "searchComplete": true,
+    "elapsed_ms": 274,
+    "nodes": 3,
+    "defenderReplies": 221
+  },
+  "interpretation": "H11 is an unrefuted defense candidate under the checked threat scope, not a white win or nonloss certificate. Black F10 is a bounded-search reply, not a proof of the strongest possible reply."
+}
