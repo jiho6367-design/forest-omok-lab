@@ -1,0 +1,9 @@
+{
+  "prefix": "H8 G7 G6 F7 H7 F5 H6 H9 H4 H5 F6 E6 I6",
+  "rules": {"fivePriority": false},
+  "attacker": 2,
+  "quietDepth": 2,
+  "extensions": 8,
+  "forcedDefenseExtensions": true,
+  "roots": ["J6"]
+}
