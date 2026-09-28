@@ -13,7 +13,7 @@ module.exports=function createProofSession(input){
  const roots=spec.roots?new Set(spec.roots.map(index)):null;
  if(roots&&(!roots.size||[...roots].some(i=>!E.inspect(b,i,attacker).legal)))throw Error('Invalid root selection');
  const cache=new Map(),vcfCache=new Map(),rootChecks=[],activeLine=[];
- const stats={nodes:0,defenses:0,cacheHits:0,vcfChecks:0,vcfIncomplete:0,forcingExtensions:0,defenseExtensions:0,certifiedPrunes:0,slices:0};
+ const stats={nodes:0,defenses:0,cacheHits:0,vcfChecks:0,vcfIncomplete:0,forcingExtensions:0,defenseExtensions:0,immediatePrunes:0,certifiedPrunes:0,slices:0};
  let deadline=0,done=false,proof=null;
  function candidates(){
   const out=new Set(E.candidates(b));
@@ -25,11 +25,16 @@ module.exports=function createProofSession(input){
  }
  function* attacks(ply){
   const bad=new Map(E.knownRefutations(b,attacker).map(m=>[m.i,m])),rank=[];
+  const threats=spec.immediatePruning===false?[]:E.winning(b,defender);
   for(const i of ply===0&&roots?[...roots]:candidates()){
    yield;
    if(bad.has(i)){stats.certifiedPrunes++;if(ply===0)rootChecks.push({move:E.coord(i),status:'certified_loss'});continue;}
    const s=E.inspect(b,i,attacker);if(!s.legal)continue;
-   b[i]=attacker;let score;try{score=E.evaluate(b,attacker);}finally{b[i]=0;}
+   b[i]=attacker;let score,reply;try{
+    if(!s.win.length)reply=threats.find(j=>{if(b[j])return false;const t=E.inspect(b,j,defender);return t.legal&&t.win.length;});
+    if(reply===undefined)score=E.evaluate(b,attacker);
+   }finally{b[i]=0;}
+   if(reply!==undefined){stats.immediatePrunes++;if(ply===0)rootChecks.push({move:E.coord(i),status:'unproved',unrefutedResponse:E.coord(reply),responseWins:true});continue;}
    rank.push({i,score:(s.win.length?1e9:0)+(s.fours.length?1e6:0)+(s.threes.length?1e4:0)+score});
   }
   return rank.sort((a,c)=>c.score-a.score||a.i-c.i).map(m=>m.i);

@@ -79,6 +79,8 @@ npm test
 `omok-reader` 루트에 남아 있는 이전 버전의 개발 파일은 보관 자료입니다. 통합판은 위의 `src/`와 `build.cjs`를 사용합니다.
 # 패배 기보 역분석 API
 
+연구용 세션은 상대의 즉시 승리를 남기는 후보를 정적 평가와 응수 분기 전에 제외합니다. 실제 후보 착수 후 기존 규칙으로 상대 승리 수의 합법성과 정확한 5목을 재검사하며, 내 즉시 승리는 먼저 인정합니다. `immediatePruning:false`로 비교 실행할 수 있습니다. 검증: `node test/proof-immediate-pruning.cjs`. 브라우저 엔진 변경은 아닙니다.
+
 연구용 선택 기능 `--forcing-extensions --defense-extensions`는 상대의 유일한 즉시 승리점을 막는 합법 수에도 같은 유한 확장 예산을 사용합니다. 준비 수 깊이를 유지하지만 확장 횟수는 1회 차감하며, 상대의 모든 합법 응수 검사는 유지합니다. 세션 API는 `forcedDefenseExtensions:true`로 활성화합니다. 기본값은 꺼짐이며 브라우저 추천에는 적용하지 않았습니다. 검증: `node test/defense-extensions.cjs`.
 
 18.C8와 20.G9·G11의 독립 검증된 반증도 새 게임의 동일 국면 및 대칭·색 교환에서 제외합니다. 역분석의 20.G9는 LEVEL 0입니다. 이는 검증된 패배 수의 제외이며 백의 승리 대안 증명은 아닙니다.
