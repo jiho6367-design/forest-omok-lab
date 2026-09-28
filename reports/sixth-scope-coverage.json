@@ -1,0 +1,319 @@
+{
+  "prefix": "H8 G7 G6 H6 F8",
+  "rules": {
+    "fivePriority": false
+  },
+  "quiet_depth": 2,
+  "forcing_extension_limit": 8,
+  "vcf_depth": 25,
+  "scope": "near-two plus attacker aligned-through-four",
+  "completed_roots": 60,
+  "legal_roots": 220,
+  "outside_scope_legal_roots": 160,
+  "white_win_found": false,
+  "whole_position_solved": false,
+  "incomplete_roots_in_scope": [],
+  "results": {
+    "I7": {
+      "status": "certified_loss",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "H7": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "I5": {
+      "status": "unproved",
+      "response": "K3",
+      "source": "sixth-root-extension-check.json"
+    },
+    "J4": {
+      "status": "unproved",
+      "response": "K3",
+      "source": "sixth-root-extension-check.json"
+    },
+    "K3": {
+      "status": "unproved",
+      "response": "J4",
+      "source": "sixth-root-extension-check.json"
+    },
+    "F7": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "J8": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "G8": {
+      "status": "unproved",
+      "response": "E4",
+      "source": "sixth-root-extension-check.json"
+    },
+    "G5": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "E7": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "F4": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "J7": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "K9": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "H5": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "H4": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "D7": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "H3": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "E3": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "G11": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "G10": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "K6": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "K7": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "E5": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "J6": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "G9": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-root-extension-check.json"
+    },
+    "I6": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "L6": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "L10": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "F6": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "D4": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "C7": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "H2": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "C3": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "D2": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "E8": {
+      "status": "unproved",
+      "response": "I8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "I8": {
+      "status": "unproved",
+      "response": "E8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "D8": {
+      "status": "unproved",
+      "response": "I8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "F5": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "J5": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "F9": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "E10": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "F10": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "J9": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "I10": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "H10": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "K11": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "E6": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch1.json"
+    },
+    "H9": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "J10": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "E4": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "I4": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "E9": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "I9": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "D9": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "D6": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "G4": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "D10": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "G3": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "C11": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    },
+    "L2": {
+      "status": "unproved",
+      "response": "G8",
+      "source": "sixth-remaining-batch2.json"
+    }
+  },
+  "interpretation": "All 60 candidate roots in this finite scope were covered. I7 has a separate loss certificate; the other 59 yielded no white win certificate within the selected threat depth. This is not proof that those moves lose, draw, or cannot eventually win. Do not repeat this exact scope as a fresh search."
+}

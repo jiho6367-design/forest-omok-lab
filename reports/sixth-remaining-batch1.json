@@ -1,0 +1,247 @@
+{
+  "next": "white",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": [
+    "E4",
+    "G4",
+    "I4",
+    "F5",
+    "E6",
+    "F6",
+    "I6",
+    "E8",
+    "I8",
+    "J5",
+    "E9",
+    "F9",
+    "H9",
+    "I9",
+    "D6",
+    "D8",
+    "D9",
+    "D10",
+    "E10",
+    "F10",
+    "H10",
+    "J9",
+    "I10",
+    "J10",
+    "L6",
+    "H2",
+    "D2",
+    "L10",
+    "L2",
+    "C7",
+    "G3",
+    "C3",
+    "D4",
+    "K11",
+    "C11"
+  ],
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "I6",
+      "status": "unproved",
+      "elapsed_ms": 1123,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "L6",
+      "status": "unproved",
+      "elapsed_ms": 1477,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "L10",
+      "status": "unproved",
+      "elapsed_ms": 1448,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "F6",
+      "status": "unproved",
+      "elapsed_ms": 990,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "D4",
+      "status": "unproved",
+      "elapsed_ms": 1151,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "C7",
+      "status": "unproved",
+      "elapsed_ms": 983,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "H2",
+      "status": "unproved",
+      "elapsed_ms": 974,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "C3",
+      "status": "unproved",
+      "elapsed_ms": 1257,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "D2",
+      "status": "unproved",
+      "elapsed_ms": 1549,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "E8",
+      "status": "unproved",
+      "elapsed_ms": 1066,
+      "defensesChecked": 1,
+      "unrefutedResponse": "I8",
+      "responseWins": false
+    },
+    {
+      "move": "I8",
+      "status": "unproved",
+      "elapsed_ms": 1180,
+      "defensesChecked": 1,
+      "unrefutedResponse": "E8",
+      "responseWins": false
+    },
+    {
+      "move": "D8",
+      "status": "unproved",
+      "elapsed_ms": 1587,
+      "defensesChecked": 1,
+      "unrefutedResponse": "I8",
+      "responseWins": false
+    },
+    {
+      "move": "F5",
+      "status": "unproved",
+      "elapsed_ms": 920,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "J5",
+      "status": "unproved",
+      "elapsed_ms": 965,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "F9",
+      "status": "unproved",
+      "elapsed_ms": 975,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "E10",
+      "status": "unproved",
+      "elapsed_ms": 1101,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "F10",
+      "status": "unproved",
+      "elapsed_ms": 1070,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "J9",
+      "status": "unproved",
+      "elapsed_ms": 990,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "I10",
+      "status": "unproved",
+      "elapsed_ms": 935,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "H10",
+      "status": "unproved",
+      "elapsed_ms": 892,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "K11",
+      "status": "unproved",
+      "elapsed_ms": 1190,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "E6",
+      "status": "unproved",
+      "elapsed_ms": 705,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    },
+    {
+      "move": "H9",
+      "status": "incomplete",
+      "elapsed_ms": 455,
+      "defensesChecked": 1,
+      "unrefutedResponse": "G8",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": false,
+  "ms": 25001,
+  "stats": {
+    "nodes": 1733,
+    "direct": 0,
+    "unknown": 1554,
+    "defenderReplies": 1912,
+    "timedOut": 3,
+    "incompleteForcing": 0,
+    "cacheHits": 179,
+    "forcingExtensions": 180,
+    "certifiedPrunes": 0
+  },
+  "prefix": "H8 G7 G6 H6 F8",
+  "rules": {
+    "fivePriority": false
+  }
+}
