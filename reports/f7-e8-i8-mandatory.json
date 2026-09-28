@@ -1,0 +1,8 @@
+{
+  "prefix": "H8 G7 G6 H6 F8 F7 G8 E8 I8",
+  "legalMoves": 216,
+  "responsesAvoidingImmediateLoss": [
+    "J8"
+  ],
+  "scope": "all legal white moves; no global safety proof"
+}

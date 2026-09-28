@@ -1,0 +1,37 @@
+{
+  "next": "white",
+  "depth": 2,
+  "forcingExtensionLimit": 8,
+  "scope": "aligned-through-four",
+  "rootMoveScope": [
+    "J9"
+  ],
+  "proof": null,
+  "rootChecks": [
+    {
+      "move": "J9",
+      "status": "unproved",
+      "elapsed_ms": 6439,
+      "defensesChecked": 1,
+      "unrefutedResponse": "E4",
+      "responseWins": false
+    }
+  ],
+  "searchComplete": true,
+  "ms": 6445,
+  "stats": {
+    "nodes": 360,
+    "direct": 2,
+    "unknown": 356,
+    "defenderReplies": 572,
+    "timedOut": 0,
+    "incompleteForcing": 0,
+    "cacheHits": 2,
+    "forcingExtensions": 353,
+    "certifiedPrunes": 0,
+    "forcedDefenseExtensionsEnabled": true,
+    "defenseExtensions": 223
+  },
+  "prefix": "H8 G7 G6 H6 F8 F7 G8 E8 I8 J8 H7",
+  "interpretation": "No certificate; no global safety or loss conclusion. Completion is limited to the stated scope."
+}
