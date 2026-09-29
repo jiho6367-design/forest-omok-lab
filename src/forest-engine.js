@@ -3,6 +3,7 @@
  위협 우선 탐색을 참고하되, 이 앱의 양측 33 금지/정확한 5목 규칙으로 별도 구현.
  제한 깊이 negamax 결과는 증명이 아니다. */
 function createForestEngine(options={}){
+  const clockNow=typeof performance!=='undefined'?performance.now.bind(performance):Date.now.bind(Date);
  const N=15,D=[[1,0],[0,1],[1,1],[1,-1]],inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
  const forcingWindows=[];
  for(let y=0;y<N;y++)for(let x=0;x<N;x++)for(const [dx,dy]of D)if(inside(x+4*dx,y+4*dy)){
@@ -20,6 +21,20 @@ function createForestEngine(options={}){
   }
   return false;
  }
+ // Pure position results only: no timeout, search verdict, or proof is cached here.
+ const positionCaches={candidates:new Map(),winning:new Map(),evaluation:new Map()},positionCacheStats={hits:0,misses:0};
+ function memoPosition(kind,b,p,compute,copy=false){
+  if(options.positionCache===false)return compute();
+  const cache=positionCaches[kind],key=b.join('')+'|'+p,found=cache.get(key);
+  if(found!==undefined){positionCacheStats.hits++;return copy?found.slice():found;}
+  positionCacheStats.misses++;const result=compute();
+  if(cache.size>=2048)cache.delete(cache.keys().next().value);
+  cache.set(key,copy?result.slice():result);return result;
+ }
+ function candidates(b){return memoPosition('candidates',b,0,()=>generateCandidates(b),true);}
+ function winning(b,p){return memoPosition('winning',b,p,()=>findWinning(b,p),true);}
+ function evaluate(b,p){return memoPosition('evaluation',b,p,()=>evaluateUncached(b,p));}
+ function getPositionCacheStats(){return {...positionCacheStats,entries:Object.values(positionCaches).reduce((n,c)=>n+c.size,0)};}
  const at=(b,x,y)=>inside(x,y)?b[y*N+x]:-1;
  function line(b,i,p,d){let x=i%N,y=i/N|0,a=[i];for(const s of [-1,1]){let k=1;while(at(b,x+d[0]*k*s,y+d[1]*k*s)===p){let j=(y+d[1]*k*s)*N+x+d[0]*k*s;s<0?a.unshift(j):a.push(j);k++;}}return a;}
  function win(b,i,p){if(b[i]!==p)return [];return D.flatMap(d=>{let a=line(b,i,p,d);return a.length===5?a:[];});}
@@ -33,11 +48,11 @@ function createForestEngine(options={}){
   });return {threes,fours,details};
  }
  function inspect(b,i,p){if(!Number.isInteger(i)||i<0||i>=225||b[i])return {legal:false,reason:'이미 돌이 있거나 판 밖입니다',threes:[],fours:[],details:[],win:[]};b[i]=p;let w=win(b,i,p),s=shapes(b,i,p);b[i]=0;return {...s,win:w,legal:!!w.length||s.threes.length<2,reason:!w.length&&s.threes.length>=2?'3×3 금지 착수입니다':'',fork43:s.fours.some(a=>s.threes.some(c=>c!==a))};}
- function candidates(b){let s=new Set();for(let i=0;i<225;i++)if(b[i]){let x=i%15,y=i/15|0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(inside(x+dx,y+dy)&&!b[(y+dy)*15+x+dx])s.add((y+dy)*15+x+dx);}return s.size?[...s]:b.every(v=>!v)?[112]:[];}
+ function generateCandidates(b){let s=new Set();for(let i=0;i<225;i++)if(b[i]){let x=i%15,y=i/15|0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(inside(x+dx,y+dy)&&!b[(y+dy)*15+x+dx])s.add((y+dy)*15+x+dx);}return s.size?[...s]:b.every(v=>!v)?[112]:[];}
  function positional(b,i,p){let score=0,x=i%15,y=i/15|0;b[i]=p;for(let d of D){let a=line(b,i,p,d),l=a[0],r=a[a.length-1],open=(at(b,l%15-d[0],(l/15|0)-d[1])===0?1:0)+(at(b,r%15+d[0],(r/15|0)+d[1])===0?1:0);score+=(a.length>=6?0:[0,2,25,150,1500,100000][a.length])*open;}b[i]=0;return score+14-Math.abs(x-7)-Math.abs(y-7);}
  function value(s){return s.win.length?1e8:s.fours.length>=2?7e5:s.fork43?4e5:s.fours.length?5e4:s.threes.length?2500:0;}
  function ranked(b,p){return candidates(b).map(i=>{let a=inspect(b,i,p),o=inspect(b,i,3-p);return {i,a,o,score:value(a)+(o.legal?value(o)*1.1:0)+positional(b,i,p)+positional(b,i,3-p)*.9};}).filter(m=>m.a.legal).sort((a,b)=>b.score-a.score||a.i-b.i);}
- function winning(b,p){let r=[];for(let i of candidates(b)){b[i]=p;if(win(b,i,p).length)r.push(i);b[i]=0;}return r;}
+ function findWinning(b,p){let r=[];for(let i of candidates(b)){b[i]=p;if(win(b,i,p).length)r.push(i);b[i]=0;}return r;}
  const coord=i=>String.fromCharCode(65+i%15)+(1+(i/15|0));
  function transformed(i,t){let x=i%15,y=i/15|0;if(t>=4)x=14-x;for(let k=0;k<t%4;k++)[x,y]=[14-y,x];return y*15+x;}
  function canonical(b,p){let best=null,tr=0;for(let t=0;t<8;t++){let a=Array(225).fill('0');for(let i=0;i<225;i++)a[transformed(i,t)]=b[i]?(b[i]===p?'1':'2'):'0';let s=a.join('');if(best===null||s<best){best=s;tr=t;}}return {key:best,t:tr};}
@@ -46,14 +61,14 @@ function createForestEngine(options={}){
  // 유일 방어가 있으면 실제로 착수한다. 반격/금수/장목을 모두 같은 규칙으로 검사.
  // proof 없음은 안전의 증명이 아니다. 시간 초과는 unknown으로 구분한다.
  function forcing(board,p,maxPlies=11,budget=100,cache=new Map()){
-  let b=board.slice(),end=Date.now()+budget,nodes=0,TIME={},prefiltered=false;
-  function solve(left){if(Date.now()>=end)throw TIME;nodes++;let key=b.join('')+p+':'+left;if(cache.has(key))return cache.get(key);
+  let b=board.slice(),end=clockNow()+budget,nodes=0,TIME={},prefiltered=false;
+  function solve(left){if(clockNow()>=end)throw TIME;nodes++;let key=b.join('')+p+':'+left;if(cache.has(key))return cache.get(key);
    if(nodes===1&&options.vcfPrefilter!==false&&!mayStartForcing(b,p)){prefiltered=true;cache.set(key,null);return null;}
    let wins=winning(b,p);if(wins.length)return {pv:[wins[0]],finish:'five'};
    if(left<3)return null;
    let enemy=winning(b,3-p);if(enemy.length>1)return null;
    let attacks=candidates(b).map(i=>({i,s:inspect(b,i,p)})).filter(m=>m.s.legal&&m.s.fours.length&&(!enemy.length||enemy.includes(m.i))).sort((a,c)=>value(c.s)-value(a.s));
-   for(let {i}of attacks){if(Date.now()>=end)throw TIME;b[i]=p;try{
+   for(let {i}of attacks){if(clockNow()>=end)throw TIME;b[i]=p;try{
      // 방어자가 먼저 끝낼 수 있다면 이 공격은 강제승이 아니다.
      if(winning(b,3-p).length)continue;
      let threats=winning(b,p);if(threats.length>1){let block=threats.find(j=>inspect(b,j,3-p).legal);return {pv:block==null?[i,threats[0]]:[i,block,threats.find(j=>j!==block)],finish:'double',endpoints:threats};}
@@ -65,31 +80,31 @@ function createForestEngine(options={}){
  }
  // Search-independent exact-five guard, also usable before starting a Worker.
  function urgent(board,p){
-  let b=board.slice(),start=Date.now(),own=winning(b,p),threats=winning(b,3-p);
+  let b=board.slice(),start=clockNow(),own=winning(b,p),threats=winning(b,3-p);
   if(!own.length&&!threats.length)return null;
   let blocks=threats.filter(i=>inspect(b,i,p).legal),i=own[0]??blocks[0]??null;
   let lost=!own.length&&(threats.length>1||!blocks.length);
-  return {i,reason:own.length?'정확한 5목으로 즉시 승리':lost?(threats.length===1&&!blocks.length?'방어 불가 · 유일 방어점 '+coord(threats[0])+'은 3×3 금수':'상대 5목 승리점 방어 불가 · 한 수로 모두 막을 수 없음'):'긴급 방어 · 상대 4목의 승리점을 즉시 차단',depth:0,nodes:0,ms:Date.now()-start,score:own.length?1e8:lost?-1e8:0,pv:i==null?[]:[i],proven:!!own.length,forcedLoss:lost,lossProven:lost,threats,memory:0,bad:[],shape:i==null?null:inspect(b,i,p),defenseChecked:!lost,urgent:true,engineVersion:'2.9-immediate'};
+  return {i,reason:own.length?'정확한 5목으로 즉시 승리':lost?(threats.length===1&&!blocks.length?'방어 불가 · 유일 방어점 '+coord(threats[0])+'은 3×3 금수':'상대 5목 승리점 방어 불가 · 한 수로 모두 막을 수 없음'):'긴급 방어 · 상대 4목의 승리점을 즉시 차단',depth:0,nodes:0,ms:clockNow()-start,score:own.length?1e8:lost?-1e8:0,pv:i==null?[]:[i],proven:!!own.length,forcedLoss:lost,lossProven:lost,threats,memory:0,bad:[],shape:i==null?null:inspect(b,i,p),defenseChecked:!lost,urgent:true,engineVersion:'2.9-immediate'};
  }
  // After our forcing four, check the opponent's mandatory quiet block too.
  // A certificate requires a winning reply against EVERY legal continuation.
  function forcedReplyTrap(board,p,budget=200,setup=null,maxPlies=11,includeQuiet=false){
-  let b=board.slice(),end=Date.now()+budget,threats=winning(b,p),branches=[],cache=new Map();
+  let b=board.slice(),end=clockNow()+budget,threats=winning(b,p),branches=[],cache=new Map();
   if(setup==null&&(threats.length!==1||winning(b,3-p).length))return {complete:true,proof:null};
   let block=setup??threats[0];if(!inspect(b,block,3-p).legal)return {complete:true,proof:null};b[block]=3-p;
   const near=ranked(b,p).map(m=>m.i),seen=new Set(near),defenses=[...near,...Array.from({length:225},(_,i)=>i).filter(i=>!seen.has(i))];
-  for(const i of defenses){if(Date.now()>=end)return {complete:false,proof:null};if(!inspect(b,i,p).legal)continue;
+  for(const i of defenses){if(clockNow()>=end)return {complete:false,proof:null};if(!inspect(b,i,p).legal)continue;
    b[i]=p;if(win(b,i,p).length){b[i]=0;return {complete:true,proof:null,unrefutedReply:i,replyWins:true};}
-   let r=forcing(b,3-p,maxPlies,Math.max(1,end-Date.now()),cache),quiet=null;
-   if(r.complete&&!r.proof&&includeQuiet&&Date.now()<end){quiet=winning(b,p).length===1?forcedReplyTrap(b,p,end-Date.now(),null,maxPlies,false):quietTrap(b,p,end-Date.now(),10,maxPlies);}
+   let r=forcing(b,3-p,maxPlies,Math.max(1,end-clockNow()),cache),quiet=null;
+   if(r.complete&&!r.proof&&includeQuiet&&clockNow()<end){quiet=winning(b,p).length===1?forcedReplyTrap(b,p,end-clockNow(),null,maxPlies,false):quietTrap(b,p,end-clockNow(),10,maxPlies);}
    b[i]=0;
    if(!r.complete||quiet&&!quiet.complete)return {complete:false,proof:null};if(!r.proof&&!quiet?.proof)return {complete:true,proof:null,unrefutedReply:i,replyWins:false};branches.push({i,proof:r.proof,quietProof:quiet?.proof});
   }
   branches.sort((a,c)=>a.i-c.i);return {complete:true,proof:branches.length?{block,branches}:null};
  }
  function quietTrap(board,p,budget=300,width=4,maxPlies=11,includeCounter=false){
-  const end=Date.now()+budget,moves=ranked(board,3-p).filter(m=>m.a.threes.length&&!m.a.fours.length).slice(0,width);
-  for(const m of moves){if(Date.now()>=end)return {complete:false,proof:null};const r=forcedReplyTrap(board,p,end-Date.now(),m.i,maxPlies,includeCounter);if(r.proof)return r;if(!r.complete)return r;}
+  const end=clockNow()+budget,moves=ranked(board,3-p).filter(m=>m.a.threes.length&&!m.a.fours.length).slice(0,width);
+  for(const m of moves){if(clockNow()>=end)return {complete:false,proof:null};const r=forcedReplyTrap(board,p,end-clockNow(),m.i,maxPlies,includeCounter);if(r.proof)return r;if(!r.complete)return r;}
   return {complete:true,proof:null};
  }
  function assessMove(board,p,i){
@@ -100,7 +115,7 @@ function createForestEngine(options={}){
  const limitsFor=budget=>budget>=24000?{forcing:25,quiet:14,screen:16,root:32,branch:18,depth:12}:budget>=12000?{forcing:19,quiet:10,screen:12,root:28,branch:16,depth:10}:budget>=7000?{forcing:15,quiet:6,screen:8,root:22,branch:12,depth:8}:{forcing:11,quiet:4,screen:4,root:16,branch:9,depth:6};
  const windows=[];
  for(let y=0;y<15;y++)for(let x=0;x<15;x++)for(let [axis,[dx,dy]]of D.entries()){if(!inside(x+4*dx,y+4*dy))continue;windows.push({axis,cells:Array.from({length:5},(_,k)=>(y+k*dy)*15+x+k*dx),before:inside(x-dx,y-dy)?(y-dy)*15+x-dx:-1,after:inside(x+5*dx,y+5*dy)?(y+5*dy)*15+x+5*dx:-1});}
- function evaluate(b,p){
+ function evaluateUncached(b,p){
   let score=0,weights=[0,2,18,160,3500,0],early=b.filter(Boolean).length<=12;
   if(!early){for(const w of windows){let mine=0,theirs=0;for(const i of w.cells){mine+=b[i]===p?1:0;theirs+=b[i]===3-p?1:0;}
    if(!theirs&&b[w.before]!==p&&b[w.after]!==p)score+=weights[mine];
@@ -183,13 +198,13 @@ function createForestEngine(options={}){
   let immediate=urgent(board,p);if(immediate)return immediate;
   const certified=certifiedLoss(board,p);if(certified)return certified;
   // Historical pattern hints do not bypass bounded candidate comparison.
-  let b=board.slice(),start=Date.now(),totalDeadline=start+budget,deadline=start+budget*(budget>=12000?.72:1),nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),counterGuard=b.filter(Boolean).length<=40;
-  const check=()=>{nodes++;if(Date.now()>=deadline)throw TIME;};
-  const timedProof=(q,ms)=>{let r=forcing(b,q,limits.forcing,Math.max(1,Math.min(ms,deadline-Date.now())),proofCache);nodes+=r.nodes;return r;};
+  let b=board.slice(),start=clockNow(),totalDeadline=start+budget,deadline=start+budget*(budget>=12000?.72:1),nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),counterGuard=b.filter(Boolean).length<=40;
+  const check=()=>{nodes++;if(clockNow()>=deadline)throw TIME;};
+  const timedProof=(q,ms)=>{let r=forcing(b,q,limits.forcing,Math.max(1,Math.min(ms,deadline-clockNow())),proofCache);nodes+=r.nodes;return r;};
   const verifiedBad=knownRefutations(b,p),verifiedBadSet=new Set(verifiedBad.map(m=>m.i));
   let roots=ranked(b,p).filter(m=>!verifiedBadSet.has(m.i)),can=canonical(b,p),memory=lessons.filter(l=>l.key===can.key),bad=memory.map(l=>untransform(l.bad,can.t)),good=memory.map(l=>untransform(l.good,can.t));
   const verifiedRejected=verifiedBad.map(m=>({i:m.i,reason:m.reason,verifiedRefutation:true}));
-  function finish(m,reason,extra={}){return {i:m?.i??null,reason,depth,score:m?.score||0,pv:m?[m.i]:[],ms:Date.now()-start,nodes,proven:false,forcedLoss:false,threats:[],memory:memory.length,bad,shape:m?.a,limits,engineVersion:'3.0-cached-search',...extra};}
+  function finish(m,reason,extra={}){return {i:m?.i??null,reason,depth,score:m?.score||0,pv:m?[m.i]:[],ms:clockNow()-start,nodes,proven:false,forcedLoss:false,threats:[],memory:memory.length,bad,shape:m?.a,limits,engineVersion:'3.0-cached-search',...extra};}
   if(!roots.length)return finish(null,'합법적인 후보 없음');
   let w=roots.find(m=>m.a.win.length);if(w)return finish(w,'정확한 5목으로 즉시 승리',{proven:true,depth:1,score:MATE});
   let enemyWins=winning(b,3-p),blocking=roots.filter(m=>enemyWins.includes(m.i));
@@ -202,19 +217,19 @@ function createForestEngine(options={}){
   for(let m of roots)m.order=m.score+(m.a.fours.length?1600000:0)+(dangerLine.includes(m.i)?800000:0)+(good.includes(m.i)?1000:0)-(bad.includes(m.i)?12000:0);
   roots.sort((a,c)=>c.order-a.order);
   let screenEnd=Math.min(deadline,start+budget*.64),checked=[],unknown=[],screenSlice=Math.max(22,budget*.04);
-  for(let m of roots){if(Date.now()>=screenEnd){unknown.push(m);continue;}b[m.i]=p;let r;try{
+  for(let m of roots){if(clockNow()>=screenEnd){unknown.push(m);continue;}b[m.i]=p;let r;try{
    // A single winning endpoint is a forced reply, not proof that the attack is safe.
    // Search the opponent's counterattack on the board after that exact block.
-   if(counterGuard&&m.a.fours.length&&Date.now()<screenEnd){const ends=winning(b,p);if(ends.length===1&&!winning(b,3-p).length&&inspect(b,ends[0],3-p).legal){
-    b[ends[0]]=3-p;try{const counter=forcing(b,3-p,limits.forcing,Math.max(1,Math.min(140,screenEnd-Date.now())),proofCache);if(counter.complete&&counter.proof)m.counterThreat={block:ends[0],pv:counter.proof.pv};}finally{b[ends[0]]=0;}
+   if(counterGuard&&m.a.fours.length&&clockNow()<screenEnd){const ends=winning(b,p);if(ends.length===1&&!winning(b,3-p).length&&inspect(b,ends[0],3-p).legal){
+    b[ends[0]]=3-p;try{const counter=forcing(b,3-p,limits.forcing,Math.max(1,Math.min(140,screenEnd-clockNow())),proofCache);if(counter.complete&&counter.proof)m.counterThreat={block:ends[0],pv:counter.proof.pv};}finally{b[ends[0]]=0;}
    }}
-   r=timedProof(3-p,Math.min(screenSlice,screenEnd-Date.now()));if(!r.proof&&r.complete&&m.a.fours.length){let trap=forcedReplyTrap(b,p,Math.max(1,Math.min(budget*.3,screenEnd-Date.now())),null,limits.forcing,true);m.replyTrap=trap.proof;r.complete=trap.complete;}else if(!r.proof&&r.complete&&checked.length<limits.screen){let trap=quietTrap(b,p,Math.max(1,Math.min(budget*.12,screenEnd-Date.now())),limits.quiet,limits.forcing,true);m.replyTrap=trap.proof;m.quietChecked=trap.complete;r.complete=trap.complete;}
+   r=timedProof(3-p,Math.min(screenSlice,screenEnd-clockNow()));if(!r.proof&&r.complete&&m.a.fours.length){let trap=forcedReplyTrap(b,p,Math.max(1,Math.min(budget*.3,screenEnd-clockNow())),null,limits.forcing,true);m.replyTrap=trap.proof;r.complete=trap.complete;}else if(!r.proof&&r.complete&&checked.length<limits.screen){let trap=quietTrap(b,p,Math.max(1,Math.min(budget*.12,screenEnd-clockNow())),limits.quiet,limits.forcing,true);m.replyTrap=trap.proof;m.quietChecked=trap.complete;r.complete=trap.complete;}
   }finally{b[m.i]=0;}m.lossProof=r.proof;m.screened=r.complete;checked.push(m);}
   // 전체 패배를 선언할 때만 주변 후보 밖의 합법적인 빈칸까지 확인한다.
   // 근처 후보만 모두 졌다고 전역 패배를 확정하면 안 된다.
   if(!enemyWins.length&&!unknown.length&&checked.every(m=>m.lossProof||m.replyTrap))for(let i=0;i<225;i++){
    if(b[i]||verifiedBadSet.has(i)||roots.some(m=>m.i===i))continue;let a=inspect(b,i,p);if(!a.legal)continue;let m={i,a,score:0,order:0};roots.push(m);
-   if(Date.now()>=deadline){unknown.push(m);continue;}b[i]=p;let r;try{r=timedProof(3-p,screenSlice);}finally{b[i]=0;}m.lossProof=r.proof;m.screened=r.complete;checked.push(m);
+   if(clockNow()>=deadline){unknown.push(m);continue;}b[i]=p;let r;try{r=timedProof(3-p,screenSlice);}finally{b[i]=0;}m.lossProof=r.proof;m.screened=r.complete;checked.push(m);
   }
   let safe=checked.filter(m=>m.screened&&!m.lossProof&&!m.replyTrap&&!m.counterThreat),undecided=[...checked.filter(m=>!m.screened&&!m.lossProof&&!m.replyTrap&&!m.counterThreat),...unknown],risky=checked.filter(m=>m.counterThreat&&!m.lossProof&&!m.replyTrap),losing=checked.filter(m=>m.lossProof||m.replyTrap);
   // 증명된 패배 수는 평가점수나 기억 보너스로 다시 추천하지 않는다.
@@ -237,10 +252,10 @@ function createForestEngine(options={}){
   if(!lossProven)for(let d=1;d<=limits.depth;d++){let round=null;try{for(let m of options.slice(0,limits.root)){check();b[m.i]=p;let r;try{r=search(3-p,d-1,-Infinity,round?-round.score+(bad.includes(m.i)?12000:0):Infinity,1);}finally{b[m.i]=0;}let v=-r.score-(bad.includes(m.i)&&Math.abs(r.score)<MATE/2?12000:0);if(!round||v>round.score)round={m,score:v,pv:[m.i,...r.pv]};}if(round){best=round.m;pv=round.pv;score=round.score;depth=d;options.sort((a,c)=>(c===best)-(a===best));}}catch(e){if(e!==TIME)throw e;break;}}
   // Reserve time for the actual chosen move; top-N screening alone can miss it.
   let finalGuard=null,avoidedTrap=false;
-  if(!lossProven&&budget>=12000&&Date.now()<totalDeadline){b[best.i]=p;try{
-    const direct=forcing(b,3-p,limits.forcing,Math.max(1,(totalDeadline-Date.now())*.5),proofCache);nodes+=direct.nodes;
+  if(!lossProven&&budget>=12000&&clockNow()<totalDeadline){b[best.i]=p;try{
+    const direct=forcing(b,3-p,limits.forcing,Math.max(1,(totalDeadline-clockNow())*.5),proofCache);nodes+=direct.nodes;
     if(direct.proof||!direct.complete)finalGuard={complete:direct.complete,proof:null,directProof:direct.proof};
-    else finalGuard=best.a.fours.length?forcedReplyTrap(b,p,Math.max(1,totalDeadline-Date.now()),null,limits.forcing,true):quietTrap(b,p,Math.max(1,totalDeadline-Date.now()),limits.quiet,limits.forcing,true);
+    else finalGuard=best.a.fours.length?forcedReplyTrap(b,p,Math.max(1,totalDeadline-clockNow()),null,limits.forcing,true):quietTrap(b,p,Math.max(1,totalDeadline-clockNow()),limits.quiet,limits.forcing,true);
    }finally{b[best.i]=0;}
    if(finalGuard.proof||finalGuard.directProof){best.replyTrap=finalGuard.proof;best.lossProof=finalGuard.directProof||best.lossProof;if(!losing.includes(best))losing.push(best);let alternative=options.find(m=>m!==best&&!m.lossProof&&!m.replyTrap&&!m.counterThreat);
     if(!alternative)return finish(null,'검사한 추천 후보에서 강제패배 발견 · 더 이른 국면 복기 필요',{rejected:[...verifiedRejected,...losing.map(m=>({i:m.i,pv:m.lossProof?.pv||[],replyTrap:m.replyTrap}))],counterThreats:checked.filter(m=>m.counterThreat).map(m=>({i:m.i,...m.counterThreat})),finalGuard,limits});
@@ -258,6 +273,6 @@ function createForestEngine(options={}){
   let loss=s.win.length?{proof:null,complete:true}:forcing(after,3-p,11,Math.floor(budget*.3));
   return {...r,actual:i,actualLossProof:loss.proof,reviewLabel:r.lossProven?'이미 강제 패배 상태 · 이 수만의 실수 아님':loss.proof?'이 착수 뒤 상대 연속 4 강제승 확인':r.i!==i?'대안 후보 비교 (추정)':'추천 수와 일치'};
  }
- return {N,D,win,inspect,shapes,candidates,analyze,urgent,assessMove,limitsFor,suggestBudget,evaluate,patternDefense,knownRefutations,certifiedLoss,forcing,forcedReplyTrap,quietTrap,reviewMove,canonical,transformed,untransform,coord,winning};
+ return {N,D,getPositionCacheStats,win,inspect,shapes,candidates,analyze,urgent,assessMove,limitsFor,suggestBudget,evaluate,patternDefense,knownRefutations,certifiedLoss,forcing,forcedReplyTrap,quietTrap,reviewMove,canonical,transformed,untransform,coord,winning};
 }
 if(typeof module!=='undefined')module.exports=createForestEngine;

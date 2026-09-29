@@ -1,0 +1,133 @@
+{
+  "before": "baseline",
+  "after": "cycle2",
+  "rows": 180,
+  "invalid": [],
+  "proofChanges": [],
+  "moveChanges": [
+    {
+      "key": "sixth-move/auto/0",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sixth-move/deep15/0",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sixth-move/auto/1",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sixth-move/deep15/1",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sixth-move/auto/2",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sixth-move/deep15/2",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    }
+  ],
+  "depthChanges": [
+    {
+      "key": "sixth-move/auto/0",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/deep15/0",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "quiet-middle/auto/0",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "quiet-middle/deep15/0",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/auto/1",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/deep15/1",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "quiet-middle/auto/1",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "quiet-middle/deep15/1",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/auto/2",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/deep15/2",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "quiet-middle/auto/2",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "quiet-middle/deep15/2",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "wide-middle/fast/2",
+      "before": 1,
+      "after": 2
+    }
+  ],
+  "unstableGroups": [],
+  "timeouts": [],
+  "budgetOverruns": []
+}

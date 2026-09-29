@@ -13,11 +13,11 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority"><option value="strict">3·3 금지 우선 (수읽기 기존 규칙)</option><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.12.4';versionBadge.title='연속 4 시작 불가 국면의 불필요한 검사 축소 · 검증된 패배 수 제외 유지';versionBadge.setAttribute('aria-label','통합 버전 5.12.4');
+versionBadge.textContent='통합 v5.12.5';versionBadge.title='자동 종료: 완료 깊이·PV·후보 순위·평가 격차 안정성 확인';versionBadge.setAttribute('aria-label','통합 버전 5.12.5');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
 wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 아래에서 선택한 시간으로 분석합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 $('budget').replaceChildren();
-for(const [v,t] of [['auto','자동 · 최대 8초 (권장)'],['900','빠르게 · 1초'],['3000','비교 · 3초'],['8000','정밀 · 8초'],['15000','심층 · 15초'],['25000','심층 · 25초']]){const o=new Option(t,v);$('budget').append(o);}
+for(const [v,t] of [['auto','자동 · 최대 15초 (권장)'],['900','빠르게 · 1초'],['3000','비교 · 3초'],['7000','정밀 · 7초'],['15000','심층 · 15초'],['25000','심층 · 25초']]){const o=new Option(t,v);$('budget').append(o);}
 $('budget').parentElement.firstChild.textContent='내 수 분석 시간 ';
 $('budget').value='auto';
 // Keep the useful study library, but collapse old per-version shortcuts.
@@ -54,28 +54,41 @@ function selectedBudget(board,p,explicit){
   return own.budget;
 }
 function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
+  const started=performance.now();
   const src=$('engineSource').textContent+'\nonmessage=e=>{try{const E=createEngine(e.data.rules);const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r}));postMessage({result:r})}catch(x){postMessage({error:String(x)})}}';
   const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));let w;
   try{w=new Worker(url);}finally{URL.revokeObjectURL(url);}
-  const limit=typeof budget==='object'?budget.ms:Number(budget),started=performance.now();
+  const limit=typeof budget==='object'?budget.ms:Number(budget);
+  const reserve=Math.min(1500,Math.max(60,limit*.06)),searchLimit=Math.max(30,limit-reserve);
+  const searchBudget=typeof budget==='object'?{...budget,ms:searchLimit}:searchLimit;
   let finished=false,lastVerified=null,lastLegal=null;
+  const health=spawnAnalysis.health||(spawnAnalysis.health={blockedUntil:0,healthySince:0,lastLag:0});
+  let tickAt=performance.now(),timer;
+  const heartbeat=setInterval(()=>{
+    const now=performance.now(),lag=Math.max(0,now-tickAt-100);tickAt=now;health.lastLag=lag;
+    if(lag>120){health.blockedUntil=now+10000;health.healthySince=0;
+      if(typeof ponder!=='undefined'&&ponder?.worker===w&&!ponder.promoted)cancelPonder();
+    }else if(lag<30){if(!health.healthySince)health.healthySince=now;}else health.healthySince=0;
+  },100);
+  const terminate=w.terminate.bind(w);
+  w.terminate=()=>{finished=true;clearTimeout(timer);clearInterval(heartbeat);terminate();};
   const finish=(result,error)=>{if(finished)return;finished=true;clearTimeout(timer);w.terminate();if(result)onDone({...result,ms:Math.round(performance.now()-started),timedOut:!!error});else onError(error||'Worker 오류');};
   // A terminated Worker cannot finish an incomplete depth. Only retain a
   // completed progress report; the initial provisional candidate is excluded.
-  const timer=setTimeout(()=>{
+  timer=setTimeout(()=>{
     const fallback=lastVerified||(lastLegal?{...lastLegal,depth:0,
       reason:'시간 상한 도달 · 임시 합법 후보 (깊이 검증 미완료)',unverifiedDefense:true}:null)||E.urgent(board,p)||{
       i:Array.from({length:225},(_,i)=>i).find(i=>E.inspect(board,i,p).legal)??null,
       depth:0,nodes:0,pv:[],reason:'시간 상한 도달 · 합법 후보 (심층 검증 미완료)',
       unverifiedDefense:true,candidates:[]};
     finish(fallback,'시간 상한 도달');
-  },Math.max(30,limit)+80);
+  },Math.max(0,limit-(performance.now()-started)));
   w.onmessage=e=>{if(finished)return;if(e.data.error)finish(lastVerified,e.data.error);
     else if(e.data.progress){const r=e.data.result;if(r?.i!=null&&E.inspect(board,r.i,p).legal)lastLegal=r;
       if(r?.depth>0||r?.proven||r?.lossProven)lastVerified=r;onProgress(r);}
     else finish(e.data.result);};
   w.onerror=e=>finish(lastVerified,e.message||'Worker 오류');
-  w.postMessage({b:board,p,ms:budget,lessons:db.lessons,rules:g?.rules||{}});return w;
+  w.postMessage({b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{}});return w;
 }
 function acceptResult(result,partial=false){
   if(!result||(result.i!=null&&!E.inspect(b,result.i,turn).legal))return false;
@@ -92,6 +105,10 @@ function acceptResult(result,partial=false){
 }
 function prepareReply(){
   cancelPonder();if(!g||g.result||reviewing||turn===g.me||rec?.i==null)return;
+  const health=spawnAnalysis.health,now=performance.now();
+  if(health?.blockedUntil&&(now<health.blockedUntil||!health.healthySince||now-health.healthySince<2000)){
+    predictionNote.textContent='화면 응답 지연 감지 · 사전 계산 잠시 쉬는 중';return;
+  }
   const board=b.slice(),opponent=rec.i,p=3-turn;board[opponent]=turn;if(E.win(board,opponent,turn).length)return;
   const budget=configuredOwnBudget(board,p,40000).budget;
   const task={opponent,key:positionKey(board,p),sourceKey:positionKey(b,turn),started:Date.now(),worker:null,result:null,partial:null,promoted:false};ponder=task;

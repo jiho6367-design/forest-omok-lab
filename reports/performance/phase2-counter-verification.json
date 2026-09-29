@@ -1,0 +1,20 @@
+{
+  "scope": "Bounded verification of the counter-experiment signal; colors swapped because the existing verifier starts with black and the rules are color-symmetric.",
+  "spec": {
+    "prefix": "H8 G9 F9 F8 H10 H9 G11 I9 I10 G10 J9 I8 J7 G7 J10 G8 G6 J8 K8 L7 K10 L10 K9 K11 L8 F11 E12 I11",
+    "attacker": 1,
+    "rules": {
+      "fivePriority": true
+    },
+    "certificate": {
+      "move": "M9"
+    }
+  },
+  "result": {
+    "verified": true,
+    "defenses": 196,
+    "vcf": 196,
+    "cached": 0,
+    "elapsed_ms": 1633
+  }
+}

@@ -1,0 +1,332 @@
+[
+  {
+    "position": "sixth-move",
+    "budget": 15000,
+    "result": {
+      "elapsed": 11089.10000000149,
+      "engineMs": 11088,
+      "serializationMs": 0.10000000149011612,
+      "serializedBytes": 995,
+      "depth": 5,
+      "nodes": 48326,
+      "move": "G8"
+    },
+    "groups": [
+      [
+        "pattern",
+        4081.6129999999985
+      ],
+      [
+        "evaluation",
+        3470.3889999999965
+      ],
+      [
+        "candidates",
+        1902.127999999999
+      ],
+      [
+        "allocationGC",
+        1309.4589999999996
+      ],
+      [
+        "legality",
+        202.2270000000001
+      ],
+      [
+        "tactical",
+        97.63700000000001
+      ],
+      [
+        "other",
+        66.44699999999999
+      ]
+    ],
+    "top": [
+      {
+        "function": "evaluate",
+        "file": "forest-engine.js",
+        "line": 103,
+        "self_ms": 1346.8380000000016
+      },
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "line": 0,
+        "self_ms": 1309.4589999999996
+      },
+      {
+        "function": "evaluate",
+        "file": "forest-engine.js",
+        "line": 103,
+        "self_ms": 801.4990000000006
+      },
+      {
+        "function": "line",
+        "file": "forest-engine.js",
+        "line": 24,
+        "self_ms": 544.8279999999999
+      },
+      {
+        "function": "line",
+        "file": "forest-engine.js",
+        "line": 24,
+        "self_ms": 328.77000000000027
+      },
+      {
+        "function": "local",
+        "file": "",
+        "line": 45,
+        "self_ms": 323.0470000000002
+      },
+      {
+        "function": "line",
+        "file": "",
+        "line": 24,
+        "self_ms": 319.81199999999995
+      },
+      {
+        "function": "staticEval",
+        "file": "",
+        "line": 225,
+        "self_ms": 257.85999999999996
+      },
+      {
+        "function": "local",
+        "file": "reader-engine.js",
+        "line": 45,
+        "self_ms": 232.919
+      },
+      {
+        "function": "win",
+        "file": "",
+        "line": 25,
+        "self_ms": 229.49599999999995
+      },
+      {
+        "function": "line",
+        "file": "",
+        "line": 24,
+        "self_ms": 213.02699999999996
+      },
+      {
+        "function": "evaluate",
+        "file": "forest-engine.js",
+        "line": 103,
+        "self_ms": 203.119
+      },
+      {
+        "function": "",
+        "file": "",
+        "line": 29,
+        "self_ms": 182.90000000000006
+      },
+      {
+        "function": "win",
+        "file": "",
+        "line": 25,
+        "self_ms": 182.11400000000006
+      },
+      {
+        "function": "candidates",
+        "file": "",
+        "line": 36,
+        "self_ms": 167.157
+      },
+      {
+        "function": "staticEval",
+        "file": "",
+        "line": 225,
+        "self_ms": 153.80300000000005
+      },
+      {
+        "function": "",
+        "file": "",
+        "line": 29,
+        "self_ms": 128.651
+      },
+      {
+        "function": "line",
+        "file": "",
+        "line": 24,
+        "self_ms": 113.58000000000004
+      },
+      {
+        "function": "line",
+        "file": "forest-engine.js",
+        "line": 24,
+        "self_ms": 111.18500000000002
+      },
+      {
+        "function": "candidates",
+        "file": "",
+        "line": 36,
+        "self_ms": 106.932
+      }
+    ]
+  },
+  {
+    "position": "quiet-middle",
+    "budget": 25000,
+    "result": {
+      "elapsed": 18314.39999999851,
+      "engineMs": 18314,
+      "serializationMs": 0.30000000447034836,
+      "serializedBytes": 46938,
+      "depth": 6,
+      "nodes": 62030,
+      "move": "F9"
+    },
+    "groups": [
+      [
+        "pattern",
+        9220.203999999996
+      ],
+      [
+        "evaluation",
+        3887.538999999998
+      ],
+      [
+        "candidates",
+        2746.526
+      ],
+      [
+        "allocationGC",
+        1823.954
+      ],
+      [
+        "other",
+        1101.6080000000006
+      ],
+      [
+        "legality",
+        314.56799999999987
+      ],
+      [
+        "tactical",
+        285.43699999999984
+      ]
+    ],
+    "top": [
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "line": 0,
+        "self_ms": 1823.954
+      },
+      {
+        "function": "evaluate",
+        "file": "forest-engine.js",
+        "line": 103,
+        "self_ms": 1347.7990000000011
+      },
+      {
+        "function": "line",
+        "file": "",
+        "line": 24,
+        "self_ms": 1135.0740000000003
+      },
+      {
+        "function": "(program)",
+        "file": "",
+        "line": 0,
+        "self_ms": 1076.4780000000005
+      },
+      {
+        "function": "evaluate",
+        "file": "forest-engine.js",
+        "line": 103,
+        "self_ms": 657.5969999999996
+      },
+      {
+        "function": "line",
+        "file": "",
+        "line": 24,
+        "self_ms": 608.7000000000003
+      },
+      {
+        "function": "evaluate",
+        "file": "forest-engine.js",
+        "line": 103,
+        "self_ms": 599.1130000000002
+      },
+      {
+        "function": "",
+        "file": "",
+        "line": 29,
+        "self_ms": 469.7430000000003
+      },
+      {
+        "function": "line",
+        "file": "",
+        "line": 24,
+        "self_ms": 445.9989999999999
+      },
+      {
+        "function": "line",
+        "file": "",
+        "line": 24,
+        "self_ms": 443.3390000000002
+      },
+      {
+        "function": "local",
+        "file": "reader-engine.js",
+        "line": 45,
+        "self_ms": 415.6099999999998
+      },
+      {
+        "function": "candidates",
+        "file": "forest-engine.js",
+        "line": 36,
+        "self_ms": 405.2230000000001
+      },
+      {
+        "function": "line",
+        "file": "",
+        "line": 24,
+        "self_ms": 354.8440000000003
+      },
+      {
+        "function": "win",
+        "file": "",
+        "line": 25,
+        "self_ms": 353.8219999999999
+      },
+      {
+        "function": "staticEval",
+        "file": "",
+        "line": 225,
+        "self_ms": 282.91899999999987
+      },
+      {
+        "function": "win",
+        "file": "",
+        "line": 25,
+        "self_ms": 281.25500000000005
+      },
+      {
+        "function": "at",
+        "file": "",
+        "line": 23,
+        "self_ms": 236.83899999999994
+      },
+      {
+        "function": "win",
+        "file": "",
+        "line": 25,
+        "self_ms": 229.093
+      },
+      {
+        "function": "candidates",
+        "file": "",
+        "line": 36,
+        "self_ms": 219.78800000000007
+      },
+      {
+        "function": "evaluate",
+        "file": "forest-engine.js",
+        "line": 103,
+        "self_ms": 201.04999999999998
+      }
+    ]
+  }
+]

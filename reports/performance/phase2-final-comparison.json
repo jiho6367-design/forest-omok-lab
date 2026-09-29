@@ -1,0 +1,238 @@
+{
+  "before": "phase2-baseline",
+  "after": "phase2-final",
+  "rows": 180,
+  "invalid": [],
+  "proofChanges": [
+    {
+      "key": "wide-middle/deep25/0",
+      "before": [
+        false,
+        false
+      ],
+      "after": [
+        true,
+        false
+      ]
+    },
+    {
+      "key": "wide-middle/deep25/1",
+      "before": [
+        false,
+        false
+      ],
+      "after": [
+        true,
+        false
+      ]
+    },
+    {
+      "key": "wide-middle/deep25/2",
+      "before": [
+        false,
+        false
+      ],
+      "after": [
+        true,
+        false
+      ]
+    }
+  ],
+  "moveChanges": [
+    {
+      "key": "sixth-move/auto/0",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sixth-move/deep25/0",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sixth-move/auto/1",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sixth-move/deep15/1",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sixth-move/deep25/1",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "quiet-middle/precise/1",
+      "before": "F9",
+      "after": "F10",
+      "depth": [
+        4,
+        5
+      ]
+    },
+    {
+      "key": "sixth-move/auto/2",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sixth-move/deep15/2",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "sixth-move/deep25/2",
+      "before": "G8",
+      "after": "F7",
+      "depth": [
+        5,
+        6
+      ]
+    },
+    {
+      "key": "quiet-middle/precise/2",
+      "before": "F9",
+      "after": "F10",
+      "depth": [
+        4,
+        5
+      ]
+    }
+  ],
+  "depthChanges": [
+    {
+      "key": "sixth-move/auto/0",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/deep25/0",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "quiet-middle/fast/0",
+      "before": 2,
+      "after": 3
+    },
+    {
+      "key": "quiet-middle/compare/0",
+      "before": 3,
+      "after": 4
+    },
+    {
+      "key": "quiet-middle/deep25/0",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "wide-middle/deep25/0",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/auto/1",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/deep15/1",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/deep25/1",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "quiet-middle/compare/1",
+      "before": 3,
+      "after": 4
+    },
+    {
+      "key": "quiet-middle/precise/1",
+      "before": 4,
+      "after": 5
+    },
+    {
+      "key": "wide-middle/auto/1",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "wide-middle/deep15/1",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "wide-middle/deep25/1",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/auto/2",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/deep15/2",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "sixth-move/deep25/2",
+      "before": 5,
+      "after": 6
+    },
+    {
+      "key": "quiet-middle/compare/2",
+      "before": 3,
+      "after": 4
+    },
+    {
+      "key": "quiet-middle/precise/2",
+      "before": 4,
+      "after": 5
+    },
+    {
+      "key": "wide-middle/deep15/2",
+      "before": 5,
+      "after": 6
+    }
+  ],
+  "unstableGroups": [],
+  "timeouts": [],
+  "budgetOverruns": []
+}

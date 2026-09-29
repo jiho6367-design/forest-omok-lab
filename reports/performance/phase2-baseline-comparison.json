@@ -1,0 +1,231 @@
+{
+  "before": "cycle2",
+  "after": "phase2-baseline",
+  "rows": 180,
+  "invalid": [],
+  "proofChanges": [],
+  "moveChanges": [
+    {
+      "key": "sixth-move/auto/0",
+      "before": "F7",
+      "after": "G8",
+      "depth": [
+        6,
+        5
+      ]
+    },
+    {
+      "key": "sixth-move/deep25/0",
+      "before": "F7",
+      "after": "G8",
+      "depth": [
+        6,
+        5
+      ]
+    },
+    {
+      "key": "sixth-move/auto/1",
+      "before": "F7",
+      "after": "G8",
+      "depth": [
+        6,
+        5
+      ]
+    },
+    {
+      "key": "sixth-move/deep15/1",
+      "before": "F7",
+      "after": "G8",
+      "depth": [
+        6,
+        5
+      ]
+    },
+    {
+      "key": "sixth-move/deep25/1",
+      "before": "F7",
+      "after": "G8",
+      "depth": [
+        6,
+        5
+      ]
+    },
+    {
+      "key": "quiet-middle/precise/1",
+      "before": "F10",
+      "after": "F9",
+      "depth": [
+        5,
+        4
+      ]
+    },
+    {
+      "key": "sixth-move/auto/2",
+      "before": "F7",
+      "after": "G8",
+      "depth": [
+        6,
+        5
+      ]
+    },
+    {
+      "key": "sixth-move/deep15/2",
+      "before": "F7",
+      "after": "G8",
+      "depth": [
+        6,
+        5
+      ]
+    },
+    {
+      "key": "sixth-move/deep25/2",
+      "before": "F7",
+      "after": "G8",
+      "depth": [
+        6,
+        5
+      ]
+    },
+    {
+      "key": "quiet-middle/precise/2",
+      "before": "F10",
+      "after": "F9",
+      "depth": [
+        5,
+        4
+      ]
+    }
+  ],
+  "depthChanges": [
+    {
+      "key": "sixth-move/auto/0",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "sixth-move/deep25/0",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "quiet-middle/fast/0",
+      "before": 3,
+      "after": 2
+    },
+    {
+      "key": "quiet-middle/compare/0",
+      "before": 4,
+      "after": 3
+    },
+    {
+      "key": "quiet-middle/deep25/0",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "wide-middle/deep25/0",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "sixth-move/auto/1",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "sixth-move/deep15/1",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "sixth-move/deep25/1",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "quiet-middle/compare/1",
+      "before": 4,
+      "after": 3
+    },
+    {
+      "key": "quiet-middle/precise/1",
+      "before": 5,
+      "after": 4
+    },
+    {
+      "key": "wide-middle/auto/1",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "wide-middle/deep15/1",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "wide-middle/deep25/1",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "sixth-move/auto/2",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "sixth-move/deep15/2",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "sixth-move/deep25/2",
+      "before": 6,
+      "after": 5
+    },
+    {
+      "key": "quiet-middle/compare/2",
+      "before": 4,
+      "after": 3
+    },
+    {
+      "key": "quiet-middle/precise/2",
+      "before": 5,
+      "after": 4
+    },
+    {
+      "key": "wide-middle/fast/2",
+      "before": 2,
+      "after": 1
+    },
+    {
+      "key": "wide-middle/deep15/2",
+      "before": 6,
+      "after": 5
+    }
+  ],
+  "unstableGroups": [
+    {
+      "position": "sixth-move",
+      "mode": "deep15",
+      "moves": [
+        "F7",
+        "G8"
+      ]
+    },
+    {
+      "position": "quiet-middle",
+      "mode": "precise",
+      "moves": [
+        "F10",
+        "F9"
+      ]
+    }
+  ],
+  "timeouts": [
+    "terminal/auto/0",
+    "sixth-move/fast/0",
+    "quiet-middle/fast/0",
+    "wide-middle/fast/0"
+  ],
+  "budgetOverruns": []
+}

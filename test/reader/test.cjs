@@ -74,7 +74,25 @@ test('46 G5 has two winning ends that cannot both be blocked',()=>{const b=game4
 test('expensive 28-ply safety screen reserves time for real comparison',()=>{const b=game48.position(28),e=createEngine(15,b),r=e.analyze(1,10000);assert(r.depth>=1,'comparison starved by screening');assert(r.moves.length);assert(validateOmokAnalysis(15,b,1,r));assert.deepEqual(e.board,b);if(!r.screeningComplete)assert.equal(r.forcingChecksComplete,false);});
 test('34-ply interrupted screening retains unexplored moves without claiming proven loss',()=>{const b=game48.position(34),e=createEngine(15,b),r=e.analyze(1,1500);assert(r.moves.length);assert(r.depth>=1);assert(validateOmokAnalysis(15,b,1,r));if(!r.screeningComplete)assert.notEqual(r.kind,'lost');assert.deepEqual(e.board,b);});
 const {autoStable}=require('./engine');
-test('automatic stable stop requires depth, repeated best, score stability and completed screening',()=>{const rounds=[{i:1,score:200},{i:1,score:240},{i:1,score:220}],checks={screeningComplete:true,forcingChecksComplete:true},moves=[{i:1,score:220,status:'screened'},{i:2,score:100}];assert(autoStable(rounds,4,1000,checks,moves));assert(!autoStable(rounds,3,1000,checks,moves));assert(!autoStable(rounds,4,500,checks,moves));assert(!autoStable(rounds,4,1000,{...checks,screeningComplete:false},moves));assert(!autoStable([{i:2,score:200},...rounds.slice(1)],4,1000,checks,moves));assert(!autoStable(rounds,4,1000,checks,[moves[0],{i:2,score:210}]));assert(!autoStable(rounds,4,1000,checks,[{...moves[0],status:'unverified'}]));});
+test('automatic stable stop requires completed depths, PV, rankings and sustained score gaps',()=>{
+ const rounds=[200,240,220].map((score,k)=>({i:1,score,depth:k+2,pv:[1,2,3],ranking:[1,2],gap:100+k*10}));
+ const checks={screeningComplete:true,forcingChecksComplete:true},moves=[{i:1,score:220,status:'screened'},{i:2,score:100}];
+ assert(autoStable(rounds,4,1000,checks,moves));
+ assert(!autoStable(rounds,3,1000,checks,moves));assert(!autoStable(rounds,4,500,checks,moves));
+ assert(!autoStable(rounds,4,1000,{...checks,screeningComplete:false},moves));
+ assert(!autoStable(rounds,4,1000,{...checks,forcingChecksComplete:false},moves));
+ assert(!autoStable([{...rounds[0],i:2},...rounds.slice(1)],4,1000,checks,moves));
+ assert(!autoStable(rounds,4,1000,checks,[moves[0],{i:2,score:210}]));
+ assert(!autoStable(rounds,4,1000,checks,[{...moves[0],status:'unverified'}]));
+ for(const unstable of [
+  rounds.map((r,k)=>({...r,pv:[1,k+10,3]})),
+  rounds.map((r,k)=>({...r,ranking:[1,k+10]})),
+  rounds.map((r,k)=>({...r,gap:[500,250,120][k]})),
+  rounds.map(r=>({...r,pv:undefined})),
+  rounds.map((r,k)=>({...r,depth:k===0?1:r.depth})),
+ ])assert(!autoStable(unstable,4,1500,checks,moves),'unstable or missing history must keep searching');
+ const single=rounds.map(r=>({...r,ranking:[1],gap:null}));assert(autoStable(single,4,1500,checks,[moves[0]]));
+});
 test('automatic immediate win and forced defense finish without long search',()=>{const start=Date.now(),win=createEngine(15,game31.position(30)).analyze(1,'auto'),block=createEngine(15,game29.position(25)).analyze(1,'auto');assert(win.automatic);assert.equal(win.kind,'win');assert.equal(block.kind,'block');assert.equal(block.moves[0].i,game29.idx('K7'));assert(block.autoReason.includes('미검사'));assert(Date.now()-start<1000);});
 test('automatic opening and terminal positions return immediately',()=>{const r=createEngine(15,Array(225).fill(0)).analyze(1,'auto');assert.equal(r.moves[0].i,112);assert(r.automatic);assert.equal(createEngine(15,game48.position()).analyze(1,'auto').kind,'terminal');});
 test('automatic complex position preserves legal moves and stops at bounded time',()=>{const b=game48.position(34),e=createEngine(15,b),start=Date.now(),r=e.analyze(1,'auto');assert(r.automatic&&r.autoReason);assert(Date.now()-start<9500);assert(r.depth>0);assert(validateOmokAnalysis(15,b,1,r));assert.deepEqual(e.board,b);console.log('AUTO timing:',Date.now()-start,'ms; depth',r.depth,';',r.autoReason);});

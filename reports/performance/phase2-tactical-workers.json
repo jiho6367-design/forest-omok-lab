@@ -1,0 +1,2724 @@
+{
+  "kind": "tactical-workers",
+  "started": "2026-09-29T06:10:40.345Z",
+  "cpu": {
+    "name": "Intel(R) Core(TM) i5-4460  CPU @ 3.20GHz",
+    "logical": 4
+  },
+  "scope": "Independent counter-search of the same fixed shortlist; no full-tree duplication, no UI integration. Equal 3s wall budgets for worker comparison.",
+  "rows": [
+    {
+      "position": "instant-win",
+      "repeat": 0,
+      "elapsed": 77.29999999701977,
+      "nodes": 0,
+      "nodes_sec": 0,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "H7",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0.10000000149011612,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 15.299999997019768,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 97,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 6.200000002980232,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 172,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.10000000149011612,
+      "lag_max": 13.600000001490116,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 70.10000000149012,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "instant-win",
+      "repeat": 0,
+      "elapsed": 180.20000000298023,
+      "nodes": 0,
+      "nodes_sec": 0,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "H12",
+      "results": [
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0.19999999552965164,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 14.899999998509884,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 172,
+          "done": true
+        },
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0.09999999403953552,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 96,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 97,
+          "done": true
+        }
+      ],
+      "lag_p95": 12.900000005960464,
+      "lag_max": 57.20000000298023,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 70.10000000149012,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "mandatory-block",
+      "repeat": 0,
+      "elapsed": 40,
+      "nodes": 1,
+      "nodes_sec": 25,
+      "depth": [
+        0
+      ],
+      "best": "H12",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 4.199999995529652,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 172,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.7999999970197678,
+      "lag_max": 0.7999999970197678,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 85.19999999552965,
+      "baseline_move": "H12",
+      "baseline_pv": [
+        "H12"
+      ]
+    },
+    {
+      "position": "mandatory-block",
+      "repeat": 0,
+      "elapsed": 43.29999999701977,
+      "nodes": 1,
+      "nodes_sec": 23.094688223298558,
+      "depth": [
+        0
+      ],
+      "best": "H12",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 5.9000000059604645,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 172,
+          "done": true
+        }
+      ],
+      "lag_p95": 0,
+      "lag_max": 0.6999999955296516,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 2,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 85.19999999552965,
+      "baseline_move": "H12",
+      "baseline_pv": [
+        "H12"
+      ]
+    },
+    {
+      "position": "forcing-four",
+      "repeat": 0,
+      "elapsed": 65.60000000149012,
+      "nodes": 1,
+      "nodes_sec": 15.243902438678122,
+      "depth": [
+        0
+      ],
+      "best": "H7",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 10.199999995529652,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 2,
+            "misses": 3,
+            "entries": 3
+          },
+          "i": 97,
+          "done": true
+        }
+      ],
+      "lag_p95": 1.5,
+      "lag_max": 14.200000002980232,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 159.60000000149012,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "forcing-four",
+      "repeat": 0,
+      "elapsed": 87.10000000149012,
+      "nodes": 1,
+      "nodes_sec": 11.48105625697924,
+      "depth": [
+        0
+      ],
+      "best": "H7",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 1.7000000029802322,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 2,
+            "misses": 3,
+            "entries": 3
+          },
+          "i": 97,
+          "done": true
+        }
+      ],
+      "lag_p95": 1,
+      "lag_max": 32.19999999552965,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 2,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 159.60000000149012,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "sixth-move",
+      "repeat": 0,
+      "elapsed": 99.69999999552965,
+      "nodes": 2,
+      "nodes_sec": 20.060180542524332,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "G8",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 3.5,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 111,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 45.80000000447035,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 37,
+            "misses": 60,
+            "entries": 60
+          },
+          "i": 68,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.10000000149011612,
+      "lag_max": 13.299999997019768,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 902.2000000029802,
+      "baseline_move": "G8",
+      "baseline_pv": [
+        "G8",
+        "G9",
+        "I5"
+      ]
+    },
+    {
+      "position": "sixth-move",
+      "repeat": 0,
+      "elapsed": 106.89999999850988,
+      "nodes": 2,
+      "nodes_sec": 18.709073901102702,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "G8",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 6.799999997019768,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 111,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 30.200000002980232,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 37,
+            "misses": 60,
+            "entries": 60
+          },
+          "i": 68,
+          "done": true
+        }
+      ],
+      "lag_p95": 1,
+      "lag_max": 27.399999998509884,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 902.2000000029802,
+      "baseline_move": "G8",
+      "baseline_pv": [
+        "G8",
+        "G9",
+        "I5"
+      ]
+    },
+    {
+      "position": "quiet-middle",
+      "repeat": 0,
+      "elapsed": 186.69999999552965,
+      "nodes": 2,
+      "nodes_sec": 10.71237279082961,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "F9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 64.5,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 116,
+            "misses": 172,
+            "entries": 172
+          },
+          "i": 125,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 94,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 354,
+            "misses": 572,
+            "entries": 572
+          },
+          "i": 65,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.8999999985098839,
+      "lag_max": 2.7999999970197678,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 941.8999999985099,
+      "baseline_move": "F9",
+      "baseline_pv": [
+        "F9",
+        "F6"
+      ]
+    },
+    {
+      "position": "quiet-middle",
+      "repeat": 0,
+      "elapsed": 248.39999999850988,
+      "nodes": 2,
+      "nodes_sec": 8.051529790708525,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "F9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 115.69999999552965,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 116,
+            "misses": 172,
+            "entries": 172
+          },
+          "i": 125,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 131.89999999850988,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 354,
+            "misses": 572,
+            "entries": 572
+          },
+          "i": 65,
+          "done": true
+        }
+      ],
+      "lag_p95": 1.0999999940395355,
+      "lag_max": 17.799999997019768,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 941.8999999985099,
+      "baseline_move": "F9",
+      "baseline_pv": [
+        "F9",
+        "F6"
+      ]
+    },
+    {
+      "position": "wide-middle",
+      "repeat": 0,
+      "elapsed": 275.70000000298023,
+      "nodes": 2,
+      "nodes_sec": 7.25426187877541,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "L9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 94.40000000596046,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 197,
+            "misses": 314,
+            "entries": 314
+          },
+          "i": 131,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 150.5,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 352,
+            "misses": 476,
+            "entries": 476
+          },
+          "i": 83,
+          "done": true
+        }
+      ],
+      "lag_p95": 1,
+      "lag_max": 1.1000000014901161,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 920.8000000044703,
+      "baseline_move": "L9",
+      "baseline_pv": [
+        "L9"
+      ]
+    },
+    {
+      "position": "wide-middle",
+      "repeat": 0,
+      "elapsed": 294.40000000596046,
+      "nodes": 2,
+      "nodes_sec": 6.793478260732024,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "L9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 103.10000000149012,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 197,
+            "misses": 314,
+            "entries": 314
+          },
+          "i": 131,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 262.6000000014901,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 352,
+            "misses": 476,
+            "entries": 476
+          },
+          "i": 83,
+          "done": true
+        }
+      ],
+      "lag_p95": 1.2000000029802322,
+      "lag_max": 1.2999999970197678,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 920.8000000044703,
+      "baseline_move": "L9",
+      "baseline_pv": [
+        "L9"
+      ]
+    },
+    {
+      "position": "instant-win",
+      "repeat": 1,
+      "elapsed": 95.20000000298023,
+      "nodes": 0,
+      "nodes_sec": 0,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "H7",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0.29999999701976776,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 12.200000002980232,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 97,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0.09999999403953552,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 14.199999995529652,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 172,
+          "done": true
+        }
+      ],
+      "lag_p95": 0,
+      "lag_max": 21.80000000447035,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 41,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "instant-win",
+      "repeat": 1,
+      "elapsed": 96.70000000298023,
+      "nodes": 0,
+      "nodes_sec": 0,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "H7",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0.19999999552965164,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 11.399999998509884,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 97,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 5.399999998509884,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 172,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.9000000059604645,
+      "lag_max": 37.100000001490116,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 41,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "mandatory-block",
+      "repeat": 1,
+      "elapsed": 46.19999999552965,
+      "nodes": 1,
+      "nodes_sec": 21.645021647116035,
+      "depth": [
+        0
+      ],
+      "best": "H12",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 3.5,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 172,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.5999999940395355,
+      "lag_max": 0.8000000044703484,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 2,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 35.399999998509884,
+      "baseline_move": "H12",
+      "baseline_pv": [
+        "H12"
+      ]
+    },
+    {
+      "position": "mandatory-block",
+      "repeat": 1,
+      "elapsed": 47.79999999701977,
+      "nodes": 1,
+      "nodes_sec": 20.92050209335456,
+      "depth": [
+        0
+      ],
+      "best": "H12",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 4,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 172,
+          "done": true
+        }
+      ],
+      "lag_p95": 0,
+      "lag_max": 2.899999998509884,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 35.399999998509884,
+      "baseline_move": "H12",
+      "baseline_pv": [
+        "H12"
+      ]
+    },
+    {
+      "position": "forcing-four",
+      "repeat": 1,
+      "elapsed": 39.20000000298023,
+      "nodes": 1,
+      "nodes_sec": 25.510204079693207,
+      "depth": [
+        0
+      ],
+      "best": "H7",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 0.8999999985098839,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 2,
+            "misses": 3,
+            "entries": 3
+          },
+          "i": 97,
+          "done": true
+        }
+      ],
+      "lag_p95": 7,
+      "lag_max": 7,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 2,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 52.80000000447035,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "forcing-four",
+      "repeat": 1,
+      "elapsed": 36.399999998509884,
+      "nodes": 1,
+      "nodes_sec": 27.47252747365212,
+      "depth": [
+        0
+      ],
+      "best": "H7",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 1.2999999970197678,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 2,
+            "misses": 3,
+            "entries": 3
+          },
+          "i": 97,
+          "done": true
+        }
+      ],
+      "lag_p95": 1,
+      "lag_max": 1,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 52.80000000447035,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "sixth-move",
+      "repeat": 1,
+      "elapsed": 72.10000000149012,
+      "nodes": 2,
+      "nodes_sec": 27.739251039648618,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "G8",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 3,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 111,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 20.5,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 37,
+            "misses": 60,
+            "entries": 60
+          },
+          "i": 68,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.8999999985098839,
+      "lag_max": 8.600000001490116,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 892.2000000029802,
+      "baseline_move": "G8",
+      "baseline_pv": [
+        "G8",
+        "G9",
+        "I5"
+      ]
+    },
+    {
+      "position": "sixth-move",
+      "repeat": 1,
+      "elapsed": 84.5,
+      "nodes": 2,
+      "nodes_sec": 23.668639053254438,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "G8",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 3.2000000029802322,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 111,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 53.20000000298023,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 37,
+            "misses": 60,
+            "entries": 60
+          },
+          "i": 68,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.6000000014901161,
+      "lag_max": 1.3999999985098839,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 892.2000000029802,
+      "baseline_move": "G8",
+      "baseline_pv": [
+        "G8",
+        "G9",
+        "I5"
+      ]
+    },
+    {
+      "position": "quiet-middle",
+      "repeat": 1,
+      "elapsed": 169.69999999552965,
+      "nodes": 2,
+      "nodes_sec": 11.785503830599206,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "F9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 79.90000000596046,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 116,
+            "misses": 172,
+            "entries": 172
+          },
+          "i": 125,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 97.89999999850988,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 354,
+            "misses": 572,
+            "entries": 572
+          },
+          "i": 65,
+          "done": true
+        }
+      ],
+      "lag_p95": 1.3999999985098839,
+      "lag_max": 2.6999999955296516,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 900.1000000014901,
+      "baseline_move": "F9",
+      "baseline_pv": [
+        "F9",
+        "F6",
+        "G10"
+      ]
+    },
+    {
+      "position": "quiet-middle",
+      "repeat": 1,
+      "elapsed": 215.70000000298023,
+      "nodes": 2,
+      "nodes_sec": 9.27213722750286,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "F9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 68.89999999850988,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 116,
+            "misses": 172,
+            "entries": 172
+          },
+          "i": 125,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 116.10000000149012,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 354,
+            "misses": 572,
+            "entries": 572
+          },
+          "i": 65,
+          "done": true
+        }
+      ],
+      "lag_p95": 1.0999999940395355,
+      "lag_max": 1.2000000029802322,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 900.1000000014901,
+      "baseline_move": "F9",
+      "baseline_pv": [
+        "F9",
+        "F6",
+        "G10"
+      ]
+    },
+    {
+      "position": "wide-middle",
+      "repeat": 1,
+      "elapsed": 204,
+      "nodes": 2,
+      "nodes_sec": 9.803921568627452,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "L9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 122.80000000447035,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 197,
+            "misses": 314,
+            "entries": 314
+          },
+          "i": 131,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 140.79999999701977,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 352,
+            "misses": 476,
+            "entries": 476
+          },
+          "i": 83,
+          "done": true
+        }
+      ],
+      "lag_p95": 1,
+      "lag_max": 5.100000001490116,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 886.9000000059605,
+      "baseline_move": "L9",
+      "baseline_pv": [
+        "L9"
+      ]
+    },
+    {
+      "position": "wide-middle",
+      "repeat": 1,
+      "elapsed": 250.29999999701977,
+      "nodes": 2,
+      "nodes_sec": 7.990411506287708,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "L9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 86.80000000447035,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 197,
+            "misses": 314,
+            "entries": 314
+          },
+          "i": 131,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 131.20000000298023,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 352,
+            "misses": 476,
+            "entries": 476
+          },
+          "i": 83,
+          "done": true
+        }
+      ],
+      "lag_p95": 1,
+      "lag_max": 1.6000000014901161,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 886.9000000059605,
+      "baseline_move": "L9",
+      "baseline_pv": [
+        "L9"
+      ]
+    },
+    {
+      "position": "instant-win",
+      "repeat": 2,
+      "elapsed": 40.19999999552965,
+      "nodes": 0,
+      "nodes_sec": 0,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "H7",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0.19999999552965164,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 8.199999995529652,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 97,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0.09999999403953552,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 6.299999997019768,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 172,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.19999999552965164,
+      "lag_max": 0.19999999552965164,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 41.69999999552965,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "instant-win",
+      "repeat": 2,
+      "elapsed": 56.600000001490116,
+      "nodes": 0,
+      "nodes_sec": 0,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "H7",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0.10000000149011612,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 8.800000004470348,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 97,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "reason": "대국 종료",
+            "depth": 0,
+            "nodes": 0,
+            "ms": 0.10000000149011612,
+            "score": 0,
+            "pv": [],
+            "proven": false,
+            "lossProven": false,
+            "forcedLoss": false,
+            "threats": [],
+            "shape": null,
+            "urgent": false,
+            "forbiddenDefense": null,
+            "defenseChecked": false,
+            "fallback": false,
+            "kind": "terminal",
+            "autoReason": "대국 종료",
+            "automatic": true,
+            "candidates": [],
+            "rejected": [],
+            "engineVersion": "unified-4.0",
+            "memory": 0,
+            "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+            "proofStatus": "TERMINAL",
+            "unverifiedDefense": false
+          },
+          "ownWin": true,
+          "ms": 12,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 0,
+            "entries": 0
+          },
+          "i": 172,
+          "done": true
+        }
+      ],
+      "lag_p95": 0,
+      "lag_max": 12.200000002980232,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 41.69999999552965,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "mandatory-block",
+      "repeat": 2,
+      "elapsed": 31.900000005960464,
+      "nodes": 1,
+      "nodes_sec": 31.347962376587823,
+      "depth": [
+        0
+      ],
+      "best": "H12",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 7,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 172,
+          "done": true
+        }
+      ],
+      "lag_p95": 1.6000000014901161,
+      "lag_max": 1.6000000014901161,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 52.20000000298023,
+      "baseline_move": "H12",
+      "baseline_pv": [
+        "H12"
+      ]
+    },
+    {
+      "position": "mandatory-block",
+      "repeat": 2,
+      "elapsed": 28,
+      "nodes": 1,
+      "nodes_sec": 35.714285714285715,
+      "depth": [
+        0
+      ],
+      "best": "H12",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 3.2999999970197678,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 172,
+          "done": true
+        }
+      ],
+      "lag_p95": 1.2000000029802322,
+      "lag_max": 1.2000000029802322,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 2,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 52.20000000298023,
+      "baseline_move": "H12",
+      "baseline_pv": [
+        "H12"
+      ]
+    },
+    {
+      "position": "forcing-four",
+      "repeat": 2,
+      "elapsed": 18.600000001490116,
+      "nodes": 1,
+      "nodes_sec": 53.76344085590786,
+      "depth": [
+        0
+      ],
+      "best": "H7",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 0.8999999985098839,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 2,
+            "misses": 3,
+            "entries": 3
+          },
+          "i": 97,
+          "done": true
+        }
+      ],
+      "lag_p95": 0,
+      "lag_max": 0,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 54.70000000298023,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "forcing-four",
+      "repeat": 2,
+      "elapsed": 23.399999998509884,
+      "nodes": 1,
+      "nodes_sec": 42.73504273776411,
+      "depth": [
+        0
+      ],
+      "best": "H7",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 1,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 2,
+            "misses": 3,
+            "entries": 3
+          },
+          "i": 97,
+          "done": true
+        }
+      ],
+      "lag_p95": 1.5999999940395355,
+      "lag_max": 1.5999999940395355,
+      "completed": 1,
+      "candidates": 1,
+      "workers": 2,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 54.70000000298023,
+      "baseline_move": "H7",
+      "baseline_pv": [
+        "H7"
+      ]
+    },
+    {
+      "position": "sixth-move",
+      "repeat": 2,
+      "elapsed": 51.20000000298023,
+      "nodes": 2,
+      "nodes_sec": 39.06249999772626,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "G8",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 4.700000002980232,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 111,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 21.19999999552965,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 37,
+            "misses": 60,
+            "entries": 60
+          },
+          "i": 68,
+          "done": true
+        }
+      ],
+      "lag_p95": 0,
+      "lag_max": 0.8000000044703484,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 891.1999999955297,
+      "baseline_move": "G8",
+      "baseline_pv": [
+        "G8",
+        "G9",
+        "I5"
+      ]
+    },
+    {
+      "position": "sixth-move",
+      "repeat": 2,
+      "elapsed": 55.19999999552965,
+      "nodes": 2,
+      "nodes_sec": 36.23188406090524,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "G8",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 6.699999995529652,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 0,
+            "misses": 1,
+            "entries": 1
+          },
+          "i": 111,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 21.400000005960464,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 37,
+            "misses": 60,
+            "entries": 60
+          },
+          "i": 68,
+          "done": true
+        }
+      ],
+      "lag_p95": 0,
+      "lag_max": 2.0999999940395355,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 891.1999999955297,
+      "baseline_move": "G8",
+      "baseline_pv": [
+        "G8",
+        "G9",
+        "I5"
+      ]
+    },
+    {
+      "position": "quiet-middle",
+      "repeat": 2,
+      "elapsed": 176.70000000298023,
+      "nodes": 2,
+      "nodes_sec": 11.318619128275426,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "F9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 55.80000000447035,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 116,
+            "misses": 172,
+            "entries": 172
+          },
+          "i": 125,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 94.39999999850988,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 354,
+            "misses": 572,
+            "entries": 572
+          },
+          "i": 65,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.6000000014901161,
+      "lag_max": 1,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 900.1999999955297,
+      "baseline_move": "F9",
+      "baseline_pv": [
+        "F9",
+        "F6",
+        "G10"
+      ]
+    },
+    {
+      "position": "quiet-middle",
+      "repeat": 2,
+      "elapsed": 127.40000000596046,
+      "nodes": 2,
+      "nodes_sec": 15.69858712642409,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "F9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 68.30000000447035,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 116,
+            "misses": 172,
+            "entries": 172
+          },
+          "i": 125,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 94.39999999850988,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 354,
+            "misses": 572,
+            "entries": 572
+          },
+          "i": 65,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.6000000014901161,
+      "lag_max": 1,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 900.1999999955297,
+      "baseline_move": "F9",
+      "baseline_pv": [
+        "F9",
+        "F6",
+        "G10"
+      ]
+    },
+    {
+      "position": "wide-middle",
+      "repeat": 2,
+      "elapsed": 234.79999999701977,
+      "nodes": 2,
+      "nodes_sec": 8.517887563992272,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "L9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 88.5,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 197,
+            "misses": 314,
+            "entries": 314
+          },
+          "i": 131,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 119.30000000447035,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 352,
+            "misses": 476,
+            "entries": 476
+          },
+          "i": 83,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.10000000149011612,
+      "lag_max": 2,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 1,
+      "actualWorkers": 1,
+      "timedOut": false,
+      "baseline_ms": 893.8999999985099,
+      "baseline_move": "L9",
+      "baseline_pv": [
+        "L9"
+      ]
+    },
+    {
+      "position": "wide-middle",
+      "repeat": 2,
+      "elapsed": 160.60000000149012,
+      "nodes": 2,
+      "nodes_sec": 12.453300124417455,
+      "depth": [
+        0,
+        0
+      ],
+      "best": "L9",
+      "results": [
+        {
+          "id": 0,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 119.5,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 197,
+            "misses": 314,
+            "entries": 314
+          },
+          "i": 131,
+          "done": true
+        },
+        {
+          "id": 1,
+          "r": {
+            "i": null,
+            "score": 0,
+            "pv": [],
+            "depth": 0,
+            "nodes": 1,
+            "proven": false,
+            "complete": true
+          },
+          "ownWin": false,
+          "ms": 132.5,
+          "tt": {
+            "hits": 0,
+            "lookups": 0
+          },
+          "cache": {
+            "hits": 352,
+            "misses": 476,
+            "entries": 476
+          },
+          "i": 83,
+          "done": true
+        }
+      ],
+      "lag_p95": 0.3999999985098839,
+      "lag_max": 0.7999999970197678,
+      "completed": 2,
+      "candidates": 2,
+      "workers": 2,
+      "actualWorkers": 2,
+      "timedOut": false,
+      "baseline_ms": 893.8999999985099,
+      "baseline_move": "L9",
+      "baseline_pv": [
+        "L9"
+      ]
+    }
+  ],
+  "cancellation": [
+    {
+      "workers": 1,
+      "api_ms": 0,
+      "observation_ms": 150,
+      "messages_after": 0
+    },
+    {
+      "workers": 1,
+      "api_ms": 0,
+      "observation_ms": 150,
+      "messages_after": 0
+    },
+    {
+      "workers": 1,
+      "api_ms": 0,
+      "observation_ms": 150,
+      "messages_after": 0
+    },
+    {
+      "workers": 2,
+      "api_ms": 0.10000000149011612,
+      "observation_ms": 150,
+      "messages_after": 0
+    },
+    {
+      "workers": 2,
+      "api_ms": 0,
+      "observation_ms": 150,
+      "messages_after": 0
+    },
+    {
+      "workers": 2,
+      "api_ms": 0.10000000149011612,
+      "observation_ms": 150,
+      "messages_after": 0
+    }
+  ],
+  "finished": "2026-09-29T06:10:47.447Z"
+}

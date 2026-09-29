@@ -20,3 +20,29 @@ e=controlled(f=>({...f,forcing:()=>({complete:true,proof:null}),forcedReplyTrap:
 b=Array(225).fill(0);for(const c of ['A1','A2','A3'])b[idx(c)]=1;r=e.analyze(b,1,25000);assert.equal(r.i,idx('A4'));assert.equal(r.score,120);assert(!r.proven);assert(!(r.rejected||[]).some(m=>m.i===idx('A4')));assert(trapBudget<=500);console.log('PASS proof timeout preserves evaluated move and quick proof cap');
 b=boardOf(prefix);const copy=b.slice(),start=Date.now(),updates=[];r=create().analyze(b,2,900,[],x=>updates.push(x));assert.deepEqual(b,copy);assert.notEqual(r.i,idx('I7'));assert(create().inspect(b,r.i,2).legal);assert(!r.proven);assert.equal(r.proofStatus,'UNRESOLVED');assert(r.unverifiedDefense);assert(Date.now()-start<1600);for(const x of updates)assert.notEqual(x.i,idx('I7'));console.log('PASS live new-game fallback, certificate exclusion, timing, board preservation');
 console.log('4 recommendation-policy groups passed');
+for(const refuteBest of [false,true]){
+ let comparisonBudget=0,checked=[];
+ const candidate=(c,score)=>({i:idx(c),score,pv:[idx(c)]});
+ const result={kind:'search',depth:4,moves:[candidate('I5',80),candidate('G8',70),candidate('I7',999)]};
+ const staged=controlled(f=>({...f,
+  analyze:(board,p,ms)=>{comparisonBudget=ms;return {i:idx('J4'),score:100,depth:6,pv:[idx('J4')],reason:'completed comparison',rejected:[]};},
+  forcing:board=>{const move=['J4','I5','G8'].find(c=>board[idx(c)]===2);checked.push(move);return {complete:refuteBest&&move==='J4',proof:refuteBest&&move==='J4'?{pv:[idx('E8')]}:null,nodes:1};}
+ }),reader=>({...reader,analyze:(p,ms,progress)=>{progress?.(result);return result;}}));
+ const out=staged.analyze(boardOf(prefix),2,25000);
+ assert(comparisonBudget<=15000);assert.deepEqual(checked,['J4','I5','G8']);assert.equal(out.candidateChecks.length,3);
+ assert.equal(out.i,idx(refuteBest?'I5':'J4'));assert.equal(out.proofStatus,'UNRESOLVED');assert(!out.lossProven);
+ assert.equal(out.candidateChecks.filter(x=>x.refuted).length,refuteBest?1:0);
+}
+console.log('PASS 25-second shortlist validation: bounded comparison, three candidates, incomplete is not loss, verified rejection only');
+for(const confirmationKind of ['search','incomplete']){
+ let calls=0;
+ const engine=controlled(f=>({...f,forcing:()=>({complete:false,proof:null}),
+   analyze:()=>({i:idx('J4'),score:99999994,depth:6,pv:[idx('J4')],reason:'finite mate-like evaluation',rejected:[]})}),
+  reader=>({...reader,analyze:()=>{calls++;return calls===1?
+    {kind:'search',depth:4,moves:[{i:idx('J4'),score:20,pv:[idx('J4')]}]}:
+    {kind:confirmationKind,depth:3,nodes:1,moves:[{i:idx('E8'),score:-9999999,pv:[idx('E8')]}]};}}));
+ const out=engine.analyze(boardOf(prefix),2,25000);
+ assert.equal(calls,2);assert.equal(out.i,idx('J4'));assert.equal(out.proofStatus,'UNRESOLVED');
+ assert.equal(out.counterVerification.kind,confirmationKind);assert(!out.lossProven);
+}
+console.log('PASS mate-like scores and incomplete counter-search do not become proof');

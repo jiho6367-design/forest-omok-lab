@@ -1,0 +1,9 @@
+{"kind":"counter","position":"sixth-move","repeat":0,"workers":1,"ms":7340,"nps":19748,"depth":[5],"move":"G8","lag":1.0999999940395355,"refuted":0}
+{"kind":"counter","position":"quiet-middle","repeat":0,"workers":1,"ms":668,"nps":23312,"depth":[5],"move":"F9","lag":1,"refuted":0}
+{"kind":"counter","position":"wide-middle","repeat":0,"workers":1,"ms":154,"nps":18593,"depth":[3],"move":"M9","lag":0.7000000029802322,"refuted":0}
+{"kind":"counter","position":"sixth-move","repeat":1,"workers":1,"ms":7247,"nps":19034,"depth":[5],"move":"G8","lag":1.1000000014901161,"refuted":0}
+{"kind":"counter","position":"quiet-middle","repeat":1,"workers":1,"ms":578,"nps":27918,"depth":[5],"move":"F9","lag":1.1999999955296516,"refuted":0}
+{"kind":"counter","position":"wide-middle","repeat":1,"workers":1,"ms":121,"nps":23733,"depth":[3],"move":"M9","lag":0.3999999985098839,"refuted":0}
+{"kind":"counter","position":"sixth-move","repeat":2,"workers":1,"ms":7238,"nps":25742,"depth":[5],"move":"G8","lag":1.1000000014901161,"refuted":0}
+{"kind":"counter","position":"quiet-middle","repeat":2,"workers":1,"ms":494,"nps":31825,"depth":[5],"move":"F9","lag":1.0999999940395355,"refuted":0}
+{"kind":"counter","position":"wide-middle","repeat":2,"workers":1,"ms":111,"nps":25736,"depth":[3],"move":"M9","lag":0.7000000029802322,"refuted":0}

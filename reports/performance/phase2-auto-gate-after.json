@@ -1,0 +1,51 @@
+{
+  "rows": [
+    {
+      "name": "stable",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "name": "changing PV",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "name": "collapsing gap",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "name": "changing ranking",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "name": "missing PV evidence",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "name": "skipped depth",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "name": "changing best",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "name": "unfinished screening",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "name": "unstable evaluation",
+      "expected": false,
+      "actual": false
+    }
+  ],
+  "incorrectStops": 0,
+  "failed": 0
+}

@@ -1,0 +1,1142 @@
+[
+  {
+    "position": "instant-win",
+    "mode": "fast",
+    "repeats": 3,
+    "requested_ms": 900,
+    "elapsed_ms": 41.69999999552965,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 10000000,
+    "lag_p95_ms": 0.29999999701976776,
+    "workers": 1
+  },
+  {
+    "position": "instant-win",
+    "mode": "compare",
+    "repeats": 3,
+    "requested_ms": 3000,
+    "elapsed_ms": 41.79999999701977,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 10000000,
+    "lag_p95_ms": 1,
+    "workers": 1
+  },
+  {
+    "position": "instant-win",
+    "mode": "precise",
+    "repeats": 3,
+    "requested_ms": 7000,
+    "elapsed_ms": 64.10000000149012,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 10000000,
+    "lag_p95_ms": 0,
+    "workers": 1
+  },
+  {
+    "position": "instant-win",
+    "mode": "auto",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 64.70000000298023,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 10000000,
+    "lag_p95_ms": 0.4000000059604645,
+    "workers": 1
+  },
+  {
+    "position": "instant-win",
+    "mode": "deep15",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 56.899999998509884,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 10000000,
+    "lag_p95_ms": 0.09999999403953552,
+    "workers": 1
+  },
+  {
+    "position": "instant-win",
+    "mode": "deep25",
+    "repeats": 3,
+    "requested_ms": 25000,
+    "elapsed_ms": 59.100000001490116,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 10000000,
+    "lag_p95_ms": 0.30000000447034836,
+    "workers": 1
+  },
+  {
+    "position": "mandatory-block",
+    "mode": "fast",
+    "repeats": 3,
+    "requested_ms": 900,
+    "elapsed_ms": 52.20000000298023,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "H12",
+      "H12",
+      "H12"
+    ],
+    "timeouts": 0,
+    "score": 0,
+    "lag_p95_ms": 0.8999999985098839,
+    "workers": 1
+  },
+  {
+    "position": "mandatory-block",
+    "mode": "compare",
+    "repeats": 3,
+    "requested_ms": 3000,
+    "elapsed_ms": 44.399999998509884,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "H12",
+      "H12",
+      "H12"
+    ],
+    "timeouts": 0,
+    "score": 0,
+    "lag_p95_ms": 1,
+    "workers": 1
+  },
+  {
+    "position": "mandatory-block",
+    "mode": "precise",
+    "repeats": 3,
+    "requested_ms": 7000,
+    "elapsed_ms": 36.899999998509884,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "H12",
+      "H12",
+      "H12"
+    ],
+    "timeouts": 0,
+    "score": 0,
+    "lag_p95_ms": 1.6000000014901161,
+    "workers": 1
+  },
+  {
+    "position": "mandatory-block",
+    "mode": "auto",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 46.399999998509884,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "H12",
+      "H12",
+      "H12"
+    ],
+    "timeouts": 0,
+    "score": 0,
+    "lag_p95_ms": 0,
+    "workers": 1
+  },
+  {
+    "position": "mandatory-block",
+    "mode": "deep15",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 49.29999999701977,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "H12",
+      "H12",
+      "H12"
+    ],
+    "timeouts": 0,
+    "score": 0,
+    "lag_p95_ms": 0.7000000029802322,
+    "workers": 1
+  },
+  {
+    "position": "mandatory-block",
+    "mode": "deep25",
+    "repeats": 3,
+    "requested_ms": 25000,
+    "elapsed_ms": 46.100000001490116,
+    "depth": 1,
+    "nodes_sec": 21.691973968930075,
+    "tt_hit_rate": null,
+    "moves": [
+      "H12",
+      "H12",
+      "H12"
+    ],
+    "timeouts": 0,
+    "score": 0,
+    "lag_p95_ms": 0,
+    "workers": 1
+  },
+  {
+    "position": "forcing-four",
+    "mode": "fast",
+    "repeats": 3,
+    "requested_ms": 900,
+    "elapsed_ms": 54.70000000298023,
+    "depth": 1,
+    "nodes_sec": 36.563071295996956,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 9999999,
+    "lag_p95_ms": 0.3999999985098839,
+    "workers": 1
+  },
+  {
+    "position": "forcing-four",
+    "mode": "compare",
+    "repeats": 3,
+    "requested_ms": 3000,
+    "elapsed_ms": 60.70000000298023,
+    "depth": 1,
+    "nodes_sec": 32.94892915818459,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 9999999,
+    "lag_p95_ms": 0.20000000298023224,
+    "workers": 1
+  },
+  {
+    "position": "forcing-four",
+    "mode": "precise",
+    "repeats": 3,
+    "requested_ms": 7000,
+    "elapsed_ms": 96.5,
+    "depth": 1,
+    "nodes_sec": 20.72538860103627,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 9999999,
+    "lag_p95_ms": 0.7000000029802322,
+    "workers": 1
+  },
+  {
+    "position": "forcing-four",
+    "mode": "auto",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 80.90000000596046,
+    "depth": 1,
+    "nodes_sec": 24.72187886097214,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 9999999,
+    "lag_p95_ms": 0.30000000447034836,
+    "workers": 1
+  },
+  {
+    "position": "forcing-four",
+    "mode": "deep15",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 68.59999999403954,
+    "depth": 1,
+    "nodes_sec": 29.154518952970474,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 9999999,
+    "lag_p95_ms": 0.7000000029802322,
+    "workers": 1
+  },
+  {
+    "position": "forcing-four",
+    "mode": "deep25",
+    "repeats": 3,
+    "requested_ms": 25000,
+    "elapsed_ms": 77.80000000447035,
+    "depth": 1,
+    "nodes_sec": 25.70694087255888,
+    "tt_hit_rate": null,
+    "moves": [
+      "H7",
+      "H7",
+      "H7"
+    ],
+    "timeouts": 0,
+    "score": 9999999,
+    "lag_p95_ms": 0,
+    "workers": 1
+  },
+  {
+    "position": "terminal",
+    "mode": "fast",
+    "repeats": 3,
+    "requested_ms": 900,
+    "elapsed_ms": 57.79999999701977,
+    "depth": 0,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      null,
+      null,
+      null
+    ],
+    "timeouts": 0,
+    "score": 0,
+    "lag_p95_ms": 0.20000000298023224,
+    "workers": 1
+  },
+  {
+    "position": "terminal",
+    "mode": "compare",
+    "repeats": 3,
+    "requested_ms": 3000,
+    "elapsed_ms": 64.90000000596046,
+    "depth": 0,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      null,
+      null,
+      null
+    ],
+    "timeouts": 0,
+    "score": 0,
+    "lag_p95_ms": 0,
+    "workers": 1
+  },
+  {
+    "position": "terminal",
+    "mode": "precise",
+    "repeats": 3,
+    "requested_ms": 7000,
+    "elapsed_ms": 82.60000000149012,
+    "depth": 0,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      null,
+      null,
+      null
+    ],
+    "timeouts": 0,
+    "score": 0,
+    "lag_p95_ms": 0,
+    "workers": 1
+  },
+  {
+    "position": "terminal",
+    "mode": "auto",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 60.100000001490116,
+    "depth": 0,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      null,
+      null,
+      null
+    ],
+    "timeouts": 1,
+    "score": 0,
+    "lag_p95_ms": 0.8999999985098839,
+    "workers": 1
+  },
+  {
+    "position": "terminal",
+    "mode": "deep15",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 90.90000000596046,
+    "depth": 0,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      null,
+      null,
+      null
+    ],
+    "timeouts": 0,
+    "score": 0,
+    "lag_p95_ms": 0.3999999985098839,
+    "workers": 1
+  },
+  {
+    "position": "terminal",
+    "mode": "deep25",
+    "repeats": 3,
+    "requested_ms": 25000,
+    "elapsed_ms": 47.70000000298023,
+    "depth": 0,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      null,
+      null,
+      null
+    ],
+    "timeouts": 0,
+    "score": 0,
+    "lag_p95_ms": 0,
+    "workers": 1
+  },
+  {
+    "position": "sixth-move",
+    "mode": "fast",
+    "repeats": 3,
+    "requested_ms": 900,
+    "elapsed_ms": 892.2000000029802,
+    "depth": 3,
+    "nodes_sec": 13724.501232861576,
+    "tt_hit_rate": 0.201010101010101,
+    "moves": [
+      "G8",
+      "G8",
+      "G8"
+    ],
+    "timeouts": 1,
+    "score": 240,
+    "lag_p95_ms": 1.3999999985098839,
+    "workers": 1
+  },
+  {
+    "position": "sixth-move",
+    "mode": "compare",
+    "repeats": 3,
+    "requested_ms": 3000,
+    "elapsed_ms": 2875.4000000059605,
+    "depth": 4,
+    "nodes_sec": 18248.764529834756,
+    "tt_hit_rate": 0.23584744313323072,
+    "moves": [
+      "I5",
+      "I5",
+      "I5"
+    ],
+    "timeouts": 0,
+    "score": -946,
+    "lag_p95_ms": 1.0999999940395355,
+    "workers": 1
+  },
+  {
+    "position": "sixth-move",
+    "mode": "precise",
+    "repeats": 3,
+    "requested_ms": 7000,
+    "elapsed_ms": 6654.29999999702,
+    "depth": 5,
+    "nodes_sec": 16294.515401953418,
+    "tt_hit_rate": 0.22324944358842663,
+    "moves": [
+      "I5",
+      "I5",
+      "I5"
+    ],
+    "timeouts": 0,
+    "score": -13,
+    "lag_p95_ms": 1.1000000014901161,
+    "workers": 1
+  },
+  {
+    "position": "sixth-move",
+    "mode": "auto",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 13757.10000000149,
+    "depth": 5,
+    "nodes_sec": 2362.281976744186,
+    "tt_hit_rate": 0.03973083674663546,
+    "moves": [
+      "G8",
+      "G8",
+      "G8"
+    ],
+    "timeouts": 0,
+    "score": 24,
+    "lag_p95_ms": 1.2999999970197678,
+    "workers": 1
+  },
+  {
+    "position": "sixth-move",
+    "mode": "deep15",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 13774.20000000298,
+    "depth": 5,
+    "nodes_sec": 2042.3756485143126,
+    "tt_hit_rate": 0.03945437566702241,
+    "moves": [
+      "F7",
+      "G8",
+      "G8"
+    ],
+    "timeouts": 0,
+    "score": 24,
+    "lag_p95_ms": 1.3999999985098839,
+    "workers": 1
+  },
+  {
+    "position": "sixth-move",
+    "mode": "deep25",
+    "repeats": 3,
+    "requested_ms": 25000,
+    "elapsed_ms": 13777.89999999851,
+    "depth": 5,
+    "nodes_sec": 2308.2175858659675,
+    "tt_hit_rate": 0.035101991623730754,
+    "moves": [
+      "G8",
+      "G8",
+      "G8"
+    ],
+    "timeouts": 0,
+    "score": 24,
+    "lag_p95_ms": 1.3999999985098839,
+    "workers": 1
+  },
+  {
+    "position": "quiet-middle",
+    "mode": "fast",
+    "repeats": 3,
+    "requested_ms": 900,
+    "elapsed_ms": 900.1999999955297,
+    "depth": 3,
+    "nodes_sec": 16700.73317048951,
+    "tt_hit_rate": 0.09211986681465038,
+    "moves": [
+      "F9",
+      "F9",
+      "F9"
+    ],
+    "timeouts": 1,
+    "score": 1974,
+    "lag_p95_ms": 1.1999999955296516,
+    "workers": 1
+  },
+  {
+    "position": "quiet-middle",
+    "mode": "compare",
+    "repeats": 3,
+    "requested_ms": 3000,
+    "elapsed_ms": 2883.5,
+    "depth": 3,
+    "nodes_sec": 22514.305531472168,
+    "tt_hit_rate": 0.23924050632911392,
+    "moves": [
+      "F9",
+      "F9",
+      "F9"
+    ],
+    "timeouts": 0,
+    "score": 1974,
+    "lag_p95_ms": 1.1000000014901161,
+    "workers": 1
+  },
+  {
+    "position": "quiet-middle",
+    "mode": "precise",
+    "repeats": 3,
+    "requested_ms": 7000,
+    "elapsed_ms": 6642.9000000059605,
+    "depth": 4,
+    "nodes_sec": 15106.805762529913,
+    "tt_hit_rate": 0.2005930946833298,
+    "moves": [
+      "F10",
+      "F9",
+      "F9"
+    ],
+    "timeouts": 0,
+    "score": 1109,
+    "lag_p95_ms": 1.2999999970197678,
+    "workers": 1
+  },
+  {
+    "position": "quiet-middle",
+    "mode": "auto",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 13761.39999999851,
+    "depth": 6,
+    "nodes_sec": 1898.6302365294482,
+    "tt_hit_rate": 0.03235185866764814,
+    "moves": [
+      "F9",
+      "F9",
+      "F9"
+    ],
+    "timeouts": 0,
+    "score": 258,
+    "lag_p95_ms": 1.2000000029802322,
+    "workers": 1
+  },
+  {
+    "position": "quiet-middle",
+    "mode": "deep15",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 13769.5,
+    "depth": 6,
+    "nodes_sec": 1636.5881114056428,
+    "tt_hit_rate": 0.03534796982283631,
+    "moves": [
+      "F9",
+      "F9",
+      "F9"
+    ],
+    "timeouts": 0,
+    "score": 258,
+    "lag_p95_ms": 1.1999999955296516,
+    "workers": 1
+  },
+  {
+    "position": "quiet-middle",
+    "mode": "deep25",
+    "repeats": 3,
+    "requested_ms": 25000,
+    "elapsed_ms": 14208.29999999702,
+    "depth": 6,
+    "nodes_sec": 1431.933227164752,
+    "tt_hit_rate": 0.029675320689866815,
+    "moves": [
+      "F9",
+      "F9",
+      "F9"
+    ],
+    "timeouts": 0,
+    "score": 258,
+    "lag_p95_ms": 1.2999999970197678,
+    "workers": 1
+  },
+  {
+    "position": "known-refutations",
+    "mode": "fast",
+    "repeats": 3,
+    "requested_ms": 900,
+    "elapsed_ms": 910.6999999955297,
+    "depth": 0,
+    "nodes_sec": 22654.444444444445,
+    "tt_hit_rate": 0.2630541871921182,
+    "moves": [
+      "J8",
+      "J8",
+      "J8"
+    ],
+    "timeouts": 0,
+    "score": -180,
+    "lag_p95_ms": 1.0999999940395355,
+    "workers": 1
+  },
+  {
+    "position": "known-refutations",
+    "mode": "compare",
+    "repeats": 3,
+    "requested_ms": 3000,
+    "elapsed_ms": 2884.7000000029802,
+    "depth": 0,
+    "nodes_sec": 24908.662345328128,
+    "tt_hit_rate": 0.30059970014992504,
+    "moves": [
+      "J8",
+      "J8",
+      "J8"
+    ],
+    "timeouts": 0,
+    "score": -180,
+    "lag_p95_ms": 1.5,
+    "workers": 1
+  },
+  {
+    "position": "known-refutations",
+    "mode": "precise",
+    "repeats": 3,
+    "requested_ms": 7000,
+    "elapsed_ms": 6648.19999999553,
+    "depth": 0,
+    "nodes_sec": 14456.6215544819,
+    "tt_hit_rate": 0.31346303501945527,
+    "moves": [
+      "J8",
+      "J8",
+      "J8"
+    ],
+    "timeouts": 0,
+    "score": -180,
+    "lag_p95_ms": 1.1999999955296516,
+    "workers": 1
+  },
+  {
+    "position": "known-refutations",
+    "mode": "auto",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 2868.60000000149,
+    "depth": 0,
+    "nodes_sec": 403.6812382344692,
+    "tt_hit_rate": 0.2975161987041037,
+    "moves": [
+      "H5",
+      "H5",
+      "H5"
+    ],
+    "timeouts": 0,
+    "score": -100000000,
+    "lag_p95_ms": 1.1999999955296516,
+    "workers": 1
+  },
+  {
+    "position": "known-refutations",
+    "mode": "deep15",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 2819.2000000029802,
+    "depth": 0,
+    "nodes_sec": 410.7548240631299,
+    "tt_hit_rate": 0.2948078615429745,
+    "moves": [
+      "H5",
+      "H5",
+      "H5"
+    ],
+    "timeouts": 0,
+    "score": -100000000,
+    "lag_p95_ms": 1.2999999970197678,
+    "workers": 1
+  },
+  {
+    "position": "known-refutations",
+    "mode": "deep25",
+    "repeats": 3,
+    "requested_ms": 25000,
+    "elapsed_ms": 2916.60000000149,
+    "depth": 0,
+    "nodes_sec": 397.037646574576,
+    "tt_hit_rate": 0.2945574162679426,
+    "moves": [
+      "H5",
+      "H5",
+      "H5"
+    ],
+    "timeouts": 0,
+    "score": -100000000,
+    "lag_p95_ms": 1.1000000014901161,
+    "workers": 1
+  },
+  {
+    "position": "wide-middle",
+    "mode": "fast",
+    "repeats": 3,
+    "requested_ms": 900,
+    "elapsed_ms": 893.8999999985099,
+    "depth": 1,
+    "nodes_sec": 36859.82772128306,
+    "tt_hit_rate": 0,
+    "moves": [
+      "L9",
+      "L9",
+      "L9"
+    ],
+    "timeouts": 1,
+    "score": 2793,
+    "lag_p95_ms": 1,
+    "workers": 1
+  },
+  {
+    "position": "wide-middle",
+    "mode": "compare",
+    "repeats": 3,
+    "requested_ms": 3000,
+    "elapsed_ms": 1508.3000000044703,
+    "depth": 2,
+    "nodes_sec": 28592.45508179552,
+    "tt_hit_rate": 0.2,
+    "moves": [
+      "L9",
+      "L9",
+      "L9"
+    ],
+    "timeouts": 0,
+    "score": 9999993,
+    "lag_p95_ms": 1,
+    "workers": 1
+  },
+  {
+    "position": "wide-middle",
+    "mode": "precise",
+    "repeats": 3,
+    "requested_ms": 7000,
+    "elapsed_ms": 1443.1000000014901,
+    "depth": 2,
+    "nodes_sec": 30201.649227326587,
+    "tt_hit_rate": 0.2,
+    "moves": [
+      "L9",
+      "L9",
+      "L9"
+    ],
+    "timeouts": 0,
+    "score": 9999993,
+    "lag_p95_ms": 1.3999999985098839,
+    "workers": 1
+  },
+  {
+    "position": "wide-middle",
+    "mode": "auto",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 13733.89999999851,
+    "depth": 6,
+    "nodes_sec": 2248.91686778542,
+    "tt_hit_rate": 0.025975295766385294,
+    "moves": [
+      "M9",
+      "M9",
+      "M9"
+    ],
+    "timeouts": 0,
+    "score": 99999994,
+    "lag_p95_ms": 1.2000000029802322,
+    "workers": 1
+  },
+  {
+    "position": "wide-middle",
+    "mode": "deep15",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 10363.5,
+    "depth": 5,
+    "nodes_sec": 2231.099532011386,
+    "tt_hit_rate": 0.026829481792717085,
+    "moves": [
+      "M9",
+      "M9",
+      "M9"
+    ],
+    "timeouts": 0,
+    "score": 99999994,
+    "lag_p95_ms": 1.1000000014901161,
+    "workers": 1
+  },
+  {
+    "position": "wide-middle",
+    "mode": "deep25",
+    "repeats": 3,
+    "requested_ms": 25000,
+    "elapsed_ms": 10623,
+    "depth": 5,
+    "nodes_sec": 2334.0663734503714,
+    "tt_hit_rate": 0.027109548482605477,
+    "moves": [
+      "M9",
+      "M9",
+      "M9"
+    ],
+    "timeouts": 0,
+    "score": 99999994,
+    "lag_p95_ms": 1.3999999985098839,
+    "workers": 1
+  },
+  {
+    "position": "complex-middle",
+    "mode": "fast",
+    "repeats": 3,
+    "requested_ms": 900,
+    "elapsed_ms": 119.60000000149012,
+    "depth": 3,
+    "nodes_sec": 17165.551839251013,
+    "tt_hit_rate": null,
+    "moves": [
+      "G6",
+      "G6",
+      "G6"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 0.6000000014901161,
+    "workers": 1
+  },
+  {
+    "position": "complex-middle",
+    "mode": "compare",
+    "repeats": 3,
+    "requested_ms": 3000,
+    "elapsed_ms": 127.5,
+    "depth": 3,
+    "nodes_sec": 16101.960784313726,
+    "tt_hit_rate": null,
+    "moves": [
+      "G6",
+      "G6",
+      "G6"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 1,
+    "workers": 1
+  },
+  {
+    "position": "complex-middle",
+    "mode": "precise",
+    "repeats": 3,
+    "requested_ms": 7000,
+    "elapsed_ms": 134,
+    "depth": 3,
+    "nodes_sec": 15320.89552238806,
+    "tt_hit_rate": null,
+    "moves": [
+      "G6",
+      "G6",
+      "G6"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 0.6000000014901161,
+    "workers": 1
+  },
+  {
+    "position": "complex-middle",
+    "mode": "auto",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 124.39999999850988,
+    "depth": 3,
+    "nodes_sec": 16503.215434281283,
+    "tt_hit_rate": null,
+    "moves": [
+      "G6",
+      "G6",
+      "G6"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 1,
+    "workers": 1
+  },
+  {
+    "position": "complex-middle",
+    "mode": "deep15",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 126.40000000596046,
+    "depth": 3,
+    "nodes_sec": 16242.088606829031,
+    "tt_hit_rate": null,
+    "moves": [
+      "G6",
+      "G6",
+      "G6"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 0.3999999985098839,
+    "workers": 1
+  },
+  {
+    "position": "complex-middle",
+    "mode": "deep25",
+    "repeats": 3,
+    "requested_ms": 25000,
+    "elapsed_ms": 138.60000000149012,
+    "depth": 3,
+    "nodes_sec": 14812.409812250562,
+    "tt_hit_rate": null,
+    "moves": [
+      "G6",
+      "G6",
+      "G6"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 0.8000000044703484,
+    "workers": 1
+  },
+  {
+    "position": "forbidden-defense",
+    "mode": "fast",
+    "repeats": 3,
+    "requested_ms": 900,
+    "elapsed_ms": 47.100000001490116,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "I5",
+      "I5",
+      "I5"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 0.3999999985098839,
+    "workers": 1
+  },
+  {
+    "position": "forbidden-defense",
+    "mode": "compare",
+    "repeats": 3,
+    "requested_ms": 3000,
+    "elapsed_ms": 46.70000000298023,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "I5",
+      "I5",
+      "I5"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 0.29999999701976776,
+    "workers": 1
+  },
+  {
+    "position": "forbidden-defense",
+    "mode": "precise",
+    "repeats": 3,
+    "requested_ms": 7000,
+    "elapsed_ms": 41.400000005960464,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "I5",
+      "I5",
+      "I5"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 0.29999999701976776,
+    "workers": 1
+  },
+  {
+    "position": "forbidden-defense",
+    "mode": "auto",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 53.79999999701977,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "I5",
+      "I5",
+      "I5"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 0,
+    "workers": 1
+  },
+  {
+    "position": "forbidden-defense",
+    "mode": "deep15",
+    "repeats": 3,
+    "requested_ms": 15000,
+    "elapsed_ms": 47.70000000298023,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "I5",
+      "I5",
+      "I5"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 0.29999999701976776,
+    "workers": 1
+  },
+  {
+    "position": "forbidden-defense",
+    "mode": "deep25",
+    "repeats": 3,
+    "requested_ms": 25000,
+    "elapsed_ms": 51.20000000298023,
+    "depth": 1,
+    "nodes_sec": 0,
+    "tt_hit_rate": null,
+    "moves": [
+      "I5",
+      "I5",
+      "I5"
+    ],
+    "timeouts": 0,
+    "score": -10000000,
+    "lag_p95_ms": 0.3999999985098839,
+    "workers": 1
+  }
+]
