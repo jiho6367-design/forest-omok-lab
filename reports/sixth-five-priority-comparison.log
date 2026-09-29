@@ -1,0 +1,175 @@
+{"round":1,"move":"E4","status":"UNRESOLVED","score":-1337,"depth":3,"reply":"E8","elapsed":929}
+{"round":1,"move":"F4","status":"UNRESOLVED","score":-1257,"depth":3,"reply":"E8","elapsed":916}
+{"round":1,"move":"G4","status":"UNRESOLVED","score":-1341,"depth":3,"reply":"E8","elapsed":918}
+{"round":1,"move":"H4","status":"UNRESOLVED","score":-1299,"depth":3,"reply":"E8","elapsed":915}
+{"round":1,"move":"I4","status":"UNRESOLVED","score":-1270,"depth":3,"reply":"I8","elapsed":912}
+{"round":1,"move":"E5","status":"UNRESOLVED","score":-1316,"depth":3,"reply":"E8","elapsed":913}
+{"round":1,"move":"F5","status":"UNRESOLVED","score":-1287,"depth":3,"reply":"E8","elapsed":913}
+{"round":1,"move":"G5","status":"UNRESOLVED","score":-1257,"depth":3,"reply":"E8","elapsed":910}
+{"round":1,"move":"H5","status":"UNRESOLVED","score":-1251,"depth":3,"reply":"I8","elapsed":917}
+{"round":1,"move":"I5","status":"UNRESOLVED","score":-946,"depth":3,"reply":"E8","elapsed":918}
+{"round":1,"move":"E6","status":"UNRESOLVED","score":-1341,"depth":3,"reply":"E8","elapsed":912}
+{"round":1,"move":"F6","status":"UNRESOLVED","score":-1257,"depth":3,"reply":"I8","elapsed":914}
+{"round":1,"move":"I6","status":"UNRESOLVED","score":-1259,"depth":3,"reply":"E8","elapsed":911}
+{"round":1,"move":"E7","status":"UNRESOLVED","score":-1337,"depth":3,"reply":"E8","elapsed":915}
+{"round":1,"move":"F7","status":"UNRESOLVED","score":-1171,"depth":3,"reply":"I8","elapsed":909}
+{"round":1,"move":"H7","status":"UNRESOLVED","score":-1225,"depth":3,"reply":"E8","elapsed":909}
+{"round":1,"move":"I7","status":"PROVEN_LOSS","score":-1236,"depth":3,"reply":"E8","elapsed":909}
+{"round":1,"move":"E8","status":"UNRESOLVED","score":-1022,"depth":3,"reply":"G9","elapsed":909}
+{"round":1,"move":"G8","status":"UNRESOLVED","score":-1009,"depth":3,"reply":"G9","elapsed":910}
+{"round":1,"move":"I8","status":"UNRESOLVED","score":-1256,"depth":3,"reply":"F7","elapsed":909}
+{"round":1,"move":"J4","status":"UNRESOLVED","score":-950,"depth":3,"reply":"E8","elapsed":916}
+{"round":1,"move":"J5","status":"UNRESOLVED","score":-1293,"depth":3,"reply":"E8","elapsed":909}
+{"round":1,"move":"J6","status":"UNRESOLVED","score":-1316,"depth":3,"reply":"E8","elapsed":913}
+{"round":1,"move":"J7","status":"UNRESOLVED","score":-1314,"depth":3,"reply":"E8","elapsed":913}
+{"round":1,"move":"J8","status":"UNRESOLVED","score":-1276,"depth":3,"reply":"E8","elapsed":919}
+{"round":1,"move":"E9","status":"UNRESOLVED","score":-1337,"depth":3,"reply":"E8","elapsed":910}
+{"round":1,"move":"F9","status":"UNRESOLVED","score":-1251,"depth":3,"reply":"I8","elapsed":912}
+{"round":1,"move":"G9","status":"UNRESOLVED","score":-946,"depth":3,"reply":"F7","elapsed":913}
+{"round":1,"move":"H9","status":"UNRESOLVED","score":-1322,"depth":3,"reply":"E8","elapsed":914}
+{"round":1,"move":"I9","status":"UNRESOLVED","score":-1337,"depth":3,"reply":"E8","elapsed":915}
+{"round":1,"move":"D6","status":"UNRESOLVED","score":-1339,"depth":3,"reply":"E8","elapsed":915}
+{"round":1,"move":"D7","status":"UNRESOLVED","score":-1341,"depth":3,"reply":"E8","elapsed":912}
+{"round":1,"move":"D8","status":"UNRESOLVED","score":-1274,"depth":3,"reply":"I8","elapsed":909}
+{"round":1,"move":"D9","status":"UNRESOLVED","score":-1270,"depth":3,"reply":"I8","elapsed":910}
+{"round":1,"move":"D10","status":"UNRESOLVED","score":-1341,"depth":3,"reply":"E8","elapsed":912}
+{"round":1,"move":"E10","status":"UNRESOLVED","score":-1272,"depth":3,"reply":"E8","elapsed":911}
+{"round":1,"move":"F10","status":"UNRESOLVED","score":-1287,"depth":3,"reply":"E8","elapsed":911}
+{"round":1,"move":"G10","status":"UNRESOLVED","score":-1190,"depth":3,"reply":"F10","elapsed":911}
+{"round":1,"move":"H10","status":"UNRESOLVED","score":-1333,"depth":3,"reply":"E8","elapsed":913}
+{"round":1,"move":"J9","status":"UNRESOLVED","score":-1331,"depth":3,"reply":"E8","elapsed":910}
+{"round":1,"move":"I10","status":"UNRESOLVED","score":-1316,"depth":3,"reply":"E8","elapsed":909}
+{"round":1,"move":"J10","status":"UNRESOLVED","score":-1335,"depth":3,"reply":"E8","elapsed":909}
+{"round":2,"move":"I5","status":"UNRESOLVED","score":-13,"depth":4,"reply":"F7","elapsed":6811}
+{"round":2,"move":"G9","status":"UNRESOLVED","score":-1355,"depth":5,"reply":"G8","elapsed":6810}
+{"round":2,"move":"J4","status":"UNRESOLVED","score":-42,"depth":4,"reply":"E8","elapsed":6816}
+{"round":2,"move":"G8","status":"UNRESOLVED","score":-80,"depth":4,"reply":"G9","elapsed":6812}
+{"round":2,"move":"E8","status":"UNRESOLVED","score":-193,"depth":4,"reply":"I8","elapsed":6810}
+{"round":3,"move":"I5","status":"UNRESOLVED","score":-522,"depth":5,"reply":"E8","elapsed":11022}
+{"round":3,"move":"J4","status":"UNRESOLVED","score":-188,"depth":6,"reply":"E8","elapsed":11021}
+{"round":3,"move":"G8","status":"UNRESOLVED","score":-474,"depth":5,"reply":"F7","elapsed":11035}
+{
+  "top3": [
+    {
+      "move": "J4",
+      "round": 3,
+      "budget_ms": 14500,
+      "elapsed_ms": 11021,
+      "status": "UNRESOLVED",
+      "known_proven_loss": false,
+      "evaluation": -188,
+      "completed_depth": 6,
+      "black_reply": "E8",
+      "pv": [
+        "E8",
+        "G8",
+        "F7",
+        "I5",
+        "K3",
+        "H5"
+      ],
+      "nodes": 25136,
+      "opponent_immediate_win": [],
+      "opponent_vcf": {
+        "found": false,
+        "complete": true,
+        "pv": []
+      },
+      "opponent_vct": {
+        "found": false,
+        "complete": true,
+        "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+        "attack": null
+      },
+      "own_threats": {
+        "open_threes": 0,
+        "fours": 0,
+        "winning_points": []
+      },
+      "mandatory_reply_count": 0,
+      "static_white_evaluation": 96,
+      "engine_proven_black": false,
+      "engine_loss_proven_black": false
+    },
+    {
+      "move": "G8",
+      "round": 3,
+      "budget_ms": 14500,
+      "elapsed_ms": 11035,
+      "status": "UNRESOLVED",
+      "known_proven_loss": false,
+      "evaluation": -474,
+      "completed_depth": 5,
+      "black_reply": "F7",
+      "pv": [
+        "F7",
+        "F9",
+        "H7",
+        "G9",
+        "F5"
+      ],
+      "nodes": 31346,
+      "opponent_immediate_win": [],
+      "opponent_vcf": {
+        "found": false,
+        "complete": true,
+        "pv": []
+      },
+      "opponent_vct": {
+        "found": false,
+        "complete": true,
+        "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+        "attack": null
+      },
+      "own_threats": {
+        "open_threes": 0,
+        "fours": 0,
+        "winning_points": []
+      },
+      "mandatory_reply_count": 0,
+      "static_white_evaluation": 78,
+      "engine_proven_black": false,
+      "engine_loss_proven_black": false
+    },
+    {
+      "move": "I5",
+      "round": 3,
+      "budget_ms": 14500,
+      "elapsed_ms": 11022,
+      "status": "UNRESOLVED",
+      "known_proven_loss": false,
+      "evaluation": -522,
+      "completed_depth": 5,
+      "black_reply": "E8",
+      "pv": [
+        "E8",
+        "G8",
+        "F7",
+        "H5",
+        "F9"
+      ],
+      "nodes": 26243,
+      "opponent_immediate_win": [],
+      "opponent_vcf": {
+        "found": false,
+        "complete": true,
+        "pv": []
+      },
+      "opponent_vct": {
+        "found": false,
+        "complete": true,
+        "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+        "attack": null
+      },
+      "own_threats": {
+        "open_threes": 0,
+        "fours": 0,
+        "winning_points": []
+      },
+      "mandatory_reply_count": 0,
+      "static_white_evaluation": 100,
+      "engine_proven_black": false,
+      "engine_loss_proven_black": false
+    }
+  ]
+}

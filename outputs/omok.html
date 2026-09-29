@@ -52,8 +52,8 @@
     }b[j]=0;
   }if(found&&++count>=2&&!explain)return count;}return explain?details:count;}
   const threes=(i,p)=>openThrees(i,p,false);
-  function moveInfo(i,p){if(!Number.isInteger(i)||i<0||i>=b.length||![1,2].includes(p))return {i,legal:false,reason:'invalid',threes:[]};if(b[i])return {i,legal:false,reason:'occupied',threes:[]};b[i]=p;let details,priority;try{priority=options.fivePriority===true&&exact(i,p);details=openThrees(i,p,true);}finally{b[i]=0;}const ok=priority||details.length<2;return {i,legal:ok,reason:ok?'legal':'double-three',threes:details};}
-  function legal(i,p){if(!Number.isInteger(i)||i<0||i>=b.length||![1,2].includes(p)||b[i])return false;b[i]=p;let ok=(options.fivePriority===true&&exact(i,p))||threes(i,p)<2;b[i]=0;return ok;}
+  function moveInfo(i,p){if(!Number.isInteger(i)||i<0||i>=b.length||![1,2].includes(p))return {i,legal:false,reason:'invalid',threes:[]};if(b[i])return {i,legal:false,reason:'occupied',threes:[]};b[i]=p;let details,priority;try{priority=exact(i,p);details=openThrees(i,p,true);}finally{b[i]=0;}const ok=priority||details.length<2;return {i,legal:ok,reason:ok?'legal':'double-three',threes:details};}
+  function legal(i,p){if(!Number.isInteger(i)||i<0||i>=b.length||![1,2].includes(p)||b[i])return false;b[i]=p;let ok=(exact(i,p))||threes(i,p)<2;b[i]=0;return ok;}
   function winMove(i,p){if(!legal(i,p))return false;b[i]=p;let yes=exact(i,p);b[i]=0;return yes;}
   function wins(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(let id=0;id<windows.length;id++){if(own[id]!==4||enemy[id])continue;const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;const empty=w.cells.find(i=>!b[i]);if(legal(empty,p))res.add(empty);}return [...res];}
   function forcingCandidates(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(let id=0;id<windows.length;id++){if(own[id]<3||enemy[id])continue;const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;for(const i of w.cells)if(!b[i])res.add(i);}return [...res].filter(i=>legal(i,p));}
@@ -232,12 +232,12 @@ function createForestEngine(options={}){
    if(t.length)threes.push(axis);if(f.length)fours.push(axis);details.push({axis,three:t,four:f});
   });return {threes,fours,details};
  }
- function inspect(b,i,p){if(!Number.isInteger(i)||i<0||i>=225||b[i])return {legal:false,reason:'이미 돌이 있거나 판 밖입니다',threes:[],fours:[],details:[],win:[]};b[i]=p;let w=win(b,i,p),s=shapes(b,i,p);b[i]=0;return {...s,win:w,legal:(options.fivePriority!==false&&!!w.length)||s.threes.length<2,reason:s.threes.length>=2?'3×3 금지 착수입니다':'',fork43:s.fours.some(a=>s.threes.some(c=>c!==a))};}
+ function inspect(b,i,p){if(!Number.isInteger(i)||i<0||i>=225||b[i])return {legal:false,reason:'이미 돌이 있거나 판 밖입니다',threes:[],fours:[],details:[],win:[]};b[i]=p;let w=win(b,i,p),s=shapes(b,i,p);b[i]=0;return {...s,win:w,legal:!!w.length||s.threes.length<2,reason:!w.length&&s.threes.length>=2?'3×3 금지 착수입니다':'',fork43:s.fours.some(a=>s.threes.some(c=>c!==a))};}
  function candidates(b){let s=new Set();for(let i=0;i<225;i++)if(b[i]){let x=i%15,y=i/15|0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(inside(x+dx,y+dy)&&!b[(y+dy)*15+x+dx])s.add((y+dy)*15+x+dx);}return s.size?[...s]:b.every(v=>!v)?[112]:[];}
  function positional(b,i,p){let score=0,x=i%15,y=i/15|0;b[i]=p;for(let d of D){let a=line(b,i,p,d),l=a[0],r=a[a.length-1],open=(at(b,l%15-d[0],(l/15|0)-d[1])===0?1:0)+(at(b,r%15+d[0],(r/15|0)+d[1])===0?1:0);score+=(a.length>=6?0:[0,2,25,150,1500,100000][a.length])*open;}b[i]=0;return score+14-Math.abs(x-7)-Math.abs(y-7);}
  function value(s){return s.win.length?1e8:s.fours.length>=2?7e5:s.fork43?4e5:s.fours.length?5e4:s.threes.length?2500:0;}
  function ranked(b,p){return candidates(b).map(i=>{let a=inspect(b,i,p),o=inspect(b,i,3-p);return {i,a,o,score:value(a)+(o.legal?value(o)*1.1:0)+positional(b,i,p)+positional(b,i,3-p)*.9};}).filter(m=>m.a.legal).sort((a,b)=>b.score-a.score||a.i-b.i);}
- function winning(b,p){let r=[];for(let i of candidates(b)){b[i]=p;if(win(b,i,p).length&&(options.fivePriority!==false||shapes(b,i,p).threes.length<2))r.push(i);b[i]=0;}return r;}
+ function winning(b,p){let r=[];for(let i of candidates(b)){b[i]=p;if(win(b,i,p).length)r.push(i);b[i]=0;}return r;}
  const coord=i=>String.fromCharCode(65+i%15)+(1+(i/15|0));
  function transformed(i,t){let x=i%15,y=i/15|0;if(t>=4)x=14-x;for(let k=0;k<t%4;k++)[x,y]=[14-y,x];return y*15+x;}
  function canonical(b,p){let best=null,tr=0;for(let t=0;t<8;t++){let a=Array(225).fill('0');for(let i=0;i<225;i++)a[transformed(i,t)]=b[i]?(b[i]===p?'1':'2'):'0';let s=a.join('');if(best===null||s<best){best=s;tr=t;}}return {key:best,t:tr};}
@@ -345,7 +345,9 @@ function createForestEngine(options={}){
  // Verified by exhaustive legal replies under the symmetric double-three rule.
  // This is a losing-move exclusion in new games, not a winning-book move.
  function knownRefutations(board,p){
-  if(options.fivePriority!==false)return [];
+  // Only certificates reverified under exact-five priority may exclude moves.
+  // Evidence: five-priority-revalidation.json and five-priority-certificate-regression.log.
+  const validatedUnderFivePriority=new Set(['I7','H5','F6','F10','C6','C8','G9','G11']);
   const count=board.filter(Boolean).length;if(count!==5&&count!==9&&count!==11&&count!==15&&count!==17&&count!==19)return [];
   // Entries must have independent all-defense certificates, not just a
   // principal variation or a timeout. F10 uses the verified D7 tree, not
@@ -361,6 +363,7 @@ function createForestEngine(options={}){
    {prefix:'H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9 F10 F5 F6 D7 G10 E6 C8 E7',bad:'G11',attack:'G9'} // g11-move20-loss-certificate.json
   ],index=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65,current=canonical(board,p),matches=[];
   for(const spec of specs){
+   if(!validatedUnderFivePriority.has(spec.bad))continue;
    const moves=spec.prefix.split(' ');if(moves.length!==count)continue;
    const ref=Array(225).fill(0);moves.forEach((c,k)=>{ref[index(c)]=k%2?2:1;});
    const source=canonical(ref,2);if(source.key!==current.key)continue;
@@ -379,7 +382,7 @@ function createForestEngine(options={}){
  function analyze(board,p,budget=1000,lessons=[]){
   let immediate=urgent(board,p);if(immediate)return immediate;
   const certified=certifiedLoss(board,p);if(certified)return certified;
-  const pattern=patternDefense(board,p);if(pattern)return pattern;
+  // Historical pattern hints do not bypass bounded candidate comparison.
   let b=board.slice(),start=Date.now(),totalDeadline=start+budget,deadline=start+budget*(budget>=12000?.72:1),nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),counterGuard=b.filter(Boolean).length<=40;
   const check=()=>{nodes++;if(Date.now()>=deadline)throw TIME;};
   const timedProof=(q,ms)=>{let r=forcing(b,q,limits.forcing,Math.max(1,Math.min(ms,deadline-Date.now())),proofCache);nodes+=r.nodes;return r;};
@@ -415,6 +418,7 @@ function createForestEngine(options={}){
   }
   let safe=checked.filter(m=>m.screened&&!m.lossProof&&!m.replyTrap&&!m.counterThreat),undecided=[...checked.filter(m=>!m.screened&&!m.lossProof&&!m.replyTrap&&!m.counterThreat),...unknown],risky=checked.filter(m=>m.counterThreat&&!m.lossProof&&!m.replyTrap),losing=checked.filter(m=>m.lossProof||m.replyTrap);
   // 증명된 패배 수는 평가점수나 기억 보너스로 다시 추천하지 않는다.
+  // Unproved candidates remain available; prefer completed tactical checks.
   let options=safe.length?safe:undecided.length?undecided:risky.length?risky:losing;
   let lossProven=!safe.length&&!undecided.length&&!risky.length&&losing.length===roots.length;
   options.sort((a,c)=>(c.score-(bad.includes(c.i)?12000:0))-(a.score-(bad.includes(a.i)?12000:0)));
@@ -461,11 +465,12 @@ function createForestEngine(options={}){
 // Both engines use the same board indices. Coordinates are a UI concern:
 // index 0 is A1; never reinterpret the numeric records imported from Forest.
 function createEngine(options={}) {
-  const rules={fivePriority:options.fivePriority!==false};
+  // Exact five takes precedence even when loading a legacy strict-rule setting.
+  const rules={fivePriority:true};
   const forest=createForestEngine(rules);
   const fast=b=>createReaderEngine(15,b,rules);
   const inspect=(b,i,p)=>![1,2].includes(p)?{legal:false,reason:'돌 색 오류',threes:[],fours:[],win:[]}:forest.inspect(b,i,p);
-  function configure(next={}) { rules.fivePriority=next.fivePriority!==false; }
+  function configure(next={}) { rules.fivePriority=true; }
   function validPV(board,p,pv) {
     const copy=board.slice(),out=[];
     for(const i of pv||[]){const s=inspect(copy,i,p);if(!s.legal)break;out.push(i);copy[i]=p;if(s.win.length)break;p=3-p;}
@@ -501,13 +506,13 @@ function createEngine(options={}) {
     const reason=cap>8000?`위협이 얽힌 국면 · 심층 방어 최대 ${cap/1000}초`:`최대 ${cap/1000}초 · 후보 안정 시 조기 종료`;
     return {ms:Math.max(30,Math.min(cap,remaining-3000)),automatic:true,reason};
   }
-  function analyze(board,p,budget='auto',lessons=[],progress=()=>{}) {
+  function analyzeCore(board,p,budget='auto',lessons=[],progress=()=>{}) {
     lessons=lessons.filter(l=>(l.rules?.fivePriority!==false)===rules.fivePriority);
     const started=Date.now(),automatic=budget==='auto'||budget?.automatic===true;
     const limit=automatic?(budget?.ms||8000):Math.max(30,Number(budget)||1000);
     const immediate=urgent(board,p);if(immediate)return immediate;
     const certified=forest.certifiedLoss(board,p);if(certified)return certified;
-    const pattern=forest.patternDefense(board,p);if(pattern)return {...pattern,automatic,autoReason:'새 게임에도 적용되는 대칭 패턴 방어',ms:Date.now()-started};
+    // A historical pattern is a hint, not a proof or a replacement for comparison.
     const deep=limit>8000;
     const e=fast(board);
     const ensureLegalCandidate=result=>{
@@ -525,7 +530,7 @@ function createEngine(options={}) {
       const i=choose(pool.filter(j=>!rejected.has(j)))??
         choose(pool.filter(j=>!provenRejected.has(j)))??choose(pool);
       if(i==null)return result;
-      return {...result,i,pv:[i],shape:inspect(board,i,p),fallback:true,
+      return {...result,i,score:rank(i),depth:0,proven:false,pv:[i],shape:inspect(board,i,p),fallback:true,
         unverifiedDefense:!result.lossProven,
         reason:result.lossProven?'강제패배 확인 · 합법적인 저항 수':
           '방어가 증명된 수 없음 · 합법 후보 표시 (안전 미확인)'};
@@ -536,11 +541,13 @@ function createEngine(options={}) {
     if(known.length){
       best.rejected=[...(best.rejected||[]),...known.map(m=>({...m,verifiedRefutation:true}))];
       if(knownBad.has(best.i)){
-        const alternative=(best.candidates||[]).map(m=>m.i).find(i=>!knownBad.has(i)&&inspect(board,i,p).legal)??
-          forest.candidates(board).find(i=>!knownBad.has(i)&&inspect(board,i,p).legal);
-        if(alternative!=null)best={...best,i:alternative,pv:[alternative],shape:inspect(board,alternative,p),
+        const compared=(best.candidates||[]).filter(m=>!knownBad.has(m.i)&&inspect(board,m.i,p).legal).sort((a,b)=>b.score-a.score);
+        const fallback=forest.candidates(board).filter(i=>!knownBad.has(i)&&inspect(board,i,p).legal).map(i=>{const after=board.slice();after[i]=p;return {i,score:forest.evaluate(after,p),pv:[i]};}).sort((a,b)=>b.score-a.score);
+        const alternative=compared[0]||fallback[0];
+        if(alternative)best={...best,i:alternative.i,score:alternative.score,depth:compared.length?best.depth:0,pv:alternative.pv||[alternative.i],shape:inspect(board,alternative.i,p),
           proven:false,reason:'검증된 강제패배 수 제외 · 대안의 승리·안전은 미증명',unverifiedDefense:true};
       }
+      best.candidates=(best.candidates||[]).filter(m=>!knownBad.has(m.i));
       if(!best.proven)best.reason=`${forest.coord(known[0].i)} 강제패배 수 제외 · `+best.reason;
     }
       return best;
@@ -564,7 +571,7 @@ function createEngine(options={}) {
     }
     if(counterRisk.has(best.i)){
       const alternative=best.candidates.find(m=>!counterRisk.has(m.i)&&inspect(board,m.i,p).legal);
-      if(alternative)best={...best,i:alternative.i,pv:alternative.pv,shape:inspect(board,alternative.i,p),
+      if(alternative)best={...best,i:alternative.i,score:alternative.score,pv:alternative.pv,shape:inspect(board,alternative.i,p),
         reason:'상대가 강제 방어한 뒤의 반격 위험 제외 · 대안 추가 검증',unverifiedDefense:true};
     }
     // A quiet counterattack can refute a forced-looking defensive move even
@@ -583,7 +590,7 @@ function createEngine(options={}) {
       }
       if(refuted.has(best.i)){
         const alternative=best.candidates.find(m=>!refuted.has(m.i)&&!counterRisk.has(m.i)&&inspect(board,m.i,p).legal);
-        if(alternative)best={...best,i:alternative.i,pv:alternative.pv,shape:inspect(board,alternative.i,p),
+        if(alternative)best={...best,i:alternative.i,score:alternative.score,pv:alternative.pv,shape:inspect(board,alternative.i,p),
           reason:'강제패배 후보 제외 · 대안 추가 검증',unverifiedDefense:true};
       }
     }
@@ -595,13 +602,15 @@ function createEngine(options={}) {
       });
       if(risky){
         const after=board.slice();after[risky.i]=p;
-        const trap=forest.forcedReplyTrap(after,p,Math.min(18000,limit-(Date.now()-started)-2000),null,19,true);
-        if(trap.proof||!trap.complete){
+        const trap=forest.forcedReplyTrap(after,p,Math.min(500,limit-(Date.now()-started)-2000),null,19,true);
+        // Incomplete verification is not a refutation. Keep the evaluated move.
+        if(trap.proof){
           refuted.add(risky.i);
           const rejected={i:risky.i,reason:trap.proof?'강제 방어 뒤 상대 승리 수순 확인':'강제 방어 뒤 응수 검사 미완료',replyTrap:trap.proof||null};
           const alternative=best.candidates.find(m=>m.i!==risky.i&&!counterRisk.has(m.i)&&inspect(board,m.i,p).legal&&
             !inspect(board,m.i,p).fours.length);
           best={...best,i:best.i===risky.i?(alternative?.i??best.i):best.i,
+            score:best.i===risky.i&&alternative?alternative.score:best.score,
             pv:best.i===risky.i?(alternative?.pv||[best.i]):best.pv,
             shape:best.i===risky.i&&alternative?inspect(board,alternative.i,p):best.shape,
             reason:alternative?'위험 후보 제외 · 대안 추가 검증':'현재 후보의 방어 미증명 · 대안 추가 검증',
@@ -610,7 +619,7 @@ function createEngine(options={}) {
       }
     }
     progress({...best,reason:best.reason+' · 심층 위협 검사 중'});
-    const remaining=limit-(Date.now()-started);
+    const remaining=limit-(Date.now()-started)-Math.min(400,limit*.04);
     if(remaining>50){
       const extended=forest.analyze(board,p,remaining,lessons);
       if(extended.i!=null&&inspect(board,extended.i,p).legal&&!refuted.has(extended.i)&&(!counterRisk.has(extended.i)||extended.proven)){
@@ -618,7 +627,7 @@ function createEngine(options={}) {
           if(i==null)return null;
           const shape=inspect(board,i,p);if(!shape.legal||shape.win.length)return null;
           const after=board.slice();after[i]=p;
-          const proof=fast(after).forcingWin(3-p,13,Math.max(100,Math.min(500,limit*.04)));
+          const proof=fast(after).forcingWin(3-p,13,Math.max(1,Math.min(200,limit-(Date.now()-started))));
           return proof?validPV(after,3-p,proof):null;
         };
         const deepProof=opponentProof(extended.i),fastProof=opponentProof(best.i);
@@ -658,6 +667,12 @@ function createEngine(options={}) {
       best.reason=`${forest.coord(known[0].i)} 강제패배 수 제외 · `+best.reason+' · 대안의 전체 승리는 미증명';
     best.ms=Date.now()-started;
     return ensureLegalCandidate(best);
+  }
+  function analyze(board,p,budget='auto',lessons=[],progress=()=>{}) {
+    const describe=r=>({...r,
+      proofStatus:r.kind==='terminal'?'TERMINAL':r.proven?'PROVEN_WIN':r.lossProven?'PROVEN_LOSS':'UNRESOLVED',
+      unverifiedDefense:r.kind!=='terminal'&&!r.proven&&!r.lossProven});
+    return describe(analyzeCore(board,p,budget,lessons,r=>progress(describe(r))));
   }
   function assessMove(board,p,i) {
     if(!inspect(board,i,p).legal)return {mustWarn:false};

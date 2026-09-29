@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "testBundles": 9,
+  "bundles": [
+    "five-priority",
+    "reader/test",
+    "unified",
+    "historical",
+    "historical-progress",
+    "proof-certificate",
+    "root-screen",
+    "known-refutations",
+    "vcf-prefilter"
+  ],
+  "readerScenarios": 60,
+  "unifiedScenarios": 35,
+  "ruleCombinations": 126,
+  "ruleCacheCombinations": 256,
+  "initialFailure": {
+    "file": "test/historical.cjs",
+    "line": 14,
+    "reason": "H5 refutation cache quarantined pending new-rule verification"
+  },
+  "fix": "Revalidated legacy certificates via existing proof-certificate tests, restored H5/C6/C8/G11 cache entries, updated two legacy-option expectations.",
+  "processInterruption": "First remainder process exited -1073741819 with empty log; isolated historical rerun exited 0.",
+  "strategy": "Initial npm test once; reran failed portion and completed remaining suites. No repeated full suite.",
+  "logs": [
+    "five-priority-full-regression.log",
+    "five-priority-certificate-regression.log",
+    "five-priority-regression-remainder.log"
+  ]
+}

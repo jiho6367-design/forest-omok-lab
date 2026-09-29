@@ -1,0 +1,26 @@
+PASS 25-second comparison avoids I5 without claiming an unproved rejection or safe defense
+PASS new-game search catches the forced-block counterattack in the 15-ply green loss
+node:assert:152
+  throw new AssertionError(obj);
+  ^
+
+AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: 84
+    at C:\Users\HP\Documents\Codex\forest-omok-unified\test\unified.cjs:192:10
+    at test (C:\Users\HP\Documents\Codex\forest-omok-unified\test\unified.cjs:5:73)
+    at Object.<anonymous> (C:\Users\HP\Documents\Codex\forest-omok-unified\test\unified.cjs:182:1)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 84,
+  expected: 84,
+  operator: 'notStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.12.0

@@ -1,0 +1,62 @@
+PASS exact five wins
+PASS six is legal but not winning
+PASS cross double three forbidden for both colors
+PASS broken double three forbidden
+PASS edge blocked three allowed
+PASS double four allowed
+PASS one direction is not double three
+PASS immediate win priority
+PASS forced defense
+PASS two immediate threats retain warning and legal fallback moves
+PASS timeout keeps board intact
+PASS empty and 19 board return center
+PASS user screenshot before I5 has TWO threats and no black win
+PASS blocking either screenshot threat leaves the other
+PASS completed screenshot is terminal, no recommendation
+PASS confirmed white I6 is a legal double four
+PASS open three yields proven forcing four
+PASS fork-producing opponent move is prevented
+PASS immediate win is preferred to defense
+PASS multi-step forcing-four proof survives every legal defense
+PASS all 95 recorded moves are legal with no premature five
+PASS I4 double three is explained with two geometric witnesses
+PASS 95-ply defense I4 is forbidden, not a winning recommendation
+PASS 94 H5 creates the forbidden defense, I4 is legal BEFORE H5
+PASS 94-ply recommendation excludes H5 and passes final line validation
+PASS exact-five overline logic remains separate from open-three geometry
+PASS double three remains forbidden under all eight board symmetries
+PASS rejected recommendation cannot pass final guard
+PASS record import rejects missing, duplicate, invalid or forbidden moves atomically
+PASS 47-ply game is legal and first ends at white F4
+PASS white J4 creates F4 and K4 double winning endpoints
+PASS white forcing attack after black J3 survives every legal defense
+PASS 39-ply position screens ALL legal points and rejects J3 forcing loss
+PASS 37-ply position includes forced-block counterattack traps
+PASS 41-ply forced defense is not sold as a safe recommendation
+PASS opponent forcing checks preserve immediate winning priority
+PASS forcing-screen timeout never corrupts the position or returns illegal PV
+PASS 33-ply record is legal and has no completed five yet
+PASS 33 J6 leaves exact-five endpoints I5 and N10; neither single block saves black
+PASS 31 K7 forces K6 but that defense still loses
+PASS quiet L9 attack after ply28 refutes every legal defense
+PASS ply27 rejects I11 after proving the quiet L9 attack
+PASS quiet threat timeout preserves board and never invents proof
+PASS 31-ply black-first record wins at F11 only on final move
+PASS 24 L14 no longer suppresses all moves; legal G6 remains playable
+PASS every nonterminal turn in winning record offers legal moves even at short budget
+PASS early progress provides a usable candidate when analysis is cancelled
+PASS after actual G6 G10 continuation engine resumes defense and winning attack
+PASS 29-ply record is legal and ends with white diagonal five
+PASS mandatory defense never lists irrelevant fallback alternatives
+PASS 27 J5 exposes both exact-five threats and keeps only legal endpoint fallbacks
+PASS forbidden mandatory block never leaks into fallback candidates
+PASS 48-ply game is legal, black first, ends at white G4
+PASS 46 G5 has two winning ends that cannot both be blocked
+PASS expensive 28-ply safety screen reserves time for real comparison
+PASS 34-ply interrupted screening retains unexplored moves without claiming proven loss
+PASS automatic stable stop requires depth, repeated best, score stability and completed screening
+PASS automatic immediate win and forced defense finish without long search
+PASS automatic opening and terminal positions return immediately
+AUTO timing: 8045 ms; depth 4 ; 8초 상한 도달 · 완료된 비교 결과
+PASS automatic complex position preserves legal moves and stops at bounded time
+60 engine scenarios and HTML scripts passed

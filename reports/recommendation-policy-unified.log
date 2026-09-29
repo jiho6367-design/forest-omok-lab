@@ -1,0 +1,44 @@
+PASS exact-five priority overrides legacy options in both engines
+PASS both colors reject broken double threes and permit six without a win
+PASS rule implementations agree across deterministic random boards
+PASS all Reader fixtures retain coordinates, legality and terminal status
+PASS Forest example records retain original priority-five rules
+PASS forced defense is instant and lost positions retain legal endpoints
+PASS a forbidden mandatory block is never a recommendation
+PASS short search streams legal fallback before completion and preserves input
+PASS terminal states do not show fallback moves
+PASS adaptive budget respects remaining turn time
+PASS opponent prediction stays at one second while my analysis uses the selected time
+Deep duration 8458 ms
+PASS deep mode retains a move and validates its returned PV
+PASS text import validates order, pass, occupied and forbidden positions atomically
+PASS copied text record identifies my stone and move order
+PASS single-file build embeds scripts and images without external dependencies
+PASS 80-ply green record is legal and yellow has the verified M6 forcing line
+node:assert:152
+  throw new AssertionError(obj);
+  ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+214 !== 154
+
+    at C:\Users\HP\Documents\Codex\forest-omok-unified\test\unified.cjs:96:10
+    at test (C:\Users\HP\Documents\Codex\forest-omok-unified\test\unified.cjs:5:73)
+    at Object.<anonymous> (C:\Users\HP\Documents\Codex\forest-omok-unified\test\unified.cjs:92:1)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 214,
+  expected: 154,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.12.0

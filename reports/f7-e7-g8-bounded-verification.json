@@ -1,0 +1,184 @@
+{
+  "prefix": "H8 G7 G6 H6 F8 F7",
+  "rules": {
+    "fivePriority": false
+  },
+  "started": "2026-09-28T15:02:19.322Z",
+  "branches": [
+    {
+      "root": "E7",
+      "spec": {
+        "prefix": "H8 G7 G6 H6 F8 F7",
+        "rules": {
+          "fivePriority": false
+        },
+        "attacker": 1,
+        "roots": [
+          "E7"
+        ],
+        "quietDepth": 2,
+        "extensions": 8,
+        "forcedDefenseExtensions": true,
+        "threeExtensions": true,
+        "retryIncompleteVcf": true,
+        "counterVcfPruning": true
+      },
+      "status": "UNRESOLVED",
+      "runs": 18,
+      "verification": [],
+      "search": {
+        "done": false,
+        "proof": null,
+        "searchComplete": false,
+        "elapsed_ms": 24809,
+        "stats": {
+          "nodes": 69573,
+          "defenses": 69572,
+          "cacheHits": 3018,
+          "vcfChecks": 66568,
+          "vcfRetries": 0,
+          "vcfIncomplete": 0,
+          "forcingExtensions": 6055,
+          "defenseExtensions": 1040,
+          "threeExtensions": 3264,
+          "immediatePrunes": 15182,
+          "counterVcfChecks": 12567,
+          "counterVcfPrunes": 4623,
+          "counterVcfIncomplete": 1489,
+          "certifiedPrunes": 0,
+          "slices": 18
+        },
+        "rootChecks": [],
+        "incompleteVcf": [],
+        "activeLine": [
+          "E7",
+          "G8",
+          "G9",
+          "H10",
+          "D6",
+          "C5",
+          "I7",
+          "J6",
+          "I8",
+          "E11",
+          "I6",
+          "I9",
+          "I5",
+          "I4",
+          "F5",
+          "E4",
+          "H5",
+          "E5",
+          "J7",
+          "G10"
+        ],
+        "scope": {
+          "prefix": "H8 G7 G6 H6 F8 F7",
+          "attacker": 1,
+          "quietDepth": 2,
+          "extensions": 8,
+          "forcedDefenseExtensions": true,
+          "threeExtensions": true,
+          "retryIncompleteVcf": true,
+          "forcingHints": false,
+          "counterVcfPruning": true,
+          "horizonPruning": true,
+          "roots": [
+            "E7"
+          ],
+          "vcfDepth": 25
+        }
+      },
+      "elapsed_ms": 450001,
+      "finished": "2026-09-28T15:09:49.339Z"
+    },
+    {
+      "root": "G8",
+      "spec": {
+        "prefix": "H8 G7 G6 H6 F8 F7",
+        "rules": {
+          "fivePriority": false
+        },
+        "attacker": 1,
+        "roots": [
+          "G8"
+        ],
+        "quietDepth": 2,
+        "extensions": 8,
+        "forcedDefenseExtensions": true,
+        "threeExtensions": true,
+        "retryIncompleteVcf": true,
+        "counterVcfPruning": true
+      },
+      "status": "UNRESOLVED",
+      "runs": 18,
+      "verification": [],
+      "search": {
+        "done": false,
+        "proof": null,
+        "searchComplete": false,
+        "elapsed_ms": 24888,
+        "stats": {
+          "nodes": 16052,
+          "defenses": 16051,
+          "cacheHits": 520,
+          "vcfChecks": 15533,
+          "vcfRetries": 0,
+          "vcfIncomplete": 0,
+          "forcingExtensions": 1639,
+          "defenseExtensions": 1512,
+          "threeExtensions": 221,
+          "immediatePrunes": 261011,
+          "counterVcfChecks": 34432,
+          "counterVcfPrunes": 24308,
+          "counterVcfIncomplete": 5527,
+          "certifiedPrunes": 0,
+          "slices": 18
+        },
+        "rootChecks": [],
+        "incompleteVcf": [],
+        "activeLine": [
+          "G8",
+          "E8",
+          "I8",
+          "J8",
+          "H7",
+          "F5",
+          "K10",
+          "J9",
+          "I6",
+          "J5",
+          "J7",
+          "F9",
+          "I7",
+          "I5",
+          "H5",
+          "K8",
+          "I10",
+          "I9",
+          "J3"
+        ],
+        "scope": {
+          "prefix": "H8 G7 G6 H6 F8 F7",
+          "attacker": 1,
+          "quietDepth": 2,
+          "extensions": 8,
+          "forcedDefenseExtensions": true,
+          "threeExtensions": true,
+          "retryIncompleteVcf": true,
+          "forcingHints": false,
+          "counterVcfPruning": true,
+          "horizonPruning": true,
+          "roots": [
+            "G8"
+          ],
+          "vcfDepth": 25
+        }
+      },
+      "elapsed_ms": 450001,
+      "finished": "2026-09-28T15:17:19.341Z"
+    }
+  ],
+  "note": "Unproved or incomplete search does not establish a defense. No engine code changes.",
+  "finished": "2026-09-28T15:17:19.343Z"
+}

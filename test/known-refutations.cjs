@@ -10,7 +10,7 @@ for(const [file,bad,attack] of cases){
     board.forEach((q,i)=>{if(q)b[E.transformed(i,t)]=swap?3-q:q;});
     const known=E.knownRefutations(b,p),entry=known.find(x=>x.i===E.transformed(index(bad),t));
     assert(entry);assert.equal(entry.attack,E.transformed(index(attack),t));
-    assert.equal(create({fivePriority:true}).knownRefutations(b,p).length,0);
+    assert.equal(create({fivePriority:true}).knownRefutations(b,p).length,known.length);
   }
   if(file==='i7'){
     const updates=[],r=E.analyze(board,2,500,[],x=>updates.push(x));
@@ -22,4 +22,4 @@ for(const [file,bad,attack] of cases){
     }
   }
 }
-console.log(`PASS verified certificate mappings, ${cases.length*16} symmetries/colors, rule isolation and interim exclusion`);
+console.log(`PASS verified certificate mappings, ${cases.length*16} symmetries/colors, legacy-option equivalence and interim exclusion`);

@@ -1,0 +1,38 @@
+PASS 30-ply green record is not lost and automatic analysis proves C8 wins
+PASS UI allows provisional moves but warns before leaving a proven win
+PASS 19-ply yellow loss is identified and ends with green exact five
+PASS deep safety guard rejects yellow H11, retains G5 resistance and keeps loss verdict
+PASS 27-ply yellow record is terminal and H7 breaks the recorded diagonal trap at ply 14
+PASS 31-ply yellow record retains D9 as an unproven pattern hint
+PASS D9 pattern hint preserves board symmetry and color swap
+PASS 26-ply record is green to move with a forcing win, and H7 prevents the recorded setup at ply 6
+PASS H7 early-defense pattern applies in new games under symmetry and color swap
+PASS 13-ply green loss is detected, and G11 remains an unproven pattern hint
+PASS G11 early defense applies to rotated, reflected and color-swapped new games
+node:internal/assert/utils:77
+    throw err;
+    ^
+
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert(r.unverifiedDefense)
+
+    at C:\Users\HP\Documents\Codex\forest-omok-unified\test\unified.cjs:167:75
+    at test (C:\Users\HP\Documents\Codex\forest-omok-unified\test\unified.cjs:5:73)
+    at Object.<anonymous> (C:\Users\HP\Documents\Codex\forest-omok-unified\test\unified.cjs:164:1)
+    at Module._compile (node:internal/modules/cjs/loader:1761:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1481:32)
+    at Module._load (node:internal/modules/cjs/loader:1300:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.12.0

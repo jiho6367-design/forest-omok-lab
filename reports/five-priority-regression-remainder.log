@@ -1,0 +1,9 @@
+PASS historical.cjs (isolated rerun exit 0 after process interruption)
+PASS completed-candidate snapshots, stalled-worker fallback, final message, hard timer
+EXIT historical-progress 0
+PASS exhaustive later roots, complete partition, timeout does not certify survivors
+EXIT root-screen 0
+PASS verified certificate mappings, 128 symmetries/colors, legacy-option equivalence and interim exclusion
+EXIT known-refutations 0
+PASS VCF prefilter: 96 certified skips, 6 preserved wins, both rule modes/colors
+EXIT vcf-prefilter 0

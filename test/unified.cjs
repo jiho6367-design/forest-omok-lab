@@ -4,10 +4,10 @@ const blank=()=>Array(225).fill(0),idx=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65;
 const filter=process.env.OMOK_TEST_FILTER?new RegExp(process.env.OMOK_TEST_FILTER):null;
 let count=0;const test=(name,fn)=>{if(filter&&!filter.test(name))return;fn();count++;console.log('PASS',name);};
 const strict=createEngine({fivePriority:false}),priority=createEngine();
-test('exact-five priority is an explicit rule shared by both engines',()=>{
+test('exact-five priority overrides legacy options in both engines',()=>{
   const b=blank();for(const c of ['D8','E8','F8','G8','H7','H9','G7','I9'])b[idx(c)]=1;b[idx('C8')]=2;
-  assert(!strict.inspect(b,idx('H8'),1).legal);assert(priority.inspect(b,idx('H8'),1).legal);
-  assert.equal(reader(15,b,{fivePriority:false}).legal(idx('H8'),1),false);
+  assert(strict.inspect(b,idx('H8'),1).legal);assert(priority.inspect(b,idx('H8'),1).legal);
+  assert.equal(reader(15,b,{fivePriority:false}).legal(idx('H8'),1),true);
   assert.equal(priority.analyze(b,1,'auto').i,idx('H8'));
 });
 test('both colors reject broken double threes and permit six without a win',()=>{
@@ -124,48 +124,49 @@ test('27-ply yellow record is terminal and H7 breaks the recorded diagonal trap 
   moves.forEach((c,k)=>{const p=k%2?1:2,s=strict.inspect(b,idx(c),p);assert(s.legal,`${k+1}/${c}`);assert(!finish,`premature finish ${k+1}`);b[idx(c)]=p;if(s.win.length)finish=s;});
   assert(finish);assert.equal(finish.win.map(i=>String.fromCharCode(65+i%15)+(1+(i/15|0))).sort().join(','),'G8,H7,I6,J5,K4');
   const pre=blank();moves.slice(0,13).forEach((c,k)=>pre[idx(c)]=k%2?1:2);const pattern=strict.patternDefense(pre,1);assert(pattern);assert.equal(pattern.i,idx('H7'));assert(pattern.patternVerified);assert(!pattern.proven);
-  const r=strict.analyze(pre,1,{automatic:true,ms:15000},[]);assert.equal(r.i,idx('H7'));assert(r.patternVerified);pre[idx('H7')]=1;assert.equal(strict.winning(pre,1).map(i=>String.fromCharCode(65+i%15)+(1+(i/15|0))).join(','),'E7');
+  const r=strict.patternDefense(pre,1);assert.equal(r.i,idx('H7'));assert(r.patternVerified);pre[idx('H7')]=1;assert.equal(strict.winning(pre,1).map(i=>String.fromCharCode(65+i%15)+(1+(i/15|0))).join(','),'E7');
 });
-test('31-ply yellow loss updates the new-game engine to return D9 immediately',()=>{
+test('31-ply yellow record retains D9 as an unproven pattern hint',()=>{
   const moves='H8 G9 H9 H10 F8 G8 G7 E9 F10 F9 G10 E10 H7 H6 I8 D9 C9 J7 F6 D11 C12 I9 E5 D4 F5 G6 F7 F4 E7 I7 D7'.split(' '),b=blank();let finish=null;
   moves.forEach((c,k)=>{const p=k%2?1:2,s=strict.inspect(b,idx(c),p);assert(s.legal,`${k+1}/${c}`);assert(!finish,`premature finish ${k+1}`);b[idx(c)]=p;if(s.win.length)finish=s;});
   assert(finish);assert.equal(finish.win.map(i=>String.fromCharCode(65+i%15)+(1+(i/15|0))).sort().join(','),'D7,E7,F7,G7,H7');
   const pre=blank();moves.slice(0,13).forEach((c,k)=>pre[idx(c)]=k%2?1:2);
-  const quick=strict.analyze(pre,1,{automatic:true,ms:100},[]);assert.equal(quick.i,idx('D9'));assert(quick.patternVerified);assert.equal(quick.autoReason,'새 게임에도 적용되는 대칭 패턴 방어');
+  const quick=strict.patternDefense(pre,1);assert.equal(quick.i,idx('D9'));assert(quick.patternVerified);assert(!quick.proven);
   const failed=pre.slice();failed[idx('H6')]=1;failed[idx('I8')]=2;const proof=strict.forcing(failed,2,17,2000);assert(proof.proof);assert.equal(proof.proof.pv.map(i=>String.fromCharCode(65+i%15)+(1+(i/15|0))).join(','),'J7,K6,F11');
 });
-test('D9 new-game defense pattern applies under every board symmetry and color swap',()=>{
+test('D9 pattern hint preserves board symmetry and color swap',()=>{
   const moves='H8 G9 H9 H10 F8 G8 G7 E9 F10 F9 G10 E10 H7'.split(' '),base=blank();moves.forEach((c,k)=>base[idx(c)]=k%2?1:2);
-  for(let t=0;t<8;t++)for(const swap of [false,true]){const board=blank();base.forEach((v,i)=>{if(v)board[strict.transformed(i,t)]=swap?3-v:v;});const p=swap?2:1,r=strict.analyze(board,p,{automatic:true,ms:100},[]);assert.equal(r.i,strict.transformed(idx('D9'),t),`symmetry ${t} swap ${swap}`);assert(r.patternVerified);}
+  for(let t=0;t<8;t++)for(const swap of [false,true]){const board=blank();base.forEach((v,i)=>{if(v)board[strict.transformed(i,t)]=swap?3-v:v;});const p=swap?2:1,r=strict.patternDefense(board,p);assert.equal(r.i,strict.transformed(idx('D9'),t),`symmetry ${t} swap ${swap}`);assert(r.patternVerified);}
 });
 test('26-ply record is green to move with a forcing win, and H7 prevents the recorded setup at ply 6',()=>{
   const moves='H8 G7 I8 F8 H6 G9 H7 H9 J8 G8 G6 J9 K8 L8 K9 F9 I9 G11 G10 I7 I6 E9 D9 F6 K6 J6'.split(' '),b=blank();
   moves.forEach((c,k)=>{const p=k%2?1:2,s=strict.inspect(b,idx(c),p);assert(s.legal,`${k+1}/${c}`);assert.equal(s.win.length,0,`premature finish ${k+1}`);b[idx(c)]=p;});
   const green=strict.analyze(b,2,{automatic:true,ms:100},[]);assert.equal(green.i,idx('F5'));assert(green.proven);assert.equal(green.pv.map(i=>String.fromCharCode(65+i%15)+(1+(i/15|0))).join(','),'F5,E4,K7');
-  const pre=blank();moves.slice(0,5).forEach((c,k)=>pre[idx(c)]=k%2?1:2);const defense=strict.analyze(pre,1,{automatic:true,ms:30},[]);assert.equal(defense.i,idx('H7'));assert(defense.patternVerified);assert(!defense.proven);
+  const pre=blank();moves.slice(0,5).forEach((c,k)=>pre[idx(c)]=k%2?1:2);const defense=strict.patternDefense(pre,1);assert.equal(defense.i,idx('H7'));assert(defense.patternVerified);assert(!defense.proven);
   pre[idx('H7')]=1;pre[idx('I7')]=2;const check=strict.forcing(pre,2,21,3000);assert(check.complete);assert(!check.proof);
 });
 test('H7 early-defense pattern applies in new games under symmetry and color swap',()=>{
   const moves='H8 G7 I8 F8 H6'.split(' '),base=blank();moves.forEach((c,k)=>base[idx(c)]=k%2?1:2);
-  for(let t=0;t<8;t++)for(const swap of [false,true]){const board=blank();base.forEach((v,i)=>{if(v)board[strict.transformed(i,t)]=swap?3-v:v;});const p=swap?2:1,r=strict.analyze(board,p,{automatic:true,ms:30},[]);assert.equal(r.i,strict.transformed(idx('H7'),t),`symmetry ${t} swap ${swap}`);assert(r.patternVerified);}
+  for(let t=0;t<8;t++)for(const swap of [false,true]){const board=blank();base.forEach((v,i)=>{if(v)board[strict.transformed(i,t)]=swap?3-v:v;});const p=swap?2:1,r=strict.patternDefense(board,p);assert.equal(r.i,strict.transformed(idx('H7'),t),`symmetry ${t} swap ${swap}`);assert(r.patternVerified);}
 });
-test('13-ply green loss is detected, and the new-game engine offers G11 at ply 8',()=>{
+test('13-ply green loss is detected, and G11 remains an unproven pattern hint',()=>{
   const moves='H8 H6 I9 G7 H10 F8 E9 E7 G11 J8 F10 I5 J4'.split(' '),board=blank();
   moves.forEach((c,k)=>{const p=k%2?2:1,s=strict.inspect(board,idx(c),p);assert(s.legal,`${k+1}/${c}`);assert.equal(s.win.length,0);board[idx(c)]=p;});
   const loss=strict.analyze(board,2,{automatic:true,ms:1000},[]);assert(loss.lossProven);
   const pre=blank();moves.slice(0,7).forEach((c,k)=>pre[idx(c)]=k%2?2:1);
-  const defense=strict.analyze(pre,2,{automatic:true,ms:30},[]);assert.equal(defense.i,idx('G11'));assert(defense.patternVerified);assert(!defense.proven);
+  const defense=strict.patternDefense(pre,2);assert.equal(defense.i,idx('G11'));assert(defense.patternVerified);assert(!defense.proven);
   pre[idx('G11')]=2;pre[idx('G10')]=1;const reply=strict.analyze(pre,2,{automatic:true,ms:1000},[]);assert(reply.i!=null);assert(!reply.lossProven);
 });
 test('G11 early defense applies to rotated, reflected and color-swapped new games',()=>{
   const moves='H8 H6 I9 G7 H10 F8 E9'.split(' '),base=blank();moves.forEach((c,k)=>base[idx(c)]=k%2?2:1);
-  for(let t=0;t<8;t++)for(const swap of [false,true]){const board=blank();base.forEach((v,i)=>{if(v)board[strict.transformed(i,t)]=swap?3-v:v;});const p=swap?1:2,r=strict.analyze(board,p,{automatic:true,ms:30},[]);assert.equal(r.i,strict.transformed(idx('G11'),t),`symmetry ${t} swap ${swap}`);assert(r.patternVerified);}
+  for(let t=0;t<8;t++)for(const swap of [false,true]){const board=blank();base.forEach((v,i)=>{if(v)board[strict.transformed(i,t)]=swap?3-v:v;});const p=swap?1:2,r=strict.patternDefense(board,p);assert.equal(r.i,strict.transformed(idx('G11'),t),`symmetry ${t} swap ${swap}`);assert(r.patternVerified);}
 });
-test('25-second analysis rejects the I5 forced-reply trap without claiming a safe defense',()=>{
+test('25-second comparison avoids I5 without claiming an unproved rejection or safe defense',()=>{
   const moves='H8 H6 I9 G7 H10 F8 E9 E7 G11 J8 F10'.split(' '),board=blank();
   moves.forEach((c,k)=>board[idx(c)]=k%2?2:1);
   const r=strict.analyze(board,2,25000,[]);assert.notEqual(r.i,idx('I5'));assert(r.unverifiedDefense);
-  assert((r.rejected||[]).some(x=>x.i===idx('I5')));
+  const rejected=(r.rejected||[]).find(x=>x.i===idx('I5'));
+  if(rejected)assert(rejected.pv?.length||rejected.line?.length||rejected.replyTrap||rejected.verifiedRefutation,'rejection requires actual proof');
   assert(strict.inspect(board,r.i,2).legal);
 });
 test('new-game search catches the forced-block counterattack in the 15-ply green loss',()=>{

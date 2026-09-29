@@ -1,0 +1,51 @@
+{
+  "candidate": "6.J4",
+  "rules": {
+    "fivePriority": true
+  },
+  "blackReply": "E8",
+  "proofSession": {
+    "status": "UNRESOLVED",
+    "nodes": 91730,
+    "time_ms": 450000,
+    "searchComplete": false,
+    "certificate": null,
+    "activeLine": [
+      "E8",
+      "I5",
+      "K3",
+      "G8",
+      "F7",
+      "H5",
+      "D9",
+      "C10",
+      "F9",
+      "F10",
+      "F5",
+      "F6",
+      "E9",
+      "G9",
+      "G10",
+      "D7",
+      "G14",
+      "B9",
+      "H7",
+      "E4"
+    ]
+  },
+  "dfpn": {
+    "status": "UNRESOLVED",
+    "nodes": 437324,
+    "time_ms": 300000,
+    "proofNumber": 439,
+    "disproofNumber": 313,
+    "complete": false,
+    "stopReason": "timeout"
+  },
+  "secondReply": {
+    "tested": false,
+    "reason": "Both methods unresolved: stop under explicit step 4; no further branch search"
+  },
+  "finalStatus": "UNRESOLVED",
+  "finished": "2026-09-29T04:03:27.068Z"
+}

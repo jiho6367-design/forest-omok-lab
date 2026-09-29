@@ -1,0 +1,6 @@
+PASS new-game search rejects the 30-ply loss setup and never reuses a refuted fallback
+PASS new-game search traces the 33-ply green loss back through three forced blocks
+PASS new-game search keeps a legal move after the F11 defense and G8 reply
+PASS 22-ply green loss exposes the forbidden E10 defense and rejects the earlier C8 trap
+PASS new games exclude independently certified F6 and F10
+5 unified scenarios passed

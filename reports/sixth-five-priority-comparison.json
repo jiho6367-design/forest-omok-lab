@@ -1,0 +1,2166 @@
+{
+  "prefix": "H8 G7 G6 H6 F8",
+  "rules": {
+    "fivePriority": true
+  },
+  "started": "2026-09-28T19:34:32.081Z",
+  "generator": "engine.candidates filtered by inspect legality",
+  "candidateCount": 42,
+  "candidates": [
+    "E4",
+    "F4",
+    "G4",
+    "H4",
+    "I4",
+    "E5",
+    "F5",
+    "G5",
+    "H5",
+    "I5",
+    "E6",
+    "F6",
+    "I6",
+    "E7",
+    "F7",
+    "H7",
+    "I7",
+    "E8",
+    "G8",
+    "I8",
+    "J4",
+    "J5",
+    "J6",
+    "J7",
+    "J8",
+    "E9",
+    "F9",
+    "G9",
+    "H9",
+    "I9",
+    "D6",
+    "D7",
+    "D8",
+    "D9",
+    "D10",
+    "E10",
+    "F10",
+    "G10",
+    "H10",
+    "J9",
+    "I10",
+    "J10"
+  ],
+  "ranking": "Exclude proven losses; descending white score (negative of black engine score), static white evaluation for ties. Compare within the same round only. No safety proof.",
+  "rounds": [
+    {
+      "round": 1,
+      "budget_ms": 900,
+      "rows": [
+        {
+          "move": "E4",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 929,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1337,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 16200,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -38,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "F4",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 916,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1257,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 8359,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 60,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "G4",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 918,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1341,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 14166,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -42,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "H4",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 915,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1299,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 9988,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 46,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "I4",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 912,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1270,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "pv": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "nodes": 14790,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -38,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "E5",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 913,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1316,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 15676,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 36,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "F5",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 913,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1287,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 15611,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "G5",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 910,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1257,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 10426,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 74,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "H5",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 917,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1251,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "pv": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "nodes": 10708,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 50,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "I5",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 918,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -946,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 16214,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 100,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "E6",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 912,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1341,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 15894,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -36,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "F6",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 914,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1257,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "pv": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "nodes": 14373,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 28,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "I6",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 911,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1259,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 14996,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 34,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "E7",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 915,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1337,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 9606,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 66,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "F7",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 909,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1171,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "pv": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "nodes": 9810,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 80,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "H7",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 909,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1225,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 9691,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 146,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "I7",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 909,
+          "status": "PROVEN_LOSS",
+          "known_proven_loss": true,
+          "evaluation": -1236,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 9064,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 178,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "E8",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 909,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1022,
+          "completed_depth": 3,
+          "black_reply": "G9",
+          "pv": [
+            "G9",
+            "I5",
+            "F10"
+          ],
+          "nodes": 16337,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -2,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "G8",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 910,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1009,
+          "completed_depth": 3,
+          "black_reply": "G9",
+          "pv": [
+            "G9",
+            "I5",
+            "F10"
+          ],
+          "nodes": 16448,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 78,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "I8",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 909,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1256,
+          "completed_depth": 3,
+          "black_reply": "F7",
+          "pv": [
+            "F7",
+            "H5",
+            "F6"
+          ],
+          "nodes": 16136,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -2,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "J4",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 916,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -950,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 14833,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 96,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "J5",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 909,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1293,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 13501,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "J6",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 913,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1316,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 14978,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 36,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "J7",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 913,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1314,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 9058,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 52,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "J8",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 919,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1276,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 7620,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 80,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "E9",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 910,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1337,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 14705,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -38,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "F9",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 912,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1251,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "pv": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "nodes": 12549,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "G9",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 913,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -946,
+          "completed_depth": 3,
+          "black_reply": "F7",
+          "pv": [
+            "F7",
+            "G8",
+            "E8"
+          ],
+          "nodes": 13604,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 36,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "H9",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 914,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1322,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 13473,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -36,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "I9",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 915,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1337,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 11754,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -38,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "D6",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 915,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1339,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 12756,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -40,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "D7",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 912,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1341,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 8019,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 46,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "D8",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 909,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1274,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "pv": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "nodes": 14747,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -24,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "D9",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 910,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1270,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "pv": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "nodes": 14241,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -38,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "D10",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 912,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1341,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 13789,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -42,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "E10",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 911,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1272,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 13612,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "F10",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 911,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1287,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 14876,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "G10",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 911,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1190,
+          "completed_depth": 3,
+          "black_reply": "F10",
+          "pv": [
+            "F10",
+            "I7",
+            "G8"
+          ],
+          "nodes": 14736,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 38,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "H10",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 913,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1333,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 13714,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -34,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "J9",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 910,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1331,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 14251,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "I10",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 909,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1316,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 14114,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "J10",
+          "round": 1,
+          "budget_ms": 900,
+          "elapsed_ms": 909,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1335,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "nodes": 13748,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -36,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        }
+      ],
+      "ranked": [
+        "I5",
+        "G9",
+        "J4",
+        "G8",
+        "E8",
+        "F7",
+        "G10",
+        "H7",
+        "H5",
+        "F9",
+        "I8",
+        "G5",
+        "F4",
+        "F6",
+        "I6",
+        "I4",
+        "D9",
+        "E10",
+        "D8",
+        "J8",
+        "F5",
+        "F10",
+        "J5",
+        "H4",
+        "J7",
+        "E5",
+        "J6",
+        "I10",
+        "H9",
+        "J9",
+        "H10",
+        "J10",
+        "E7",
+        "E4",
+        "E9",
+        "I9",
+        "D6",
+        "D7",
+        "E6",
+        "G4",
+        "D10"
+      ]
+    },
+    {
+      "round": 2,
+      "budget_ms": 6800,
+      "rows": [
+        {
+          "move": "I5",
+          "round": 2,
+          "budget_ms": 6800,
+          "elapsed_ms": 6811,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -13,
+          "completed_depth": 4,
+          "black_reply": "F7",
+          "pv": [
+            "F7",
+            "H5",
+            "G8",
+            "I8"
+          ],
+          "nodes": 125497,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 100,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "G9",
+          "round": 2,
+          "budget_ms": 6800,
+          "elapsed_ms": 6810,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -1355,
+          "completed_depth": 5,
+          "black_reply": "G8",
+          "pv": [
+            "G8",
+            "E8",
+            "F7",
+            "J8",
+            "F9"
+          ],
+          "nodes": 111505,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 36,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "J4",
+          "round": 2,
+          "budget_ms": 6800,
+          "elapsed_ms": 6816,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -42,
+          "completed_depth": 4,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7",
+            "H5"
+          ],
+          "nodes": 119601,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 96,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "G8",
+          "round": 2,
+          "budget_ms": 6800,
+          "elapsed_ms": 6812,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -80,
+          "completed_depth": 4,
+          "black_reply": "G9",
+          "pv": [
+            "G9",
+            "I5",
+            "E7",
+            "H10"
+          ],
+          "nodes": 89492,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 78,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "E8",
+          "round": 2,
+          "budget_ms": 6800,
+          "elapsed_ms": 6810,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -193,
+          "completed_depth": 4,
+          "black_reply": "I8",
+          "pv": [
+            "I8",
+            "H7",
+            "J8",
+            "G8"
+          ],
+          "nodes": 113800,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -2,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        }
+      ],
+      "ranked": [
+        "I5",
+        "J4",
+        "G8",
+        "E8",
+        "G9"
+      ]
+    },
+    {
+      "round": 3,
+      "budget_ms": 14500,
+      "rows": [
+        {
+          "move": "I5",
+          "round": 3,
+          "budget_ms": 14500,
+          "elapsed_ms": 11022,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -522,
+          "completed_depth": 5,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7",
+            "H5",
+            "F9"
+          ],
+          "nodes": 26243,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 100,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "J4",
+          "round": 3,
+          "budget_ms": 14500,
+          "elapsed_ms": 11021,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -188,
+          "completed_depth": 6,
+          "black_reply": "E8",
+          "pv": [
+            "E8",
+            "G8",
+            "F7",
+            "I5",
+            "K3",
+            "H5"
+          ],
+          "nodes": 25136,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 96,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        },
+        {
+          "move": "G8",
+          "round": 3,
+          "budget_ms": 14500,
+          "elapsed_ms": 11035,
+          "status": "UNRESOLVED",
+          "known_proven_loss": false,
+          "evaluation": -474,
+          "completed_depth": 5,
+          "black_reply": "F7",
+          "pv": [
+            "F7",
+            "F9",
+            "H7",
+            "G9",
+            "F5"
+          ],
+          "nodes": 31346,
+          "opponent_immediate_win": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "pv": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 78,
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false
+        }
+      ],
+      "ranked": [
+        "J4",
+        "G8",
+        "I5"
+      ]
+    }
+  ],
+  "top3": [
+    {
+      "move": "J4",
+      "round": 3,
+      "budget_ms": 14500,
+      "elapsed_ms": 11021,
+      "status": "UNRESOLVED",
+      "known_proven_loss": false,
+      "evaluation": -188,
+      "completed_depth": 6,
+      "black_reply": "E8",
+      "pv": [
+        "E8",
+        "G8",
+        "F7",
+        "I5",
+        "K3",
+        "H5"
+      ],
+      "nodes": 25136,
+      "opponent_immediate_win": [],
+      "opponent_vcf": {
+        "found": false,
+        "complete": true,
+        "pv": []
+      },
+      "opponent_vct": {
+        "found": false,
+        "complete": true,
+        "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+        "attack": null
+      },
+      "own_threats": {
+        "open_threes": 0,
+        "fours": 0,
+        "winning_points": []
+      },
+      "mandatory_reply_count": 0,
+      "static_white_evaluation": 96,
+      "engine_proven_black": false,
+      "engine_loss_proven_black": false
+    },
+    {
+      "move": "G8",
+      "round": 3,
+      "budget_ms": 14500,
+      "elapsed_ms": 11035,
+      "status": "UNRESOLVED",
+      "known_proven_loss": false,
+      "evaluation": -474,
+      "completed_depth": 5,
+      "black_reply": "F7",
+      "pv": [
+        "F7",
+        "F9",
+        "H7",
+        "G9",
+        "F5"
+      ],
+      "nodes": 31346,
+      "opponent_immediate_win": [],
+      "opponent_vcf": {
+        "found": false,
+        "complete": true,
+        "pv": []
+      },
+      "opponent_vct": {
+        "found": false,
+        "complete": true,
+        "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+        "attack": null
+      },
+      "own_threats": {
+        "open_threes": 0,
+        "fours": 0,
+        "winning_points": []
+      },
+      "mandatory_reply_count": 0,
+      "static_white_evaluation": 78,
+      "engine_proven_black": false,
+      "engine_loss_proven_black": false
+    },
+    {
+      "move": "I5",
+      "round": 3,
+      "budget_ms": 14500,
+      "elapsed_ms": 11022,
+      "status": "UNRESOLVED",
+      "known_proven_loss": false,
+      "evaluation": -522,
+      "completed_depth": 5,
+      "black_reply": "E8",
+      "pv": [
+        "E8",
+        "G8",
+        "F7",
+        "H5",
+        "F9"
+      ],
+      "nodes": 26243,
+      "opponent_immediate_win": [],
+      "opponent_vcf": {
+        "found": false,
+        "complete": true,
+        "pv": []
+      },
+      "opponent_vct": {
+        "found": false,
+        "complete": true,
+        "scope": "quietTrap width 4 / VCF depth 13 / no recursive counter",
+        "attack": null
+      },
+      "own_threats": {
+        "open_threes": 0,
+        "fours": 0,
+        "winning_points": []
+      },
+      "mandatory_reply_count": 0,
+      "static_white_evaluation": 100,
+      "engine_proven_black": false,
+      "engine_loss_proven_black": false
+    }
+  ],
+  "finished": "2026-09-28T19:36:17.756Z"
+}

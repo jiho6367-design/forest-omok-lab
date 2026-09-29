@@ -1,0 +1,328 @@
+{
+  "prefix": "H8 G7 G6 H6 F8 D7",
+  "rules": {
+    "fivePriority": false
+  },
+  "started": "2026-09-28T16:13:31.370Z",
+  "branches": [
+    {
+      "root": "E8",
+      "spec": {
+        "prefix": "H8 G7 G6 H6 F8 D7",
+        "rules": {
+          "fivePriority": false
+        },
+        "attacker": 1,
+        "roots": [
+          "E8"
+        ],
+        "quietDepth": 2,
+        "extensions": 8,
+        "forcedDefenseExtensions": true,
+        "threeExtensions": true,
+        "retryIncompleteVcf": true,
+        "counterVcfPruning": true
+      },
+      "status": "UNRESOLVED",
+      "verification": [],
+      "search": {
+        "done": false,
+        "proof": null,
+        "searchComplete": false,
+        "elapsed_ms": 24930,
+        "stats": {
+          "nodes": 87247,
+          "defenses": 87246,
+          "cacheHits": 1578,
+          "vcfChecks": 85685,
+          "vcfRetries": 0,
+          "vcfIncomplete": 0,
+          "forcingExtensions": 3383,
+          "defenseExtensions": 1175,
+          "threeExtensions": 1643,
+          "immediatePrunes": 20141,
+          "counterVcfChecks": 9905,
+          "counterVcfPrunes": 2421,
+          "counterVcfIncomplete": 337,
+          "certifiedPrunes": 0,
+          "slices": 18
+        },
+        "rootChecks": [],
+        "incompleteVcf": [],
+        "activeLine": [
+          "E8",
+          "D8",
+          "I8",
+          "G8",
+          "F7",
+          "D9",
+          "H5",
+          "I4",
+          "D6",
+          "D10",
+          "D11",
+          "F6",
+          "E7",
+          "G9",
+          "J11",
+          "G10",
+          "G11",
+          "B4",
+          "E9",
+          "E10"
+        ],
+        "scope": {
+          "prefix": "H8 G7 G6 H6 F8 D7",
+          "attacker": 1,
+          "quietDepth": 2,
+          "extensions": 8,
+          "forcedDefenseExtensions": true,
+          "threeExtensions": true,
+          "retryIncompleteVcf": true,
+          "forcingHints": false,
+          "counterVcfPruning": true,
+          "horizonPruning": true,
+          "roots": [
+            "E8"
+          ],
+          "vcfDepth": 25
+        }
+      },
+      "elapsed_ms": 450002
+    },
+    {
+      "root": "G9",
+      "spec": {
+        "prefix": "H8 G7 G6 H6 F8 D7",
+        "rules": {
+          "fivePriority": false
+        },
+        "attacker": 1,
+        "roots": [
+          "G9"
+        ],
+        "quietDepth": 2,
+        "extensions": 8,
+        "forcedDefenseExtensions": true,
+        "threeExtensions": true,
+        "retryIncompleteVcf": true,
+        "counterVcfPruning": true
+      },
+      "status": "UNRESOLVED",
+      "verification": [],
+      "search": {
+        "done": false,
+        "proof": null,
+        "searchComplete": false,
+        "elapsed_ms": 4975,
+        "stats": {
+          "nodes": 56335,
+          "defenses": 56334,
+          "cacheHits": 5113,
+          "vcfChecks": 51234,
+          "vcfRetries": 2,
+          "vcfIncomplete": 0,
+          "forcingExtensions": 11498,
+          "defenseExtensions": 617,
+          "threeExtensions": 4308,
+          "immediatePrunes": 5472,
+          "counterVcfChecks": 14389,
+          "counterVcfPrunes": 2889,
+          "counterVcfIncomplete": 170,
+          "certifiedPrunes": 0,
+          "slices": 14
+        },
+        "rootChecks": [],
+        "incompleteVcf": [],
+        "activeLine": [
+          "G9",
+          "E7",
+          "F7",
+          "I8",
+          "E8",
+          "D9",
+          "D8",
+          "G8",
+          "H5",
+          "I4",
+          "F5",
+          "F9",
+          "F10",
+          "I7",
+          "E9",
+          "K12"
+        ],
+        "scope": {
+          "prefix": "H8 G7 G6 H6 F8 D7",
+          "attacker": 1,
+          "quietDepth": 2,
+          "extensions": 8,
+          "forcedDefenseExtensions": true,
+          "threeExtensions": true,
+          "retryIncompleteVcf": true,
+          "forcingHints": false,
+          "counterVcfPruning": true,
+          "horizonPruning": true,
+          "roots": [
+            "G9"
+          ],
+          "vcfDepth": 25
+        }
+      },
+      "elapsed_ms": 330002
+    }
+  ],
+  "replySelection": {
+    "budget_ms": 6500,
+    "result": {
+      "i": 109,
+      "reason": "공격과 방어를 비교한 추천",
+      "depth": 5,
+      "nodes": 128723,
+      "ms": 6527,
+      "score": 1389,
+      "pv": [
+        109,
+        108,
+        78,
+        111,
+        94
+      ],
+      "proven": false,
+      "lossProven": false,
+      "forcedLoss": false,
+      "threats": [],
+      "shape": {
+        "threes": [
+          0
+        ],
+        "fours": [],
+        "details": [
+          {
+            "axis": 0,
+            "three": [
+              111
+            ],
+            "four": []
+          },
+          {
+            "axis": 1,
+            "three": [],
+            "four": []
+          },
+          {
+            "axis": 2,
+            "three": [],
+            "four": []
+          },
+          {
+            "axis": 3,
+            "three": [],
+            "four": []
+          }
+        ],
+        "win": [],
+        "legal": true,
+        "reason": "",
+        "fork43": false
+      },
+      "urgent": false,
+      "forbiddenDefense": null,
+      "defenseChecked": true,
+      "fallback": false,
+      "kind": "search",
+      "autoReason": null,
+      "automatic": false,
+      "screeningComplete": true,
+      "candidates": [
+        {
+          "i": 109,
+          "s": 983.65,
+          "score": 1389,
+          "pv": [
+            109,
+            108,
+            78,
+            111,
+            94
+          ],
+          "status": "screened",
+          "refutation": [],
+          "lossReason": null
+        },
+        {
+          "i": 126,
+          "s": 197.70000000000002,
+          "score": 1356,
+          "pv": [
+            126,
+            94,
+            95,
+            109,
+            125
+          ],
+          "status": "screened",
+          "refutation": [],
+          "lossReason": null
+        },
+        {
+          "i": 111,
+          "s": 1243.95,
+          "score": 1333,
+          "pv": [
+            111,
+            109,
+            125,
+            95,
+            97
+          ],
+          "status": "screened",
+          "refutation": [],
+          "lossReason": null
+        }
+      ],
+      "rejected": [],
+      "engineVersion": "unified-4.0",
+      "memory": 0,
+      "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+      "patternHint": null
+    },
+    "candidates": [
+      {
+        "coord": "E8",
+        "score": 1389,
+        "pv": [
+          "E8",
+          "D8",
+          "D6",
+          "G8",
+          "E7"
+        ]
+      },
+      {
+        "coord": "G9",
+        "score": 1356,
+        "pv": [
+          "G9",
+          "E7",
+          "F7",
+          "E8",
+          "F9"
+        ]
+      },
+      {
+        "coord": "G8",
+        "score": 1333,
+        "pv": [
+          "G8",
+          "E8",
+          "F9",
+          "F7",
+          "H7"
+        ]
+      }
+    ]
+  },
+  "finalStatus": "UNRESOLVED",
+  "finished": "2026-09-28T16:26:37.917Z"
+}

@@ -1,0 +1,2260 @@
+{
+  "prefix": "H8 G7 G6 H6 F8",
+  "rules": {
+    "fivePriority": false
+  },
+  "started": "2026-09-28T14:54:07.508Z",
+  "generator": "existing engine.candidates filtered by inspect legal",
+  "candidateCount": 42,
+  "candidates": [
+    "E4",
+    "F4",
+    "G4",
+    "H4",
+    "I4",
+    "J4",
+    "E5",
+    "F5",
+    "G5",
+    "H5",
+    "I5",
+    "J5",
+    "D6",
+    "E6",
+    "F6",
+    "I6",
+    "J6",
+    "D7",
+    "E7",
+    "F7",
+    "H7",
+    "I7",
+    "J7",
+    "D8",
+    "E8",
+    "G8",
+    "I8",
+    "J8",
+    "D9",
+    "E9",
+    "F9",
+    "G9",
+    "H9",
+    "I9",
+    "J9",
+    "D10",
+    "E10",
+    "F10",
+    "G10",
+    "H10",
+    "I10",
+    "J10"
+  ],
+  "ranking": "Exclude certified losses; descending negated opponent engine score, then static white evaluation; compare only within same round. Scores are heuristic, not win probabilities.",
+  "rounds": [
+    {
+      "round": 1,
+      "rows": [
+        {
+          "move": "E4",
+          "i": 49,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 707,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -38,
+          "white_search_score": -1337,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 10573,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "F4",
+          "i": 50,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 677,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 60,
+          "white_search_score": -326,
+          "completed_depth": 2,
+          "black_reply": "G8",
+          "line": [
+            "G8",
+            "I8"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 5077,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "G4",
+          "i": 51,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 676,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -42,
+          "white_search_score": -1341,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 9256,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "H4",
+          "i": 52,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 682,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 46,
+          "white_search_score": -1299,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 6502,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "I4",
+          "i": 53,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 682,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -38,
+          "white_search_score": -1270,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "line": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 11239,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "J4",
+          "i": 54,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 666,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 96,
+          "white_search_score": -950,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 11433,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "E5",
+          "i": 64,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 674,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 36,
+          "white_search_score": -1316,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 11272,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "F5",
+          "i": 65,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 672,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "white_search_score": -1287,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 11059,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "G5",
+          "i": 66,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 671,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 74,
+          "white_search_score": -305,
+          "completed_depth": 2,
+          "black_reply": "G8",
+          "line": [
+            "G8",
+            "I8"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 5831,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "H5",
+          "i": 67,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 663,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 50,
+          "white_search_score": -343,
+          "completed_depth": 2,
+          "black_reply": "G8",
+          "line": [
+            "G8",
+            "I8"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 6397,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "I5",
+          "i": 68,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 663,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 100,
+          "white_search_score": -946,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 12535,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "J5",
+          "i": 69,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 676,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "white_search_score": -1293,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 10664,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "D6",
+          "i": 78,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 670,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -40,
+          "white_search_score": -1339,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 10085,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "E6",
+          "i": 79,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 670,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -36,
+          "white_search_score": -1341,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 11021,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "F6",
+          "i": 80,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 665,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 28,
+          "white_search_score": -1257,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "line": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 11082,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "I6",
+          "i": 83,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 665,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 34,
+          "white_search_score": -1259,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 10510,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "J6",
+          "i": 84,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 667,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 36,
+          "white_search_score": -1316,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 9926,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "D7",
+          "i": 93,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 665,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 46,
+          "white_search_score": -265,
+          "completed_depth": 2,
+          "black_reply": "G8",
+          "line": [
+            "G8",
+            "E8"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 5981,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "E7",
+          "i": 94,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 687,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 66,
+          "white_search_score": -240,
+          "completed_depth": 2,
+          "black_reply": "G8",
+          "line": [
+            "G8",
+            "E8"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 5506,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "F7",
+          "i": 95,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 671,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 80,
+          "white_search_score": -286,
+          "completed_depth": 2,
+          "black_reply": "G8",
+          "line": [
+            "G8",
+            "E8"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 5259,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "H7",
+          "i": 97,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 668,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 146,
+          "white_search_score": -1225,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 5121,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "I7",
+          "i": 98,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 670,
+          "status": "PROVEN_LOSS",
+          "known_refutation": {
+            "attack": "E8",
+            "reason": "이 수 뒤 상대 E8부터 모든 합법 응수에 강제승 확인"
+          },
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 178,
+          "white_search_score": -160,
+          "completed_depth": 2,
+          "black_reply": "G8",
+          "line": [
+            "G8",
+            "I8"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 5219,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "J7",
+          "i": 99,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 668,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 52,
+          "white_search_score": -1314,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 6253,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "D8",
+          "i": 108,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 668,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -24,
+          "white_search_score": -1274,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "line": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 11221,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "E8",
+          "i": 109,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 666,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -2,
+          "white_search_score": -1022,
+          "completed_depth": 3,
+          "black_reply": "G9",
+          "line": [
+            "G9",
+            "I5",
+            "F10"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 11256,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "G8",
+          "i": 111,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 669,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 78,
+          "white_search_score": -1009,
+          "completed_depth": 3,
+          "black_reply": "G9",
+          "line": [
+            "G9",
+            "I5",
+            "F10"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 10836,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "I8",
+          "i": 113,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 667,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -2,
+          "white_search_score": -1256,
+          "completed_depth": 3,
+          "black_reply": "F7",
+          "line": [
+            "F7",
+            "H5",
+            "F6"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 11234,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "J8",
+          "i": 114,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 669,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 80,
+          "white_search_score": -1276,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 5862,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "D9",
+          "i": 123,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 668,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -38,
+          "white_search_score": -1270,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "line": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 10329,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "E9",
+          "i": 124,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 667,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -38,
+          "white_search_score": -1337,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 10361,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "F9",
+          "i": 125,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 677,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "white_search_score": -1251,
+          "completed_depth": 3,
+          "black_reply": "I8",
+          "line": [
+            "I8",
+            "G8",
+            "H7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 10477,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "G9",
+          "i": 126,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 666,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 36,
+          "white_search_score": -946,
+          "completed_depth": 3,
+          "black_reply": "F7",
+          "line": [
+            "F7",
+            "G8",
+            "E8"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 9176,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "H9",
+          "i": 127,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 667,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -36,
+          "white_search_score": -1322,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 10609,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "I9",
+          "i": 128,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 670,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -38,
+          "white_search_score": -1337,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 11116,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "J9",
+          "i": 129,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 665,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "white_search_score": -1331,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 10662,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "D10",
+          "i": 138,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 670,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -42,
+          "white_search_score": -1341,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 9299,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "E10",
+          "i": 139,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 678,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "white_search_score": -1272,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 8762,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "F10",
+          "i": 140,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 669,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "white_search_score": -1287,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 9360,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "G10",
+          "i": 141,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 669,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 38,
+          "white_search_score": -1190,
+          "completed_depth": 3,
+          "black_reply": "F10",
+          "line": [
+            "F10",
+            "I7",
+            "G8"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 10081,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "H10",
+          "i": 142,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 671,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -34,
+          "white_search_score": -1333,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 9277,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "I10",
+          "i": 143,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 670,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -32,
+          "white_search_score": -1316,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 9246,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "J10",
+          "i": 144,
+          "round": 1,
+          "budget_ms": 850,
+          "elapsed_ms": 670,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": -36,
+          "white_search_score": -1335,
+          "completed_depth": 3,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 9182,
+          "reason": "공격과 방어를 비교한 추천"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "rows": [
+        {
+          "move": "E7",
+          "i": 94,
+          "round": 2,
+          "budget_ms": 6900,
+          "elapsed_ms": 6526,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 66,
+          "white_search_score": -429,
+          "completed_depth": 4,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7",
+            "H5"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 75008,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "D7",
+          "i": 93,
+          "round": 2,
+          "budget_ms": 6900,
+          "elapsed_ms": 6544,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 46,
+          "white_search_score": -322,
+          "completed_depth": 4,
+          "black_reply": "I8",
+          "line": [
+            "I8",
+            "G8",
+            "H7",
+            "F5"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 87455,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "F7",
+          "i": 95,
+          "round": 2,
+          "budget_ms": 6900,
+          "elapsed_ms": 6515,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 80,
+          "white_search_score": -284,
+          "completed_depth": 4,
+          "black_reply": "I8",
+          "line": [
+            "I8",
+            "G8",
+            "H7",
+            "F5"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 68797,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "G5",
+          "i": 66,
+          "round": 2,
+          "budget_ms": 6900,
+          "elapsed_ms": 6522,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 74,
+          "white_search_score": -269,
+          "completed_depth": 4,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7",
+            "H5"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 77078,
+          "reason": "공격과 방어를 비교한 추천"
+        },
+        {
+          "move": "F4",
+          "i": 50,
+          "round": 2,
+          "budget_ms": 6900,
+          "elapsed_ms": 6514,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 60,
+          "white_search_score": -349,
+          "completed_depth": 4,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7",
+            "H5"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.0",
+          "nodes": 88755,
+          "reason": "공격과 방어를 비교한 추천"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "rows": [
+        {
+          "move": "G5",
+          "i": 66,
+          "round": 3,
+          "budget_ms": 14800,
+          "elapsed_ms": 11211,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 74,
+          "white_search_score": -548,
+          "completed_depth": 5,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "G8",
+            "F7",
+            "H5",
+            "F9"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.1-deep",
+          "nodes": 24607,
+          "reason": "공격과 수비를 함께 고려한 추천"
+        },
+        {
+          "move": "F7",
+          "i": 95,
+          "round": 3,
+          "budget_ms": 14800,
+          "elapsed_ms": 10852,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 80,
+          "white_search_score": -426,
+          "completed_depth": 5,
+          "black_reply": "E7",
+          "line": [
+            "E7",
+            "G9",
+            "G8",
+            "I8",
+            "H7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.1-deep",
+          "nodes": 22735,
+          "reason": "공격과 수비를 함께 고려한 추천"
+        },
+        {
+          "move": "D7",
+          "i": 93,
+          "round": 3,
+          "budget_ms": 14800,
+          "elapsed_ms": 10912,
+          "status": "UNRESOLVED",
+          "known_refutation": null,
+          "immediate_loss": [],
+          "opponent_vcf": {
+            "found": false,
+            "complete": true,
+            "line": []
+          },
+          "opponent_vct": {
+            "found": false,
+            "complete": true,
+            "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+            "attack": null
+          },
+          "own_threats": {
+            "open_threes": 0,
+            "fours": 0,
+            "winning_points": []
+          },
+          "mandatory_reply_count": 0,
+          "static_white_evaluation": 46,
+          "white_search_score": -648,
+          "completed_depth": 5,
+          "black_reply": "E8",
+          "line": [
+            "E8",
+            "D8",
+            "I8",
+            "G8",
+            "F7"
+          ],
+          "engine_proven_black": false,
+          "engine_loss_proven_black": false,
+          "engine": "unified-4.1-deep",
+          "nodes": 17296,
+          "reason": "공격과 수비를 함께 고려한 추천"
+        }
+      ]
+    }
+  ],
+  "final": [
+    {
+      "move": "F7",
+      "i": 95,
+      "round": 3,
+      "budget_ms": 14800,
+      "elapsed_ms": 10852,
+      "status": "UNRESOLVED",
+      "known_refutation": null,
+      "immediate_loss": [],
+      "opponent_vcf": {
+        "found": false,
+        "complete": true,
+        "line": []
+      },
+      "opponent_vct": {
+        "found": false,
+        "complete": true,
+        "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+        "attack": null
+      },
+      "own_threats": {
+        "open_threes": 0,
+        "fours": 0,
+        "winning_points": []
+      },
+      "mandatory_reply_count": 0,
+      "static_white_evaluation": 80,
+      "white_search_score": -426,
+      "completed_depth": 5,
+      "black_reply": "E7",
+      "line": [
+        "E7",
+        "G9",
+        "G8",
+        "I8",
+        "H7"
+      ],
+      "engine_proven_black": false,
+      "engine_loss_proven_black": false,
+      "engine": "unified-4.1-deep",
+      "nodes": 22735,
+      "reason": "공격과 수비를 함께 고려한 추천"
+    },
+    {
+      "move": "G5",
+      "i": 66,
+      "round": 3,
+      "budget_ms": 14800,
+      "elapsed_ms": 11211,
+      "status": "UNRESOLVED",
+      "known_refutation": null,
+      "immediate_loss": [],
+      "opponent_vcf": {
+        "found": false,
+        "complete": true,
+        "line": []
+      },
+      "opponent_vct": {
+        "found": false,
+        "complete": true,
+        "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+        "attack": null
+      },
+      "own_threats": {
+        "open_threes": 0,
+        "fours": 0,
+        "winning_points": []
+      },
+      "mandatory_reply_count": 0,
+      "static_white_evaluation": 74,
+      "white_search_score": -548,
+      "completed_depth": 5,
+      "black_reply": "E8",
+      "line": [
+        "E8",
+        "G8",
+        "F7",
+        "H5",
+        "F9"
+      ],
+      "engine_proven_black": false,
+      "engine_loss_proven_black": false,
+      "engine": "unified-4.1-deep",
+      "nodes": 24607,
+      "reason": "공격과 수비를 함께 고려한 추천"
+    },
+    {
+      "move": "D7",
+      "i": 93,
+      "round": 3,
+      "budget_ms": 14800,
+      "elapsed_ms": 10912,
+      "status": "UNRESOLVED",
+      "known_refutation": null,
+      "immediate_loss": [],
+      "opponent_vcf": {
+        "found": false,
+        "complete": true,
+        "line": []
+      },
+      "opponent_vct": {
+        "found": false,
+        "complete": true,
+        "scope": "existing quietTrap, width 4, VCF depth 13, no recursive counter",
+        "attack": null
+      },
+      "own_threats": {
+        "open_threes": 0,
+        "fours": 0,
+        "winning_points": []
+      },
+      "mandatory_reply_count": 0,
+      "static_white_evaluation": 46,
+      "white_search_score": -648,
+      "completed_depth": 5,
+      "black_reply": "E8",
+      "line": [
+        "E8",
+        "D8",
+        "I8",
+        "G8",
+        "F7"
+      ],
+      "engine_proven_black": false,
+      "engine_loss_proven_black": false,
+      "engine": "unified-4.1-deep",
+      "nodes": 17296,
+      "reason": "공격과 수비를 함께 고려한 추천"
+    }
+  ],
+  "finished": "2026-09-28T14:55:41.689Z"
+}

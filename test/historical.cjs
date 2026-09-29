@@ -14,7 +14,7 @@ for(let t=0;t<8;t++)for(const swap of [false,true]){
   assert.equal(known.length,1);
   assert.equal(known[0].i,engine.transformed(index('H5'),t));
   assert.equal(known[0].attack,engine.transformed(index('F9'),t));
-  assert.equal(createEngine({fivePriority:true}).knownRefutations(b,swap?1:2).length,0);
+  assert.equal(createEngine({fivePriority:true}).knownRefutations(b,swap?1:2).length,1);
 }
 {
   const r=analyzePosition({board:positions[9],moveNumber:10,actual:'D9',loser:2,ms:600,

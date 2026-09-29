@@ -1,0 +1,278 @@
+{
+  "rule": "exact-five overrides double-three for both colors",
+  "started": "2026-09-28T19:13:33.030Z",
+  "results": [
+    {
+      "name": "6.I7",
+      "source": "i7-loss-certificate.json",
+      "status": "VALID",
+      "auditNodes": 93,
+      "auditErrors": [],
+      "elapsed_ms": 116409,
+      "result": {
+        "verified": true,
+        "defenses": 2764,
+        "vcf": 1884,
+        "cached": 868,
+        "elapsed_ms": 16382
+      },
+      "runs": [
+        {
+          "verified": false,
+          "reason": "VCF timeout at N3",
+          "variation": [
+            "E8",
+            "G8",
+            "F7",
+            "D9",
+            "F9",
+            "F6",
+            "G10",
+            "H11",
+            "F10",
+            "F11",
+            "E10",
+            "H10",
+            "E9",
+            "N3"
+          ],
+          "defenses": 3927,
+          "vcf": 3901,
+          "cached": 5,
+          "elapsed_ms": 25002
+        },
+        {
+          "verified": false,
+          "reason": "VCF timeout at A1",
+          "variation": [
+            "E8",
+            "G8",
+            "F7",
+            "D9",
+            "F9",
+            "F10",
+            "F5",
+            "F6",
+            "D7",
+            "C6",
+            "E6",
+            "A1"
+          ],
+          "defenses": 1549,
+          "vcf": 785,
+          "cached": 754,
+          "elapsed_ms": 25000
+        },
+        {
+          "verified": false,
+          "reason": "VCF timeout at A13",
+          "variation": [
+            "E8",
+            "G8",
+            "F7",
+            "D9",
+            "F9",
+            "F10",
+            "F5",
+            "F6",
+            "D7",
+            "G10",
+            "E6",
+            "G4",
+            "E4",
+            "G11",
+            "G9",
+            "A13"
+          ],
+          "defenses": 1732,
+          "vcf": 1217,
+          "cached": 504,
+          "elapsed_ms": 25000
+        },
+        {
+          "verified": false,
+          "reason": "VCF timeout at I13",
+          "variation": [
+            "E8",
+            "G8",
+            "F7",
+            "D9",
+            "F9",
+            "F10",
+            "F5",
+            "F6",
+            "D7",
+            "G10",
+            "E6",
+            "G11",
+            "G9",
+            "I13"
+          ],
+          "defenses": 2909,
+          "vcf": 1379,
+          "cached": 1514,
+          "elapsed_ms": 25000
+        },
+        {
+          "verified": true,
+          "defenses": 2764,
+          "vcf": 1884,
+          "cached": 868,
+          "elapsed_ms": 16382
+        }
+      ]
+    },
+    {
+      "name": "10.F9",
+      "source": "test/historical.cjs recorded H5 I4 D9 VCF line",
+      "status": "VALID",
+      "auditNodes": 3,
+      "auditErrors": [],
+      "elapsed_ms": 22,
+      "result": {
+        "verified": true,
+        "defenses": 214,
+        "vcf": 213,
+        "cached": 0,
+        "elapsed_ms": 20
+      },
+      "runs": [
+        {
+          "verified": true,
+          "defenses": 214,
+          "vcf": 213,
+          "cached": 0,
+          "elapsed_ms": 20
+        }
+      ]
+    },
+    {
+      "name": "12.F6",
+      "source": "f6-loss-certificate.json",
+      "status": "VALID",
+      "auditNodes": 15,
+      "auditErrors": [],
+      "elapsed_ms": 34589,
+      "result": {
+        "verified": true,
+        "defenses": 836,
+        "vcf": 295,
+        "cached": 538,
+        "elapsed_ms": 9581
+      },
+      "runs": [
+        {
+          "verified": false,
+          "reason": "VCF timeout at I10",
+          "variation": [
+            "G10",
+            "H11",
+            "F10",
+            "F11",
+            "E10",
+            "H10",
+            "E9",
+            "I10"
+          ],
+          "defenses": 1370,
+          "vcf": 1363,
+          "cached": 0,
+          "elapsed_ms": 25000
+        },
+        {
+          "verified": true,
+          "defenses": 836,
+          "vcf": 295,
+          "cached": 538,
+          "elapsed_ms": 9581
+        }
+      ]
+    },
+    {
+      "name": "12.F10",
+      "source": "f10-loss-certificate.json",
+      "status": "VALID",
+      "auditNodes": 35,
+      "auditErrors": [],
+      "elapsed_ms": 56265,
+      "result": {
+        "verified": true,
+        "defenses": 836,
+        "vcf": 367,
+        "cached": 466,
+        "elapsed_ms": 6256
+      },
+      "runs": [
+        {
+          "verified": false,
+          "reason": "VCF timeout at J7",
+          "variation": [
+            "F5",
+            "F6",
+            "D7",
+            "G10",
+            "E6",
+            "G4",
+            "E4",
+            "G11",
+            "G9",
+            "J7"
+          ],
+          "defenses": 1310,
+          "vcf": 1301,
+          "cached": 1,
+          "elapsed_ms": 25000
+        },
+        {
+          "verified": false,
+          "reason": "VCF timeout at D10",
+          "variation": [
+            "F5",
+            "F6",
+            "D7",
+            "G10",
+            "E6",
+            "G11",
+            "G9",
+            "D10"
+          ],
+          "defenses": 2511,
+          "vcf": 1403,
+          "cached": 1095,
+          "elapsed_ms": 25002
+        },
+        {
+          "verified": true,
+          "defenses": 836,
+          "vcf": 367,
+          "cached": 466,
+          "elapsed_ms": 6256
+        }
+      ]
+    },
+    {
+      "name": "20.G9",
+      "source": "g9-move20-loss-certificate.json",
+      "status": "VALID",
+      "auditNodes": 1,
+      "auditErrors": [],
+      "elapsed_ms": 1878,
+      "result": {
+        "verified": true,
+        "defenses": 203,
+        "vcf": 203,
+        "cached": 0,
+        "elapsed_ms": 1876
+      },
+      "runs": [
+        {
+          "verified": true,
+          "defenses": 203,
+          "vcf": 203,
+          "cached": 0,
+          "elapsed_ms": 1876
+        }
+      ]
+    }
+  ]
+}
