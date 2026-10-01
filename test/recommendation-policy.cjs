@@ -15,6 +15,17 @@ for(const winner of ['J4','G8']){
  const out=engine.analyze(boardOf(prefix),2,900);assert.equal(out.i,high);assert.equal(out.score,30);assert.equal(out.depth,5);assert.equal(out.proven,false);assert.equal(out.pv[0],high);
 }
 console.log('PASS highest evaluated non-refuted candidate wins; pattern does not bypass comparison; no J4 hardcode');
+for(const evidence of [{line:[idx('E8')]},{pv:[idx('E8')]},{replyTrap:{block:idx('E8')}},{verifiedRefutation:true},{}]){
+ const rejected={i:idx('J4'),reason:'counter-search',...evidence};
+ const engine=controlled(f=>({...f,forcing:()=>({complete:false,proof:null}),
+  analyze:()=>({i:idx('J4'),score:100,depth:6,pv:[idx('J4')],rejected:[],reason:'deep comparison'})}),
+  reader=>({...reader,analyze:()=>({kind:'search',depth:4,moves:[{i:idx('G8'),score:30,pv:[idx('G8')]}],rejectedMoves:[rejected]})}));
+ const board=boardOf(prefix),copy=board.slice(),updates=[],out=engine.analyze(board,2,{automatic:true,ms:15000},[],r=>updates.push(r));
+ assert.equal(out.i,idx(Object.keys(evidence).length?'G8':'J4'));
+ assert((out.rejected||[]).some(m=>m.i===idx('J4')));assert(!out.proven);assert(!out.lossProven);
+ assert.deepEqual(board,copy);assert(out.automatic);assert(updates.every(r=>r.automatic));
+}
+console.log('PASS deep comparison preserves Reader refutations in every certificate format; incomplete checks remain eligible');
 let trapBudget;
 e=controlled(f=>({...f,forcing:()=>({complete:true,proof:null}),forcedReplyTrap:(b,p,ms)=>{trapBudget=ms;return {complete:false,proof:null};},analyze:()=>({i:idx('A4'),score:120,depth:4,pv:[idx('A4')],proven:false,lossProven:false,rejected:[],reason:'limited comparison'})}),reader=>({...reader,analyze:()=>({kind:'search',depth:3,moves:[{i:idx('A4'),score:100,pv:[idx('A4')]},{i:idx('B3'),score:50,pv:[idx('B3')]}]})}));
 b=Array(225).fill(0);for(const c of ['A1','A2','A3'])b[idx(c)]=1;r=e.analyze(b,1,25000);assert.equal(r.i,idx('A4'));assert.equal(r.score,120);assert(!r.proven);assert(!(r.rejected||[]).some(m=>m.i===idx('A4')));assert(trapBudget<=500);console.log('PASS proof timeout preserves evaluated move and quick proof cap');

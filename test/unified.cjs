@@ -89,11 +89,20 @@ test('80-ply green record is legal and yellow has the verified M6 forcing line',
   moves.forEach((c,k)=>{const p=k%2?2:1,s=strict.inspect(b,idx(c),p);assert(s.legal,`${k+1}/${c}`);b[idx(c)]=p;assert.equal(s.win.length,0);});
   const proof=strict.forcing(b,1,17,1000);assert(proof.proof);assert.equal(proof.proof.pv[0],idx('M6'));
 });
-test('automatic analysis prevents the 74 E15 loss by recommending E11',()=>{
+test('73-ply automatic analysis excludes certified losses without hardcoding E11',()=>{
   const moves='H8 G7 G8 F8 E9 F7 F9 H7 E7 E8 D9 C9 G9 H9 I7 F10 J6 K5 J7 I8 G6 C8 B8 H6 J8 I5 J4 J5 H5 C7 J9 J10 C6 C10 C11 G10 H10 E12 F11 L5 M5 D11 B9 G12 H12 D10 E10 F12 G13 D12 C12 F13 G14 C13 B14 D13 D14 E13 B13 E14 H11 I6 K7 K4 L3 G11 L6 N4 L7 M7 H13 H14 B7'.split(' '),b=blank();
   moves.forEach((c,k)=>b[idx(c)]=k%2?2:1);
-  const plan=strict.suggestBudget(b,2,40000);assert(plan.ms>=12000);const r=strict.analyze(b,2,{automatic:true,ms:plan.ms},[]);
-  assert.equal(r.i,idx('E11'));assert(!r.lossProven);assert(r.automatic);assert((r.rejected||[]).some(x=>x.i===idx('E15')));
+  const copy=b.slice(),plan=strict.suggestBudget(b,2,40000);assert(plan.ms>=12000);const r=strict.analyze(b,2,{automatic:true,ms:plan.ms},[]);
+  // E11 is not a safe-move certificate: Reader can independently refute it.
+  // Completed search depth and the best unresolved move depend on wall time.
+  assert(strict.inspect(b,r.i,2).legal);assert(r.automatic);assert.deepEqual(b,copy);
+  assert.equal(strict.validPV(b,2,r.pv).length,r.pv.length);
+  const certified=(r.rejected||[]).filter(x=>x.pv?.length||x.line?.length||x.replyTrap||x.verifiedRefutation);
+  if(!r.lossProven)assert(!certified.some(x=>x.i===r.i),'a refuted move cannot be recommended as unresolved');
+  const e15=certified.find(x=>x.i===idx('E15'));assert(e15,'E15 exclusion must retain its proof');
+  if(r.lossProven){assert.equal(r.proofStatus,'PROVEN_LOSS');assert(r.forcedLoss,'a refuted resistance move must retain the loss verdict');}
+  else assert.notEqual(r.i,idx('E15'));
+  assert(!r.proven,'no winning certificate has been established for the alternative');
 });
 test('30-ply green record is not lost and automatic analysis proves C8 wins',()=>{
   const moves='H8 G7 H7 H6 F8 G8 G6 H9 F7 G10 G9 I8 F11 F10 F5 F6 E8 H5 E4 D3 E7 H10 E6 E5 D9 C10 D6 C5 E10 E9'.split(' '),b=blank();
@@ -116,8 +125,10 @@ test('deep safety guard rejects yellow H11, retains G5 resistance and keeps loss
   const moves='H8 G7 I8 F8 H9 H6 E9 G6 H10 H7 F9 G9 G10 I5 J4'.split(' '),b=blank();
   moves.forEach((c,k)=>b[idx(c)]=k%2?1:2);
   const h11=strict.reviewMove(b,1,idx('H11'),1300,[]);assert(h11.actualLossProof);assert.equal(h11.actualLossProof.pv[0],idx('J7'));
-  const r=strict.analyze(b,1,{automatic:true,ms:15000},[]);assert.equal(r.i,idx('G5'));assert(r.lossProven);assert(r.deepConflict);assert.equal(r.kind,'lost');
-  assert((r.rejected||[]).some(x=>x.i===idx('H11')&&x.reason==='착수 뒤 상대 강제승 확인'));
+  const r=strict.analyze(b,1,{automatic:true,ms:15000},[]);assert.equal(r.i,idx('G5'));assert(r.lossProven);assert.equal(r.proofStatus,'PROVEN_LOSS');assert.equal(r.kind,'lost');
+  // Either engine may establish the refutation first; do not require a later
+  // conflict between them when the Reader certificate already excludes H11.
+  assert((r.rejected||[]).some(x=>x.i===idx('H11')&&(x.line?.length||x.pv?.length||x.replyTrap)));
 });
 test('27-ply yellow record is terminal and H7 breaks the recorded diagonal trap at ply 14',()=>{
   const moves='H8 G7 H9 H6 I8 F8 I5 F7 J7 G10 I6 I7 J8 E7 H7 K8 J6 D7 C7 J9 H11 H10 J5 J4 G8 F9 K4'.split(' '),b=blank();let finish=null;

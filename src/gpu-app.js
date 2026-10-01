@@ -29,8 +29,8 @@ $('budget').onchange=event=>{
  syncGPUProfile();previousBudgetChange?.(event);
 };
 syncGPUProfile(true);
-versionBadge.textContent='통합 v5.13.0 · GPU';
-versionBadge.setAttribute('aria-label','통합 버전 5.13.0');
+versionBadge.textContent='통합 v5.13.1 · GPU';
+versionBadge.setAttribute('aria-label','통합 버전 5.13.1');
 versionBadge.title='GPU 혼합 분석 · 분석 모드 3종 · 정확한 5목 우선 고정';
 let gpuPrepared=null,cpuPatterns=null,modeRequest=0,benchmarkWorker=null,cancelBenchmark=null;
 async function selectComputeMode(reanalyze=false){

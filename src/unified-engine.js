@@ -58,7 +58,7 @@ function createEngine(options={}) {
       const pool=[...new Set([...(result.candidates||[]).map(m=>m.i),...nearby,
         ...Array.from({length:225},(_,i)=>i)])].filter(j=>inspect(board,j,p).legal);
       const rejected=new Set((result.rejected||[]).map(m=>m.i));
-      const provenRejected=new Set((result.rejected||[]).filter(m=>m.pv?.length||m.replyTrap||m.verifiedRefutation).map(m=>m.i));
+      const provenRejected=new Set((result.rejected||[]).filter(m=>m.pv?.length||m.line?.length||m.replyTrap||m.verifiedRefutation).map(m=>m.i));
       const scores=new Map(),rank=j=>{if(scores.has(j))return scores.get(j);
         const after=board.slice();after[j]=p;const shape=inspect(board,j,p);
         const value=forest.evaluate(after,p)+(near.has(j)?250:0)+shape.fours.length*5000+shape.threes.length*300;
@@ -91,13 +91,16 @@ function createEngine(options={}) {
     };
     // Apply the same evidence gate to interim candidates and final results.
     // Otherwise a user can play a certified losing move while deep search runs.
-    let best=excludeKnown(convert(board,p,e.analyze(p,deep?Math.min(2000,limit*.2):automatic?{automatic:true,maxMs:limit}:limit,
-      r=>progress(excludeKnown(convert(board,p,r,started)))),started));
+    let best={...excludeKnown(convert(board,p,e.analyze(p,deep?Math.min(2000,limit*.2):automatic?{automatic:true,maxMs:limit}:limit,
+      r=>progress({...excludeKnown(convert(board,p,r,started)),automatic})),started)),automatic};
     const can=forest.canonical(board,p),memory=lessons.filter(l=>l.key===can.key);
     best.memory=memory.length;
     best.patternHint=forest.patternDefense(board,p)?.i??null;
     if(!deep||best.proven||best.lossProven||best.kind==='terminal'||best.i==null)return ensureLegalCandidate(best);
-    const refuted=new Set(knownBad),counterRisk=new Map();
+    // A deeper engine must not resurrect a move already refuted by Reader.
+    // Reader certificates use `line`; Forest certificates use `pv`/`replyTrap`.
+    const refuted=new Set([...knownBad,...(best.rejected||[])
+      .filter(m=>m.pv?.length||m.line?.length||m.replyTrap||m.verifiedRefutation).map(m=>m.i)]),counterRisk=new Map();
     if(limit>=8000&&board.filter(Boolean).length<=40)for(const m of (best.candidates||[]).slice(0,3)){
       const shape=inspect(board,m.i,p);if(!shape.legal||!shape.fours.length||shape.win.length)continue;
       const after=board.slice();after[m.i]=p;const ends=forest.winning(after,p);
