@@ -35,12 +35,17 @@ function createForestEngine(options={}){
  function winning(b,p){return memoPosition('winning',b,p,()=>findWinning(b,p),true);}
  function evaluate(b,p){return memoPosition('evaluation',b,p,()=>evaluateUncached(b,p));}
  function getPositionCacheStats(){return {...positionCacheStats,entries:Object.values(positionCaches).reduce((n,c)=>n+c.size,0)};}
+
+ const patternIndices=options.patternTable?Array.from({length:N*N},(_,i)=>D.map(([dx,dy])=>Array.from({length:11},(_,k)=>{const x=i%N+(k-5)*dx,y=(i/N|0)+(k-5)*dy;return x>=0&&y>=0&&x<N&&y<N?y*N+x:-1;}))):null;
+ function patternCode(board,indices,p){let code=0,mul=1;for(let k=0;k<11;k++)if(k!==5){const j=indices[k],v=j<0?2:board[j]===p?1:board[j]===0?0:2;code+=v*mul;mul*=3;}return code;}
+
  const at=(b,x,y)=>inside(x,y)?b[y*N+x]:-1;
  function line(b,i,p,d){let x=i%N,y=i/N|0,a=[i];for(const s of [-1,1]){let k=1;while(at(b,x+d[0]*k*s,y+d[1]*k*s)===p){let j=(y+d[1]*k*s)*N+x+d[0]*k*s;s<0?a.unshift(j):a.push(j);k++;}}return a;}
  function win(b,i,p){if(b[i]!==p)return [];return D.flatMap(d=>{let a=line(b,i,p,d);return a.length===5?a:[];});}
  // 열린 3의 구조 정의: 새 돌을 포함하여 한 수로 열린 연속 4가 되는 축.
  // 추가 금수 예외를 가진 렌주 규칙을 임의로 적용하지 않는다.
- function shapes(b,i,p){let x=i%N,y=i/N|0,threes=[],fours=[],details=[];
+ function shapesFast(b,i,p){const threes=[],fours=[],details=[];for(let axis=0;axis<4;axis++){const indices=patternIndices[i][axis],bits=options.patternTable[patternCode(b,indices,p)],t=[],f=[];for(let k=0;k<9;k++){if(bits&(1<<k))t.push(indices[k+1]);if(bits&(1<<(k+9)))f.push(indices[k+1]);}if(t.length)threes.push(axis);if(f.length)fours.push(axis);details.push({axis,three:t,four:f});}return {threes,fours,details};}
+ function shapes(b,i,p){if(patternIndices)return shapesFast(b,i,p);let x=i%N,y=i/N|0,threes=[],fours=[],details=[];
   D.forEach((d,axis)=>{let t=[],f=[];for(let k=-4;k<=4;k++){if(!k)continue;let xx=x+d[0]*k,yy=y+d[1]*k;if(at(b,xx,yy)!==0)continue;let j=yy*N+xx;b[j]=p;let a=line(b,j,p,d);
    if(a.includes(i)){if(a.length===5)f.push(j);if(a.length===4){let l=a[0],r=a[a.length-1];if(at(b,l%N-d[0],(l/N|0)-d[1])===0&&at(b,r%N+d[0],(r/N|0)+d[1])===0)t.push(j);}}
    b[j]=0;}

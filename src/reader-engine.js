@@ -3,6 +3,10 @@ function createEngine(N, board, options={}) {
   if(![15,19].includes(N)||board.length!==N*N||board.some(v=>![0,1,2].includes(v)))throw Error('Invalid board');
   const b=Array.from(board),dirs=[[1,0],[0,1],[1,1],[1,-1]],M=10000000;
   const inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N, at=(x,y)=>inside(x,y)?b[y*N+x]:3;
+
+ const patternIndices=options.patternTable?Array.from({length:N*N},(_,i)=>dirs.map(([dx,dy])=>Array.from({length:11},(_,k)=>{const x=i%N+(k-5)*dx,y=(i/N|0)+(k-5)*dy;return x>=0&&y>=0&&x<N&&y<N?y*N+x:-1;}))):null;
+ function patternCode(board,indices,p){let code=0,mul=1;for(let k=0;k<11;k++)if(k!==5){const j=indices[k],v=j<0?2:board[j]===p?1:board[j]===0?0:2;code+=v*mul;mul*=3;}return code;}
+
   const windows=[],affected=Array.from({length:N*N},()=>[]),cellAffected=Array.from({length:N*N},()=>[]),counts1=[],counts2=[],contributions=[];
   const threePatterns=Array.from({length:N*N},(_,i)=>dirs.map(([dx,dy])=>{
     const x=i%N,y=Math.floor(i/N),patterns=[];
@@ -29,6 +33,7 @@ function createEngine(N, board, options={}) {
   // endpoints would win by exact five. Stones beyond an empty endpoint do NOT
   // close it. Exact-five/overline restrictions belong only in winningMoves.
   function openThrees(i,p,explain=false){
+    if(!explain&&patternIndices){let count=0;for(const indices of patternIndices[i])if(options.patternTable[patternCode(b,indices,p)]&511){if(++count===2)break;}return count;}
     if(!explain){let count=0;for(const patterns of threePatterns[i]){for(const w of patterns){if(b[w[0]]||b[w[1]])continue;let own=0,empty=0;for(let k=2;k<6;k++){const v=b[w[k]];if(v===p)own++;else if(v===0)empty++;else break;}if(own===3&&empty===1){count++;break;}}if(count===2)return count;}return count;}
     let count=0,details=[],x=i%N,y=Math.floor(i/N);for(const [dx,dy]of dirs){let found=false;for(let off=-3;off<=3&&!found;off++){
     if(!off||at(x+off*dx,y+off*dy)!==0)continue;let j=(y+off*dy)*N+x+off*dx;b[j]=p;
@@ -43,7 +48,9 @@ function createEngine(N, board, options={}) {
   function wins(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(let id=0;id<windows.length;id++){if(own[id]!==4||enemy[id])continue;const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;const empty=w.cells.find(i=>!b[i]);if(legal(empty,p))res.add(empty);}return [...res];}
   function forcingCandidates(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(let id=0;id<windows.length;id++){if(own[id]<3||enemy[id])continue;const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;for(const i of w.cells)if(!b[i])res.add(i);}return [...res].filter(i=>legal(i,p));}
   function candidates(){const s=new Set();for(let i=0;i<b.length;i++)if(b[i]){const x=i%N,y=Math.floor(i/N);for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){let xx=x+dx,yy=y+dy;if(inside(xx,yy)&&!b[yy*N+xx])s.add(yy*N+xx);}}if(!s.size&&!b.some(Boolean))s.add(Math.floor(N/2)*(N+1));return [...s];}
-  function local(i,p){b[i]=p;let sum=0;for(let id of affected[i]){let w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;let count=0,blocked=false;for(let j of w.cells){if(b[j]===p)count++;else if(b[j]){blocked=true;break;}}if(!blocked)sum+=[0,1,20,400,25000,2000000][count];}b[i]=0;return sum;}
+  const localWindows=options.optimized?affected.map((ids,i)=>ids.map(id=>({w:windows[id],increment:cellAffected[i].includes(id)?1:0}))):null;
+  function localFast(i,p){let sum=0;for(const {w,increment} of localWindows[i]){if(w.pre===i||w.post===i||b[w.pre]===p||b[w.post]===p)continue;const enemy=p===1?counts2[w.id]:counts1[w.id];if(!enemy)sum+=[0,1,20,400,25000,2000000][(p===1?counts1[w.id]:counts2[w.id])+increment];}return sum;}
+  function local(i,p){if(options.optimized)return localFast(i,p);b[i]=p;let sum=0;for(let id of affected[i]){let w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;let count=0,blocked=false;for(let j of w.cells){if(b[j]===p)count++;else if(b[j]){blocked=true;break;}}if(!blocked)sum+=[0,1,20,400,25000,2000000][count];}b[i]=0;return sum;}
   function rank(p,cs=candidates()){let center=(N-1)/2;return cs.filter(i=>legal(i,p)).map(i=>({i,s:local(i,p)+local(i,3-p)*1.1-.05*(Math.abs(i%N-center)+Math.abs(Math.floor(i/N)-center))})).sort((a,c)=>c.s-a.s);}
   function fork(p){for(let i of forcingCandidates(p)){tick();set(i,p);let ws,enemy,forbiddenBlock;try{ws=wins(p);enemy=wins(3-p);forbiddenBlock=ws.length===1&&!legal(ws[0],3-p);}finally{set(i,0);}if((ws.length>=2||forbiddenBlock)&&!enemy.length)return {i,ends:ws,forbiddenBlock};}return null;}
   // A forcing-four proof checks every relevant defense: a legal win, or the
@@ -92,7 +99,7 @@ function createEngine(N, board, options={}) {
     if(danger.length>1||danger.length===1&&!legal(danger[0],p))return {score:-M+ply+1,pv:[]};
     // Do not replace a forcing win just beyond the horizon with a positional
     // score. A bounded proof probe is sound when found; a timeout proves nothing.
-    if(depth<=1&&!danger.length){const tacticalKey=b.join('')+p;let proof=tacticalCache.get(tacticalKey);if(proof===undefined){const previous=phaseDeadline;try{phaseDeadline=Math.min(previous,deadline,clockNow()+5);proof=vcf(p,9);if(tacticalCache.size<30000)tacticalCache.set(tacticalKey,proof);}catch(e){if(e.message!=='timeout')throw e;proof=null;}finally{phaseDeadline=previous;}}if(proof)return {score:M-ply-proof.length,pv:proof};}
+    if(depth<=1&&!danger.length){const tacticalKey=b.join('')+p;let proof=tacticalCache.get(tacticalKey);if(proof===undefined){const previous=phaseDeadline;try{phaseDeadline=options.fixedWork?Infinity:Math.min(previous,deadline,clockNow()+5);proof=vcf(p,9);if(tacticalCache.size<30000)tacticalCache.set(tacticalKey,proof);}catch(e){if(e.message!=='timeout')throw e;proof=null;}finally{phaseDeadline=previous;}}if(proof)return {score:M-ply-proof.length,pv:proof};}
     if(depth<=0&&!danger.length)return {score:(p===1?total:-total),pv:[]};
     if(depth<=0&&extension<=0)return {score:(p===1?total:-total),pv:[]};
     const key=b.join('')+p,entry=tt.get(key),a0=alpha,b0=beta;
@@ -176,7 +183,8 @@ function createEngine(N, board, options={}) {
     }
     return output(kind,best,depth,{...extra,autoReason:automatic?stopReason:null});
   }
-  return {legal,moveInfo,winMove,threes,analyze,state,board:b,winningMoves:wins,threatWin:(p,ms=1000)=>{deadline=clockNow()+ms;try{return threatWin(p);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}},forcingWin:(p,depth=13,ms=1000)=>{deadline=clockNow()+ms;try{return vcf(p,depth);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}}};
+  function fixedWork(p,depth=3){nodes=0;deadline=Infinity;phaseDeadline=Infinity;tt.clear();tacticalCache.clear();const start=clockNow(),result=search(p,depth,-Infinity,Infinity,0);return {...result,nodes,depth,ms:clockNow()-start};}
+  return {fixedWork,rank,legal,moveInfo,winMove,threes,analyze,state,board:b,winningMoves:wins,threatWin:(p,ms=1000)=>{deadline=clockNow()+ms;try{return threatWin(p);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}},forcingWin:(p,depth=13,ms=1000)=>{deadline=clockNow()+ms;try{return vcf(p,depth);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}}};
 }
 function autoStable(rounds,depth,elapsed,checks,moves){
   if(elapsed<1000||depth<4||rounds.length<3||!checks.screeningComplete||!checks.forcingChecksComplete||!moves.length||moves[0].status==='unverified')return false;

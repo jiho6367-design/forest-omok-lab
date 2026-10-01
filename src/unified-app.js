@@ -10,7 +10,7 @@ function setAnalysisStatus(label,detail,mode='ready'){
   state.textContent=label;state.dataset.mode=mode;description.textContent=detail;
 }
 const setupOptions=document.createElement('div');
-setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority"><option value="strict">3·3 금지 우선 (수읽기 기존 규칙)</option><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
+setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority" disabled><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
 versionBadge.textContent='통합 v5.12.5';versionBadge.title='자동 종료: 완료 깊이·PV·후보 순위·평가 격차 안정성 확인';versionBadge.setAttribute('aria-label','통합 버전 5.12.5');
@@ -25,13 +25,21 @@ const studyDetails=document.createElement('details'),studySummary=document.creat
 const learningCard=$('learn').closest('.card');
 for(const child of [...$('learn').parentElement.children])if(!['postmortem','learn','lessons'].includes(child.id))studyDetails.append(child);
 learningCard.append(studyDetails);
-const rulesText=learningCard.querySelector('details p');if(rulesText)rulesText.textContent='정확한 5목만 승리, 6목 이상은 승리가 아니며 4·4는 허용합니다. 양측 3·3 금지이며, 5목 우선 여부는 새 게임에서 선택하고 기보에 저장합니다. 모든 말은 초록 슬라임·노란 버섯으로 표시합니다.';
+const rulesText=learningCard.querySelector('details p');if(rulesText)rulesText.textContent='정확한 5목만 승리, 6목 이상은 승리가 아니며 4·4는 허용합니다. 양측 3·3 금지이며, 정확한 5목이 동시에 완성되면 승리를 우선합니다. 숲속 기존 규칙으로 고정합니다. 모든 말은 초록 슬라임·노란 버섯으로 표시합니다.';
 
 let ponder=null,keepPonder=false,lastProgress=null,activePlan='';
+function normalizeForestRules(){
+  if(g)g.rules={...g.rules,fivePriority:true};
+  for(const game of db.games)game.rules={...game.rules,fivePriority:true};
+  for(const lesson of db.lessons)lesson.rules={...lesson.rules,fivePriority:true};
+}
+normalizeForestRules();
+const loadWithForestRules=loadGame;
+loadGame=function(game){return loadWithForestRules({...game,rules:{...game.rules,fivePriority:true}});};
 const persistWithRules=persist;
 persist=function(){
   for(const lesson of db.lessons)if(!lesson.rules){const game=lesson.game===g?.id?g:db.games.find(x=>x.id===lesson.game);if(game?.rules)lesson.rules={...game.rules};}
-  persistWithRules();
+  normalizeForestRules();persistWithRules();
 };
 const baseStopWorker=stopWorker;
 function cancelPonder(){ponder?.worker?.terminate();ponder=null;predictionNote.textContent='';}
@@ -55,7 +63,7 @@ function selectedBudget(board,p,explicit){
 }
 function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   const started=performance.now();
-  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const E=createEngine(e.data.rules);const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r}));postMessage({result:r})}catch(x){postMessage({error:String(x)})}}';
+  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const E=createEngine({...e.data.rules,patternTable:e.data.patternTable,optimized:e.data.optimized});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r}));postMessage({result:r})}catch(x){postMessage({error:String(x)})}}';
   const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));let w;
   try{w=new Worker(url);}finally{URL.revokeObjectURL(url);}
   const limit=typeof budget==='object'?budget.ms:Number(budget);
@@ -88,7 +96,7 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
       if(r?.depth>0||r?.proven||r?.lossProven)lastVerified=r;onProgress(r);}
     else finish(e.data.result);};
   w.onerror=e=>finish(lastVerified,e.message||'Worker 오류');
-  w.postMessage({b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{}});return w;
+  w.postMessage({patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{}});return w;
 }
 function acceptResult(result,partial=false){
   if(!result||(result.i!=null&&!E.inspect(b,result.i,turn).legal))return false;
@@ -144,7 +152,7 @@ render=function(){unifiedRender();
   for(let i=0;i<225;i++)$('board').children[i].style.order=descending?(14-Math.floor(i/15))*15+i%15:i;
   [...$('axisy').children].forEach((el,i)=>el.textContent=descending?15-i:i+1);
   const lines=document.querySelector('.threat-lines');if(lines)lines.style.transform=descending?'scaleY(-1)':'';
-  ruleLabel.textContent=g?`${g.rules?.fivePriority===false?'3·3 금지 우선':'정확한 5목 우선'} · ${g.timer===false?'시간 제한 없음':'40초 초과 PASS'}`:'';
+  ruleLabel.textContent=g?`정확한 5목 우선 (숲속 기존 규칙) · ${g.timer===false?'시간 제한 없음':'40초 초과 PASS'}`:'';
   candidateList.replaceChildren();
   for(const [k,m] of (rec?.candidates||[]).slice(0,3).entries()){
     const el=document.createElement('span');el.className='badge';el.textContent=`${k+1}순위 ${E.coord(m.i)}`;candidateList.append(el);
@@ -175,10 +183,10 @@ function parseTextRecord(text,rule,first=1){
 const importTextButton=button($('copy').parentElement,'텍스트 기보 가져오기',()=>{
   const body=openModal('텍스트 기보 가져오기');paragraph(body,'예: 1. 백 H8 · 2. 흑 G9. 슬라임·버섯 이름과 PASS도 지원합니다. 기존 게임은 보존합니다.');
   const area=document.createElement('textarea');area.setAttribute('aria-label','가져올 텍스트 기보');body.append(area);
-  const rule=document.createElement('select');rule.setAttribute('aria-label','기보 규칙');rule.append(new Option('3·3 금지 우선','strict'),new Option('정확한 5목 우선','priority'));body.append(rule);
+  const rule=document.createElement('select');rule.setAttribute('aria-label','기보 규칙');rule.append(new Option('정확한 5목 우선 (숲속 기존 규칙)','priority'));rule.disabled=true;body.append(rule);
   const me=document.createElement('select');me.setAttribute('aria-label','기보 내 캐릭터');me.append(new Option('나는 노란 버섯 (흑)','1'),new Option('나는 초록 슬라임 (백)','2'));body.append(me);
   const error=paragraph(body,'');button(body,'검사 후 불러오기',()=>{try{
-    const rules={fivePriority:rule.value==='priority'},evs=parseTextRecord(area.value,rules);
+    const rules={fivePriority:true},evs=parseTextRecord(area.value,rules);
     persist();const game={id:crypto.randomUUID(),date:new Date().toISOString(),me:+me.value,first:evs[0].p,rules,timer:false,axis:'descending',events:evs,cursor:evs.length,remaining:40000,result:null};
     db.games.unshift(game);loadGame(game);persist();$('modal').close();msg('기보를 불러왔습니다. 재개 후 다음 수를 입력하거나 복기하세요.');
   }catch(e){error.textContent=e.message;}});
@@ -195,7 +203,7 @@ const readerStudies=/*READER_STUDIES*/[];
 const readerDetails=document.createElement('details'),readerSummary=document.createElement('summary');readerSummary.textContent='기존 수읽기 기보 사례';readerDetails.append(readerSummary);learningCard.append(readerDetails);
 for(const study of readerStudies){button(readerDetails,study.n+'수 기보 복기',()=>{
   persist();const evs=study.coords.map((c,k)=>({type:'move',i:(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p:k%2?3-study.first:study.first,remaining:null,rec:null,time:null,legal:true}));
-  const game={id:'reader-study-'+study.n,date:'2026-09-23',me:1,first:study.first,rules:{fivePriority:false},timer:false,axis:'descending',events:evs,cursor:evs.length,remaining:40000,result:null,source:'수읽기 기존 사용자 기보'};
+  const game={id:'reader-study-'+study.n,date:'2026-09-23',me:1,first:study.first,rules:{fivePriority:true},timer:false,axis:'descending',events:evs,cursor:evs.length,remaining:40000,result:null,source:'수읽기 기존 사용자 기보'};
   loadGame(db.games.find(x=>x.id===game.id)||game);persist();enterReview(({29:25,31:24,33:26,47:37,48:44,95:93})[study.n]);analyze();
 });}
 const case80Id='slime-loss-2026-09-27-80';
@@ -210,8 +218,8 @@ const case80Notes={
   79:'80수 I10은 즉시 방어점이지만 M6부터 시작하는 상대 강제승 수순이 남음'
 };
 function makeCase80(){
-  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:false}),events=case80Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?2:1,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('80수 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:case80Notes[k]||''};});
-  return {id:case80Id,date:'2026-09-27',me:2,first:1,rules:{fivePriority:false},timer:false,axis:'ascending',events,cursor:80,remaining:40000,result:null,source:'사용자 제공 80수 기보 · 초록 슬라임 · 74수 E15 최종 분기점'};
+  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:true}),events=case80Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?2:1,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('80수 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:case80Notes[k]||''};});
+  return {id:case80Id,date:'2026-09-27',me:2,first:1,rules:{fivePriority:true},timer:false,axis:'ascending',events,cursor:80,remaining:40000,result:null,source:'사용자 제공 80수 기보 · 초록 슬라임 · 74수 E15 최종 분기점'};
 }
 const case80Game=makeCase80();
 if(!db.appliedUpdates?.includes('slime-loss-80-v4.1')){if(!db.games.some(x=>x.id===case80Id))db.games.push(case80Game);db.appliedUpdates=[...(db.appliedUpdates||[]),'slime-loss-80-v4.1'];persist();}
@@ -220,8 +228,8 @@ case80Button.id='case80Study';
 const case30Id='slime-force-win-2026-09-27-30';
 const case30Moves='H8 G7 H7 H6 F8 G8 G6 H9 F7 G10 G9 I8 F11 F10 F5 F6 E8 H5 E4 D3 E7 H10 E6 E5 D9 C10 D6 C5 E10 E9'.split(' ');
 function makeCase30(){
-  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:false}),events=case30Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?1:2,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('30수 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===29?'30수 E9 뒤 초록 C8이 4-3 동시 위협을 만들어 B7·G12 두 승리점을 확보함':''};});
-  return {id:case30Id,date:'2026-09-27',me:2,first:2,rules:{fivePriority:false},timer:false,axis:'ascending',events,cursor:30,remaining:40000,result:null,source:'사용자 제공 30수 기보 · 아직 패배 아님 · 초록 C8 강제승'};
+  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:true}),events=case30Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?1:2,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('30수 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===29?'30수 E9 뒤 초록 C8이 4-3 동시 위협을 만들어 B7·G12 두 승리점을 확보함':''};});
+  return {id:case30Id,date:'2026-09-27',me:2,first:2,rules:{fivePriority:true},timer:false,axis:'ascending',events,cursor:30,remaining:40000,result:null,source:'사용자 제공 30수 기보 · 아직 패배 아님 · 초록 C8 강제승'};
 }
 const case30Game=makeCase30();
 if(!db.appliedUpdates?.includes('slime-force-win-30-v5')){if(!db.games.some(x=>x.id===case30Id))db.games.push(case30Game);db.appliedUpdates=[...(db.appliedUpdates||[]),'slime-force-win-30-v5'];persist();}
@@ -230,8 +238,8 @@ case30Button.id='case30Study';
 const case19Id='slime-win-2026-09-27-19';
 const case19Moves='H8 G7 I8 F8 H9 H6 E9 G6 H10 H7 F9 G9 G10 I5 J4 H11 J7 K6 F11'.split(' ');
 function makeCase19(){
-  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:false}),events=case19Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?1:2,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('19수 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===15?'노란 16수 H11 패착 · 초록의 강제승 허용':k===16?'초록 J7이 K6·F11 양끝 승리 위협 생성':k===17?'K6을 막아도 반대쪽 F11이 남음':k===18?'F11–G10–H9–I8–J7 정확한 5목으로 초록 승리':''};});
-  return {id:case19Id,date:'2026-09-27',me:1,first:2,rules:{fivePriority:false},timer:false,axis:'ascending',events,cursor:19,remaining:40000,result:{winner:2},source:'사용자 제공 19수 기보 · 노란 버섯 16수 H11 패착 복기'};
+  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:true}),events=case19Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?1:2,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('19수 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===15?'노란 16수 H11 패착 · 초록의 강제승 허용':k===16?'초록 J7이 K6·F11 양끝 승리 위협 생성':k===17?'K6을 막아도 반대쪽 F11이 남음':k===18?'F11–G10–H9–I8–J7 정확한 5목으로 초록 승리':''};});
+  return {id:case19Id,date:'2026-09-27',me:1,first:2,rules:{fivePriority:true},timer:false,axis:'ascending',events,cursor:19,remaining:40000,result:{winner:2},source:'사용자 제공 19수 기보 · 노란 버섯 16수 H11 패착 복기'};
 }
 const case19Game=makeCase19();
 if(!db.appliedUpdates?.includes('yellow-defense-19-v5.2')){const old=db.games.findIndex(x=>x.id===case19Id);if(old>=0)db.games[old]=case19Game;else db.games.push(case19Game);db.appliedUpdates=[...(db.appliedUpdates||[]),'yellow-defense-19-v5.2'];persist();}
@@ -240,8 +248,8 @@ case19Button.id='case19Study';
 const case27bId='mushroom-diagonal-loss-2026-09-27-27';
 const case27bMoves='H8 G7 H9 H6 I8 F8 I5 F7 J7 G10 I6 I7 J8 E7 H7 K8 J6 D7 C7 J9 H11 H10 J5 J4 G8 F9 K4'.split(' ');
 function makeCase27b(){
-  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:false}),events=case27bMoves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?1:2,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('27수 노란 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===13?'14수 E7이 초록 H7을 강제해 대각선 연결을 키운 분기점 · H7 선점 권장':k===24?'G8로 F9·K4 양끝 승리 위협 발생':k===26?'G8–H7–I6–J5–K4 정확한 5목으로 초록 승리':''};});
-  return {id:case27bId,date:'2026-09-27',me:1,first:2,rules:{fivePriority:false},timer:false,axis:'ascending',events,cursor:27,remaining:40000,result:{winner:2},source:'사용자 제공 27수 기보 · 노란 버섯 · 14수 H7 선점 방어 복기'};
+  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:true}),events=case27bMoves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?1:2,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('27수 노란 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===13?'14수 E7이 초록 H7을 강제해 대각선 연결을 키운 분기점 · H7 선점 권장':k===24?'G8로 F9·K4 양끝 승리 위협 발생':k===26?'G8–H7–I6–J5–K4 정확한 5목으로 초록 승리':''};});
+  return {id:case27bId,date:'2026-09-27',me:1,first:2,rules:{fivePriority:true},timer:false,axis:'ascending',events,cursor:27,remaining:40000,result:{winner:2},source:'사용자 제공 27수 기보 · 노란 버섯 · 14수 H7 선점 방어 복기'};
 }
 const case27bGame=makeCase27b();
 if(!db.appliedUpdates?.includes('yellow-h7-defense-27-v5.3')){const old=db.games.findIndex(x=>x.id===case27bId);if(old>=0)db.games[old]=case27bGame;else db.games.push(case27bGame);db.appliedUpdates=[...(db.appliedUpdates||[]),'yellow-h7-defense-27-v5.3'];persist();}
@@ -250,8 +258,8 @@ case27bButton.id='case27bStudy';
 const case31Id='mushroom-provisional-loss-2026-09-27-31';
 const case31Moves='H8 G9 H9 H10 F8 G8 G7 E9 F10 F9 G10 E10 H7 H6 I8 D9 C9 J7 F6 D11 C12 I9 E5 D4 F5 G6 F7 F4 E7 I7 D7'.split(' ');
 function makeCase31(){
-  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:false}),events=case31Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?1:2,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('31수 노란 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===13?'14수 H6은 초기 임시 후보였지만 I8 뒤 강제 수순을 허용 · D9 최종 방어':k===28?'E7로 D7·I7 양끝 승리 위협 발생':k===30?'D7–E7–F7–G7–H7 정확한 5목으로 초록 승리':''};});
-  return {id:case31Id,date:'2026-09-27',me:1,first:2,rules:{fivePriority:false},timer:false,axis:'ascending',events,cursor:31,remaining:40000,result:{winner:2},source:'사용자 제공 31수 기보 · 노란 버섯 · 14수 D9 즉시 패턴 방어'};
+  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:true}),events=case31Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?1:2,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('31수 노란 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===13?'14수 H6은 초기 임시 후보였지만 I8 뒤 강제 수순을 허용 · D9 최종 방어':k===28?'E7로 D7·I7 양끝 승리 위협 발생':k===30?'D7–E7–F7–G7–H7 정확한 5목으로 초록 승리':''};});
+  return {id:case31Id,date:'2026-09-27',me:1,first:2,rules:{fivePriority:true},timer:false,axis:'ascending',events,cursor:31,remaining:40000,result:{winner:2},source:'사용자 제공 31수 기보 · 노란 버섯 · 14수 D9 즉시 패턴 방어'};
 }
 const case31Game=makeCase31();
 if(!db.appliedUpdates?.includes('yellow-d9-defense-31-v5.4')){const old=db.games.findIndex(x=>x.id===case31Id);if(old>=0)db.games[old]=case31Game;else db.games.push(case31Game);db.appliedUpdates=[...(db.appliedUpdates||[]),'yellow-d9-defense-31-v5.4'];persist();}
@@ -260,8 +268,8 @@ case31Button.id='case31Study';
 const case26Id='mushroom-early-defense-2026-09-27-26';
 const case26Moves='H8 G7 I8 F8 H6 G9 H7 H9 J8 G8 G6 J9 K8 L8 K9 F9 I9 G11 G10 I7 I6 E9 D9 F6 K6 J6'.split(' ');
 function makeCase26(){
-  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:false}),events=case26Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?1:2,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('26수 노란 기보 규칙 오류: '+(k+1)+'수 '+c);if(s.win.length)throw Error('26수 이전에 종료된 기보');board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===5?'6수 G9가 H7–J8–G6 연결을 허용한 최초 예방 분기점 · H7 선점 권장':k===14?'15수 K9 뒤 초록 연속 4 강제승 확인':k===25?'26수 J6 뒤 초록 차례 · F5–E4–K7 강제승':''};});
-  return {id:case26Id,date:'2026-09-27',me:1,first:2,rules:{fivePriority:false},timer:false,axis:'ascending',events,cursor:26,remaining:40000,result:null,source:'사용자 제공 26수 기보 · 노란 버섯 · 6수 H7 선점 방어 복기'};
+  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:true}),events=case26Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?1:2,s=ruleEngine.inspect(board,i,p);if(!s.legal)throw Error('26수 노란 기보 규칙 오류: '+(k+1)+'수 '+c);if(s.win.length)throw Error('26수 이전에 종료된 기보');board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===5?'6수 G9가 H7–J8–G6 연결을 허용한 최초 예방 분기점 · H7 선점 권장':k===14?'15수 K9 뒤 초록 연속 4 강제승 확인':k===25?'26수 J6 뒤 초록 차례 · F5–E4–K7 강제승':''};});
+  return {id:case26Id,date:'2026-09-27',me:1,first:2,rules:{fivePriority:true},timer:false,axis:'ascending',events,cursor:26,remaining:40000,result:null,source:'사용자 제공 26수 기보 · 노란 버섯 · 6수 H7 선점 방어 복기'};
 }
 const case26Game=makeCase26();
 if(!db.appliedUpdates?.includes('yellow-h7-early-defense-26-v5.5')){const old=db.games.findIndex(x=>x.id===case26Id);if(old>=0)db.games[old]=case26Game;else db.games.push(case26Game);db.appliedUpdates=[...(db.appliedUpdates||[]),'yellow-h7-early-defense-26-v5.5'];persist();}
@@ -270,8 +278,8 @@ case26Button.id='case26Study';
 const case13Id='slime-g11-defense-2026-09-27-13';
 const case13Moves='H8 H6 I9 G7 H10 F8 E9 E7 G11 J8 F10 I5 J4'.split(' ');
 function makeCase13(){
-  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:false}),events=case13Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?2:1,s=ruleEngine.inspect(board,i,p);if(!s.legal||s.win.length)throw Error('13수 초록 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===7?'8수 E7 대신 G11 선점으로 기록된 공격 연결 차단':k===11?'12수 I5가 J4 방어를 강제하지만, 그 뒤 강제패 수순이 남음':k===12?'13수 J4 뒤 초록의 모든 합법 방어에 강제패 수순 확인':''};});
-  return {id:case13Id,date:'2026-09-27',me:2,first:1,rules:{fivePriority:false},timer:false,axis:'ascending',events,cursor:13,remaining:40000,result:null,source:'사용자 제공 13수 기보 · 초록 슬라임 · 8수 G11 선점 방어'};
+  const board=Array(225).fill(0),ruleEngine=createEngine({fivePriority:true}),events=case13Moves.map((c,k)=>{const i=(+c.slice(1)-1)*15+c.charCodeAt(0)-65,p=k%2?2:1,s=ruleEngine.inspect(board,i,p);if(!s.legal||s.win.length)throw Error('13수 초록 기보 규칙 오류: '+(k+1)+'수 '+c);board[i]=p;return {type:'move',i,p,time:null,remaining:null,rec:null,legal:true,shape:{threes:s.threes,fours:s.fours,fork43:s.fork43},annotation:k===7?'8수 E7 대신 G11 선점으로 기록된 공격 연결 차단':k===11?'12수 I5가 J4 방어를 강제하지만, 그 뒤 강제패 수순이 남음':k===12?'13수 J4 뒤 초록의 모든 합법 방어에 강제패 수순 확인':''};});
+  return {id:case13Id,date:'2026-09-27',me:2,first:1,rules:{fivePriority:true},timer:false,axis:'ascending',events,cursor:13,remaining:40000,result:null,source:'사용자 제공 13수 기보 · 초록 슬라임 · 8수 G11 선점 방어'};
 }
 const case13Game=makeCase13();
 if(!db.appliedUpdates?.includes('slime-g11-defense-13-v5.7')){const old=db.games.findIndex(x=>x.id===case13Id);if(old>=0)db.games[old]=case13Game;else db.games.push(case13Game);db.appliedUpdates=[...(db.appliedUpdates||[]),'slime-g11-defense-13-v5.7'];persist();}

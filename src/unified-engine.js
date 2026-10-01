@@ -3,7 +3,7 @@
 function createEngine(options={}) {
   const clockNow=typeof performance!=='undefined'?performance.now.bind(performance):Date.now.bind(Date);
   // Exact five takes precedence even when loading a legacy strict-rule setting.
-  const rules={fivePriority:true};
+  const rules={fivePriority:true,patternTable:options.patternTable,optimized:options.optimized};
   const forest=createForestEngine(rules);
   const fast=b=>createReaderEngine(15,b,rules);
   const inspect=(b,i,p)=>![1,2].includes(p)?{legal:false,reason:'돌 색 오류',threes:[],fours:[],win:[]}:forest.inspect(b,i,p);

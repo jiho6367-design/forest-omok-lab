@@ -1,6 +1,6 @@
 {
   "name": "forest-omok-unified",
-  "version": "5.12.5",
+  "version": "5.13.0",
   "private": true,
   "description": "Offline Gomoku with green slime and yellow mushroom characters",
   "scripts": {
@@ -13,7 +13,8 @@
     "test:vcf-prefilter": "node test/vcf-prefilter.cjs",
     "test:rules": "node test/five-priority.cjs",
     "test:recommendation-policy": "node test/recommendation-policy.cjs",
-    "test:worker-lifecycle": "node test/worker-lifecycle.cjs"
+    "test:worker-lifecycle": "node test/worker-lifecycle.cjs",
+    "test:gpu": "node test/local-gpu.cjs"
   },
   "engines": {
     "node": ">=20"

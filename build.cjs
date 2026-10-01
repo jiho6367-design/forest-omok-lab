@@ -1,12 +1,13 @@
 const fs=require('fs'),path=require('path');
 const read=f=>fs.readFileSync(path.join(__dirname,'src',f),'utf8');
 const reader=read('reader-engine.js').replace('function createEngine(', 'function createReaderEngine(').replace(/if\(typeof module[^\n]+/g,'');
-const engine=reader+'\n'+read('forest-engine.js').replace(/if\(typeof module[^\n]+/g,'')+'\n'+read('unified-engine.js');
+const engine=read('gpu-patterns.js')+'\n'+reader+'\n'+read('forest-engine.js').replace(/if\(typeof module[^\n]+/g,'')+'\n'+read('unified-engine.js');
 const studies=[29,31,33,47,48,95].map(n=>({n,coords:require('./test/reader/game'+n+'.cjs').coords,first:[31,48].includes(n)?1:2}));
 const app=read('unified-app.js').replace('/*READER_STUDIES*/[]',()=>JSON.stringify(studies));
-const html=read('template.html').replace('/*ENGINE*/',()=>engine).replace('/*APP*/',()=>read('app.js')+'\n'+app);
+const html=read('template.html').replace('/*ENGINE*/',()=>engine).replace('/*APP*/',()=>read('app.js')+'\n'+app+'\n'+read('gpu-app.js'));
 fs.mkdirSync(path.join(__dirname,'outputs'),{recursive:true});
 fs.writeFileSync(path.join(__dirname,'outputs/omok.html'),html);
 fs.mkdirSync(path.join(__dirname,'dist'),{recursive:true});
 fs.writeFileSync(path.join(__dirname,'dist/index.html'),html);
+fs.writeFileSync(path.join(__dirname,'outputs/omok-gpu.html'),html);
 console.log('Built outputs/omok.html (offline, all assets embedded)');

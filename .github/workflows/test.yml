@@ -8,5 +8,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: npm run test:gpu
       - run: npm test
-      - run: git diff --exit-code -- outputs/omok.html dist/index.html
+      - run: git diff --exit-code -- outputs/omok.html outputs/omok-gpu.html dist/index.html
