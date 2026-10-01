@@ -613,23 +613,28 @@ function createEngine(options={}) {
     const deep=limit>8000;
     const e=fast(board);
     const ensureLegalCandidate=result=>{
-      if(result.i!=null||result.kind==='terminal')return result;
+      if(result.kind==='terminal')return result;
+      const provenRejected=new Set((result.rejected||[]).filter(m=>m.pv?.length||m.line?.length||m.replyTrap||m.verifiedRefutation).map(m=>m.i));
+      if(result.i!=null&&(result.lossProven||!provenRejected.has(result.i)))return result;
       const nearby=forest.candidates(board),near=new Set(nearby);
       const pool=[...new Set([...(result.candidates||[]).map(m=>m.i),...nearby,
         ...Array.from({length:225},(_,i)=>i)])].filter(j=>inspect(board,j,p).legal);
       const rejected=new Set((result.rejected||[]).map(m=>m.i));
-      const provenRejected=new Set((result.rejected||[]).filter(m=>m.pv?.length||m.line?.length||m.replyTrap||m.verifiedRefutation).map(m=>m.i));
       const scores=new Map(),rank=j=>{if(scores.has(j))return scores.get(j);
         const after=board.slice();after[j]=p;const shape=inspect(board,j,p);
         const value=forest.evaluate(after,p)+(near.has(j)?250:0)+shape.fours.length*5000+shape.threes.length*300;
         scores.set(j,value);return value;};
       const choose=xs=>xs.length?xs.reduce((best,j)=>rank(j)>rank(best)?j:best):null;
-      const i=choose(pool.filter(j=>!rejected.has(j)))??
-        choose(pool.filter(j=>!provenRejected.has(j)))??choose(pool);
+      const unresolved=pool.filter(j=>!provenRejected.has(j));
+      const i=choose(pool.filter(j=>!rejected.has(j)))??choose(unresolved)??choose(pool);
       if(i==null)return result;
+      // Only a certificate for every legal empty cell can turn this fallback
+      // into a whole-position loss. Otherwise select an unresolved legal move.
+      const lossProven=!!result.lossProven||!unresolved.length;
       return {...result,i,score:rank(i),depth:0,proven:false,pv:[i],shape:inspect(board,i,p),fallback:true,
-        unverifiedDefense:!result.lossProven,
-        reason:result.lossProven?'강제패배 확인 · 합법적인 저항 수':
+        lossProven,forcedLoss:lossProven,kind:lossProven?'lost':result.kind,
+        candidates:[{i,score:rank(i),pv:[i]}],unverifiedDefense:!lossProven,
+        reason:lossProven?'강제패배 확인 · 합법적인 저항 수':
           '방어가 증명된 수 없음 · 합법 후보 표시 (안전 미확인)'};
     };
     const known=forest.knownRefutations(board,p),knownBad=new Set(known.map(m=>m.i));

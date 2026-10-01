@@ -26,6 +26,17 @@ for(const evidence of [{line:[idx('E8')]},{pv:[idx('E8')]},{replyTrap:{block:idx
  assert.deepEqual(board,copy);assert(out.automatic);assert(updates.every(r=>r.automatic));
 }
 console.log('PASS deep comparison preserves Reader refutations in every certificate format; incomplete checks remain eligible');
+for(const allRefuted of [false,true]){
+ const board=boardOf(prefix),copy=board.slice(),rules=create(),bad=idx('J4');
+ const legal=Array.from({length:225},(_,i)=>i).filter(i=>rules.inspect(board,i,2).legal);
+ const rejected=(allRefuted?legal:[bad]).map(i=>({i,line:[idx('E8')],reason:'controlled certificate'}));
+ const engine=controlled(f=>f,reader=>({...reader,analyze:()=>({kind:'search',depth:4,moves:[{i:bad,score:999,pv:[bad]}],rejectedMoves:rejected})}));
+ const out=engine.analyze(board,2,900);
+ assert(rules.inspect(board,out.i,2).legal);assert.deepEqual(board,copy);assert(!out.proven);
+ if(allRefuted){assert(out.lossProven);assert(out.forcedLoss);assert.equal(out.proofStatus,'PROVEN_LOSS');}
+ else {assert.notEqual(out.i,bad);assert(!out.lossProven);assert.equal(out.proofStatus,'UNRESOLVED');}
+}
+console.log('PASS final fallback never revives a refutation; whole-position loss requires every legal root');
 let trapBudget;
 e=controlled(f=>({...f,forcing:()=>({complete:true,proof:null}),forcedReplyTrap:(b,p,ms)=>{trapBudget=ms;return {complete:false,proof:null};},analyze:()=>({i:idx('A4'),score:120,depth:4,pv:[idx('A4')],proven:false,lossProven:false,rejected:[],reason:'limited comparison'})}),reader=>({...reader,analyze:()=>({kind:'search',depth:3,moves:[{i:idx('A4'),score:100,pv:[idx('A4')]},{i:idx('B3'),score:50,pv:[idx('B3')]}]})}));
 b=Array(225).fill(0);for(const c of ['A1','A2','A3'])b[idx(c)]=1;r=e.analyze(b,1,25000);assert.equal(r.i,idx('A4'));assert.equal(r.score,120);assert(!r.proven);assert(!(r.rejected||[]).some(m=>m.i===idx('A4')));assert(trapBudget<=500);console.log('PASS proof timeout preserves evaluated move and quick proof cap');
