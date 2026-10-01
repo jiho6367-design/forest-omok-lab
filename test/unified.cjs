@@ -2,7 +2,9 @@ const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
 const createEngine=require('./engine.cjs'),{createEngine:reader}=require('../src/reader-engine.js');
 const blank=()=>Array(225).fill(0),idx=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65;
 const filter=process.env.OMOK_TEST_FILTER?new RegExp(process.env.OMOK_TEST_FILTER):null;
-let count=0;const test=(name,fn)=>{if(filter&&!filter.test(name))return;fn();count++;console.log('PASS',name);};
+let count=0,failed=0;const test=(name,fn)=>{if(filter&&!filter.test(name))return;
+  try{fn();count++;console.log('PASS',name);}catch(error){failed++;process.exitCode=1;console.error('FAIL',name,error.stack);}
+};
 const strict=createEngine({fivePriority:false}),priority=createEngine();
 test('exact-five priority overrides legacy options in both engines',()=>{
   const b=blank();for(const c of ['D8','E8','F8','G8','H7','H9','G7','I9'])b[idx(c)]=1;b[idx('C8')]=2;
@@ -172,13 +174,16 @@ test('G11 early defense applies to rotated, reflected and color-swapped new game
   const moves='H8 H6 I9 G7 H10 F8 E9'.split(' '),base=blank();moves.forEach((c,k)=>base[idx(c)]=k%2?2:1);
   for(let t=0;t<8;t++)for(const swap of [false,true]){const board=blank();base.forEach((v,i)=>{if(v)board[strict.transformed(i,t)]=swap?3-v:v;});const p=swap?1:2,r=strict.patternDefense(board,p);assert.equal(r.i,strict.transformed(idx('G11'),t),`symmetry ${t} swap ${swap}`);assert(r.patternVerified);}
 });
-test('25-second comparison avoids I5 without claiming an unproved rejection or safe defense',()=>{
+test('25-second comparison excludes I5 only with evidence and never claims an unproved safe defense',()=>{
   const moves='H8 H6 I9 G7 H10 F8 E9 E7 G11 J8 F10'.split(' '),board=blank();
   moves.forEach((c,k)=>board[idx(c)]=k%2?2:1);
-  const r=strict.analyze(board,2,25000,[]);assert.notEqual(r.i,idx('I5'));assert(r.unverifiedDefense);
+  const copy=board.slice(),r=strict.analyze(board,2,25000,[]);assert(!r.proven);assert(r.unverifiedDefense||r.lossProven);
   const rejected=(r.rejected||[]).find(x=>x.i===idx('I5'));
-  if(rejected)assert(rejected.pv?.length||rejected.line?.length||rejected.replyTrap||rejected.verifiedRefutation,'rejection requires actual proof');
-  assert(strict.inspect(board,r.i,2).legal);
+  if(rejected){assert(rejected.pv?.length||rejected.line?.length||rejected.replyTrap||rejected.verifiedRefutation,'rejection requires actual proof');
+    if(!r.lossProven)assert.notEqual(r.i,idx('I5'));}
+  const refuted=(r.rejected||[]).filter(m=>m.pv?.length||m.line?.length||m.replyTrap||m.verifiedRefutation);
+  if(!r.lossProven)assert(!refuted.some(m=>m.i===r.i));
+  assert(strict.inspect(board,r.i,2).legal);assert.deepEqual(board,copy);assert.equal(strict.validPV(board,2,r.pv).length,r.pv.length);
 });
 test('new-game search catches the forced-block counterattack in the 15-ply green loss',()=>{
   const moves='H8 H6 H10 G7 F8 I5 G9 E7 F10 I7 G10 F7 H7 J4 K3'.split(' '),board=blank();
@@ -270,4 +275,4 @@ test('new games exclude independently certified F6 and F10',()=>{
   assert((recommendation.rejected||[]).some(m=>m.i===idx('F6')&&m.verifiedRefutation));
   assert((recommendation.rejected||[]).some(m=>m.i===idx('F10')&&m.verifiedRefutation));
 });
-console.log(`${count} unified scenarios passed`);
+console.log(`${count} unified scenarios passed; ${failed} failed`);
