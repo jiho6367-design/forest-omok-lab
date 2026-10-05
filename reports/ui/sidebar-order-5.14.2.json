@@ -1,0 +1,37 @@
+{
+  "version": "5.14.2",
+  "recordedAt": "2026-10-05T00:49:12.476Z",
+  "strategyCheckpoint": "f7c4488",
+  "checks": {
+    "recommendationFirstInsideSidebar": true,
+    "gpuPanelInsertedImmediatelyAfterRecommendation": true,
+    "allPreviousElementIdsPreserved": true,
+    "uniqueElementIds": true,
+    "budgetLabelAndDetailsPreserved": true,
+    "identicalStandardBuilds": true,
+    "embeddedScriptsCompile": 2,
+    "enginesUnchanged": [
+      "src/strategy-engine.js",
+      "src/reader-engine.js",
+      "src/forest-engine.js",
+      "src/unified-engine.js",
+      "src/gpu-patterns.js"
+    ]
+  },
+  "position": {
+    "headerEnd": 9139,
+    "layout": 9150,
+    "board": 9613,
+    "sidebar": 10600,
+    "recommendation": 10660
+  },
+  "buildHashes": {
+    "outputs/omok.html": "81090cff8674693d51a39f930049239da2154f140d29e2d20bcd5bc808c4619d",
+    "outputs/omok-gpu.html": "81090cff8674693d51a39f930049239da2154f140d29e2d20bcd5bc808c4619d",
+    "dist/index.html": "81090cff8674693d51a39f930049239da2154f140d29e2d20bcd5bc808c4619d"
+  },
+  "verificationScope": "Static source, DOM order, runtime insertion instruction and build syntax only. Original sidebar responsive CSS is preserved.",
+  "visualBrowserVerified": false,
+  "visualLimitation": "Browser automation URL policy blocked the existing file:// tab.",
+  "strategyPerformanceComparisonsResumed": false
+}

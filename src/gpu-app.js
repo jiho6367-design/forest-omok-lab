@@ -1,6 +1,6 @@
 globalThis.omokAcceleration={mode:'cpu',table:null,optimized:false};
 const gpuPanel=document.createElement('div');gpuPanel.className='card';gpuPanel.innerHTML=`<h2>GPU 혼합 분석 · 로컬 개선판</h2><label>연산 방식<select id="computeMode"><option value="gpu">GPU 혼합 · 패턴 사전 계산</option><option value="optimized">CPU 최적화 · 패턴 재사용</option><option value="cpu">기존 CPU</option></select></label><p id="gpuStatus" role="status">GPU 확인 중…</p><p class="muted">GPU는 패턴 59,049개를 병렬 계산합니다. 수읽기는 CPU에서 수행하며, 같은 시간에 더 깊게 탐색할 수 있습니다.</p><button id="gpuBenchmark">CPU/GPU 성능 비교</button><button id="gpuCancel" disabled>비교 중지</button><pre id="gpuResult" style="white-space:pre-wrap;font-size:12px;max-height:360px;overflow:auto"></pre>`;
-document.querySelector('.sidebar').prepend(gpuPanel);
+$('nextMovePanel').after(gpuPanel);
 const gpuProfiles={
  optimized:{budget:'auto',description:'국면에 맞춰 자동 조절 · 최대 15초, 후보가 안정되면 조기 종료합니다.'},
  fast:{budget:'900',description:'내 수는 약 1초 안에 빠르게 추천합니다. 깊은 수읽기는 제한됩니다.'},
@@ -29,8 +29,8 @@ $('budget').onchange=event=>{
  syncGPUProfile();previousBudgetChange?.(event);
 };
 syncGPUProfile(true);
-versionBadge.textContent='통합 v5.14.1 · GPU';
-versionBadge.setAttribute('aria-label','통합 버전 5.14.1');
+versionBadge.textContent='통합 v5.14.2 · GPU';
+versionBadge.setAttribute('aria-label','통합 버전 5.14.2');
 versionBadge.title='공격 연결·선제 차단·주도권 분석 · GPU 혼합 · 정확한 5목 우선';
 let gpuPrepared=null,cpuPatterns=null,modeRequest=0,benchmarkWorker=null,cancelBenchmark=null;
 async function selectComputeMode(reanalyze=false){
