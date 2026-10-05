@@ -93,24 +93,29 @@ function createForestEngine(options={}){
  }
  // After our forcing four, check the opponent's mandatory quiet block too.
  // A certificate requires a winning reply against EVERY legal continuation.
- function forcedReplyTrap(board,p,budget=200,setup=null,maxPlies=11,includeQuiet=false){
-  let b=board.slice(),end=clockNow()+budget,threats=winning(b,p),branches=[],cache=new Map();
-  if(setup==null&&(threats.length!==1||winning(b,3-p).length))return {complete:true,proof:null};
-  let block=setup??threats[0];if(!inspect(b,block,3-p).legal)return {complete:true,proof:null};b[block]=3-p;
+ function forcedReplyTrap(board,p,budget=200,setup=null,maxPlies=11,includeQuiet=false,cache=new Map()){
+  let b=board.slice(),end=clockNow()+budget,threats=winning(b,p),branches=[];
+  const scoped=r=>({...r,scopeComplete:r.complete===true});
+  if(setup==null&&(threats.length!==1||winning(b,3-p).length))return scoped({complete:true,proof:null});
+  let block=setup??threats[0];if(!inspect(b,block,3-p).legal)return scoped({complete:true,proof:null});b[block]=3-p;
   const near=ranked(b,p).map(m=>m.i),seen=new Set(near),defenses=[...near,...Array.from({length:225},(_,i)=>i).filter(i=>!seen.has(i))];
-  for(const i of defenses){if(clockNow()>=end)return {complete:false,proof:null};if(!inspect(b,i,p).legal)continue;
-   b[i]=p;if(win(b,i,p).length){b[i]=0;return {complete:true,proof:null,unrefutedReply:i,replyWins:true};}
+  for(const i of defenses){if(clockNow()>=end)return scoped({complete:false,proof:null});if(!inspect(b,i,p).legal)continue;
+   b[i]=p;if(win(b,i,p).length){b[i]=0;return scoped({complete:true,proof:null,unrefutedReply:i,replyWins:true});}
    let r=forcing(b,3-p,maxPlies,Math.max(1,end-clockNow()),cache),quiet=null;
-   if(r.complete&&!r.proof&&includeQuiet&&clockNow()<end){quiet=winning(b,p).length===1?forcedReplyTrap(b,p,end-clockNow(),null,maxPlies,false):quietTrap(b,p,end-clockNow(),10,maxPlies);}
+   if(r.complete&&!r.proof&&includeQuiet){
+    const remaining=end-clockNow();
+    if(remaining<=0)r={...r,complete:false};
+    else quiet=winning(b,p).length===1?forcedReplyTrap(b,p,remaining,null,maxPlies,false,cache):quietTrap(b,p,remaining,10,maxPlies,false,cache);
+   }
    b[i]=0;
-   if(!r.complete||quiet&&!quiet.complete)return {complete:false,proof:null};if(!r.proof&&!quiet?.proof)return {complete:true,proof:null,unrefutedReply:i,replyWins:false};branches.push({i,proof:r.proof,quietProof:quiet?.proof});
+   if(!r.complete||quiet&&!quiet.complete)return scoped({complete:false,proof:null});if(!r.proof&&!quiet?.proof)return scoped({complete:true,proof:null,unrefutedReply:i,replyWins:false});branches.push({i,proof:r.proof,quietProof:quiet?.proof});
   }
-  branches.sort((a,c)=>a.i-c.i);return {complete:true,proof:branches.length?{block,branches}:null};
+  branches.sort((a,c)=>a.i-c.i);return scoped({complete:true,proof:branches.length?{block,branches}:null});
  }
- function quietTrap(board,p,budget=300,width=4,maxPlies=11,includeCounter=false){
+ function quietTrap(board,p,budget=300,width=4,maxPlies=11,includeCounter=false,cache=new Map()){
   const end=clockNow()+budget,moves=ranked(board,3-p).filter(m=>m.a.threes.length&&!m.a.fours.length).slice(0,width);
-  for(const m of moves){if(clockNow()>=end)return {complete:false,proof:null};const r=forcedReplyTrap(board,p,end-clockNow(),m.i,maxPlies,includeCounter);if(r.proof)return r;if(!r.complete)return r;}
-  return {complete:true,proof:null};
+  for(const m of moves){if(clockNow()>=end)return {complete:false,proof:null,scopeComplete:false};const r=forcedReplyTrap(board,p,end-clockNow(),m.i,maxPlies,includeCounter,cache);if(r.proof)return r;if(!r.complete)return r;}
+  return {complete:true,proof:null,scopeComplete:true};
  }
  function assessMove(board,p,i){
   const s=inspect(board,i,p);if(!s.legal||s.win.length)return {mustWarn:false};
@@ -207,7 +212,9 @@ function createForestEngine(options={}){
   let immediate=urgent(board,p);if(immediate)return immediate;
   const certified=certifiedLoss(board,p);if(certified)return certified;
   // Historical pattern hints do not bypass bounded candidate comparison.
-  let b=board.slice(),start=clockNow(),totalDeadline=start+budget,deadline=start+budget*(budget>=12000?.72:1),nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),strategicSummary=null,lastCandidates=[];
+  // Grow the guard reserve continuously; at 12s it still has 1s to verify.
+  const guardReserve=Math.min(budget*.28,Math.max(0,budget-11000));
+  let b=board.slice(),start=clockNow(),totalDeadline=start+budget,deadline=start+budget-guardReserve,nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),strategicSummary=null,lastCandidates=[],lastComparison=[];
   const check=()=>{nodes++;if(clockNow()>=deadline)throw TIME;};
   const timedProof=(q,ms)=>{let r=forcing(b,q,limits.forcing,Math.max(1,Math.min(ms,deadline-clockNow())),proofCache);nodes+=r.nodes;return r;};
   const verifiedBad=knownRefutations(b,p),verifiedBadSet=new Set(verifiedBad.map(m=>m.i));
@@ -230,7 +237,7 @@ function createForestEngine(options={}){
    // After an opponent's compulsory block it is OUR turn. Only the existing
    // all-legal-continuation trap verifier below can refute the attack; an
    // opponent VCF with the turn hypothetically handed over is not a gate.
-   r=timedProof(3-p,Math.min(screenSlice,screenEnd-clockNow()));if(!r.proof&&r.complete&&m.a.fours.length){let trap=forcedReplyTrap(b,p,Math.max(1,Math.min(budget*.3,screenEnd-clockNow())),null,limits.forcing,true);m.replyTrap=trap.proof;r.complete=trap.complete;}else if(!r.proof&&r.complete&&checked.length<limits.screen){let trap=quietTrap(b,p,Math.max(1,Math.min(budget*.12,screenEnd-clockNow())),limits.quiet,limits.forcing,true);m.replyTrap=trap.proof;m.quietChecked=trap.complete;r.complete=trap.complete;}
+   r=timedProof(3-p,Math.min(screenSlice,screenEnd-clockNow()));if(!r.proof&&r.complete&&m.a.fours.length){let trap=forcedReplyTrap(b,p,Math.max(1,Math.min(budget*.3,screenEnd-clockNow())),null,limits.forcing,true,proofCache);m.replyTrap=trap.proof;r.complete=trap.complete;if(trap.scopeComplete&&!trap.proof)m.guardScreenScope={position:b.join(''),p,forcing:limits.forcing,mode:'four',quiet:null};}else if(!r.proof&&r.complete&&checked.length<limits.screen){let trap=quietTrap(b,p,Math.max(1,Math.min(budget*.12,screenEnd-clockNow())),limits.quiet,limits.forcing,true,proofCache);m.replyTrap=trap.proof;m.quietChecked=trap.complete;r.complete=trap.complete;if(trap.scopeComplete&&!trap.proof)m.guardScreenScope={position:b.join(''),p,forcing:limits.forcing,mode:'quiet',quiet:limits.quiet};}
   }finally{b[m.i]=0;}m.lossProof=r.proof;m.screened=r.complete;checked.push(m);}
   // 전체 패배를 선언할 때만 주변 후보 밖의 합법적인 빈칸까지 확인한다.
   // 근처 후보만 모두 졌다고 전역 패배를 확정하면 안 된다.
@@ -240,11 +247,16 @@ function createForestEngine(options={}){
   }
   let safe=checked.filter(m=>m.screened&&!m.lossProof&&!m.replyTrap&&!m.counterThreat),undecided=[...checked.filter(m=>!m.screened&&!m.lossProof&&!m.replyTrap&&!m.counterThreat),...unknown],risky=checked.filter(m=>m.counterThreat&&!m.lossProof&&!m.replyTrap),losing=checked.filter(m=>m.lossProof||m.replyTrap);
   // 증명된 패배 수는 평가점수나 기억 보너스로 다시 추천하지 않는다.
-  // Unproved candidates remain available; prefer completed tactical checks.
-  let options=safe.length?safe:undecided.length?undecided:risky.length?risky:losing;
+  // A completed bounded check is evidence, not grounds to discard another
+  // unrefuted move whose check ran out of time. Compare both tiers together.
+  let options=safe.length||undecided.length?[...safe,...undecided]:risky.length?risky:losing;
   let lossProven=!safe.length&&!undecided.length&&!risky.length&&losing.length===roots.length;
   options.sort((a,c)=>(c.score-(bad.includes(c.i)?12000:0))-(a.score-(bad.includes(a.i)?12000:0)));
   let rootOptions=strategy?strategy.select(b,p,options,limits.root,6,new Set(options.filter(m=>m.a?.fours.length).map(m=>m.i))):options.slice(0,limits.root);
+  // An uncompleted root needs a final check even below the ordinary 12s gate.
+  // Reserve inside the existing total budget, without adding to its reserve.
+  const rootGuardReserve=!lossProven&&rootOptions.some(m=>!m.screened)?Math.min(budget*.22,2500):0;
+  if(rootGuardReserve)deadline=Math.min(deadline,totalDeadline-rootGuardReserve);
   const strategicAdjust=new Map();
   if(strategy&&!lossProven&&clockNow()<deadline){strategicSummary=strategy.probe(b,p,rootOptions,Math.min(strategy.remaining(),Math.max(0,deadline-clockNow())));for(const c of strategicSummary.checks)if(c.complete)strategicAdjust.set(c.i,Math.max(-250,Math.min(250,c.score*.04)));}
   const staticEval=q=>strategy?memoPosition('evaluation',b,q+'|base',()=>evaluateUncached(b,q)):evaluate(b,q),rankCache=new Map();let quietWork=0;
@@ -263,23 +275,63 @@ function createForestEngine(options={}){
    tt.set(key,{...best,bound:best.score<=a0?'upper':best.score>=b0?'lower':'exact'});return best;
   }
   let best=options[0],pv=[best.i],score=best.score;
-  if(!lossProven)for(let d=1;d<=limits.depth;d++){const round=[];try{for(let m of rootOptions){check();b[m.i]=p;let r;try{r=search(3-p,d-1,-Infinity,Infinity,1);}finally{b[m.i]=0;}let v=-r.score-(bad.includes(m.i)&&Math.abs(r.score)<MATE/2?12000:0)+(Math.abs(r.score)<MATE/2?(strategicAdjust.get(m.i)||0):0);round.push({m,i:m.i,score:v,pv:[m.i,...r.pv],depth:d,strategy:m.strategy,comparisonComplete:true});}if(round.length){round.sort((a,c)=>c.score-a.score);best=round[0].m;pv=round[0].pv;score=round[0].score;depth=d;lastCandidates=round.slice(0,3).map(({m,...row})=>row);rootOptions=round.map(r=>r.m);options.sort((a,c)=>(c===best)-(a===best));}}catch(e){if(e!==TIME)throw e;break;}}
+  if(!lossProven)for(let d=1;d<=limits.depth;d++){const round=[];try{for(let m of rootOptions){check();b[m.i]=p;let r;try{r=search(3-p,d-1,-Infinity,Infinity,1);}finally{b[m.i]=0;}let v=-r.score-(bad.includes(m.i)&&Math.abs(r.score)<MATE/2?12000:0)+(Math.abs(r.score)<MATE/2?(strategicAdjust.get(m.i)||0):0);round.push({m,i:m.i,score:v,pv:[m.i,...r.pv],depth:d,strategy:m.strategy,comparisonComplete:true});}if(round.length){round.sort((a,c)=>c.score-a.score);best=round[0].m;pv=round[0].pv;score=round[0].score;depth=d;lastComparison=round;lastCandidates=round.slice(0,3).map(({m,...row})=>row);rootOptions=round.map(r=>r.m);options.sort((a,c)=>(c===best)-(a===best));}}catch(e){if(e!==TIME)throw e;break;}}
   // Reserve time for the actual chosen move; top-N screening alone can miss it.
-  let finalGuard=null,avoidedTrap=false;
-  if(!lossProven&&budget>=12000&&clockNow()<totalDeadline){b[best.i]=p;try{
+  let finalGuard=null,avoidedTrap=false;let retainedComparison=null;
+  const candidateGuards=[],alternatives=()=>{
+   const compared=lastComparison.map(r=>r.m),ids=new Set(compared.map(m=>m.i));
+   return [...compared,...options.filter(m=>!ids.has(m.i))];
+  };
+  let reusedCompletedCheck=false;
+  const unresolved=m=>m&&!m.lossProof&&!m.replyTrap&&!m.counterThreat;
+  const replaceBest=m=>{
+   // A finalist's refutation invalidates that move, not another move's
+   // already completed comparison. Safety flags remain separate below.
+   const row=lastComparison.find(r=>r.i===m.i&&r.comparisonComplete&&Number.isFinite(r.score));
+   best=m;pv=row?row.pv.slice():[m.i];score=row?row.score:m.score;depth=row?row.depth:0;
+   lastCandidates=row?[{i:m.i,score,pv:pv.slice(),depth,strategy:m.strategy,comparisonComplete:true}]:[];
+   retainedComparison=row?{i:m.i,source:'forest',depth,sameMoveOnly:true}:null;
+  };
+  if(!lossProven&&(budget>=12000||rootGuardReserve>0)&&clockNow()<totalDeadline)for(let attempt=0;attempt<3&&clockNow()<totalDeadline;attempt++){
+   const checkedMove=best; b[best.i]=p;try{
+    const scope=best.guardScreenScope;
+    if(best.screened&&unresolved(best)&&scope?.position===b.join('')&&scope.p===p&&scope.forcing===limits.forcing&&
+      scope.mode===(best.a.fours.length?'four':'quiet')&&scope.quiet===(best.a.fours.length?null:limits.quiet)){
+      finalGuard={complete:true,proof:null,reusedScreen:true};
+    }else{
     const direct=forcing(b,3-p,limits.forcing,Math.max(1,(totalDeadline-clockNow())*.5),proofCache);nodes+=direct.nodes;
     if(direct.proof||!direct.complete)finalGuard={complete:direct.complete,proof:null,directProof:direct.proof};
-    else finalGuard=best.a.fours.length?forcedReplyTrap(b,p,Math.max(1,totalDeadline-clockNow()),null,limits.forcing,true):quietTrap(b,p,Math.max(1,totalDeadline-clockNow()),limits.quiet,limits.forcing,true);
+    else finalGuard=best.a.fours.length?forcedReplyTrap(b,p,Math.max(1,totalDeadline-clockNow()),null,limits.forcing,true,proofCache):quietTrap(b,p,Math.max(1,totalDeadline-clockNow()),limits.quiet,limits.forcing,true,proofCache);
+    }
    }finally{b[best.i]=0;}
+   candidateGuards.push({i:best.i,complete:!!finalGuard.complete,refuted:!!(finalGuard.proof||finalGuard.directProof),reusedScreen:!!finalGuard.reusedScreen});
    if(finalGuard.proof||finalGuard.directProof){best.replyTrap=finalGuard.proof;best.lossProof=finalGuard.directProof||best.lossProof;if(!losing.includes(best))losing.push(best);let alternative=options.find(m=>m!==best&&!m.lossProof&&!m.replyTrap&&!m.counterThreat);
+    alternative=alternatives().find(m=>m!==best&&unresolved(m))||alternative;
     if(!alternative)return finish(null,'검사한 추천 후보에서 강제패배 발견 · 더 이른 국면 복기 필요',{rejected:[...verifiedRejected,...losing.map(m=>({i:m.i,pv:m.lossProof?.pv||[],replyTrap:m.replyTrap}))],counterThreats:checked.filter(m=>m.counterThreat).map(m=>({i:m.i,...m.counterThreat})),finalGuard,limits});
-    best=alternative;pv=[best.i];score=best.score;depth=0;lastCandidates=[];best.screened=false;avoidedTrap=true;
+    replaceBest(alternative);avoidedTrap=true;
+    // A previous complete root check can be reused on this unchanged board.
+    if(best.screened){reusedCompletedCheck=true;best.screened=false;break;}
+    continue;
    }
+   if(!finalGuard.complete&&!checkedMove.screened){
+    const fallback=alternatives().find(m=>m!==best&&m.screened&&unresolved(m));
+    if(fallback){replaceBest(fallback);reusedCompletedCheck=true;best.screened=false;}
+   }
+   break;
+  }
+  let guardIncomplete=!!finalGuard&&!finalGuard.complete;
+  if(rootGuardReserve&&!best.screened&&!reusedCompletedCheck&&!candidateGuards.some(c=>c.i===best.i&&c.complete&&!c.refuted)){
+   // A cap/deadline can end immediately after another refuted finalist.
+   // Prefer a completed check, including roots outside the comparison width.
+   guardIncomplete=true;
+   const fallback=alternatives().find(m=>m!==best&&m.screened&&unresolved(m));
+   if(fallback){replaceBest(fallback);best.screened=false;}
   }
   let reason=enemyWins.length?'상대의 다음 5목 차단':dangerLine.length?'4-3·연속 4 강제 공격 선제 방어':enemy43.length?'상대 4-3 위협 대응 후보':best.a.fork43?'4-3 동시 위협 생성':'공격과 수비를 함께 고려한 추천';
   if(lossProven)reason='모든 방어 후보에서 연속 4 강제 패배 확인';else if(!safe.length)reason='계산 완료 (제한 탐색) · 방어 증명은 아직 없음';
-  if(avoidedTrap)reason=(finalGuard.directProof?'연속 4':'준비 수 뒤')+' 강제패배 후보 제외 · 대안은 추가 검증 필요';else if(finalGuard&&!finalGuard.complete){best.screened=false;reason+=' · 계산 종료, 최종 방어 증명 없음';}
-  return finish(best,reason,{depth,pv,score:lossProven?-MATE:score,forcedLoss:lossProven,lossProven,threats:[...new Set([...enemyWins,...enemy43,...dangerLine.slice(0,1)])],dangerLine,rejected:[...verifiedRejected,...losing.map(m=>({i:m.i,pv:m.lossProof?.pv||[],replyTrap:m.replyTrap}))],counterThreats:checked.filter(m=>m.counterThreat).map(m=>({i:m.i,...m.counterThreat})),unverifiedDefense:!!best.counterThreat,defenseChecked:!!best.screened&&!best.counterThreat,safety:'연속 4 및 강제 방어 뒤 역공 제한 탐색 · 무패 보장 아님'});
+  if(avoidedTrap)reason='강제패배 후보 제외 · 대안은 추가 검증 필요';
+  if(guardIncomplete){best.screened=false;reason+=' · 계산 종료, 최종 방어 증명 없음';}
+  return finish(best,reason,{depth,pv,score:lossProven?-MATE:score,forcedLoss:lossProven,lossProven,threats:[...new Set([...enemyWins,...enemy43,...dangerLine.slice(0,1)])],dangerLine,rejected:[...verifiedRejected,...losing.map(m=>({i:m.i,pv:m.lossProof?.pv||[],replyTrap:m.replyTrap}))],candidateGuards,analysisIncomplete:guardIncomplete,retainedComparison:retainedComparison?{...retainedComparison,finalDefenseUnchecked:!best.screened||!!best.counterThreat}:null,counterThreats:checked.filter(m=>m.counterThreat).map(m=>({i:m.i,...m.counterThreat})),unverifiedDefense:!!best.counterThreat,defenseChecked:!!best.screened&&!best.counterThreat,safety:'연속 4 및 강제 방어 뒤 역공 제한 탐색 · 무패 보장 아님'});
  }
  function reviewMove(board,p,i,budget=1300,lessons=[]){
   let s=inspect(board,i,p);if(!s.legal)return {i:null,reason:'불법 착수',reviewLabel:'기보 규칙 오류'};

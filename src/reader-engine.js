@@ -20,7 +20,7 @@ function createEngine(N, board, options={}) {
       patterns.push([atIndex(start-1),atIndex(start+4),...Array.from({length:4},(_,k)=>atIndex(start+k))]);
     }return patterns;
   }));
-  let total=0,nodes=0,deadline=Infinity,phaseDeadline=Infinity,tt=new Map(),tacticalCache=new Map(),quietWork=0;
+  let total=0,nodes=0,deadline=Infinity,phaseDeadline=Infinity,tt=new Map(),tacticalCache=new Map();
   for(let y=0;y<N;y++)for(let x=0;x<N;x++)for(let [axis,[dx,dy]]of dirs.entries()){
     if(!inside(x+4*dx,y+4*dy))continue;
     const cells=Array.from({length:5},(_,k)=>(y+k*dy)*N+x+k*dx);
@@ -51,7 +51,7 @@ function createEngine(N, board, options={}) {
   function winMove(i,p){if(!legal(i,p))return false;b[i]=p;let yes=exact(i,p);b[i]=0;return yes;}
   function wins(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(let id=0;id<windows.length;id++){if(own[id]!==4||enemy[id])continue;const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;const empty=w.cells.find(i=>!b[i]);if(legal(empty,p))res.add(empty);}return [...res];}
   function forcingCandidates(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(let id=0;id<windows.length;id++){if(own[id]<3||enemy[id])continue;const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;for(const i of w.cells)if(!b[i])res.add(i);}return [...res].filter(i=>legal(i,p));}
-  function candidates(){const s=new Set();for(let i=0;i<b.length;i++)if(b[i]){const x=i%N,y=Math.floor(i/N);for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){let xx=x+dx,yy=y+dy;if(inside(xx,yy)&&!b[yy*N+xx])s.add(yy*N+xx);}}if(strategy)for(const i of strategy.points(b,1))s.add(i);if(!s.size&&!b.some(Boolean))s.add(Math.floor(N/2)*(N+1));return [...s];}
+  function candidates(){const s=new Set();for(let i=0;i<b.length;i++)if(b[i]){const x=i%N,y=Math.floor(i/N);for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){let xx=x+dx,yy=y+dy;if(inside(xx,yy)&&!b[yy*N+xx])s.add(yy*N+xx);}}if(strategy)for(const i of strategy.searchPoints(b,1))s.add(i);if(!s.size&&!b.some(Boolean))s.add(Math.floor(N/2)*(N+1));return [...s];}
   const localWindows=options.optimized?affected.map((ids,i)=>ids.map(id=>({w:windows[id],increment:cellAffected[i].includes(id)?1:0}))):null;
   function localFast(i,p){let sum=0;for(const {w,increment} of localWindows[i]){if(w.pre===i||w.post===i||b[w.pre]===p||b[w.post]===p)continue;const enemy=p===1?counts2[w.id]:counts1[w.id];if(!enemy)sum+=[0,1,20,400,25000,2000000][(p===1?counts1[w.id]:counts2[w.id])+increment];}return sum;}
   function local(i,p){if(options.optimized)return localFast(i,p);b[i]=p;let sum=0;for(let id of affected[i]){let w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;let count=0,blocked=false;for(let j of w.cells){if(b[j]===p)count++;else if(b[j]){blocked=true;break;}}if(!blocked)sum+=[0,1,20,400,25000,2000000][count];}b[i]=0;return sum;}
@@ -99,7 +99,7 @@ function createEngine(N, board, options={}) {
     }finally{set(i,0);}}
     return null;
   }
-  function search(p,depth,alpha,beta,ply,extension=6,quietExtension=2){
+  function search(p,depth,alpha,beta,ply,extension=6,quietExtension=1){
     tick();const own=wins(p);if(own.length)return {score:M-ply,pv:[own[0]]};const danger=wins(3-p);
     if(danger.length>1||danger.length===1&&!legal(danger[0],p))return {score:-M+ply+1,pv:[]};
     // Do not replace a forcing win just beyond the horizon with a positional
@@ -107,13 +107,34 @@ function createEngine(N, board, options={}) {
     if(depth<=1&&!danger.length){const tacticalKey=b.join('')+p;let proof=tacticalCache.get(tacticalKey);if(proof===undefined){const previous=phaseDeadline;try{phaseDeadline=options.fixedWork?Infinity:Math.min(previous,deadline,clockNow()+5);proof=vcf(p,9);if(tacticalCache.size<30000)tacticalCache.set(tacticalKey,proof);}catch(e){if(e.message!=='timeout')throw e;proof=null;}finally{phaseDeadline=previous;}}if(proof)return {score:M-ply-proof.length,pv:proof};}
     const staticScore=()=> (p===1?total:-total);
     let quietMoves=null;
-    if(depth<=0&&!danger.length&&strategy&&quietExtension>0&&ply<=4&&quietWork<16){const all=rank(p);quietMoves=strategy.select(b,p,all,4,4).filter(m=>m.strategy.legalExtensions.length&&(m.strategy.usableThreeAxes.length||m.strategy.axes.length>1));if(quietMoves.length)quietWork++;}
+    // Quiet extensions are branch-local. A global work cap used to change
+    // the value of the same leaf after earlier candidates consumed it.
+    if(depth<=0&&!danger.length&&strategy&&quietExtension>0&&ply<=4){
+      // Quiet leaves read actual threats. Weak pair preparation remains in
+      // ordinary search; extending it here can consume the next full round.
+      // Window hints nominate fours/cuts, while geometric threes include
+      // shapes omitted by exact-five windows. Full descriptors decide below.
+      const potential=m=>{if(m.strategy.attack>=120||m.strategy.cut>=120)return true;b[m.i]=p;try{return openThrees(m.i,p)>0;}finally{b[m.i]=0;}};
+      const all=rank(p),prepared=strategy.searchSelect(b,p,all,4,4,new Set(),'unknown',potential).map(m=>({...m,strategy:strategy.searchMove(b,m.i,p)}));
+      const attack=m=>m.strategy.legalExtensions.length&&(m.strategy.forcing||m.strategy.usableThreeAxes.length||m.strategy.axes.length>1),
+        cut=m=>m.strategy.cut>=120;
+      const eligible=prepared.filter(m=>m.strategy.legal&&(attack(m)||cut(m))),chosen=[];
+      // Keep one attack and one cut representative within a small, fixed
+      // branch width. A dual-purpose move may satisfy both categories.
+      for(const [accept,field] of [[attack,'attack'],[cut,'cut']]){
+        const m=eligible.filter(accept).sort((a,c)=>c.strategy[field]-a.strategy[field]||c.s-a.s||a.i-c.i)[0];
+        if(m&&!chosen.some(x=>x.i===m.i))chosen.push(m);
+      }
+      for(const m of eligible)if(chosen.length<2&&!chosen.some(x=>x.i===m.i))chosen.push(m);
+      quietMoves=chosen;tick();
+    }
     if(depth<=0&&!danger.length&&!quietMoves?.length)return {score:staticScore(),pv:[]};
     if(depth<=0&&extension<=0)return {score:staticScore(),pv:[]};
     const key=b.join('')+p,entry=tt.get(key),a0=alpha,b0=beta;
     if(entry&&entry.depth>=depth&&entry.extension>=extension&&entry.quietExtension>=quietExtension){if(entry.bound==='exact')return {score:entry.score,pv:entry.pv};if(entry.bound==='lower')alpha=Math.max(alpha,entry.score);else beta=Math.min(beta,entry.score);if(alpha>=beta)return {score:entry.score,pv:entry.pv};}
     let moves;if(danger.length)moves=[{i:danger[0],s:M}];else{
-      let all=rank(p),forcing=new Set(forcingCandidates(p));moves=quietMoves?.length?quietMoves:strategy?strategy.select(b,p,all,16,4,forcing):all.filter((m,k)=>k<16||forcing.has(m.i));
+      if(quietMoves?.length)moves=quietMoves;
+      else{const all=rank(p),forcing=new Set(forcingCandidates(p));moves=strategy?strategy.searchSelect(b,p,all,16,4,forcing,'unknown'):all.filter((m,k)=>k<16||forcing.has(m.i));tick();}
       if(entry?.pv.length){let k=moves.findIndex(m=>m.i===entry.pv[0]);if(k>0)moves.unshift(...moves.splice(k,1));}
     }
     if(!moves.length)return {score:b.every(Boolean)?0:-M+ply,pv:[]};let best={score:-Infinity,pv:[]};
@@ -123,7 +144,7 @@ function createEngine(N, board, options={}) {
   function state(){let winners=[],lines=[];for(let w of windows){let p=b[w.cells[0]];if(p&&w.cells.every(i=>b[i]===p)&&b[w.pre]!==p&&b[w.post]!==p){if(!winners.includes(p))winners.push(p);lines.push(w.cells);}}return {winners,lines,full:b.every(Boolean)};}
   function analyze(p,ms=5000,onProgress=()=>{}){
     const automatic=ms==='auto'||(typeof ms==='object'&&ms.automatic===true);if(automatic)ms=typeof ms==='object'?Math.max(30,Math.min(8000,Number(ms.maxMs)||8000)):8000;
-    if(![1,2].includes(p))throw Error('Invalid player');nodes=0;quietWork=0;tt.clear();tacticalCache.clear();const start=clockNow();deadline=start+Math.max(30,ms);phaseDeadline=Infinity;
+    if(![1,2].includes(p))throw Error('Invalid player');nodes=0;tt.clear();tacticalCache.clear();const start=clockNow();deadline=start+Math.max(30,ms);phaseDeadline=Infinity;
     strategy?.setBudget(Math.min(ms*.12,ms<=1000?100:ms>15000?2500:1000));
     const terminal=state();if(terminal.winners.length||terminal.full)return {kind:'terminal',...terminal,moves:[],depth:0,nodes,danger:[],automatic,autoReason:automatic?'대국 종료':null};
     const own=wins(p),danger=wins(3-p);
@@ -143,7 +164,9 @@ function createEngine(N, board, options={}) {
         fallback=!!moves.length;
       }
       const summary=strategy?(strategicSummary||(strategicSummary=(own.length||danger.length)?{initiative:own.length?'own':'opponent',firstPlayer:strategy.context.firstPlayer,strategyVersion:strategy.strategyVersion,evidence:{ownWins:own,enemyWins:danger,replyCoverage:'not-checked'}}:strategy.profile(b,p))):null;
-      return {kind,moves,depth,nodes,danger,immediateThreats,...extra,...(summary?{strategy:{...summary,work:strategy.statistics(),initiative:['win','forced'].includes(kind)?'own':summary.initiative}}:{}),fallback,mandatoryDefense:!own.length&&danger.length===1&&legal(danger[0],p),automatic,autoReason:automatic?(extra.autoReason||(['win','forced'].includes(kind)?'승리 경로 확인':kind==='lost'?'강제 위협 확인':'복잡한 판 · 추가 비교 중')):null};
+      const selectedCheck=summary?.checks?.find(c=>c.i===moves[0]?.i&&c.complete),bounded=summary?.evidence?.replyCoverage==='bounded';
+      const initiative=['win','forced'].includes(kind)?'own':bounded?(selectedCheck?.replies>0&&selectedCheck.continues===selectedCheck.replies?(selectedCheck.forcingReplies?'contested':'own'):selectedCheck?.forcingReplies&&selectedCheck.score<0?'opponent':'unknown'):summary?.initiative;
+      return {kind,moves,depth,nodes,danger,immediateThreats,...extra,...(summary?{strategy:{...summary,work:strategy.statistics(),initiative,selectedCheck:selectedCheck||null}}:{}),fallback,mandatoryDefense:!own.length&&danger.length===1&&legal(danger[0],p),automatic,autoReason:automatic?(extra.autoReason||(['win','forced'].includes(kind)?'승리 경로 확인':kind==='lost'?'강제 위협 확인':'복잡한 판 · 추가 비교 중')):null};
     };
     if(own.length)return output('win',own.map(i=>({i,score:M,pv:[i],status:'win'})),1);
     if(danger.length>1||danger.length===1&&!legal(danger[0],p))return output('lost',[],1,{lossReason:danger.length===1?'forbidden-defense':'immediate',forbiddenDefenses:danger.filter(i=>!legal(i,p)).map(i=>moveInfo(i,p))});
@@ -178,13 +201,19 @@ function createEngine(N, board, options={}) {
     let best=safe.slice(0,3),depth=0;const rejected=screened.filter(r=>r.status==='loss').length;
     const kind=danger.length?'block':'search',extra={screeningComplete,forcingChecksComplete,screened:screened.length,rejected,rejectedMoves};
     onProgress(output(kind,best,depth,extra));
-    const forceSet=new Set(forcingCandidates(p));let frontier=strategy?strategy.select(b,p,safe,24,6,forceSet):safe.filter((r,k)=>k<24||forceSet.has(r.i));
-    const strategicAdjust=new Map();
-    if(strategy&&clockNow()<deadline){strategicSummary=strategy.probe(b,p,frontier,Math.min(strategy.remaining(),Math.max(0,deadline-clockNow())));for(const c of strategicSummary.checks)if(c.complete)strategicAdjust.set(c.i,Math.max(-250,Math.min(250,c.score*.04)));}
+    const forceSet=new Set(forcingCandidates(p));let frontier=strategy?strategy.searchSelect(b,p,safe,24,6,forceSet,own.length?'own':danger.length?'opponent':'unknown'):safe.filter((r,k)=>k<24||forceSet.has(r.i));
+    const strategicAdjust=new Map(),pressureChecks=new Map(),tempoChecks=new Map();
+    if(strategy&&clockNow()<deadline){strategicSummary=strategy.probe(b,p,frontier,Math.min(strategy.remaining(),Math.max(0,deadline-clockNow())));for(const c of strategicSummary.checks)if(c.complete){strategicAdjust.set(c.i,Math.max(-250,Math.min(250,c.score*.04)));if(strategicSummary.complete&&c.replies>=2){if(c.continues===c.replies)pressureChecks.set(c.i,c);if(Number.isInteger(c.tempoLosses)&&c.tempoLosses>0&&c.tempoLosses<=c.replies-c.continues&&Array.isArray(c.tempoLossReplies)&&c.tempoLossReplies.length===c.tempoLosses&&new Set(c.tempoLossReplies.map(x=>x.i)).size===c.tempoLosses&&c.tempoLossReplies.every(x=>Number.isInteger(x.i)&&x.i>=0&&x.i<b.length&&Number.isInteger(x.follow)&&x.follow>=0&&x.follow<b.length&&x.i!==c.i&&x.follow!==c.i&&x.follow!==x.i&&x.replyAttack>=120&&x.replyCut>=120))tempoChecks.set(c.i,c);}}}
     const rounds=[];let stopReason='최대 탐색 깊이 도달';
     for(let d=1;d<=10;d++){
       const round=[];
-      try{for(let r of frontier){tick();set(r.i,p);let child;try{child=search(3-p,d-1,-Infinity,Infinity,1);}finally{set(r.i,0);}const score=-child.score+(Math.abs(child.score)<M/2?(strategicAdjust.get(r.i)||0):0);round.push({...r,score,pv:[r.i,...child.pv],depth:d,comparisonComplete:true});}
+      try{for(let r of frontier){tick();set(r.i,p);let child;try{child=search(3-p,d-1,-Infinity,Infinity,1);}finally{set(r.i,0);}
+        // One existing static-three unit rewards a forcing continuation that
+        // survived every sampled actual reply, including a mandatory block.
+        // This is a soft ordering preference, never a safety or win proof.
+        const positional=Math.abs(child.score)<M/2,check=positional&&r.status==='screened'?pressureChecks.get(r.i):null,pressureBonus=check?420:0,probeAdjust=positional?(strategicAdjust.get(r.i)||0):0,baseSearchScore=-child.score;
+        const tempo=positional&&r.status==='screened'?tempoChecks.get(r.i):null,tempoPenalty=tempo?420:0;
+        const score=baseSearchScore+probeAdjust+pressureBonus-tempoPenalty;round.push({...r,score,pv:[r.i,...child.pv],depth:d,comparisonComplete:true,baseSearchScore,probeAdjust,pressureBonus,tempoPenalty,tempoEvidence:tempo?{replyCoverage:'bounded',replies:tempo.replies,tempoLosses:tempo.tempoLosses,counterBlocks:tempo.tempoLossReplies,probeComplete:strategicSummary.complete,proven:false}:null,pressureEvidence:check?{replyCoverage:'bounded',replies:check.replies,continues:check.continues,pv:check.pv.slice(),probeComplete:strategicSummary.complete,proven:false}:null});}
         round.sort((a,c)=>c.score-a.score);best=round.slice(0,3);depth=d;frontier=round;
         onProgress(output(kind,best,depth,extra));
         rounds.push({i:best[0].i,score:best[0].score,depth,
@@ -196,7 +225,7 @@ function createEngine(N, board, options={}) {
     }
     return output(kind,best,depth,{...extra,autoReason:automatic?stopReason:null});
   }
-  function fixedWork(p,depth=3){nodes=0;quietWork=0;strategy?.setBudget(Infinity);deadline=Infinity;phaseDeadline=Infinity;tt.clear();tacticalCache.clear();const start=clockNow(),result=search(p,depth,-Infinity,Infinity,0);return {...result,nodes,depth,ms:clockNow()-start};}
+  function fixedWork(p,depth=3){nodes=0;strategy?.setBudget(Infinity);deadline=Infinity;phaseDeadline=Infinity;tt.clear();tacticalCache.clear();const start=clockNow(),result=search(p,depth,-Infinity,Infinity,0);return {...result,nodes,depth,ms:clockNow()-start};}
   return {fixedWork,rank,legal,moveInfo,winMove,threes,analyze,state,board:b,winningMoves:wins,threatWin:(p,ms=1000)=>{deadline=clockNow()+ms;try{return threatWin(p);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}},forcingWin:(p,depth=13,ms=1000)=>{deadline=clockNow()+ms;try{return vcf(p,depth);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}}};
 }
 function autoStable(rounds,depth,elapsed,checks,moves){

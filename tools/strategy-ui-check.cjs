@@ -14,7 +14,7 @@ async function snapshot(page){return page.evaluate(()=>({version:versionBadge.te
   const context=await browser.newContext(),page=await context.newPage();page.on('pageerror',e=>report.errors.push(String(e)));
   await page.goto(pathToFileURL(path.join(root,'outputs/omok.html')).href);
   await page.waitForFunction(()=>typeof loadGame==='function'&&!$('computeMode').disabled);
-  await page.evaluate(()=>{$('setup').close();$('budget').value='900';});
+  await page.evaluate(()=>{$('setup').close();updateAnalysisSettings({...analysisSettings,mode:'fast'},false);});
   report.gpu=await page.evaluate(async()=>{const r=await OmokGPU.prepare();return {...r,table:undefined};});
   assert.equal(report.gpu.verifiedPatterns,59049);
   await page.evaluate(x=>loadGame(x),game('strategy-ui-black-second',2));await waitFinal(page);
@@ -28,21 +28,21 @@ async function snapshot(page){return page.evaluate(()=>({version:versionBadge.te
   await page.evaluate(()=>{stopWorker();});
   await page.evaluate(()=>{const original=acceptResult;globalThis.strategyUiResults=[];acceptResult=function(result,partial=false){const accepted=original(result,partial);if(accepted)globalThis.strategyUiResults.push({partial,i:rec?.i,legal:rec?.i!=null&&E.inspect(b,rec.i,turn).legal,proofStatus:rec?.proofStatus,assessmentStatus:rec?.assessmentStatus,firstPlayer:E.getContext?.().firstPlayer,depth:rec?.depth,ms:rec?.ms});return accepted;};});
   for(const profile of ['fast','optimized','deep']){
-   await page.selectOption('#gpuProfile',profile);
-   const expected={fast:'900',optimized:'auto',deep:'25000'}[profile];assert.equal(await page.locator('#budget').inputValue(),expected);
+   await page.selectOption('#budget',profile==='optimized'?'auto':profile);
+   const expected={fast:'fast',optimized:'auto',deep:'deep'}[profile];assert.equal(await page.locator('#budget').inputValue(),expected);
    await page.evaluate(x=>{stopWorker();globalThis.strategyUiResults=[];loadGame(x);},game('strategy-ui-mode-'+profile,2));await waitFinal(page);
    s=await snapshot(page);const displays=await page.evaluate(()=>globalThis.strategyUiResults);assert(s.legal);assert.equal(s.turn,1);assert.equal(s.context?.firstPlayer,2);assert(displays.some(x=>!x.partial&&x.legal));assert(displays.every(x=>x.legal&&x.firstPlayer===2));
-   report.checks.push({name:'GPU preset actual Worker temporary and final recommendations',profile,budget:expected,displays,...s});await page.evaluate(()=>stopWorker());
+   report.checks.push({name:'Unified analysis mode actual Worker temporary and final recommendations',profile,budget:expected,displays,...s});await page.evaluate(()=>stopWorker());
   }
-  await page.selectOption('#gpuProfile','fast');await page.evaluate(x=>{stopWorker();loadGame(x);},game('strategy-ui-ponder',2,true));await waitFinal(page);
+  await page.selectOption('#budget','fast');await page.evaluate(x=>{stopWorker();loadGame(x);},game('strategy-ui-ponder',2,true));await waitFinal(page);
   await page.waitForFunction(()=>ponder?.result?.i!=null,{},{timeout:12000});
   const prediction=await page.evaluate(()=>({opponent:ponder.opponent,key:ponder.key,result:ponder.result}));
   await page.evaluate(()=>{resume();move(ponder.opponent);});await waitFinal(page);s=await snapshot(page);assert.equal(s.turn,1);assert.equal(s.first,2);assert(s.legal);assert.equal(s.move,String.fromCharCode(65+prediction.result.i%15)+(Math.floor(prediction.result.i/15)+1));assert((await page.locator('#predictionNote').textContent()).includes('사전 계산 결과 사용'));
   report.checks.push({name:'actual opponent prediction promotes same finalized reply with white-first context',prediction,...s});await page.evaluate(()=>stopWorker());
-  await page.evaluate(x=>{$('budget').value='900';loadGame(x);},game('strategy-ui-final',2));await waitFinal(page);await page.evaluate(()=>stopWorker());
+  await page.evaluate(x=>{updateAnalysisSettings({...analysisSettings,mode:'fast'},false);loadGame(x);},game('strategy-ui-final',2));await waitFinal(page);await page.evaluate(()=>stopWorker());
   await page.screenshot({path:path.join(out,'ui-validation.png'),fullPage:true});
   const fallbackContext=await browser.newContext();await fallbackContext.addInitScript(()=>Object.defineProperty(navigator,'gpu',{get:()=>undefined,configurable:true}));const fallback=await fallbackContext.newPage();fallback.on('pageerror',e=>report.errors.push(String(e)));
-  await fallback.goto(pathToFileURL(path.join(root,'outputs/omok.html')).href);await fallback.waitForFunction(()=>!$('computeMode').disabled);await fallback.evaluate(x=>{$('setup').close();$('budget').value='900';loadGame(x);},game('strategy-ui-fallback',2));await waitFinal(fallback);s=await snapshot(fallback);assert.equal(s.computeMode,'cpu');assert(s.gpuStatus.includes('GPU 사용 불가'));assert(s.legal);assert.equal(s.context?.firstPlayer,2);report.checks.push({name:'unavailable WebGPU falls back to CPU',...s});await fallback.evaluate(()=>stopWorker());await fallbackContext.close();
+  await fallback.goto(pathToFileURL(path.join(root,'outputs/omok.html')).href);await fallback.waitForFunction(()=>!$('computeMode').disabled);await fallback.evaluate(x=>{$('setup').close();updateAnalysisSettings({...analysisSettings,mode:'fast'},false);loadGame(x);},game('strategy-ui-fallback',2));await waitFinal(fallback);s=await snapshot(fallback);assert.equal(s.computeMode,'cpu');assert(s.gpuStatus.includes('GPU 사용 불가'));assert(s.legal);assert.equal(s.context?.firstPlayer,2);report.checks.push({name:'unavailable WebGPU falls back to CPU',...s});await fallback.evaluate(()=>stopWorker());await fallbackContext.close();
   assert.equal(report.errors.length,0,report.errors.join('\n'));report.passed=true;
  }catch(e){report.passed=false;report.failure=e.stack;process.exitCode=1;console.error(e.stack);}finally{fs.writeFileSync(path.join(out,'ui-validation.json'),JSON.stringify(report,null,2)+'\n');await browser.close();}
  console.log(JSON.stringify({passed:report.passed,checks:report.checks.length,gpu:report.gpu?.adapter,errors:report.errors,failure:report.failure}));

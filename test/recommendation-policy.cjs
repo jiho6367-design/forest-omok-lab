@@ -68,3 +68,13 @@ for(const confirmationKind of ['search','incomplete']){
  assert.equal(out.counterVerification.kind,confirmationKind);assert(!out.lossProven);
 }
 console.log('PASS mate-like scores and incomplete counter-search do not become proof');
+{
+ const engine=controlled(f=>({...f,forcing:()=>({complete:false,proof:null}),
+   analyze:()=>({i:idx('J4'),score:100,depth:6,pv:[idx('J4')],analysisIncomplete:true,proven:false,lossProven:false,rejected:[],reason:'incomplete finalist check'})}),
+   reader=>({...reader,analyze:()=>({kind:'search',depth:3,moves:[{i:idx('G8'),score:30,pv:[idx('G8')]}]})}));
+ const out=engine.analyze(boardOf(prefix),2,{automatic:true,ms:15000});
+ assert.equal(out.i,idx('J4'));assert.equal(out.depth,6);assert(out.analysisIncomplete);
+ assert.equal(out.proofStatus,'UNRESOLVED');assert.equal(out.assessmentStatus,'INCOMPLETE');assert(!out.proven&&!out.lossProven);
+ assert.equal(engine.finalizeResult(boardOf(prefix),2,out).assessmentStatus,'INCOMPLETE');
+ console.log('PASS incomplete finalist check survives deep comparison and final result policy at positive depth');
+}

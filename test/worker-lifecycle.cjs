@@ -23,3 +23,9 @@ assert.equal(c.spawnAnalysis.health.healthySince,0);now=600;[...intervals.values
 assert.equal(c.spawnAnalysis.health.healthySince,600);assert.equal(c.spawnAnalysis.health.blockedUntil,10500);
 w.onmessage({data:{result:{i:1}}});assert.equal(done,1);assert(w.stopped);assert.equal(intervals.size,0);assert.equal(timers.size,0);
 console.log('PASS Worker cancellation cleanup, stale messages, lag cooldown and foreground preservation');
+let incompleteResult;
+w=c.spawnAnalysis(Array(225).fill(0),1,15000,()=>{},result=>{incompleteResult=result;},()=>errors++);
+w.onmessage({data:{result:{i:1,pv:[1],depth:4,analysisIncomplete:true,proofStatus:'UNRESOLVED',assessmentStatus:'INCOMPLETE'}}});
+assert(incompleteResult.analysisIncomplete);assert.equal(incompleteResult.proofStatus,'UNRESOLVED');assert.equal(incompleteResult.assessmentStatus,'INCOMPLETE');
+assert.equal(incompleteResult.depth,4);assert(w.stopped);assert.equal(intervals.size,0);assert.equal(timers.size,0);
+console.log('PASS normal Worker completion preserves incomplete finalist evidence at positive depth');

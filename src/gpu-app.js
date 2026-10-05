@@ -1,41 +1,16 @@
 globalThis.omokAcceleration={mode:'cpu',table:null,optimized:false};
 const gpuPanel=document.createElement('div');gpuPanel.className='card';gpuPanel.innerHTML=`<h2>GPU 혼합 분석 · 로컬 개선판</h2><label>연산 방식<select id="computeMode"><option value="gpu">GPU 혼합 · 패턴 사전 계산</option><option value="optimized">CPU 최적화 · 패턴 재사용</option><option value="cpu">기존 CPU</option></select></label><p id="gpuStatus" role="status">GPU 확인 중…</p><p class="muted">GPU는 패턴 59,049개를 병렬 계산합니다. 수읽기는 CPU에서 수행하며, 같은 시간에 더 깊게 탐색할 수 있습니다.</p><button id="gpuBenchmark">CPU/GPU 성능 비교</button><button id="gpuCancel" disabled>비교 중지</button><pre id="gpuResult" style="white-space:pre-wrap;font-size:12px;max-height:360px;overflow:auto"></pre>`;
 $('nextMovePanel').after(gpuPanel);
-const gpuProfiles={
- optimized:{budget:'auto',description:'국면에 맞춰 자동 조절 · 최대 15초, 후보가 안정되면 조기 종료합니다.'},
- fast:{budget:'900',description:'내 수는 약 1초 안에 빠르게 추천합니다. 깊은 수읽기는 제한됩니다.'},
- deep:{budget:'25000',description:'내 수를 최대 25초 동안 더 깊게 비교합니다. 즉시 승리·필수 방어는 먼저 표시합니다.'}
-};
-const gpuProfilePanel=document.createElement('div');
-gpuProfilePanel.innerHTML='<label>GPU 분석 모드<select id="gpuProfile"><option value="optimized">최적화 · 자동 (권장)</option><option value="fast">아주 빠르게 · 약 1초</option><option value="deep">심층 분석 · 최대 25초</option></select></label><p id="gpuProfileHelp" class="muted"></p><p class="muted">내 수와 예상 응수에 적용합니다. 상대 다음 수 예측은 1초이며, 남은 대국 시간에 따라 분석 시간이 줄어들 수 있습니다.</p>';
-$('computeMode').parentElement.after(gpuProfilePanel);
-try{const saved=localStorage.getItem('omok-gpu-profile');if(gpuProfiles[saved])$('gpuProfile').value=saved;}catch{}
-function syncGPUProfile(apply=false){
- gpuProfilePanel.hidden=$('computeMode').value!=='gpu';
- const profile=gpuProfiles[$('gpuProfile').value];
- if(apply)$('budget').value=profile.budget;
- const custom=$('budget').value!==profile.budget;
- $('gpuProfileHelp').textContent=custom?'추천 카드의 분석 시간에서 직접 지정한 설정을 사용 중입니다. GPU 분석 모드를 다시 선택하면 해당 모드가 적용됩니다.':profile.description;
-}
-$('gpuProfile').onchange=()=>{
- syncGPUProfile(true);
- try{localStorage.setItem('omok-gpu-profile',$('gpuProfile').value);}catch{}
- stopWorker();if(g&&!g.result)analyze();
-};
-const previousBudgetChange=$('budget').onchange;
-$('budget').onchange=event=>{
- const entry=Object.entries(gpuProfiles).find(([,profile])=>profile.budget===$('budget').value);
- if(entry){$('gpuProfile').value=entry[0];try{localStorage.setItem('omok-gpu-profile',entry[0]);}catch{}}
- syncGPUProfile();previousBudgetChange?.(event);
-};
-syncGPUProfile(true);
-versionBadge.textContent='통합 v5.14.2 · GPU';
-versionBadge.setAttribute('aria-label','통합 버전 5.14.2');
+$('computeMode').value=initialCompute;
+const gpuAnalysisMode=document.createElement('p');gpuAnalysisMode.id='gpuAnalysisMode';gpuAnalysisMode.className='muted';$('computeMode').parentElement.after(gpuAnalysisMode);syncAnalysisSettingsUI();
+versionBadge.textContent='통합 v5.14.6 · GPU';
+versionBadge.setAttribute('aria-label','통합 버전 5.14.6');
 versionBadge.title='공격 연결·선제 차단·주도권 분석 · GPU 혼합 · 정확한 5목 우선';
 let gpuPrepared=null,cpuPatterns=null,modeRequest=0,benchmarkWorker=null,cancelBenchmark=null;
 async function selectComputeMode(reanalyze=false){
- const request=++modeRequest,mode=$('computeMode').value;stopWorker();globalThis.omokAcceleration={mode:'cpu',table:null,optimized:false};
- syncGPUProfile(mode==='gpu');
+ const request=++modeRequest,mode=$('computeMode').value;stopWorker();rec=null;currentAnalysisPolicy=null;globalThis.omokComputeReady=false;globalThis.omokAcceleration={mode:'cpu',table:null,optimized:false};
+ try{settingsStorage?.setItem(settingsPolicy.COMPUTE_KEY,mode);}catch{}
+ syncAnalysisSettingsUI();
  $('computeMode').disabled=true;$('gpuStatus').textContent=mode==='gpu'?'GPU 초기화와 패턴 전수 검증 중…':'CPU 모드 준비 중…';
  try{
   if(mode==='gpu')gpuPrepared ||= await OmokGPU.prepare();
@@ -43,8 +18,8 @@ async function selectComputeMode(reanalyze=false){
   if(mode==='optimized')cpuPatterns ||= OmokGPU.cpu();
   globalThis.omokAcceleration={mode,table:mode==='gpu'?gpuPrepared.table:mode==='optimized'?cpuPatterns:null,optimized:mode!=='cpu'};
   $('gpuStatus').textContent=mode==='gpu'?`GPU 정상 · ${gpuPrepared.adapter.description||[gpuPrepared.adapter.vendor,gpuPrepared.adapter.architecture].filter(Boolean).join(' ')} · ${gpuPrepared.verifiedPatterns.toLocaleString()}개 패턴 검증 완료 · 준비 ${Math.round(gpuPrepared.totalMs)}ms`:mode==='optimized'?'CPU 최적화 사용 중 · GPU 없이 같은 패턴 재사용':'기존 CPU 사용 중';
- }catch(error){$('gpuStatus').textContent='GPU 사용 불가 · 현재 CPU 실행: '+error.message;}
- finally{$('computeMode').disabled=false;if(reanalyze&&g&&!g.result)analyze();}
+ }catch(error){if(request!==modeRequest)return;$('gpuStatus').textContent='GPU 사용 불가 · 현재 CPU 실행: '+error.message;}
+ finally{if(request===modeRequest){globalThis.omokComputeReady=true;$('computeMode').disabled=false;syncAnalysisSettingsUI();if(reanalyze&&g&&!g.result)analyze();}}
 }
 $('computeMode').onchange=()=>selectComputeMode(true);
 function runBenchmark(table){return new Promise((resolve,reject)=>{

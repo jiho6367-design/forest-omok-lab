@@ -66,6 +66,7 @@ function createEngine(options={}) {
     if(claimedProof&&!r.proven){r.proof=null;r.counterVerification=null;}
     if(!r.proven&&['win','forced'].includes(r.kind))r.kind='incomplete';
     if(r.i!=null&&pv[0]!==r.i)r.pv=[r.i];else r.pv=pv;
+    if(r.retainedComparison&&r.retainedComparison.i!==r.i)delete r.retainedComparison;
     r.lossProven=!!r.lossProven;r.forcedLoss=r.lossProven;
     r.shape=r.i==null?null:inspect(board,r.i,p);
     if(r.i!=null){
@@ -90,6 +91,7 @@ function createEngine(options={}) {
     r.unverifiedDefense=r.kind!=='terminal'&&!r.proven&&!r.lossProven;
     r.assessmentStatus=r.proofStatus!=='UNRESOLVED'?r.proofStatus:
       r.timedOut||r.analysisIncomplete||r.kind==='incomplete'?'INCOMPLETE':
+      r.retainedComparison?.finalDefenseUnchecked&&!r.defenseChecked?(feature?.cut>0?'BLOCKING_UNCHECKED':'INCOMPLETE'):
       r.kind==='block'||(!(r.depth>0)&&feature?.cut>0)?'BLOCKING_UNCHECKED':
       r.depth>0&&!r.fallback?'BOUNDED_FAVORABLE':'INCOMPLETE';
     r.engineVersion='unified-'+strategyVersion;
@@ -110,7 +112,9 @@ function createEngine(options={}) {
       defenseChecked:first?.status==='screened',fallback:!!r.fallback,kind:r.kind,
       autoReason:r.autoReason,automatic:r.automatic,screeningComplete:r.screeningComplete,
       forcingChecksComplete:r.forcingChecksComplete,strategy:r.strategy,comparisonSource:'reader',
-      candidates:(r.moves||[]).map(m=>({...m,pv:validPV(board,p,m.pv),depth:m.depth??r.depth??0,comparisonSource:'reader'})),rejected:r.rejectedMoves||[],
+      candidates:(r.moves||[]).map(m=>{const pv=validPV(board,p,m.pv);return {...m,pv,depth:m.depth??r.depth??0,comparisonSource:'reader',
+        comparisonDepthExplicit:Number.isInteger(m.depth)&&m.depth>0,
+        comparisonPVComplete:Array.isArray(m.pv)&&m.pv.length>0&&pv.length===m.pv.length&&pv[0]===m.i};}),rejected:r.rejectedMoves||[],
       engineVersion:'unified-4.0',memory:0,safety:'제한 탐색이며 무패를 보장하지 않습니다.'};
   }
   function urgent(board,p) {
@@ -161,6 +165,10 @@ function createEngine(options={}) {
     best.memory=memory.length;
     best.patternHint=forest.patternDefense(board,p)?.i??null;
     if(!deep||best.proven||best.lossProven||best.kind==='terminal'||best.i==null)return ensureLegalCandidate(best);
+    // Freeze per-candidate provenance before later safety exclusions can
+    // replace the selected move. A global depth is not another move's work.
+    const readerComparisons=(best.candidates||[]).filter(m=>m.comparisonComplete===true&&m.depth>0&&
+      m.comparisonDepthExplicit===true&&m.comparisonPVComplete===true&&Number.isFinite(m.score)).map(m=>({...m,pv:m.pv.slice()}));
     // A deeper engine must not resurrect a move already refuted by Reader.
     // Reader certificates use `line`; Forest certificates use `pv`/`replyTrap`.
     const refuted=new Set([...knownBad,...(best.rejected||[])
@@ -251,7 +259,10 @@ function createEngine(options={}) {
           const proof=fast(after).forcingWin(3-p,13,Math.max(1,Math.min(200,limit-(clockNow()-started))));
           return proof?validPV(after,3-p,proof):null;
         };
-        const deepProof=opponentProof(extended.i),fastProof=opponentProof(best.i);
+        // These checks only resolve a certified-loss conflict. Quiet results
+        // previously paid for two probes whose results were discarded.
+        const deepProof=extended.lossProven?opponentProof(extended.i):null,
+          fastProof=extended.lossProven?(extended.i===best.i?deepProof:opponentProof(best.i)):null;
         if(extended.lossProven&&deepProof&&!fastProof){
           best={...best,reason:'모든 후보의 강제패배 확인 · 즉시 패배를 늦추는 저항 수',
             rejected:[...(best.rejected||[]),{i:extended.i,reason:'착수 뒤 상대 강제승 확인',pv:deepProof}],
@@ -270,6 +281,24 @@ function createEngine(options={}) {
           counterThreats:[...counterRisk.values(),...(extended.counterThreats||[])],
           unverifiedDefense:!!extended.unverifiedDefense||!!refuted.size&&!extended.proven,
           engineVersion:'unified-4.1-deep',automatic,autoReason:automatic?'위협 국면 심층 방어 검사 완료':extended.autoReason};
+        // Forest has selected this exact fallback but may have no completed
+        // comparison for it. Preserve its earlier Reader comparison as one
+        // unit; never rank Reader scores against Forest static/deep scores.
+        const row=readerComparisons.find(m=>m.i===extended.i),blocked=(best.rejected||[]).some(m=>m.i===extended.i&&refutation(m))||
+          extended.candidateGuards?.some(c=>c.i===extended.i&&c.refuted)||
+          extended.counterThreats?.some(c=>c.i===extended.i&&!c.riskOnly);
+        if(row&&!blocked&&!counterRisk.has(row.i)&&!extended.proven&&!extended.lossProven&&!extended.forcedLoss&&
+          !(extended.depth>0)&&!extended.candidates?.find(m=>m.i===extended.i)?.comparisonComplete){
+          const retainedPV=validPV(board,p,row.pv);
+          if(retainedPV.length===row.pv.length&&retainedPV[0]===row.i){
+            const selectedCheck=extended.strategy?.checks?.find(c=>c.i===row.i&&c.complete)||null;
+            best={...best,score:row.score,depth:row.depth,pv:retainedPV,comparisonSource:'reader',
+              candidates:[{...row,pv:retainedPV,status:'comparison-retained'}],
+              retainedComparison:{i:row.i,source:'reader',depth:row.depth,sameMoveOnly:true,finalDefenseUnchecked:!extended.defenseChecked},
+              strategy:extended.strategy?{...extended.strategy,initiative:'unknown',selectedCheck}:extended.strategy,
+              reason:extended.reason+' · 같은 대안의 완료 비교 수순 보존'};
+          }
+        }
       }else{
         const rejected=new Set([...refuted,...(extended.rejected||[]).map(m=>m.i)]),risky=new Set([...counterRisk.keys(),...(extended.counterThreats||[]).filter(m=>!m.riskOnly).map(m=>m.i)]);
         const alternative=best.candidates.find(m=>m.i===best.i&&!rejected.has(m.i)&&!risky.has(m.i))||

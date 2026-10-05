@@ -60,13 +60,13 @@ test('adaptive budget respects remaining turn time',()=>{
   const start=Date.now(),r=priority.analyze(b,2,{automatic:true,ms:100});assert(r.i!=null);assert(Date.now()-start<1200);
 });
 test('opponent prediction stays at one second while my analysis uses the selected time',()=>{
-  const source=fs.readFileSync('src/unified-app.js','utf8'),start=source.indexOf('function configuredOwnBudget'),end=source.indexOf('function spawnAnalysis',start);
-  let selected='15000';const plan={textContent:''},ctx={g:{me:1,timer:false},reviewing:false,paused:false,deadline:Date.now()+40000,analysisPlan:plan,E:{suggestBudget:()=>({ms:7000,reason:'자동 분석'})},$:()=>({value:selected})};
-  vm.createContext(ctx);vm.runInContext(`let activePlan='';\n${source.slice(start,end)}`,ctx);
+  const source=fs.readFileSync('src/unified-app.js','utf8'),start=source.indexOf('function formatAnalysisPlan'),end=source.indexOf('function spawnAnalysis',start);
+  const settingsPolicy=require('../src/analysis-settings.js');let selected={version:1,mode:'custom',manualMs:15000};const plan={textContent:''},ctx={g:{me:1,timer:false},reviewing:false,paused:false,deadline:Date.now()+40000,analysisPlan:plan,settingsPolicy,analysisSettings:selected,E:{suggestBudget:()=>({ms:7000,reason:'자동 분석'})},$:()=>({value:selected})};
+  vm.createContext(ctx);vm.runInContext(`let activePlan='',currentAnalysisPolicy=null;\n${source.slice(start,end)}`,ctx);
   const board=blank();assert.equal(ctx.selectedBudget(board,2),1000);assert.equal(ctx.selectedBudget(board,2,25000),1000);assert.match(plan.textContent,/1초 고정/);
   assert.equal(ctx.selectedBudget(board,1),15000);assert.equal(ctx.configuredOwnBudget(board,1,40000).budget,15000);
-  selected='25000';assert.equal(ctx.selectedBudget(board,2),1000);assert.equal(ctx.selectedBudget(board,1),25000);
-  selected='auto';assert.equal(ctx.selectedBudget(board,2),1000);assert.equal(ctx.selectedBudget(board,1).ms,7000);assert.equal(ctx.configuredOwnBudget(board,1,40000).budget.ms,7000);
+  ctx.analysisSettings={...selected,mode:'deep'};assert.equal(ctx.selectedBudget(board,2),1000);assert.equal(ctx.selectedBudget(board,1),25000);
+  ctx.analysisSettings={...selected,mode:'auto'};assert.equal(ctx.selectedBudget(board,2),1000);assert.equal(ctx.selectedBudget(board,1).ms,7000);assert.equal(ctx.configuredOwnBudget(board,1,40000).budget.ms,7000);
 });
 test('deep mode retains a move and validates its returned PV',()=>{
   const fixture=require('./reader/game48.cjs'),b=blank();fixture.coords.slice(0,34).forEach((c,k)=>b[idx(c)]=k%2?2:1);

@@ -18,8 +18,21 @@ function createStrategyEngine(N,rules,options={}){
  const lightProfile=(board,p)=>{const ownWins=rules.winning(board,p),enemyWins=rules.winning(board,3-p);return {initiative:ownWins.length?'own':enemyWins.length?'opponent':'unknown',firstPlayer,strategyVersion,complete:false,evidence:{ownWins,enemyWins,replyCoverage:'not-checked'}};};
  const measured=(fn,fallback)=>(...args)=>{if(workMs>=workLimit){skipped++;return fallback(...args);}const start=now();try{return fn(...args);}finally{workMs+=now()-start;}};
  const keep=(cache,key,value)=>{if(cache.size>=512)cache.delete(cache.keys().next().value);cache.set(key,value);return value;};
- function structure(board,p,validate=true){
-  const key=board.join('')+'|'+p+'|'+validate,cached=structures.get(key);if(cached)return cached;
+ function rawPoints(board){
+  const position=board.join(''),keys=[1,2].map(p=>position+'|'+p+'|false|true'),maps=[new Map(),new Map()];
+  // Interior search needs only window support. Build both colours in one
+  // traversal, without component nodes or shared-stone sets. Full nominated
+  // move descriptors still validate the candidate and future extensions.
+  for(const w of windows){let one=0,two=0;for(const i of w.cells){one+=board[i]===1;two+=board[i]===2;}
+   if(one&&two)continue;const p=one?1:2,n=one||two;if(n<2||n>4||board[w.pre]===p||board[w.post]===p)continue;
+   const points=maps[p-1],strength=[0,0,12,120,1800][n];
+   for(const i of w.cells)if(!board[i]){let point=points.get(i);if(!point){point={i,axisScores:[0,0,0,0]};points.set(i,point);}point.axisScores[w.axis]=Math.max(point.axisScores[w.axis],strength);}
+  }
+  for(let k=0;k<2;k++){for(const point of maps[k].values()){point.axes=point.axisScores.map((s,i)=>s?i:-1).filter(i=>i>=0);point.score=point.axisScores.reduce((a,v)=>a+v,0)+Math.max(0,point.axes.length-1)*40;}keep(structures,keys[k],{points:maps[k]});}
+ }
+ function structure(board,p,validate=true,pointsOnly=false){
+  const key=board.join('')+'|'+p+'|'+validate+'|'+pointsOnly,cached=structures.get(key);if(cached)return cached;
+  if(pointsOnly&&!validate){rawPoints(board);return structures.get(key);}
   const stoneCount=board.reduce((n,v)=>n+(v===p),0),legal=new Map(),points=new Map(),nodes=[];
   const can=i=>{if(!legal.has(i))legal.set(i,!validate||stoneCount<4||rules.legal(board,i,p));return legal.get(i);};
   for(const w of windows){
@@ -37,6 +50,9 @@ function createStrategyEngine(N,rules,options={}){
     point.axisScores[w.axis]=Math.max(point.axisScores[w.axis],[0,0,12,120,1800][stones.length]);for(const j of stones)point.stones.add(j);
    }
   }
+  for(const point of points.values()){point.axes=point.axisScores.map((s,i)=>s?i:-1).filter(i=>i>=0);point.score=point.axisScores.reduce((a,v)=>a+v,0)+Math.max(0,point.axes.length-1)*40;}
+  // Search nomination needs per-point support, not a component evaluation.
+  if(pointsOnly)return keep(structures,key,{points});
   // Windows cooperate through actual shared stones or legal common anchors.
   // Overlapping copies of one axis contribute its maximum, not their count.
   const parent=nodes.map((_,i)=>i),links=new Map();
@@ -48,17 +64,16 @@ function createStrategyEngine(N,rules,options={}){
   let score=0,commonAnchors=0;for(const group of components.values()){const axes=group.axes.filter(Boolean).length;score+=group.axes.reduce((a,v)=>a+v,0)+Math.max(0,axes-1)*20;
    for(const axesAt of group.anchors.values())if(axesAt.size>1){commonAnchors++;score+=12*(axesAt.size-1);}
   }
-  for(const point of points.values()){point.axes=point.axisScores.map((s,i)=>s?i:-1).filter(i=>i>=0);point.score=point.axisScores.reduce((a,v)=>a+v,0)+Math.max(0,point.axes.length-1)*40;}
   return keep(structures,key,{points,score,components:components.size,commonAnchors,axes:[...new Set(nodes.map(n=>n.axis))]});
  }
- function move(board,i,p,shape){
+ function move(board,i,p,shape,pointData){
   const key=board.join('')+'|'+p+'|'+i,cached=features.get(key);if(cached)return cached;
   if(!Number.isInteger(i)||board[i]!==0)return {i,legal:false,score:0,attack:0,cut:0,dual:0,axes:[],legalExtensions:[],invalidExtensions:[]};
   shape=shape||rules.inspect(board,i,p);
   if(!shape.legal)return {i,legal:false,score:0,attack:0,cut:0,dual:0,axes:[],legalExtensions:[],invalidExtensions:[]};
   // The candidate itself is legal; its per-axis window support is cheap to
   // gather. The actual open-three extensions below are separately validated.
-  const own=structure(board,p,false).points.get(i),enemy=rules.legal(board,i,3-p)?structure(board,3-p,false).points.get(i):null;
+  const own=(pointData?.own||structure(board,p,false).points).get(i),enemy=rules.legal(board,i,3-p)?(pointData?.enemy||structure(board,3-p,false).points).get(i):null;
   const legalExtensions=new Set(),invalidExtensions=new Set(),usableThreeAxes=[];
   board[i]=p;
   try{for(const detail of shape.details||[]){const valid=[];for(const j of detail.three||[]){if(rules.legal(board,j,p)){legalExtensions.add(j);valid.push(j);}else invalidExtensions.add(j);}
@@ -83,14 +98,16 @@ function createStrategyEngine(N,rules,options={}){
  function makeHint(i,own,enemy){const attack=own?.score||0,cut=enemy?.score||0;return {i,attack,cut,dual:attack&&cut?Math.min(attack,cut):0,score:0,axes:own?.axes||[],legalExtensions:[],usableThreeAxes:[],forcing:false,tentative:true};}
  function hint(board,i,p){return makeHint(i,structure(board,p,false).points.get(i),structure(board,3-p,false).points.get(i));}
  function points(board,p){return [...new Set([...structure(board,p,false).points.keys(),...structure(board,3-p,false).points.keys()])];}
- function select(board,p,ranked,width,reserve=6,forcingSet=new Set()){
-  const ownPoints=structure(board,p,false).points,enemyPoints=structure(board,3-p,false).points;
-  const rows=ranked.map(m=>({...m,strategy:m.strategy||makeHint(m.i,ownPoints.get(m.i),enemyPoints.get(m.i))})),out=[],seen=new Set();
+ function select(board,p,ranked,width,reserve=6,forcingSet=new Set(),pointData){
+  const ownPoints=pointData?.own||structure(board,p,false).points,enemyPoints=pointData?.enemy||structure(board,3-p,false).points;
+  const rows=ranked.map(m=>({...m,strategy:m.strategy&&!m.strategy.incomplete?m.strategy:makeHint(m.i,ownPoints.get(m.i),enemyPoints.get(m.i))})).filter(m=>!pointData?.filter||pointData.filter(m)),out=[],seen=new Set();
   const add=m=>{if(m&&!seen.has(m.i)){seen.add(m.i);out.push(m);}};
   for(const m of rows)if(forcingSet.has(m.i)||m.strategy.forcing)add(m);
-  const capacity=Math.max(width,out.length),room=Math.max(0,capacity-out.length),q=Math.min(reserve,room),ownWins=rules.winning(board,p),enemyWins=rules.winning(board,3-p),state=ownWins.length?'own':enemyWins.length?'opponent':'unknown';
+  // Reader already checks exact-five wins for this unchanged position.
+  // Reusing that state avoids two full rule scans for quota ordering only.
+  const capacity=Math.max(width,out.length),room=Math.max(0,capacity-out.length),q=Math.min(reserve,room),state=['own','opponent','unknown'].includes(pointData?.state)?pointData.state:(rules.winning(board,p).length?'own':rules.winning(board,3-p).length?'opponent':'unknown');
   const quota=state==='own'?[Math.ceil(q/2),Math.floor(q/6),q-Math.ceil(q/2)-Math.floor(q/6)]:state==='opponent'?[Math.floor(q/6),Math.ceil(q/2),q-Math.ceil(q/2)-Math.floor(q/6)]:[Math.ceil(q/3),Math.floor(q/3),q-Math.ceil(q/3)-Math.floor(q/3)];
-  for(const [category,n] of ['attack','cut','dual'].map((category,k)=>[category,quota[k]])){let used=0,attempts=0;for(const m of rows.slice().sort((a,b)=>b.strategy[category]-a.strategy[category]||(b.score??b.s??0)-(a.score??a.s??0))){if(used>=n||out.length>=capacity||attempts>=Math.max(4,n*4))break;if(m.strategy[category]>0&&!seen.has(m.i)){attempts++;if(m.strategy.tentative)m.strategy=move(board,m.i,p,m.a);if(m.strategy.legal&&m.strategy[category]>0){add(m);used++;}}}}
+  for(const [category,n] of ['attack','cut','dual'].map((category,k)=>[category,quota[k]])){let used=0,attempts=0;for(const m of rows.slice().sort((a,b)=>b.strategy[category]-a.strategy[category]||(b.score??b.s??0)-(a.score??a.s??0))){if(used>=n||out.length>=capacity||attempts>=Math.max(4,n*4))break;if(m.strategy[category]>0&&!seen.has(m.i)){attempts++;if(m.strategy.tentative)m.strategy=move(board,m.i,p,m.a,pointData);if(m.strategy.legal&&m.strategy[category]>0){add(m);used++;}}}}
   for(const m of rows){if(out.length>=capacity)break;add(m);}return out;
  }
  function evaluate(board,p){return structure(board,p).score-structure(board,3-p).score;}
@@ -103,6 +120,16 @@ function createStrategyEngine(N,rules,options={}){
  }
  function probe(board,p,roots,budget){
   const start=now(),end=start+Math.max(0,budget),copy=board.slice(),checks=[];let complete=true;
+  const replyPreparation=(i,q)=>{
+   let score=0;
+   for(const w of windows){if(!w.cells.includes(i)||copy[w.pre]===q||copy[w.post]===q)continue;
+    let count=0,blocked=false;for(const j of w.cells){count+=copy[j]===q;blocked=blocked||copy[j]===3-q;}
+    if(blocked||count<3||count>4)continue;
+    // This new exact-five window contains the actual reply stone. A legal
+    // future addition can create a four (or five); unrelated axes do not count.
+    for(const j of w.cells)if(!copy[j]){if(now()>=end)return {score,complete:false};if(rules.legal(copy,j,q)){score=Math.max(score,count===4?1800:120);break;}}
+   }return {score,complete:now()<end};
+  };
   // Preserve the previous best and representatives of connection, cut and
   // dual-purpose play; forcing-first ordering must not consume every probe.
   const selected=[],seen=new Set(),add=m=>{if(m&&!seen.has(m.i)){seen.add(m.i);selected.push(m);}};
@@ -111,12 +138,19 @@ function createStrategyEngine(N,rules,options={}){
   for(const m of roots){if(selected.length>=4)break;add(m);}
   if(!selected.length)complete=false;
   for(const root of selected.slice(0,4)){
-   if(now()>=end){complete=false;break;}if(!rules.legal(copy,root.i,p))continue;
+   if(now()>=end){complete=false;break;}const rootShape=rules.inspect(copy,root.i,p);if(!rootShape.legal)continue;
+   const rootFeature=root.strategy&&!root.strategy.tentative&&!root.strategy.incomplete?root.strategy:move(copy,root.i,p,rootShape),
+     threeExtensions=new Set((rootShape.details||[]).flatMap(d=>rootFeature.usableThreeAxes.includes(d.axis)?d.three||[]:[]).filter(i=>rootFeature.legalExtensions.includes(i)));
    copy[root.i]=p;let minimum=Infinity,worstPV=[root.i],continues=0,forcingReplies=0,replyCount=0,done=true,extensionPlies=0;
+   const tempoLossReplies=[];
    try{
     const replies=ordered(copy,3-p,6,end);if(!replies.complete)done=false;
-    for(const reply of replies.slice(0,6)){if(!done||now()>=end){done=false;break;}const replyShape=rules.inspect(copy,reply.i,3-p);copy[reply.i]=3-p;replyCount++;
-     let best=-Infinity,bestI=null,bestSuffix=[],continuation=false;
+    for(const reply of replies.slice(0,6)){if(!done||now()>=end){done=false;break;}const replyShape=rules.inspect(copy,reply.i,3-p),replyHint=hint(copy,reply.i,3-p);
+     copy[reply.i]=3-p;replyCount++;
+     const preparation=threeExtensions.has(reply.i)&&replyHint.cut>=120?replyPreparation(reply.i,3-p):{score:0,complete:true};
+     if(!preparation.complete)done=false;
+     const counterBlock=preparation.score>=120;
+     let best=-Infinity,bestI=null,bestSuffix=[],continuation=false,bestShape=null,bestSafe=false;
      try{
       if(replyShape.win?.length){best=-1000000;}else{
       if(rules.winning(copy,3-p).length)forcingReplies++;
@@ -135,14 +169,22 @@ function createStrategyEngine(N,rules,options={}){
            }value=Number.isFinite(extended)?extended:-1000000;retains=keeps;suffix=chosen==null?[block]:[block,chosen];
           }finally{copy[block]=0;}
          }
-         if(value>best){best=value;bestI=follow.i;bestSuffix=suffix;continuation=retains;}
+         if(value>best){best=value;bestI=follow.i;bestSuffix=suffix;continuation=retains;bestShape=s;bestSafe=!enemyWins.length;}
        }finally{copy[follow.i]=0;}
       }if(best===-Infinity)best=-1000000;}
+      // A legal block can also prepare the opponent's own connection. Record
+      // the actual next move's lost pressure separately from forcing proof.
+      // Do not turn a hypothetical threat, partial sample or loss into proof.
+      if(done&&counterBlock&&bestI!=null&&bestSafe&&!bestShape.win?.length){
+       const nextFeature=move(copy,bestI,p,bestShape),keeps=nextFeature.legalExtensions.length&&
+         (nextFeature.forcing||nextFeature.usableThreeAxes.length);
+       if(!keeps)tempoLossReplies.push({i:reply.i,follow:bestI,replyAttack:preparation.score,replyCut:replyHint.cut,attack:nextFeature.attack,cut:nextFeature.cut});
+      }
      }finally{copy[reply.i]=0;}
      if(!done)break;if(continuation)continues++;if(best<minimum){minimum=best;worstPV=bestI==null?[root.i,reply.i]:[root.i,reply.i,bestI,...bestSuffix];}
     }
    }finally{copy[root.i]=0;}
-   const checked=done&&replyCount>0;checks.push({i:root.i,complete:checked,score:Number.isFinite(minimum)?minimum:0,pv:worstPV,forcingReplies,continues,replies:replyCount,replyCoverage:'bounded',extensionPlies,continuationDepth:3+extensionPlies,refuted:false,proven:false});
+   const checked=done&&replyCount>0;checks.push({i:root.i,complete:checked,score:Number.isFinite(minimum)?minimum:0,pv:worstPV,forcingReplies,continues,replies:replyCount,tempoLosses:tempoLossReplies.length,tempoLossReplies,replyCoverage:'bounded',extensionPlies,continuationDepth:3+extensionPlies,refuted:false,proven:false});
    if(!checked){complete=false;break;}
   }
   const best=checks.filter(c=>c.complete).sort((a,b)=>b.score-a.score)[0],result=profile(board,p);
@@ -154,7 +196,13 @@ function createStrategyEngine(N,rules,options={}){
  }
  const fallbackSelect=(board,p,rows,width,reserve,forcing=new Set())=>{const forced=rows.filter(m=>forcing.has(m.i)||m.a?.fours.length),seen=new Set(forced.map(m=>m.i));return [...forced,...rows.filter(m=>!seen.has(m.i)).slice(0,Math.max(0,width-forced.length))].map(m=>({...m,strategy:m.strategy||empty(m.i)}));};
  return {context,strategyVersion,structure,move:measured(move,(board,i)=>empty(i)),hint,
-  profile:measured(profile,lightProfile),points:measured(points,()=>[]),select:measured(select,fallbackSelect),evaluate:measured(evaluate,()=>0),positionValue:evaluate,
+  profile:measured(profile,lightProfile),points:measured(points,()=>[]),select:measured(select,fallbackSelect),
+  // Search values and TT bounds must use the same candidate rule regardless
+  // of work spent on earlier roots. The caller owns the search deadline.
+  searchSelect:(board,p,ranked,width,reserve=6,forcing=new Set(),state,filter)=>select(board,p,ranked,width,reserve,forcing,{own:structure(board,p,false,true).points,enemy:structure(board,3-p,false,true).points,state,filter}),
+  searchPoints:(board,p)=>[...new Set([...structure(board,p,false,true).points.keys(),...structure(board,3-p,false,true).points.keys()])],
+  searchMove:(board,i,p)=>move(board,i,p,undefined,{own:structure(board,p,false,true).points,enemy:structure(board,3-p,false,true).points}),
+  evaluate:measured(evaluate,()=>0),positionValue:evaluate,
   probe:measured(probe,(board,p)=>({...lightProfile(board,p),checks:[],complete:false,ms:0})),
   setBudget(ms){workLimit=Math.max(0,ms);workMs=0;skipped=0;},remaining:()=>Math.max(0,workLimit-workMs),statistics:()=>({ms:workMs,limitMs:Number.isFinite(workLimit)?workLimit:null,skipped})};
 }

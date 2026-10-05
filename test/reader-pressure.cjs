@@ -1,0 +1,25 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),makeStrategy=require('../src/strategy-engine.js');
+const ix=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65,seed=Array(225).fill(0);for(const [p,cs] of [[1,['F8','H8','B3','G9']],[2,['E2','J5','M12','E8']]])for(const c of cs)seed[ix(c)]=p;
+const reader=fs.readFileSync('src/reader-engine.js','utf8').replace('function createEngine(','function createReaderEngine(').replace('  function search(p,depth,alpha,beta,ply,extension=6,quietExtension=1){','  function search(p,depth,alpha,beta,ply,extension=6,quietExtension=1){ if(options.controlScores){const i=b.findIndex((v,i)=>v!==board[i]);return {score:-(options.controlScores[i]??0),pv:[]};}'),forest=fs.readFileSync('src/forest-engine.js','utf8');
+let control,probes=0;const ctx={performance,Date,console,createStrategyEngine:(...args)=>{const s=makeStrategy(...args);return {...s,probe:(b,p)=>{probes++;return {...s.profile(b,p),initiative:'own',complete:control.globalComplete,evidence:{...s.profile(b,p).evidence,replyCoverage:'bounded'},checks:[{i:ix('H10'),score:0,pv:[ix('H10'),ix('E7'),ix('H9')],complete:control.complete,replies:control.replies,continues:control.continues,tempoLosses:control.tempoLosses,tempoLossReplies:control.tempoLossReplies,forcingReplies:0,refuted:false,proven:false}]};}};}};vm.createContext(ctx);vm.runInContext(reader+'\n'+forest,ctx);
+function run(overrides={}){control={complete:true,globalComplete:true,replies:6,continues:6,...overrides};probes=0;const e=ctx.createReaderEngine(15,seed,{optimized:true,firstPlayer:1,controlScores:{[ix('G7')]:100}}),r=e.analyze(1,{automatic:true,maxMs:1000});assert.deepEqual(Array.from(e.board),seed);assert.equal(probes,1);return r;}
+let r=run();assert.equal(r.moves[0].i,ix('H10'),'completed same-root actual forcing continuation may beat a nearby quiet heuristic');assert.equal(r.moves[0].pressureBonus,420);assert.equal(r.moves[0].baseSearchScore,0);assert.equal(r.moves[0].probeAdjust,0);assert.equal(r.moves[0].score,420,'bonus is applied once per fresh completed round, not accumulated');assert.equal(r.strategy.selectedCheck.i,ix('H10'));assert.equal(r.strategy.initiative,'own');assert.equal(r.moves[0].pressureEvidence.proven,false);
+for(const overrides of [{complete:false},{globalComplete:false},{replies:1,continues:1},{continues:5}]){r=run(overrides);assert.equal(r.moves[0].i,ix('G7'));assert.equal(r.moves[0].pressureBonus,0);assert.equal(r.strategy.initiative,'unknown','another root bounded pressure does not establish selected quiet initiative');assert.equal(r.strategy.selectedCheck,null);}
+control={complete:true,globalComplete:true,replies:6,continues:6};const e=ctx.createReaderEngine(15,seed,{optimized:true,controlScores:{[ix('G7')]:6000000}});r=e.analyze(1,1000);assert.equal(r.moves[0].i,ix('G7'),'large tactical scale stays ahead of soft pressure');assert.equal(r.moves[0].pressureBonus,0);
+const terminalSeed=Array(225).fill(0);for(const c of ['E8','F8','G8','H8'])terminalSeed[ix(c)]=1;probes=0;r=ctx.createReaderEngine(15,terminalSeed,{optimized:true,controlScores:{}}).analyze(1,{automatic:true,maxMs:1000});assert.equal(r.kind,'win');assert.equal(probes,0);probes=0;r=ctx.createReaderEngine(15,terminalSeed,{optimized:true,controlScores:{}}).analyze(2,{automatic:true,maxMs:1000});assert.equal(r.kind,'lost');assert.equal(probes,0);
+console.log('PASS controlled ranking only: complete same-root bounded pressure once; partial/global-incomplete/sole-reply gates; foreign initiative unknown; tactical/urgent priority and board preserved');
+function riskRun(overrides={},tactical=false){
+ control={complete:true,globalComplete:true,replies:6,continues:3,tempoLosses:1,tempoLossReplies:[{i:ix('E7'),follow:ix('H9'),replyAttack:120,replyCut:120}],...overrides};
+ const scores=Object.fromEntries(Array.from({length:225},(_,i)=>[i,-10000]));scores[ix('G7')]=100;scores[ix('H10')]=tactical?6000000:300;
+ const e=ctx.createReaderEngine(15,seed,{optimized:true,firstPlayer:1,controlScores:scores}),r=e.analyze(1,{automatic:true,maxMs:1000});assert.deepEqual(Array.from(e.board),seed);return r;
+}
+r=riskRun();assert.equal(r.moves[0].i,ix('G7'));const penalized=r.moves.find(m=>m.i===ix('H10'));
+assert.equal(penalized.tempoPenalty,420);assert.equal(penalized.score,-120);assert.equal(penalized.pressureBonus,0);assert.equal(penalized.tempoEvidence.proven,false);
+for(const overrides of [{complete:false},{globalComplete:false},{replies:1,continues:0},{tempoLosses:undefined},{tempoLosses:2},{continues:6},
+ {tempoLosses:2,tempoLossReplies:Array(2).fill({i:ix('E7'),follow:ix('H9'),replyAttack:120,replyCut:120})},
+ {tempoLossReplies:[{i:ix('E7'),follow:ix('H9'),replyAttack:12,replyCut:120}]}]){
+ r=riskRun(overrides);assert.equal(r.moves[0].i,ix('H10'));assert.equal(r.moves[0].tempoPenalty,0);
+}
+r=riskRun({},true);assert.equal(r.moves[0].i,ix('H10'));assert.equal(r.moves[0].tempoPenalty,0);
+console.log('PASS completed counterblock tempo soft420 once; incomplete, sole, missing, contradictory, duplicate, invalid preparation and tactical scale skip it');

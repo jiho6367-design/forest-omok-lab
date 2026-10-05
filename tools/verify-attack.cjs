@@ -1,5 +1,6 @@
 // Verify a prescribed attack tree independently of the discovery move order.
-// Every legal defender move is visited. Omitted branches require a fresh VCF.
+// Every legal defender move is visited. Omitted branches close by an existing
+// unblocked exact-five point or require a fresh VCF.
 const createEngine=require('../src/node-engine.cjs');
 const {replay,outcome}=require('./strategy/replay.cjs');
 function runVerification(spec,budget,completed){
@@ -18,6 +19,10 @@ function runVerification(spec,budget,completed){
     b[a]=attacker;
     try{
       if(s.win.length)return;
+      // An unblocked exact-five point survives a defender stone elsewhere.
+      // Still visit every legal reply and reject any immediate counterwin.
+      // Explicit prescribed children retain their full validation.
+      const immediate=E.winning(b,attacker);
       let replies=0;
       for(let i=0;i<225;i++){
         if(Date.now()-start>=budget)throw Error('Verification timeout');
@@ -30,7 +35,7 @@ function runVerification(spec,budget,completed){
           const key=b.join('')+'|'+JSON.stringify(child||null);
           if(completed.has(key)){cached++;continue;}
           if(child)check(child,[...line,tree.move,E.coord(i)]);
-          else{vcf++;const proof=E.forcing(b,attacker,25,Math.min(1000,budget-(Date.now()-start)));
+          else{if(immediate.some(j=>j!==i)){completed.add(key);continue;}vcf++;const proof=E.forcing(b,attacker,25,Math.min(1000,budget-(Date.now()-start)));
             if(!proof.proof)throw Error((proof.complete?'Unrefuted reply ':'VCF timeout at ')+E.coord(i));}
           completed.add(key);
         }finally{b[i]=0;}

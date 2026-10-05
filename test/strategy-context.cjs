@@ -28,7 +28,7 @@ console.log('PASS PASS, undo/replay and first player remain independent of stone
 
 const unified=fs.readFileSync('src/unified-app.js','utf8');
 const keySource=unified.slice(unified.indexOf('const positionKey='),unified.indexOf('function configuredOwnBudget('));
-const identity={g:{id:'same-game',first:2,rules:{fivePriority:true}},E:{strategyVersion:'initiative-1'},omokAcceleration:{mode:'gpu'}};
+const identity={g:{id:'same-game',first:2,rules:{fivePriority:true}},E:{strategyVersion:'initiative-1'},omokAcceleration:{mode:'gpu'},settingsRevision:0,analysisSettings:{mode:'auto',manualMs:1000}};
 vm.createContext(identity);vm.runInContext(keySource+'\nglobalThis.key=positionKey;',identity);
 const key=identity.key(blank(),1);identity.g.first=1;assert.notEqual(identity.key(blank(),1),key);
 identity.g.first=2;identity.omokAcceleration.mode='cpu';assert.notEqual(identity.key(blank(),1),key);
