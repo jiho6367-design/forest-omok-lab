@@ -246,8 +246,20 @@ test('new-game search traces the 33-ply green loss back through three forced blo
     assert(!(at14.rejected||[]).some(x=>x.i===at14.i));
   }
   const at16=strict.analyze(before(16),2,15000,[]);
-  assert(strict.inspect(before(16),at16.i,2).legal);assert.notEqual(at16.i,idx('D7'));
+  assert(strict.inspect(before(16),at16.i,2).legal);assert(!at16.proven);
   assert((at16.counterThreats||[]).some(x=>x.i===idx('D7')&&x.block===idx('C7')));
+  // D7 has the same actual-turn contract as F7 above: a hypothetical
+  // opponent-first forcing line is diagnostic, not a refutation of our move.
+  if(at16.i===idx('D7')){
+    const evidence=at16.counterThreats.find(x=>x.i===at16.i),after=before(16);after[at16.i]=2;
+    assert(evidence.riskOnly);assert.equal(evidence.actualTurn,2);assert.equal(evidence.hypotheticalTurn,1);
+    assert(strict.inspect(after,evidence.block,1).legal);
+    const actual=strict.forcedReplyTrap(after,2,1000,null,19,true);after[evidence.block]=1;
+    assert(actual.complete);assert.equal(actual.proof,null);
+    assert.notEqual(actual.unrefutedReply,null);assert.notEqual(actual.unrefutedReply,undefined);
+    assert(strict.inspect(after,actual.unrefutedReply,2).legal);
+    assert(!(at16.rejected||[]).some(x=>x.i===at16.i));
+  }
   const at18=strict.analyze(before(18),2,15000,[]);
   assert(at18.lossProven||(at18.i!=null&&strict.inspect(before(18),at18.i,2).legal&&!at18.proven),
     'a timed-out loss proof must retain a legal, explicitly unproven move');
