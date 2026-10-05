@@ -1,11 +1,11 @@
 {
   "name": "forest-omok-unified",
-  "version": "5.14.6",
+  "version": "5.14.7",
   "private": true,
   "description": "Offline Gomoku with green slime and yellow mushroom characters",
   "scripts": {
     "build": "node build.cjs",
-    "test": "node build.cjs && node test/search-budget.cjs && node test/initiative-pool.cjs && node test/initiative-guard.cjs && npm run test:initiative && node test/five-priority.cjs && node test/performance-cache.cjs && node test/recommendation-policy.cjs && node test/reader/test.cjs && node test/unified.cjs && node test/historical.cjs && node test/historical-progress.cjs && node test/proof-certificate.cjs && node test/root-screen.cjs && node test/known-refutations.cjs && node test/vcf-prefilter.cjs && npm run test:strategy && node test/worker-lifecycle.cjs",
+    "test": "node build.cjs && node test/search-budget.cjs && node test/forest-quiet-state.cjs && node test/initiative-pool.cjs && node test/initiative-guard.cjs && npm run test:initiative && node test/five-priority.cjs && node test/performance-cache.cjs && node test/recommendation-policy.cjs && node test/reader/test.cjs && node test/unified.cjs && node test/historical.cjs && node test/historical-progress.cjs && node test/proof-certificate.cjs && node test/root-screen.cjs && node test/known-refutations.cjs && node test/vcf-prefilter.cjs && npm run test:strategy && node test/worker-lifecycle.cjs",
     "test:search-budget": "node test/search-budget.cjs",
     "verify:opening": "node tools/verify-session.cjs reports/i7-loss-certificate.json 6",
     "test:forcing-extensions": "node test/forcing-extensions.cjs",
