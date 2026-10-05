@@ -14,9 +14,9 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority" disabled><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.14.0';versionBadge.title='공격 연결·선제 차단·응수 비교와 주도권 근거';versionBadge.setAttribute('aria-label','통합 버전 5.14.0');
+versionBadge.textContent='통합 v5.14.1';versionBadge.title='공격 연결·선제 차단·응수 비교와 주도권 근거';versionBadge.setAttribute('aria-label','통합 버전 5.14.1');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
-wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 아래에서 선택한 시간으로 분석합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
+wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 추천 카드의 분석 시간 설정으로 계산합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 $('budget').replaceChildren();
 for(const [v,t] of [['auto','자동 · 최대 15초 (권장)'],['900','빠르게 · 1초'],['3000','비교 · 3초'],['7000','정밀 · 7초'],['15000','심층 · 15초'],['25000','심층 · 25초']]){const o=new Option(t,v);$('budget').append(o);}
 $('budget').parentElement.firstChild.textContent='내 수 분석 시간 ';

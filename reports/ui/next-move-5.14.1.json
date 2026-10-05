@@ -1,0 +1,36 @@
+{
+  "version": "5.14.1",
+  "recordedAt": "2026-10-05T00:42:54.404Z",
+  "strategyCheckpoint": "f7c4488",
+  "checks": {
+    "cardBeforeBoard": true,
+    "allPreviousElementIdsPreserved": true,
+    "uniqueElementIds": true,
+    "budgetLabelAndDetailsPreserved": true,
+    "identicalStandardBuilds": true,
+    "embeddedScriptsCompile": 2,
+    "enginesUnchanged": [
+      "src/strategy-engine.js",
+      "src/reader-engine.js",
+      "src/forest-engine.js",
+      "src/unified-engine.js",
+      "src/gpu-patterns.js"
+    ]
+  },
+  "position": {
+    "headerEnd": 9139,
+    "recommendation": 9186,
+    "layout": 10015,
+    "board": 10478,
+    "sidebar": 11465
+  },
+  "buildHashes": {
+    "outputs/omok.html": "3033239d6ceba3ab5b2634e039d70b6f12e0080a6e1268e70b37566bfdd1a4cc",
+    "outputs/omok-gpu.html": "3033239d6ceba3ab5b2634e039d70b6f12e0080a6e1268e70b37566bfdd1a4cc",
+    "dist/index.html": "3033239d6ceba3ab5b2634e039d70b6f12e0080a6e1268e70b37566bfdd1a4cc"
+  },
+  "verificationScope": "Static source, DOM order and build syntax only. Desktop and mobile use the same DOM order; the card is outside the responsive board/sidebar grid.",
+  "visualBrowserVerified": false,
+  "visualLimitation": "Browser automation URL policy blocked the existing file:// tab.",
+  "strategyPerformanceComparisonsResumed": false
+}

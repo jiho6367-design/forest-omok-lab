@@ -15,7 +15,7 @@ function syncGPUProfile(apply=false){
  const profile=gpuProfiles[$('gpuProfile').value];
  if(apply)$('budget').value=profile.budget;
  const custom=$('budget').value!==profile.budget;
- $('gpuProfileHelp').textContent=custom?'아래 분석 시간에서 직접 지정한 설정을 사용 중입니다. GPU 분석 모드를 다시 선택하면 해당 모드가 적용됩니다.':profile.description;
+ $('gpuProfileHelp').textContent=custom?'추천 카드의 분석 시간에서 직접 지정한 설정을 사용 중입니다. GPU 분석 모드를 다시 선택하면 해당 모드가 적용됩니다.':profile.description;
 }
 $('gpuProfile').onchange=()=>{
  syncGPUProfile(true);
@@ -29,8 +29,8 @@ $('budget').onchange=event=>{
  syncGPUProfile();previousBudgetChange?.(event);
 };
 syncGPUProfile(true);
-versionBadge.textContent='통합 v5.14.0 · GPU';
-versionBadge.setAttribute('aria-label','통합 버전 5.14.0');
+versionBadge.textContent='통합 v5.14.1 · GPU';
+versionBadge.setAttribute('aria-label','통합 버전 5.14.1');
 versionBadge.title='공격 연결·선제 차단·주도권 분석 · GPU 혼합 · 정확한 5목 우선';
 let gpuPrepared=null,cpuPatterns=null,modeRequest=0,benchmarkWorker=null,cancelBenchmark=null;
 async function selectComputeMode(reanalyze=false){
