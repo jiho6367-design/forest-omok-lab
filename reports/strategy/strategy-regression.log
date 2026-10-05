@@ -1,0 +1,25 @@
+
+> forest-omok-unified@5.14.0 test:strategy
+> node test/strategy-manifest.cjs && node test/strategy-manifest-replay.cjs && node test/strategy-engine.cjs && node test/strategy-context.cjs && node test/strategy-policy.cjs && node test/strategy-proof.cjs
+
+PASS frozen 12 new development / 12 holdout families, replay/PASS/current side, tactical countertrap and 36 balanced games
+PASS actual played victory, PASS/current side, full-board-only draw and unresolved no-legal-move
+PASS geometric house-rule three preserved while its forbidden extension receives no attack credit
+PASS extension legality through D4 transforms and colour exchange
+PASS fixed-width strategic quotas retain tactics, connection, cut and the existing high-ranked candidate
+PASS actual-turn continuation retains attack despite an opponent hypothetical future VCF; bounded checks are not proofs
+PASS timeout, missing roots and shared work-budget exhaustion remain incomplete
+PASS mandatory second block is played before crediting a retained attack
+PASS first-player context is independent of colour and initiative; pure evaluation cache survives budget exhaustion
+PASS deterministic fixed-work CPU equivalence and full strategy ablation
+PASS optional first-player constructor/configure, alias and unknown context
+PASS PASS, undo/replay and first player remain independent of stone-count parity
+PASS ponder identity isolates first player, current color, acceleration and strategy version
+PASS Worker context, unchanged fast reserve and watchdog completion/evidence preservation
+PASS proof, bounded comparison, blocking and incomplete assessments stay distinct
+PASS every progress/deep/final path uses identical refutation and context gates
+PASS candidate replacement clears stale certificates and urgent finalization bypasses strategic scans
+PASS three completed Forest candidates survive deep validation without cross-engine score sorting
+PASS opponent hypothetical extra turn cannot refute an attack; incomplete all-reply check preserves it
+PASS completed actual-turn all-continuation proof excludes the refuted attack
+PASS verifier white-first, actual board/current side, PASS, terminal rejection, timeout and legacy certificate

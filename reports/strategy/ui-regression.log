@@ -1,0 +1,10 @@
+
+> forest-omok-unified@5.14.0 test:strategy-ui
+> node tools/strategy-ui-check.cjs
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+2 !== 1
+
+    at C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\tools\strategy-ui-check.cjs:40:102
+{"passed":false,"checks":9,"gpu":{"vendor":"nvidia","architecture":"blackwell","device":"","description":"","isFallbackAdapter":false},"errors":[],"failure":"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 1\n\n    at C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\tools\\strategy-ui-check.cjs:40:102"}

@@ -1,0 +1,15 @@
+'use strict';
+const assert=require('node:assert/strict'),verify=require('../tools/verify-attack.cjs'),{replay}=require('../tools/strategy/replay.cjs'),E=require('../src/node-engine.cjs')();
+const whiteFirst={firstPlayer:2,attacker:2,prefix:'H8 A1 H9 B1 H10 C1 H11 D2',certificate:{move:'H12'}};
+assert(verify(whiteFirst,1000).verified);
+const passes={firstPlayer:2,attacker:2,moves:['H8','PASS','H9','PASS','H10','PASS','H11','PASS'],certificate:{move:'H12'}};
+assert(verify(passes,1000).verified);
+const position=replay(E,{moves:whiteFirst.prefix.split(' '),firstPlayer:2});
+assert(verify({firstPlayer:2,attacker:2,board:position.board,p:position.p,certificate:{move:'H12'}},1000).verified);
+assert.throws(()=>verify({...passes,p:1},1000),/Wrong current side/);
+assert.throws(()=>verify({...whiteFirst,attacker:1},1000),/Wrong attacker turn/);
+assert.throws(()=>replay(E,{firstPlayer:2,moves:[{coord:'H8',p:1}]}),/Wrong move color/);
+assert.throws(()=>verify({...passes,moves:[...passes.moves,'H12','PASS']},1000),/Moves after exact-five victory/);
+assert(!verify.createSession(passes).run(0).verified);
+assert(verify(require('../reports/h5-loss-certificate.json'),25000).verified);
+console.log('PASS verifier white-first, actual board/current side, PASS, terminal rejection, timeout and legacy certificate');

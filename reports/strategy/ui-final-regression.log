@@ -1,0 +1,5 @@
+
+> forest-omok-unified@5.14.0 test:strategy-ui
+> node tools/strategy-ui-check.cjs
+
+{"passed":true,"checks":11,"gpu":{"vendor":"nvidia","architecture":"blackwell","device":"","description":"","isFallbackAdapter":false},"errors":[]}

@@ -1,0 +1,156 @@
+
+> forest-omok-unified@5.14.0 test
+> node build.cjs && node test/five-priority.cjs && node test/performance-cache.cjs && node test/recommendation-policy.cjs && node test/reader/test.cjs && node test/unified.cjs && node test/historical.cjs && node test/historical-progress.cjs && node test/proof-certificate.cjs && node test/root-screen.cjs && node test/known-refutations.cjs && node test/vcf-prefilter.cjs && npm run test:strategy && node test/worker-lifecycle.cjs
+
+Built outputs/omok.html (offline, all assets embedded)
+PASS A exact five (both colors; default, legacy false, true)
+PASS B exact five + double three (both colors; default, legacy false, true)
+PASS C exact five + multiple fours (both colors; default, legacy false, true)
+PASS D double three (both colors; default, legacy false, true)
+PASS E double four (both colors; default, legacy false, true)
+PASS F overline (both colors; default, legacy false, true)
+PASS G overline + double three (both colors; default, legacy false, true)
+PASS 126 engine/fixture combinations
+PASS verified-only refutation cache (256 rule/symmetry/color combinations)
+PASS pure position cache equivalence, color isolation, board mutation, copy isolation and bounded capacity
+PASS immediate proved win takes priority over opponent threats
+PASS highest evaluated non-refuted candidate wins; pattern does not bypass comparison; no J4 hardcode
+PASS deep comparison preserves Reader refutations in every certificate format; incomplete checks remain eligible
+PASS final fallback never revives a refutation; whole-position loss requires every legal root
+PASS proof timeout preserves evaluated move and quick proof cap
+PASS live new-game fallback, certificate exclusion, timing, board preservation
+4 recommendation-policy groups passed
+PASS 25-second shortlist validation: bounded comparison, three candidates, incomplete is not loss, verified rejection only
+PASS mate-like scores and incomplete counter-search do not become proof
+PASS exact five wins
+PASS six is legal but not winning
+PASS cross double three forbidden for both colors
+PASS broken double three forbidden
+PASS edge blocked three allowed
+PASS double four allowed
+PASS one direction is not double three
+PASS immediate win priority
+PASS forced defense
+PASS two immediate threats retain warning and legal fallback moves
+PASS timeout keeps board intact
+PASS empty and 19 board return center
+PASS user screenshot before I5 has TWO threats and no black win
+PASS blocking either screenshot threat leaves the other
+PASS completed screenshot is terminal, no recommendation
+PASS confirmed white I6 is a legal double four
+PASS open three yields proven forcing four
+PASS fork-producing opponent move is prevented
+PASS immediate win is preferred to defense
+PASS multi-step forcing-four proof survives every legal defense
+PASS all 95 recorded moves are legal with no premature five
+PASS I4 double three is explained with two geometric witnesses
+PASS 95-ply defense I4 is forbidden, not a winning recommendation
+PASS 94 H5 creates the forbidden defense, I4 is legal BEFORE H5
+PASS 94-ply recommendation excludes H5 and passes final line validation
+PASS exact-five overline logic remains separate from open-three geometry
+PASS double three remains forbidden under all eight board symmetries
+PASS rejected recommendation cannot pass final guard
+PASS record import rejects missing, duplicate, invalid or forbidden moves atomically
+PASS 47-ply game is legal and first ends at white F4
+PASS white J4 creates F4 and K4 double winning endpoints
+PASS white forcing attack after black J3 survives every legal defense
+PASS 39-ply position screens ALL legal points and rejects J3 forcing loss
+PASS 37-ply position includes forced-block counterattack traps
+PASS 41-ply forced defense is not sold as a safe recommendation
+PASS opponent forcing checks preserve immediate winning priority
+PASS forcing-screen timeout never corrupts the position or returns illegal PV
+PASS 33-ply record is legal and has no completed five yet
+PASS 33 J6 leaves exact-five endpoints I5 and N10; neither single block saves black
+PASS 31 K7 forces K6 but that defense still loses
+PASS quiet L9 attack after ply28 refutes every legal defense
+PASS ply27 rejects I11 after proving the quiet L9 attack
+PASS quiet threat timeout preserves board and never invents proof
+PASS 31-ply black-first record wins at F11 only on final move
+PASS 24 L14 no longer suppresses all moves; legal G6 remains playable
+PASS every nonterminal turn in winning record offers legal moves even at short budget
+PASS early progress provides a usable candidate when analysis is cancelled
+PASS after actual G6 G10 continuation engine resumes defense and winning attack
+PASS 29-ply record is legal and ends with white diagonal five
+PASS mandatory defense never lists irrelevant fallback alternatives
+PASS 27 J5 exposes both exact-five threats and keeps only legal endpoint fallbacks
+PASS forbidden mandatory block never leaks into fallback candidates
+PASS 48-ply game is legal, black first, ends at white G4
+PASS 46 G5 has two winning ends that cannot both be blocked
+PASS expensive 28-ply safety screen reserves time for real comparison
+PASS 34-ply interrupted screening retains unexplored moves without claiming proven loss
+PASS automatic stable stop requires completed depths, PV, rankings and sustained score gaps
+PASS automatic immediate win and forced defense finish without long search
+PASS automatic opening and terminal positions return immediately
+AUTO timing: 8034 ms; depth 5 ; 8초 상한 도달 · 완료된 비교 결과
+PASS automatic complex position preserves legal moves and stops at bounded time
+60 engine scenarios and HTML scripts passed
+PASS exact-five priority overrides legacy options in both engines
+PASS both colors reject broken double threes and permit six without a win
+PASS rule implementations agree across deterministic random boards
+PASS all Reader fixtures retain coordinates, legality and terminal status
+PASS Forest example records retain original priority-five rules
+PASS forced defense is instant and lost positions retain legal endpoints
+PASS a forbidden mandatory block is never a recommendation
+PASS short search streams legal fallback before completion and preserves input
+PASS terminal states do not show fallback moves
+PASS adaptive budget respects remaining turn time
+PASS opponent prediction stays at one second while my analysis uses the selected time
+Deep duration 8647 ms
+PASS deep mode retains a move and validates its returned PV
+PASS text import validates order, pass, occupied and forbidden positions atomically
+PASS copied text record identifies my stone and move order
+PASS single-file build embeds scripts and images without external dependencies
+PASS 80-ply green record is legal and yellow has the verified M6 forcing line
+PASS 73-ply automatic analysis excludes certified losses without hardcoding E11
+PASS 30-ply green record is not lost and automatic analysis proves C8 wins
+PASS UI allows provisional moves but warns before leaving a proven win
+PASS 19-ply yellow loss is identified and ends with green exact five
+PASS deep safety guard rejects yellow H11, retains G5 resistance and keeps loss verdict
+PASS 27-ply yellow record is terminal and H7 breaks the recorded diagonal trap at ply 14
+PASS 31-ply yellow record retains D9 as an unproven pattern hint
+PASS D9 pattern hint preserves board symmetry and color swap
+PASS 26-ply record is green to move with a forcing win, and H7 prevents the recorded setup at ply 6
+PASS H7 early-defense pattern applies in new games under symmetry and color swap
+PASS 13-ply green loss is detected, and G11 remains an unproven pattern hint
+PASS G11 early defense applies to rotated, reflected and color-swapped new games
+PASS 25-second comparison excludes I5 only with evidence and never claims an unproved safe defense
+FAIL new-game search catches the forced-block counterattack in the 15-ply green loss AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: 95
+    at C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\test\unified.cjs:197:56
+    at test (C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\test\unified.cjs:6:7)
+    at Object.<anonymous> (C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\test\unified.cjs:188:1)
+    at Module._compile (node:internal/modules/cjs/loader:1872:14)
+    at Object..js (node:internal/modules/cjs/loader:2003:10)
+    at Module.load (node:internal/modules/cjs/loader:1594:32)
+    at Module._load (node:internal/modules/cjs/loader:1396:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+FAIL new-game search rejects the 30-ply loss setup and never reuses a refuted fallback AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert((defense.counterThreats||[]).some(x=>x.i===idx('N8')&&x.block===idx('O8')))
+
+    at C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\test\unified.cjs:208:3
+    at test (C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\test\unified.cjs:6:7)
+    at Object.<anonymous> (C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\test\unified.cjs:201:1)
+    at Module._compile (node:internal/modules/cjs/loader:1872:14)
+    at Object..js (node:internal/modules/cjs/loader:2003:10)
+    at Module.load (node:internal/modules/cjs/loader:1594:32)
+    at Module._load (node:internal/modules/cjs/loader:1396:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+FAIL new-game search traces the 33-ply green loss back through three forced blocks AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: 95
+    at C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\test\unified.cjs:228:60
+    at test (C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\test\unified.cjs:6:7)
+    at Object.<anonymous> (C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\test\unified.cjs:215:1)
+    at Module._compile (node:internal/modules/cjs/loader:1872:14)
+    at Object..js (node:internal/modules/cjs/loader:2003:10)
+    at Module.load (node:internal/modules/cjs/loader:1594:32)
+    at Module._load (node:internal/modules/cjs/loader:1396:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+PASS new-game search keeps a legal move after the F11 defense and G8 reply
+PASS 22-ply green loss exposes the forbidden E10 defense and rejects the earlier C8 trap
+PASS new games exclude independently certified F6 and F10
+32 unified scenarios passed; 3 failed

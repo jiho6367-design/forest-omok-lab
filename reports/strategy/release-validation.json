@@ -1,0 +1,214 @@
+{
+  "version": "5.14.0",
+  "branch": "strategy-initiative-v5.14.0",
+  "baseline": {
+    "version": "5.13.1",
+    "commit": "72a11f7fd3bd7b4c922d337b9cfdc036ee0030ed",
+    "archiveSha256": "2375e635e93db7bebe8c3096be45d65da3af079a5fc3da6b73141ddd4a8a68f2"
+  },
+  "manifestHash": "c4bbc0feeb3435ea246dc34830e8b60646844cf8668d1b4f8f75a4d93cd74f2a",
+  "recordedAt": "2026-10-04T19:52:36.349Z",
+  "stage": {
+    "stage": 1,
+    "startedAt": "2026-10-04T18:48:51.117Z",
+    "deadlineAt": "2026-10-04T19:48:51.117Z",
+    "capMs": 3600000,
+    "sourceHashes": {
+      "app.js": "2a113d504ab2387660e51c729a61dde456b7ea0873c4732c4a8d3683edca6f1e",
+      "forest-engine.js": "a8951d556f0371235a3baafe8fbcdd59b2f6ba8866bf5139c0bea472c07626b4",
+      "gpu-app.js": "b81da583c3f8c261fda93f47b2b869dd70f803b631ef9cda847bbf33fb563530",
+      "gpu-patterns.js": "eaab311e4bd7d020a0aacc0b5a15bb7f49cb9b750e935633142e19c042a35c8b",
+      "historical-analysis.cjs": "a727c9eb4b19b3ba3cbd942328ad0f52e92058033541d48d575bbd1e1cfb4749",
+      "node-engine.cjs": "1347c39faf83fb568ca43d20d014df31cc85164c0521ab1928b9a13fb82174c4",
+      "reader-engine.js": "4f37298835e1444707307ee268cff3e82bcc4e575ed33d527b3262b2c887f696",
+      "strategy-engine.js": "bc8208ddb8540993edaa03721937a57d21258737d2d850f9d82417c4ec2091b9",
+      "template.html": "8b4916de84f7d62c24206d0808a814bfbe3ea6972d953a51f7f03398fcfdca89",
+      "unified-app.js": "e823c6451da494e2a1835a376e486ce696712d033650e683b833baa1fb6eda4c",
+      "unified-engine.js": "ba179c68ec7cdbff3a4ef890a7276a7219f8837143dc73cdb595cee0a57eb262"
+    },
+    "validationStoppedAt": "2026-10-04T19:48:46.430Z",
+    "additionalValidationRequiresNextStageInstruction": true
+  },
+  "tests": [
+    {
+      "command": "npm.cmd test",
+      "exitCode": 0,
+      "passed": true,
+      "log": "release-regression.log",
+      "readerScenarios": 60,
+      "unifiedScenarios": 35
+    },
+    {
+      "command": "npm.cmd run test:gpu",
+      "exitCode": 0,
+      "passed": true,
+      "log": "gpu-regression.log",
+      "forestInspections": 36000
+    },
+    {
+      "command": "npm.cmd run test:strategy",
+      "exitCode": 0,
+      "passed": true,
+      "log": "strategy-regression.log"
+    },
+    {
+      "command": "npm.cmd run test:strategy-ui",
+      "exitCode": 0,
+      "passed": true,
+      "log": "ui-final-regression.log",
+      "failure": null
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "passed": true
+    }
+  ],
+  "initialFailures": [
+    {
+      "log": "full-regression.log",
+      "unifiedPassed": 32,
+      "unifiedFailed": 3,
+      "explanation": "Hypothetical opponent-first attack diagnostics disappeared; two assertions expected the old incorrect F7 exclusion."
+    },
+    {
+      "log": "final-regression.log",
+      "unifiedPassed": 33,
+      "unifiedFailed": 2,
+      "explanation": "A loss verdict could revive the truly refuted J6; corrected generically. The short actual-turn survivor check could time out; the revised test independently verifies a legal surviving continuation."
+    },
+    {
+      "log": "ui-regression.log",
+      "explanation": "The new promotion test tried to place a move while the imported game was paused; the test now resumes through the application before placing."
+    }
+  ],
+  "testContractChanges": [
+    "Two historical no-F7 assertions now check legal unproven choice, explicitly hypothetical diagnostics and an independently completed actual-turn surviving continuation. This corrects the wrong-turn contract; it is not an assertion of F7 superiority.",
+    "The J6 rejection assertion, mandatory-defense, immediate-win, forbidden-move and verified-refutation assertions remain intact."
+  ],
+  "performanceConfirmed": false,
+  "independentStrategyEvidence": {
+    "A": {
+      "verified": false,
+      "basis": "final controlled comparison incomplete"
+    },
+    "C": {
+      "verified": false,
+      "basis": "final controlled comparison incomplete"
+    },
+    "D": {
+      "verified": false,
+      "basis": "final controlled comparison incomplete"
+    }
+  },
+  "proofLimitations": [
+    "Response branches sample both engines under equal bounded budgets; they are not certified strongest among every legal response.",
+    "The independent certificate traversal shares production rule and VCF primitives.",
+    "Non-immediate full certificates in the final comparison remain unaudited unless explicitly recorded otherwise."
+  ],
+  "planned": {
+    "holdoutAnalyses": 144,
+    "arenaGames": 36
+  },
+  "files": {
+    ".gitattributes": "d60f352d0db1404c70afb4bb8b2ca3fd1c610572aa40720e8a0b7baa7885418c",
+    ".github/workflows/test.yml": "717056fb256507771c1a366a39150d6a1b59d4e86674d9dd2b6c59e28af03afa",
+    ".gitignore": "9e5b656929fdc7f50f3156374c2a95ca51bb7c36286b7091a18b89cc422705ea",
+    "build.cjs": "5e726c31d916a4ca79c19649b58f4859f12bfc30dd5b720234afbfa98ce96105",
+    "dist/index.html": "c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0",
+    "outputs/omok-gpu.html": "c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0",
+    "outputs/omok.html": "c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0",
+    "package.json": "6dcd3948cf4edd93843251063c34b118e4c3af34e91a561aceb8837caf8219e1",
+    "README.md": "2ebb39024d206f735c719bc64194b2e5d47481bcb1885d2a6d6ae38e12ee741c",
+    "src/app.js": "2a113d504ab2387660e51c729a61dde456b7ea0873c4732c4a8d3683edca6f1e",
+    "src/forest-engine.js": "a8951d556f0371235a3baafe8fbcdd59b2f6ba8866bf5139c0bea472c07626b4",
+    "src/gpu-app.js": "b81da583c3f8c261fda93f47b2b869dd70f803b631ef9cda847bbf33fb563530",
+    "src/gpu-patterns.js": "eaab311e4bd7d020a0aacc0b5a15bb7f49cb9b750e935633142e19c042a35c8b",
+    "src/historical-analysis.cjs": "a727c9eb4b19b3ba3cbd942328ad0f52e92058033541d48d575bbd1e1cfb4749",
+    "src/node-engine.cjs": "1347c39faf83fb568ca43d20d014df31cc85164c0521ab1928b9a13fb82174c4",
+    "src/reader-engine.js": "4f37298835e1444707307ee268cff3e82bcc4e575ed33d527b3262b2c887f696",
+    "src/strategy-engine.js": "e080a8731a05ce1a3a7f2dabdeb4d80262b18d03b8801082a754422d2879b9a7",
+    "src/template.html": "8b4916de84f7d62c24206d0808a814bfbe3ea6972d953a51f7f03398fcfdca89",
+    "src/unified-app.js": "e823c6451da494e2a1835a376e486ce696712d033650e683b833baa1fb6eda4c",
+    "src/unified-engine.js": "c2f94cb1e040e9392edb9e70b6d0284978a53b928526077755a1442bb089c72c",
+    "test/defense-extensions.cjs": "0a0e847aaed6e98515c272769d225fd3faab84f1122c7df354cc90af7b0a0ba8",
+    "test/dfpn.cjs": "3f93fa534082bc568a3a1a61cf970b57a6a18331e4f912c4c3b01db571ed9ff9",
+    "test/engine.cjs": "8638d24ca6ee4bd29a052d11d3e6c404eda0691b37b5d22964e93d8e6a938d65",
+    "test/five-priority.cjs": "ee2d820c8957f40f9745dfe6eed698e0a47b9133514dfda5191d867ed955d98c",
+    "test/forcing-extensions.cjs": "c5c1538bd43c1b0dd4e813484501c62d323b642f9e429702fdc9593dffc847eb",
+    "test/forcing-hints.cjs": "dbe023daa6e6bad8206e9045d330bce0eedd865f12c81096bf1c8be805f3664b",
+    "test/historical-progress.cjs": "85f6cf40c768390c049cfddbb83e8c09c723cbf91dc82060eab63b4b756f90a0",
+    "test/historical.cjs": "030ed8dfb3ab2c92f4c482f776135a558105ea7a2f0b47d435fdec5b3a374577",
+    "test/known-refutations.cjs": "5855a0c3f00b1d548f67544bb4624e7f1ff9881388ce52cfb48a957e3aa94f5b",
+    "test/local-gpu.cjs": "129e59c81d253061e24f88ab066fa1334a7d097481b1c524fcf7bab2dc67082e",
+    "test/performance-cache.cjs": "fc9e6ab15849357416b6d20cc1f3894fb6feccb02768460062054f07399e2f83",
+    "test/proof-certificate.cjs": "1ca803baf02f5615d77d87b9883f325823bcef8f6dccfa2dafe90d83f0db305f",
+    "test/proof-counter-vcf.cjs": "4e894e6667a3857eef166b27c8e728e47912fa4cedeb2cbf56e58be085e3ec40",
+    "test/proof-failure-path.cjs": "47ec5597e9db9ec195844ad1e4613976c80906e51c1d68fea35b4351115c8592",
+    "test/proof-horizon-pruning.cjs": "675c93b392d99c3e8b86db68f883706fb1196a2d7033fa129efebb8512a3e744",
+    "test/proof-immediate-pruning.cjs": "b3a87c3a8e4ad41eab8211e05fc9f6088f3394ebc4650cf2b64f94063317a4d1",
+    "test/proof-incomplete-path.cjs": "1913b56efb3c374b387496cb942fce254579de6eea643656f499dff584c66c12",
+    "test/proof-session.cjs": "e5db51d4ab4901d8a06bfd6f47ecac763bd47920fefac5eb764a4c4bb5f729b9",
+    "test/proof-three-extensions.cjs": "4305d52b63e3bb2153c89cf288a9031020ff631f5b5c04622e0d4c9c065c9a30",
+    "test/proof-vcf-retry.cjs": "15846a948fa5df06109250d25f08d400afbd9c73c1c73dc89a3d4ed19c654964",
+    "test/reader/engine.js": "4ff39764052a57d6b0cb1f9ca9eb4b08e2fb225bb668ed0c4684b090c9cfbc85",
+    "test/reader/game29.cjs": "73f335a95f5534eb38bddf2c5a7baba5b108515e76bbaf97b389c28781b7b9c3",
+    "test/reader/game31.cjs": "8cc545e26d225264175dbfd0653db86f10bea4eea2ec0f76bc1388f8c193b068",
+    "test/reader/game33.cjs": "cf0d4072a48c80715e5725679f67d2ca78d1ca2376750c0e2d2b7ce6bb492fd9",
+    "test/reader/game47.cjs": "ada5204f2885f79a1a3f6a03cf9e64ea015cbb3dd783964c489181f1dd95d12d",
+    "test/reader/game48.cjs": "db196e58a5b3f87c9a70a78dece0438276bb0ca7f3d16ef07dc433c4a4200a60",
+    "test/reader/game95.cjs": "3ad0d2aaa2f99e1258877828659c73782d06b9cf44d1f1c62720eb591cd0fa7f",
+    "test/reader/position.cjs": "1bf6b5e37121e98fc8afef6e05fb172c0672b10941e3a02d7a4b70d6a052798a",
+    "test/reader/records.js": "b51637762a34e8723d3ef1988a13c4a9d3941c7551c5aa4eb67179bccea5206f",
+    "test/reader/test.cjs": "899fdcfb7112e4ecc40b1441954320b6e9776e2eaf5d93b1e4400a5df8a5a4b2",
+    "test/recommendation-policy.cjs": "68f6a67162a0b69ce07cbe42020dbc80132e9d5eb888070d7faaac3a9d2e1c0e",
+    "test/root-screen.cjs": "c8c626ab15d46572bcd1005bf72df4ddd9e64f50625871f0b85cc2988cf45d0c",
+    "test/root-selection.cjs": "73dabbfbd6ae39d63350802fe46a06a5a6815689004e1454edbfa082ab525f52",
+    "test/strategy-context.cjs": "77c0b8ecebab225ca28b5856ee2dab29476ebf81f58855de59d04e4019a24a1a",
+    "test/strategy-engine.cjs": "f68c10420ef0c5b0b923620feda4021d8502eefbdabb16e43850b13cb7dac4ba",
+    "test/strategy-manifest-replay.cjs": "9a3c30b14498b282099c3fb041110587fc4fbcf2b45e643d209028baf701c5bb",
+    "test/strategy-manifest.cjs": "67a665294fad43deb58124b08974e8328179c26d37aac5bc34297e9b939a3522",
+    "test/strategy-policy.cjs": "01c0b867bbb96eb659f30c68d77285a706c1cb1cf88add05830d5839b1f6352d",
+    "test/strategy-proof.cjs": "67d73c7d96df9cf44c6f47ce1a020c3d2a0e85c88e30e194f063d694e3f36f8f",
+    "test/unified.cjs": "7464ca063530e2c8b13f763d689b59cb33e808b750f600468cdce5503dff1f74",
+    "test/vcf-prefilter.cjs": "8d77d3acfdf57d73f612a64e5b7436cd56746c9399c3850fc87224cafbb0ab87",
+    "test/worker-lifecycle.cjs": "f60b1473fe1115c1f87eb6ad39c60df473cb8576721fa29b83549835a2fca4d7",
+    "tools/bench-history.cjs": "28b937b5df1e5d5d7e53c48c0c8491c3ca5befa6e51a2c1ae3a593303a385093",
+    "tools/bench-vcf-prefilter.cjs": "a67d8b659f325a984cb93a3645bb65a10127b77ee0f2d288d348e2adaa315b6c",
+    "tools/compare-sixth-five-priority.cjs": "3f02223c0dbed57cc21aadc48a012120d301fe30f045761c11118e88aefd6a35",
+    "tools/dfpn.cjs": "e7f6ce5b09e0652af0bd1f9037669ea1c66b9fcb02b1d836bd4c2e60e2c8538a",
+    "tools/DFPN.md": "c3f1fb9157ef355fb03262e8284a687c9946f21b3f3e2cd84c0b29652adbf0ab",
+    "tools/forcing-hints.cjs": "f3feb3b4443585a54b836124f384da986fd2423c3646fd2888ce7c4d4d14cf24",
+    "tools/performance/browser-bench.cjs": "f0449507c5dc39df7ca96c8cb0c3c84a43d1ed6ab2a6df2567e0f314f53e5d07",
+    "tools/performance/compare.cjs": "e1784ca60ad60027e771888cbae8984a6a75d065f40205f43d8b0385c5a4deab",
+    "tools/performance/followup.cjs": "8dc75189640118dc6b45d39c46550433697a2b9be2fcdff69dad9cc0cd60d410",
+    "tools/performance/positions.cjs": "cecc00049e81d6da69e5a9dcdfd0670b65209a2dca3ed552d1933830c9f6df4e",
+    "tools/performance/profile.cjs": "321e8fa49f94d16349dc17b2db096e43d1400daccbc381522c92ef7a5db3abc8",
+    "tools/performance/report.cjs": "613f29ff54e64e20ac8b694aa85255d493b18c7d6ac5c1d3bdf801c845a83507",
+    "tools/performance/summarize.cjs": "85e512477f7d1fe7573dcb19804df52d2ec8862aaa887440b663497c5cbb2933",
+    "tools/performance/ui-smoke.cjs": "ca4eab0101f906098f87f567212626f6bd81efb6c1481a3494c624344e38ad0b",
+    "tools/proof-session.cjs": "b50d8322c8557d64b781be2424d2b765e122a9bebe0f41671753f7d3b4878b7b",
+    "tools/prove-loss.cjs": "d7160b0348ae3025f90c152ecaafb9011de2c4767f12018a063bcbc1b4bf6683",
+    "tools/revalidate-five-priority.cjs": "d164190ac556f3a6afd56e0e43e157694daeff2c618eba72855f6343dfd0c464",
+    "tools/run-proof-session.cjs": "93cd9581e35d1d2a21ff56283efbcba456ed4a9f96f0ed4d5f5846ff5c0af824",
+    "tools/screen-replay.cjs": "94dc1aaa6ffdb254aa5ca78c23461cc9dc6e7c6c801421d527c8c0d2d5e6f5d6",
+    "tools/strategy/arena.cjs": "30c2614e9d718799806a1394d72e6e643a1d5f601febabcf788aa93199fe27e3",
+    "tools/strategy/browser.cjs": "066835fb406ba8bc552b3fcadec4361f20e8a8469456548cecc7601e82d37a1c",
+    "tools/strategy/compare.cjs": "8970e4548dbba852d0da2601826a429c331e441dc2cbce771233e6f47cefc3e8",
+    "tools/strategy/freeze.cjs": "862167c8bd3518bed4173d8b27678560af6a1a446a5eb0839a16ddb5c02dfe6d",
+    "tools/strategy/manifest.json": "c4bbc0feeb3435ea246dc34830e8b60646844cf8668d1b4f8f75a4d93cd74f2a",
+    "tools/strategy/manifest.json.sha256": "9d3a62f3eaeaff084453b54d1535f48ebec81dc66d6faea0362ba310149a6791",
+    "tools/strategy/README.md": "383251b428f9b73a0937a50a777bd7d56cef11c590eab4b6b5df7b80b545bc41",
+    "tools/strategy/replay.cjs": "eb0a7d02198261962d3e7f2689c6f14bf45dba80a9accaa86e33187900399ff0",
+    "tools/strategy/run.cjs": "1efa76d2493e090ccf848c93e2036daa5430fde0893712f99f4c63a7e099aeee",
+    "tools/strategy-report.cjs": "5fa42f6222e1f569ddd7cfbefe596b78966a95add85850573580f87487028a89",
+    "tools/strategy-ui-check.cjs": "d45ef3e8c5c5a7ede76985df61cfd8af29ecc37601bfc8394418a1c6dafc079f",
+    "tools/verify-attack.cjs": "cb338c7b5ff9c6241a3a07767683d010ec5836deeaa862233923292cdf219c65",
+    "tools/verify-session.cjs": "f2f66907647b7a9f5fb9509417f90e12b362591ceb1e89f91d55ae37284edf5e"
+  },
+  "buildHashes": {
+    "omok": "c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0",
+    "gpu": "c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0",
+    "dist": "c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0"
+  }
+}

@@ -1,12 +1,15 @@
 // Verify a prescribed attack tree independently of the discovery move order.
 // Every legal defender move is visited. Omitted branches require a fresh VCF.
 const createEngine=require('../src/node-engine.cjs');
+const {replay,outcome}=require('./strategy/replay.cjs');
 function runVerification(spec,budget,completed){
   const E=createEngine(spec.rules||{fivePriority:false}),attacker=spec.attacker||1,defender=3-attacker;
   const idx=c=>{if(!/^[A-O](?:[1-9]|1[0-5])$/.test(c))throw Error('Invalid coordinate '+c);return (+c.slice(1)-1)*15+c.charCodeAt(0)-65;};
-  const b=Array(225).fill(0),moves=spec.prefix.split(/\s+/),start=Date.now();let defenses=0,vcf=0,cached=0;
-  moves.forEach((c,k)=>{const p=k%2?2:1,i=idx(c),s=E.inspect(b,i,p);if(!s.legal||s.win.length)throw Error('Invalid prefix '+c);b[i]=p;});
-  if((moves.length%2?2:1)!==attacker)throw Error('Wrong attacker turn');
+  const moves=spec.moves||(spec.prefix||'').trim().split(/\s+/).filter(Boolean),firstPlayer=spec.firstPlayer??1;
+  const position=replay(E,{moves,firstPlayer,board:spec.board,p:spec.p});
+  const b=position.board,start=Date.now();let defenses=0,vcf=0,cached=0;
+  if(position.winner||outcome(E,b,position.p)?.reason==='played-exact-five')throw Error('Invalid terminal prefix');
+  if(position.p!==attacker)throw Error('Wrong attacker turn');
   let failureLine=[];
   function check(tree,line=[]){
     failureLine=[...line,tree.move];

@@ -1,0 +1,248 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>숲속 오목 v5.14.0 전략 개선 검증</title><style>body{margin:0;background:#f1f5ef;color:#17352b;font:15px/1.7 system-ui,"Malgun Gothic",sans-serif}main{max-width:1180px;margin:auto;padding:34px 20px}header,section{background:white;border:1px solid #d6e2d4;border-radius:16px;padding:24px;margin:0 0 20px}h1{font-size:30px;line-height:1.3}h2{font-size:23px}h3{font-size:18px}.verdict{background:#fff2d1;border-left:5px solid #b78a23;padding:14px;font-weight:700}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:10px;border:1px solid #dce6da;vertical-align:top}th{background:#e9f1e5;text-align:left}code,pre{font:12px/1.6 ui-monospace,Consolas,monospace;overflow-wrap:anywhere}pre{white-space:pre-wrap;background:#f4f6f1;padding:14px}details{margin:12px 0}summary{cursor:pointer;font-weight:600}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px}.branch,article{border:1px solid #dce6da;padding:14px;margin:12px 0;border-radius:10px}.branch p{margin:8px 0}.bad{color:#a52d23}nav a{display:inline-block;margin:0 12px 8px 0;color:#236642}@media(max-width:760px){.twocol{grid-template-columns:1fr}main{padding:16px 10px}header,section{padding:16px}}</style><main><header><p>숲속 오목 연구실 · v5.14.0</p><h1>공격 연결·선제 차단·주도권 탈환 검증 보고서</h1><p class="verdict">구현 완료 · 성능 개선 미확인</p><p>생성 2026. 10. 5. 오전 4:52:37 (한국 시간) · 비교 라벨 v5140 · 임시 harness-smoke 결과는 성능 집계에서 제외했습니다.</p><nav><a href="#s1">1번 항목</a><a href="#s2">2번 항목</a><a href="#s3">3번 항목</a><a href="#s4">4번 항목</a><a href="#s5">5번 항목</a><a href="#s6">6번 항목</a><a href="#s7">7번 항목</a></nav></header><section id="s1"><h2>1) 현재 엔진의 문제: 재현 사례와 코드 근거</h2><p>개선 전 기준은 GPU 업데이트를 포함한 실제 작업 직전 소스입니다. UI의 ‘기존 CPU’는 연산 방식이며 baseline 엔진을 뜻하지 않습니다. 기준 커밋 <code>72a11f7fd3bd7b4c922d337b9cfdc036ee0030ed</code>, 기준 아카이브 SHA-256 <code>2375e635e93db7bebe8c3096be45d65da3af079a5fc3da6b73141ddd4a8a68f2</code>.</p><div class="scroll"><table><thead><tr><th>확인 사항</th><th>코드와 해석</th></tr></thead><tbody><tr><td>후보 탈락 가능성</td><td>기존 Reader는 내부 일반 후보와 루트 후보 수를 제한합니다. 연결·차단 수가 제한 밖에 남는지는 국면별 실험 대상입니다. <code>src/reader-engine.js:108</code> · <code>src/reader-engine.js:170</code></td></tr><tr><td>현재 차례와 가상 반격의 혼동</td><td>기존 코드에는 상대가 강제 방어한 판에서 상대에게 다시 차례를 주어 VCF를 검사하는 경로가 있었습니다. 실제 차례는 내 후속 수입니다. 새 경로는 모든 합법 후속 수를 확인하는 기존 증명 검사를 사용합니다. <code>src/unified-engine.js:113</code> → <code>src/unified-engine.js:174</code></td></tr><tr><td>선후공 상태 누락</td><td>기보의 최초 착수자와 현재 착수자는 별개였지만 기존 Worker는 최초 착수자를 전달하지 않았습니다. 이제 PASS와 복기를 포함해 최초 착수자를 그대로 전달합니다. <code>src/unified-app.js:99</code> → <code>src/unified-app.js:106</code></td></tr><tr><td>빠른 결과와 심층 결과 결합</td><td>기존 심층 교체는 후보 목록을 한 수로 줄였습니다. 완료된 동일 탐색의 상위 후보와 반증을 보존하도록 바꿨습니다. <code>src/unified-engine.js:190</code> → <code>src/unified-engine.js:267</code></td></tr><tr><td>초기 회귀 실패와 변경한 검사 계약</td><td>첫 개선 후 전체 검사에는 Unified 32개 통과·3개 실패가 있었습니다 (<code>reports/strategy/full-regression.log</code>). 다음 검사에는 33개 통과·2개 실패가 있었습니다. 반격 진단 메타데이터를 복원하되 <code>riskOnly</code>로 명시해 추천 제외·감점에 사용하지 않습니다. F7을 무조건 금지하던 두 단정은 실제 차례에서 합법적인 후속 수가 살아 있다는 완료된 검사와 충돌했습니다. 기보를 유지하고 F7 선택 시 합법성·미증명 상태·실제 차례 검사·합법 생존 후속 수를 요구합니다. 짧은 진단이 중단되면 독립 1초 검사로 실제 생존 수를 확인해야 통과합니다. 전체 강제패배 표시가 기존 반증 후보 J6을 다시 추천하던 실제 fallback 오류는, 전체 승패 상태와 개별 반증 제외를 분리해 고쳤습니다. 검증된 J6 제외 단정은 변경하지 않았습니다. 최종 전체 검사 결과는 7번 실행 기록에서 확인합니다. <code>src/unified-engine.js:188</code> · <code>src/unified-engine.js:40</code> · <code>test/unified.cjs:199</code> · <code>test/strategy-policy.cjs:91</code></td></tr></tbody></table></div><p>상대 평가의 1.1 배율과 주변 돌 수만으로 원인을 확정하지 않았습니다. 후보 제한이 실제 좋은 수를 버렸는지, 구조 평가가 어떤 국면에서 유효했는지는 아래 실전 분기와 독립 검증 범위에서만 판단합니다. 이전 필승·강제패배 주장은 미완성 증명과 구분합니다.</p><p>기존 기보 측정 0회. 2수·4수 초기 접두부는 같은 기보의 일부이며 별도 독립 사례로 집계하지 않습니다.</p></section><section id="s2"><h2>2) 변경 내용: 어떤 판단과 탐색이 달라졌는지</h2><ul><li>합법 공격축, 열린 확장점, 공통 연결점과 여러 방향의 협력을 찾아 연결·차단·겸용 후보를 탐색에 보존합니다. <code>src/strategy-engine.js:21</code> · <code>src/strategy-engine.js:86</code></li><li>내 수 → 상대 응수 → 내 후속 수를 제한 범위에서 비교합니다. 미완료 탐색과 점수는 증명이 아니며 반격 검사는 실제 차례를 따릅니다. <code>src/strategy-engine.js:104</code> · <code>src/forest-engine.js:96</code></li><li>색·최초 착수자·현재 착수자·주도권 근거를 분리하고 PASS·복기·Worker·사전 응수에 전달합니다. <code>src/app.js:13</code> · <code>src/unified-app.js:48</code></li><li>임시·최종·시간 초과 추천에 동일한 합법성·반증 기준을 적용하고 완료된 상위 후보를 보존합니다. 판정은 강제승, 제한 비교 추천, 차단 후 안전 미확인, 판단 미완료, 강제패배를 구분합니다. <code>src/unified-engine.js:33</code></li></ul><p>즉시 정확한 5목·필수 방어가 전략보다 우선합니다. 양측 3·3 금지, 4·4 허용, 6목 이상 승리 불인정과 기존 실행 경로를 유지합니다. 시간 예산을 늘려 개선으로 계산하지 않습니다.</p></section><section id="s3"><h2>3) 선공 사례: 개선 전후 좌표·수순·차이</h2><p>결과의 좋고 나쁨을 기준으로 고르지 않고, 처음 보는 평가용 사례를 우선한 뒤 자동 모드·사례 ID 순으로 대표 국면을 선택했습니다.</p><p>해당 역할의 같은 국면·같은 모드 비교가 아직 완성되지 않았습니다. 추천 좌표나 승리 수순을 만들어 채우지 않습니다.</p></section><section id="s4"><h2>4) 후공 사례: 개선 전후 좌표·수순·차이</h2><p>후공을 영구 수비 역할로 고정하지 않습니다. 차단 뒤의 공격과 반격은 기록된 실제 제한 응수와 다음 합법 5목 지점으로 검토합니다.</p><p>해당 역할의 같은 국면·같은 모드 비교가 아직 완성되지 않았습니다. 추천 좌표나 승리 수순을 만들어 채우지 않습니다.</p></section><section id="s5"><h2>5) 모드별 테스트 및 선후공 교대 대국 결과</h2><p>고정 평가 계획은 홀드아웃 12국면 × 3모드 × 2반복 × 2엔진 = <b>144회 엔진 분석</b>이며 72개 전후 쌍입니다. 현재 0 / 144회, 완성된 전후 쌍 0 / 72개, 독립 국면 가족 0 / 12개입니다. 회전·반전·색 교환은 독립 표본 수를 늘리지 않습니다.</p><div class="scroll"><table><thead><tr><th>모드</th><th>실행 / 예정</th><th>완성 쌍</th><th>baseline 중앙 시간</th><th>개선 중앙 시간</th><th>baseline 중앙 깊이</th><th>개선 중앙 깊이</th><th>수용 기준/실행 오류</th><th>시간/판단 미완료</th></tr></thead><tbody><tr><td>아주 빠르게</td><td>0 / 48</td><td>0</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td><td>0</td></tr><tr><td>최적화 자동</td><td>0 / 48</td><td>0</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td><td>0</td></tr><tr><td>심층 분석</td><td>0 / 48</td><td>0</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td><td>0</td></tr></tbody></table></div><p>자동 예산은 frozen baseline의 실제 국면별 예산을 두 엔진에 동일하게 전달합니다. fast 900ms, deep25 25,000ms, Worker 예약 시간도 동일합니다. 같은 검증된 패턴 표를 공유하고 매 요청 새 Worker·새 탐색 캐시를 사용합니다. GPU 최초 준비는 분석 시간과 별도입니다.</p><p>실측 장치: 미기록 / 브라우저 미기록 / 연산 미기록 / GPU 패턴 —개 / 준비 —.</p><div class="scroll"><table><thead><tr><th>모드</th><th>개선 역할</th><th>계획 대국</th><th>승 / 무 / 패</th><th>실제 종료 재생 확인</th><th>미시작</th><th>중단·미완료</th></tr></thead><tbody><tr><td>아주 빠르게</td><td>개선 엔진 선공</td><td>6</td><td>0 / 0 / 0</td><td>0</td><td>6</td><td>0</td></tr><tr><td>아주 빠르게</td><td>개선 엔진 후공</td><td>6</td><td>0 / 0 / 0</td><td>0</td><td>6</td><td>0</td></tr><tr><td>최적화 자동</td><td>개선 엔진 선공</td><td>6</td><td>0 / 0 / 0</td><td>0</td><td>6</td><td>0</td></tr><tr><td>최적화 자동</td><td>개선 엔진 후공</td><td>6</td><td>0 / 0 / 0</td><td>0</td><td>6</td><td>0</td></tr><tr><td>심층 분석</td><td>개선 엔진 선공</td><td>6</td><td>0 / 0 / 0</td><td>0</td><td>6</td><td>0</td></tr><tr><td>심층 분석</td><td>개선 엔진 후공</td><td>6</td><td>0 / 0 / 0</td><td>0</td><td>6</td><td>0</td></tr></tbody></table></div><p>6개 같은 오프닝에서 선후공을 교대한 36대국을 계획했습니다. 현재 실제 정확한 5목 또는 만판 종료를 재생 확인한 대국 0개입니다. 강제패배 표시나 높은 평가점수로 대국을 종료·승패 처리하지 않았습니다. 미시작·시간 한도 중단·합법 수 없음은 무승부에 넣지 않습니다.</p><details><summary>모든 실제 대국과 중단 사유</summary><div class="scroll"><table><thead><tr><th>대국</th><th>오프닝</th><th>모드</th><th>개선 역할</th><th>기록 상태</th><th>추가 착수 수</th><th>사유</th><th>실제 결과</th></tr></thead><tbody><tr><td>O1-fast-0</td><td>O1</td><td>아주 빠르게</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O1-fast-1</td><td>O1</td><td>아주 빠르게</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O1-auto-0</td><td>O1</td><td>최적화 자동</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O1-auto-1</td><td>O1</td><td>최적화 자동</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O1-deep25-0</td><td>O1</td><td>심층 분석</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O1-deep25-1</td><td>O1</td><td>심층 분석</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O2-fast-0</td><td>O2</td><td>아주 빠르게</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O2-fast-1</td><td>O2</td><td>아주 빠르게</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O2-auto-0</td><td>O2</td><td>최적화 자동</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O2-auto-1</td><td>O2</td><td>최적화 자동</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O2-deep25-0</td><td>O2</td><td>심층 분석</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O2-deep25-1</td><td>O2</td><td>심층 분석</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O3-fast-0</td><td>O3</td><td>아주 빠르게</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O3-fast-1</td><td>O3</td><td>아주 빠르게</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O3-auto-0</td><td>O3</td><td>최적화 자동</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O3-auto-1</td><td>O3</td><td>최적화 자동</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O3-deep25-0</td><td>O3</td><td>심층 분석</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O3-deep25-1</td><td>O3</td><td>심층 분석</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O4-fast-0</td><td>O4</td><td>아주 빠르게</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O4-fast-1</td><td>O4</td><td>아주 빠르게</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O4-auto-0</td><td>O4</td><td>최적화 자동</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O4-auto-1</td><td>O4</td><td>최적화 자동</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O4-deep25-0</td><td>O4</td><td>심층 분석</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O4-deep25-1</td><td>O4</td><td>심층 분석</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O5-fast-0</td><td>O5</td><td>아주 빠르게</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O5-fast-1</td><td>O5</td><td>아주 빠르게</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O5-auto-0</td><td>O5</td><td>최적화 자동</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O5-auto-1</td><td>O5</td><td>최적화 자동</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O5-deep25-0</td><td>O5</td><td>심층 분석</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O5-deep25-1</td><td>O5</td><td>심층 분석</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O6-fast-0</td><td>O6</td><td>아주 빠르게</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O6-fast-1</td><td>O6</td><td>아주 빠르게</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O6-auto-0</td><td>O6</td><td>최적화 자동</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O6-auto-1</td><td>O6</td><td>최적화 자동</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O6-deep25-0</td><td>O6</td><td>심층 분석</td><td>선공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr><tr><td>O6-deep25-1</td><td>O6</td><td>심층 분석</td><td>후공</td><td>pending</td><td>0</td><td>미시작</td><td>종료 미확인</td></tr></tbody></table></div></details><details><summary>모든 고정 국면 전후 쌍과 실제 응수 분기</summary><div class="scroll"><table><thead><tr><th>국면</th><th>모드</th><th>반복</th><th>baseline 좌표</th><th>개선 좌표</th><th>완료 깊이</th><th>실측 시간</th><th>개선 오류/기준 이탈</th><th>응수</th></tr></thead><tbody><tr><td colspan="9">실행 결과가 아직 없습니다.</td></tr></tbody></table></div></details></section><section id="s6"><h2>6) 그대로 남은 약점과 검증하지 못한 부분</h2><p class="verdict">구현 완료 · 성능 개선 미확인</p><ul><li>A·C·D의 공격 유지·선제 차단·주도권 탈환은 점수 변화만으로 확인할 수 없습니다. 실제 분기는 제한된 두 상대 엔진 응수이며 모든 최선 방어의 독립 증명은 아닙니다.</li><li>완성된 증명 검증이 별도로 없는 엔진의 강제승·강제패배 표시는 엔진 주장으로 기록했습니다. 한 줄 PV나 사삼·4·4 모양 자체로 필승을 선언하지 않습니다.</li><li>현재 결과는 제한된 국면과 오프닝 표본입니다. 미완료 대국과 불리한 결과를 제외하지 않았고, 더 깊게 읽었다는 사실만으로 실력이 개선됐다고 결론 내리지 않습니다.</li></ul><p>개선 쪽 수용 기준 이탈·오류 또는 완료 깊이 감소가 나타난 전후 쌍 0개. 깊이 감소 자체가 열등한 수의 증명은 아니지만 탐색량·시간 비용의 약점으로 공개합니다.</p><div class="scroll"><table><thead><tr><th>국면 / 모드 / 반복</th><th>baseline → 개선 깊이</th><th>추천 변화</th><th>오류 / 미확인</th></tr></thead><tbody><tr><td colspan="4">실행 결과가 아직 없습니다.</td></tr></tbody></table></div></section><section id="s7"><h2>7) 변경 파일, 재현 명령, 실제 실행한 테스트, 버전 정보</h2><p>버전 5.14.0 / 사용자 진입점 <code>outputs/omok.html</code> / 기존 배포 <code>outputs/omok-gpu.html</code>, <code>dist/index.html</code>. 기존 빌드가 산출물을 함께 갱신합니다.</p><div class="scroll"><table><thead><tr><th>실행 기록</th><th>결과</th><th>범위</th></tr></thead><tbody><tr><td>npm.cmd test</td><td>종료 코드 0</td><td>개선 직전 baseline · Reader 60 / Unified 35</td></tr><tr><td>npm.cmd test</td><td>종료 코드 0</td><td></td></tr><tr><td>npm.cmd run test:gpu</td><td>종료 코드 0</td><td></td></tr><tr><td>npm.cmd run test:strategy</td><td>종료 코드 0</td><td></td></tr><tr><td>npm.cmd run test:strategy-ui</td><td>종료 코드 0</td><td></td></tr><tr><td>git diff --check</td><td>종료 코드 0</td><td></td></tr></tbody></table></div><pre>npm.cmd test
+npm.cmd run test:strategy
+node tools/strategy/run.cjs fixed --label v5140-known --split known --minutes 60 --compute gpu
+node tools/strategy/run.cjs fixed --label v5140-holdout --split holdout --minutes 60 --compute gpu
+node tools/strategy/run.cjs arena --label v5140 --minutes 60 --stage 1 --compute gpu
+node tools/strategy-report.cjs --label v5140</pre><p>위 비교 명령은 새 실행 또는 같은 고정 소스·조건의 재개 명령입니다. ‘실행 기록’에 없는 명령을 이미 통과한 검사로 보지 않습니다. 단계별 계산 한도는 최대 1시간이며 다음 단계 확대에는 결과 검토가 필요합니다.</p><details><summary>현재 코드 파일·SHA-256 및 입력 보고서</summary><pre>{
+  &quot;reportInputs&quot;: [],
+  &quot;baselineCheck&quot;: &quot;baseline-checks.json&quot;,
+  &quot;releaseCheck&quot;: &quot;release-validation.json&quot;,
+  &quot;manifestHash&quot;: &quot;c4bbc0feeb3435ea246dc34830e8b60646844cf8668d1b4f8f75a4d93cd74f2a&quot;,
+  &quot;sourceHashes&quot;: {
+    &quot;src/strategy-engine.js&quot;: &quot;e080a8731a05ce1a3a7f2dabdeb4d80262b18d03b8801082a754422d2879b9a7&quot;,
+    &quot;src/reader-engine.js&quot;: &quot;4f37298835e1444707307ee268cff3e82bcc4e575ed33d527b3262b2c887f696&quot;,
+    &quot;src/forest-engine.js&quot;: &quot;a8951d556f0371235a3baafe8fbcdd59b2f6ba8866bf5139c0bea472c07626b4&quot;,
+    &quot;src/unified-engine.js&quot;: &quot;c2f94cb1e040e9392edb9e70b6d0284978a53b928526077755a1442bb089c72c&quot;,
+    &quot;src/unified-app.js&quot;: &quot;e823c6451da494e2a1835a376e486ce696712d033650e683b833baa1fb6eda4c&quot;,
+    &quot;src/app.js&quot;: &quot;2a113d504ab2387660e51c729a61dde456b7ea0873c4732c4a8d3683edca6f1e&quot;,
+    &quot;src/gpu-app.js&quot;: &quot;b81da583c3f8c261fda93f47b2b869dd70f803b631ef9cda847bbf33fb563530&quot;,
+    &quot;src/node-engine.cjs&quot;: &quot;1347c39faf83fb568ca43d20d014df31cc85164c0521ab1928b9a13fb82174c4&quot;,
+    &quot;build.cjs&quot;: &quot;5e726c31d916a4ca79c19649b58f4859f12bfc30dd5b720234afbfa98ce96105&quot;,
+    &quot;package.json&quot;: &quot;6dcd3948cf4edd93843251063c34b118e4c3af34e91a561aceb8837caf8219e1&quot;,
+    &quot;test/unified.cjs&quot;: &quot;7464ca063530e2c8b13f763d689b59cb33e808b750f600468cdce5503dff1f74&quot;,
+    &quot;test/strategy-context.cjs&quot;: &quot;77c0b8ecebab225ca28b5856ee2dab29476ebf81f58855de59d04e4019a24a1a&quot;,
+    &quot;test/strategy-policy.cjs&quot;: &quot;01c0b867bbb96eb659f30c68d77285a706c1cb1cf88add05830d5839b1f6352d&quot;,
+    &quot;test/strategy-engine.cjs&quot;: &quot;f68c10420ef0c5b0b923620feda4021d8502eefbdabb16e43850b13cb7dac4ba&quot;,
+    &quot;test/strategy-manifest.cjs&quot;: &quot;67a665294fad43deb58124b08974e8328179c26d37aac5bc34297e9b939a3522&quot;,
+    &quot;test/strategy-manifest-replay.cjs&quot;: &quot;9a3c30b14498b282099c3fb041110587fc4fbcf2b45e643d209028baf701c5bb&quot;,
+    &quot;test/strategy-proof.cjs&quot;: &quot;67d73c7d96df9cf44c6f47ce1a020c3d2a0e85c88e30e194f063d694e3f36f8f&quot;,
+    &quot;tools/strategy-report.cjs&quot;: &quot;5fa42f6222e1f569ddd7cfbefe596b78966a95add85850573580f87487028a89&quot;,
+    &quot;tools/strategy/run.cjs&quot;: &quot;1efa76d2493e090ccf848c93e2036daa5430fde0893712f99f4c63a7e099aeee&quot;,
+    &quot;tools/strategy/browser.cjs&quot;: &quot;066835fb406ba8bc552b3fcadec4361f20e8a8469456548cecc7601e82d37a1c&quot;,
+    &quot;tools/strategy/replay.cjs&quot;: &quot;eb0a7d02198261962d3e7f2689c6f14bf45dba80a9accaa86e33187900399ff0&quot;,
+    &quot;tools/performance/ui-smoke.cjs&quot;: &quot;ca4eab0101f906098f87f567212626f6bd81efb6c1481a3494c624344e38ad0b&quot;
+  }
+}</pre></details><details><summary>최종 검증 원본 기록</summary><pre>{
+  &quot;version&quot;: &quot;5.14.0&quot;,
+  &quot;branch&quot;: &quot;strategy-initiative-v5.14.0&quot;,
+  &quot;baseline&quot;: {
+    &quot;version&quot;: &quot;5.13.1&quot;,
+    &quot;commit&quot;: &quot;72a11f7fd3bd7b4c922d337b9cfdc036ee0030ed&quot;,
+    &quot;archiveSha256&quot;: &quot;2375e635e93db7bebe8c3096be45d65da3af079a5fc3da6b73141ddd4a8a68f2&quot;
+  },
+  &quot;manifestHash&quot;: &quot;c4bbc0feeb3435ea246dc34830e8b60646844cf8668d1b4f8f75a4d93cd74f2a&quot;,
+  &quot;recordedAt&quot;: &quot;2026-10-04T19:52:36.349Z&quot;,
+  &quot;stage&quot;: {
+    &quot;stage&quot;: 1,
+    &quot;startedAt&quot;: &quot;2026-10-04T18:48:51.117Z&quot;,
+    &quot;deadlineAt&quot;: &quot;2026-10-04T19:48:51.117Z&quot;,
+    &quot;capMs&quot;: 3600000,
+    &quot;sourceHashes&quot;: {
+      &quot;app.js&quot;: &quot;2a113d504ab2387660e51c729a61dde456b7ea0873c4732c4a8d3683edca6f1e&quot;,
+      &quot;forest-engine.js&quot;: &quot;a8951d556f0371235a3baafe8fbcdd59b2f6ba8866bf5139c0bea472c07626b4&quot;,
+      &quot;gpu-app.js&quot;: &quot;b81da583c3f8c261fda93f47b2b869dd70f803b631ef9cda847bbf33fb563530&quot;,
+      &quot;gpu-patterns.js&quot;: &quot;eaab311e4bd7d020a0aacc0b5a15bb7f49cb9b750e935633142e19c042a35c8b&quot;,
+      &quot;historical-analysis.cjs&quot;: &quot;a727c9eb4b19b3ba3cbd942328ad0f52e92058033541d48d575bbd1e1cfb4749&quot;,
+      &quot;node-engine.cjs&quot;: &quot;1347c39faf83fb568ca43d20d014df31cc85164c0521ab1928b9a13fb82174c4&quot;,
+      &quot;reader-engine.js&quot;: &quot;4f37298835e1444707307ee268cff3e82bcc4e575ed33d527b3262b2c887f696&quot;,
+      &quot;strategy-engine.js&quot;: &quot;bc8208ddb8540993edaa03721937a57d21258737d2d850f9d82417c4ec2091b9&quot;,
+      &quot;template.html&quot;: &quot;8b4916de84f7d62c24206d0808a814bfbe3ea6972d953a51f7f03398fcfdca89&quot;,
+      &quot;unified-app.js&quot;: &quot;e823c6451da494e2a1835a376e486ce696712d033650e683b833baa1fb6eda4c&quot;,
+      &quot;unified-engine.js&quot;: &quot;ba179c68ec7cdbff3a4ef890a7276a7219f8837143dc73cdb595cee0a57eb262&quot;
+    },
+    &quot;validationStoppedAt&quot;: &quot;2026-10-04T19:48:46.430Z&quot;,
+    &quot;additionalValidationRequiresNextStageInstruction&quot;: true
+  },
+  &quot;tests&quot;: [
+    {
+      &quot;command&quot;: &quot;npm.cmd test&quot;,
+      &quot;exitCode&quot;: 0,
+      &quot;passed&quot;: true,
+      &quot;log&quot;: &quot;release-regression.log&quot;,
+      &quot;readerScenarios&quot;: 60,
+      &quot;unifiedScenarios&quot;: 35
+    },
+    {
+      &quot;command&quot;: &quot;npm.cmd run test:gpu&quot;,
+      &quot;exitCode&quot;: 0,
+      &quot;passed&quot;: true,
+      &quot;log&quot;: &quot;gpu-regression.log&quot;,
+      &quot;forestInspections&quot;: 36000
+    },
+    {
+      &quot;command&quot;: &quot;npm.cmd run test:strategy&quot;,
+      &quot;exitCode&quot;: 0,
+      &quot;passed&quot;: true,
+      &quot;log&quot;: &quot;strategy-regression.log&quot;
+    },
+    {
+      &quot;command&quot;: &quot;npm.cmd run test:strategy-ui&quot;,
+      &quot;exitCode&quot;: 0,
+      &quot;passed&quot;: true,
+      &quot;log&quot;: &quot;ui-final-regression.log&quot;,
+      &quot;failure&quot;: null
+    },
+    {
+      &quot;command&quot;: &quot;git diff --check&quot;,
+      &quot;exitCode&quot;: 0,
+      &quot;passed&quot;: true
+    }
+  ],
+  &quot;initialFailures&quot;: [
+    {
+      &quot;log&quot;: &quot;full-regression.log&quot;,
+      &quot;unifiedPassed&quot;: 32,
+      &quot;unifiedFailed&quot;: 3,
+      &quot;explanation&quot;: &quot;Hypothetical opponent-first attack diagnostics disappeared; two assertions expected the old incorrect F7 exclusion.&quot;
+    },
+    {
+      &quot;log&quot;: &quot;final-regression.log&quot;,
+      &quot;unifiedPassed&quot;: 33,
+      &quot;unifiedFailed&quot;: 2,
+      &quot;explanation&quot;: &quot;A loss verdict could revive the truly refuted J6; corrected generically. The short actual-turn survivor check could time out; the revised test independently verifies a legal surviving continuation.&quot;
+    },
+    {
+      &quot;log&quot;: &quot;ui-regression.log&quot;,
+      &quot;explanation&quot;: &quot;The new promotion test tried to place a move while the imported game was paused; the test now resumes through the application before placing.&quot;
+    }
+  ],
+  &quot;testContractChanges&quot;: [
+    &quot;Two historical no-F7 assertions now check legal unproven choice, explicitly hypothetical diagnostics and an independently completed actual-turn surviving continuation. This corrects the wrong-turn contract; it is not an assertion of F7 superiority.&quot;,
+    &quot;The J6 rejection assertion, mandatory-defense, immediate-win, forbidden-move and verified-refutation assertions remain intact.&quot;
+  ],
+  &quot;performanceConfirmed&quot;: false,
+  &quot;independentStrategyEvidence&quot;: {
+    &quot;A&quot;: {
+      &quot;verified&quot;: false,
+      &quot;basis&quot;: &quot;final controlled comparison incomplete&quot;
+    },
+    &quot;C&quot;: {
+      &quot;verified&quot;: false,
+      &quot;basis&quot;: &quot;final controlled comparison incomplete&quot;
+    },
+    &quot;D&quot;: {
+      &quot;verified&quot;: false,
+      &quot;basis&quot;: &quot;final controlled comparison incomplete&quot;
+    }
+  },
+  &quot;proofLimitations&quot;: [
+    &quot;Response branches sample both engines under equal bounded budgets; they are not certified strongest among every legal response.&quot;,
+    &quot;The independent certificate traversal shares production rule and VCF primitives.&quot;,
+    &quot;Non-immediate full certificates in the final comparison remain unaudited unless explicitly recorded otherwise.&quot;
+  ],
+  &quot;planned&quot;: {
+    &quot;holdoutAnalyses&quot;: 144,
+    &quot;arenaGames&quot;: 36
+  },
+  &quot;files&quot;: {
+    &quot;.gitattributes&quot;: &quot;d60f352d0db1404c70afb4bb8b2ca3fd1c610572aa40720e8a0b7baa7885418c&quot;,
+    &quot;.github/workflows/test.yml&quot;: &quot;717056fb256507771c1a366a39150d6a1b59d4e86674d9dd2b6c59e28af03afa&quot;,
+    &quot;.gitignore&quot;: &quot;9e5b656929fdc7f50f3156374c2a95ca51bb7c36286b7091a18b89cc422705ea&quot;,
+    &quot;build.cjs&quot;: &quot;5e726c31d916a4ca79c19649b58f4859f12bfc30dd5b720234afbfa98ce96105&quot;,
+    &quot;dist/index.html&quot;: &quot;c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0&quot;,
+    &quot;outputs/omok-gpu.html&quot;: &quot;c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0&quot;,
+    &quot;outputs/omok.html&quot;: &quot;c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0&quot;,
+    &quot;package.json&quot;: &quot;6dcd3948cf4edd93843251063c34b118e4c3af34e91a561aceb8837caf8219e1&quot;,
+    &quot;README.md&quot;: &quot;2ebb39024d206f735c719bc64194b2e5d47481bcb1885d2a6d6ae38e12ee741c&quot;,
+    &quot;src/app.js&quot;: &quot;2a113d504ab2387660e51c729a61dde456b7ea0873c4732c4a8d3683edca6f1e&quot;,
+    &quot;src/forest-engine.js&quot;: &quot;a8951d556f0371235a3baafe8fbcdd59b2f6ba8866bf5139c0bea472c07626b4&quot;,
+    &quot;src/gpu-app.js&quot;: &quot;b81da583c3f8c261fda93f47b2b869dd70f803b631ef9cda847bbf33fb563530&quot;,
+    &quot;src/gpu-patterns.js&quot;: &quot;eaab311e4bd7d020a0aacc0b5a15bb7f49cb9b750e935633142e19c042a35c8b&quot;,
+    &quot;src/historical-analysis.cjs&quot;: &quot;a727c9eb4b19b3ba3cbd942328ad0f52e92058033541d48d575bbd1e1cfb4749&quot;,
+    &quot;src/node-engine.cjs&quot;: &quot;1347c39faf83fb568ca43d20d014df31cc85164c0521ab1928b9a13fb82174c4&quot;,
+    &quot;src/reader-engine.js&quot;: &quot;4f37298835e1444707307ee268cff3e82bcc4e575ed33d527b3262b2c887f696&quot;,
+    &quot;src/strategy-engine.js&quot;: &quot;e080a8731a05ce1a3a7f2dabdeb4d80262b18d03b8801082a754422d2879b9a7&quot;,
+    &quot;src/template.html&quot;: &quot;8b4916de84f7d62c24206d0808a814bfbe3ea6972d953a51f7f03398fcfdca89&quot;,
+    &quot;src/unified-app.js&quot;: &quot;e823c6451da494e2a1835a376e486ce696712d033650e683b833baa1fb6eda4c&quot;,
+    &quot;src/unified-engine.js&quot;: &quot;c2f94cb1e040e9392edb9e70b6d0284978a53b928526077755a1442bb089c72c&quot;,
+    &quot;test/defense-extensions.cjs&quot;: &quot;0a0e847aaed6e98515c272769d225fd3faab84f1122c7df354cc90af7b0a0ba8&quot;,
+    &quot;test/dfpn.cjs&quot;: &quot;3f93fa534082bc568a3a1a61cf970b57a6a18331e4f912c4c3b01db571ed9ff9&quot;,
+    &quot;test/engine.cjs&quot;: &quot;8638d24ca6ee4bd29a052d11d3e6c404eda0691b37b5d22964e93d8e6a938d65&quot;,
+    &quot;test/five-priority.cjs&quot;: &quot;ee2d820c8957f40f9745dfe6eed698e0a47b9133514dfda5191d867ed955d98c&quot;,
+    &quot;test/forcing-extensions.cjs&quot;: &quot;c5c1538bd43c1b0dd4e813484501c62d323b642f9e429702fdc9593dffc847eb&quot;,
+    &quot;test/forcing-hints.cjs&quot;: &quot;dbe023daa6e6bad8206e9045d330bce0eedd865f12c81096bf1c8be805f3664b&quot;,
+    &quot;test/historical-progress.cjs&quot;: &quot;85f6cf40c768390c049cfddbb83e8c09c723cbf91dc82060eab63b4b756f90a0&quot;,
+    &quot;test/historical.cjs&quot;: &quot;030ed8dfb3ab2c92f4c482f776135a558105ea7a2f0b47d435fdec5b3a374577&quot;,
+    &quot;test/known-refutations.cjs&quot;: &quot;5855a0c3f00b1d548f67544bb4624e7f1ff9881388ce52cfb48a957e3aa94f5b&quot;,
+    &quot;test/local-gpu.cjs&quot;: &quot;129e59c81d253061e24f88ab066fa1334a7d097481b1c524fcf7bab2dc67082e&quot;,
+    &quot;test/performance-cache.cjs&quot;: &quot;fc9e6ab15849357416b6d20cc1f3894fb6feccb02768460062054f07399e2f83&quot;,
+    &quot;test/proof-certificate.cjs&quot;: &quot;1ca803baf02f5615d77d87b9883f325823bcef8f6dccfa2dafe90d83f0db305f&quot;,
+    &quot;test/proof-counter-vcf.cjs&quot;: &quot;4e894e6667a3857eef166b27c8e728e47912fa4cedeb2cbf56e58be085e3ec40&quot;,
+    &quot;test/proof-failure-path.cjs&quot;: &quot;47ec5597e9db9ec195844ad1e4613976c80906e51c1d68fea35b4351115c8592&quot;,
+    &quot;test/proof-horizon-pruning.cjs&quot;: &quot;675c93b392d99c3e8b86db68f883706fb1196a2d7033fa129efebb8512a3e744&quot;,
+    &quot;test/proof-immediate-pruning.cjs&quot;: &quot;b3a87c3a8e4ad41eab8211e05fc9f6088f3394ebc4650cf2b64f94063317a4d1&quot;,
+    &quot;test/proof-incomplete-path.cjs&quot;: &quot;1913b56efb3c374b387496cb942fce254579de6eea643656f499dff584c66c12&quot;,
+    &quot;test/proof-session.cjs&quot;: &quot;e5db51d4ab4901d8a06bfd6f47ecac763bd47920fefac5eb764a4c4bb5f729b9&quot;,
+    &quot;test/proof-three-extensions.cjs&quot;: &quot;4305d52b63e3bb2153c89cf288a9031020ff631f5b5c04622e0d4c9c065c9a30&quot;,
+    &quot;test/proof-vcf-retry.cjs&quot;: &quot;15846a948fa5df06109250d25f08d400afbd9c73c1c73dc89a3d4ed19c654964&quot;,
+    &quot;test/reader/engine.js&quot;: &quot;4ff39764052a57d6b0cb1f9ca9eb4b08e2fb225bb668ed0c4684b090c9cfbc85&quot;,
+    &quot;test/reader/game29.cjs&quot;: &quot;73f335a95f5534eb38bddf2c5a7baba5b108515e76bbaf97b389c28781b7b9c3&quot;,
+    &quot;test/reader/game31.cjs&quot;: &quot;8cc545e26d225264175dbfd0653db86f10bea4eea2ec0f76bc1388f8c193b068&quot;,
+    &quot;test/reader/game33.cjs&quot;: &quot;cf0d4072a48c80715e5725679f67d2ca78d1ca2376750c0e2d2b7ce6bb492fd9&quot;,
+    &quot;test/reader/game47.cjs&quot;: &quot;ada5204f2885f79a1a3f6a03cf9e64ea015cbb3dd783964c489181f1dd95d12d&quot;,
+    &quot;test/reader/game48.cjs&quot;: &quot;db196e58a5b3f87c9a70a78dece0438276bb0ca7f3d16ef07dc433c4a4200a60&quot;,
+    &quot;test/reader/game95.cjs&quot;: &quot;3ad0d2aaa2f99e1258877828659c73782d06b9cf44d1f1c62720eb591cd0fa7f&quot;,
+    &quot;test/reader/position.cjs&quot;: &quot;1bf6b5e37121e98fc8afef6e05fb172c0672b10941e3a02d7a4b70d6a052798a&quot;,
+    &quot;test/reader/records.js&quot;: &quot;b51637762a34e8723d3ef1988a13c4a9d3941c7551c5aa4eb67179bccea5206f&quot;,
+    &quot;test/reader/test.cjs&quot;: &quot;899fdcfb7112e4ecc40b1441954320b6e9776e2eaf5d93b1e4400a5df8a5a4b2&quot;,
+    &quot;test/recommendation-policy.cjs&quot;: &quot;68f6a67162a0b69ce07cbe42020dbc80132e9d5eb888070d7faaac3a9d2e1c0e&quot;,
+    &quot;test/root-screen.cjs&quot;: &quot;c8c626ab15d46572bcd1005bf72df4ddd9e64f50625871f0b85cc2988cf45d0c&quot;,
+    &quot;test/root-selection.cjs&quot;: &quot;73dabbfbd6ae39d63350802fe46a06a5a6815689004e1454edbfa082ab525f52&quot;,
+    &quot;test/strategy-context.cjs&quot;: &quot;77c0b8ecebab225ca28b5856ee2dab29476ebf81f58855de59d04e4019a24a1a&quot;,
+    &quot;test/strategy-engine.cjs&quot;: &quot;f68c10420ef0c5b0b923620feda4021d8502eefbdabb16e43850b13cb7dac4ba&quot;,
+    &quot;test/strategy-manifest-replay.cjs&quot;: &quot;9a3c30b14498b282099c3fb041110587fc4fbcf2b45e643d209028baf701c5bb&quot;,
+    &quot;test/strategy-manifest.cjs&quot;: &quot;67a665294fad43deb58124b08974e8328179c26d37aac5bc34297e9b939a3522&quot;,
+    &quot;test/strategy-policy.cjs&quot;: &quot;01c0b867bbb96eb659f30c68d77285a706c1cb1cf88add05830d5839b1f6352d&quot;,
+    &quot;test/strategy-proof.cjs&quot;: &quot;67d73c7d96df9cf44c6f47ce1a020c3d2a0e85c88e30e194f063d694e3f36f8f&quot;,
+    &quot;test/unified.cjs&quot;: &quot;7464ca063530e2c8b13f763d689b59cb33e808b750f600468cdce5503dff1f74&quot;,
+    &quot;test/vcf-prefilter.cjs&quot;: &quot;8d77d3acfdf57d73f612a64e5b7436cd56746c9399c3850fc87224cafbb0ab87&quot;,
+    &quot;test/worker-lifecycle.cjs&quot;: &quot;f60b1473fe1115c1f87eb6ad39c60df473cb8576721fa29b83549835a2fca4d7&quot;,
+    &quot;tools/bench-history.cjs&quot;: &quot;28b937b5df1e5d5d7e53c48c0c8491c3ca5befa6e51a2c1ae3a593303a385093&quot;,
+    &quot;tools/bench-vcf-prefilter.cjs&quot;: &quot;a67d8b659f325a984cb93a3645bb65a10127b77ee0f2d288d348e2adaa315b6c&quot;,
+    &quot;tools/compare-sixth-five-priority.cjs&quot;: &quot;3f02223c0dbed57cc21aadc48a012120d301fe30f045761c11118e88aefd6a35&quot;,
+    &quot;tools/dfpn.cjs&quot;: &quot;e7f6ce5b09e0652af0bd1f9037669ea1c66b9fcb02b1d836bd4c2e60e2c8538a&quot;,
+    &quot;tools/DFPN.md&quot;: &quot;c3f1fb9157ef355fb03262e8284a687c9946f21b3f3e2cd84c0b29652adbf0ab&quot;,
+    &quot;tools/forcing-hints.cjs&quot;: &quot;f3feb3b4443585a54b836124f384da986fd2423c3646fd2888ce7c4d4d14cf24&quot;,
+    &quot;tools/performance/browser-bench.cjs&quot;: &quot;f0449507c5dc39df7ca96c8cb0c3c84a43d1ed6ab2a6df2567e0f314f53e5d07&quot;,
+    &quot;tools/performance/compare.cjs&quot;: &quot;e1784ca60ad60027e771888cbae8984a6a75d065f40205f43d8b0385c5a4deab&quot;,
+    &quot;tools/performance/followup.cjs&quot;: &quot;8dc75189640118dc6b45d39c46550433697a2b9be2fcdff69dad9cc0cd60d410&quot;,
+    &quot;tools/performance/positions.cjs&quot;: &quot;cecc00049e81d6da69e5a9dcdfd0670b65209a2dca3ed552d1933830c9f6df4e&quot;,
+    &quot;tools/performance/profile.cjs&quot;: &quot;321e8fa49f94d16349dc17b2db096e43d1400daccbc381522c92ef7a5db3abc8&quot;,
+    &quot;tools/performance/report.cjs&quot;: &quot;613f29ff54e64e20ac8b694aa85255d493b18c7d6ac5c1d3bdf801c845a83507&quot;,
+    &quot;tools/performance/summarize.cjs&quot;: &quot;85e512477f7d1fe7573dcb19804df52d2ec8862aaa887440b663497c5cbb2933&quot;,
+    &quot;tools/performance/ui-smoke.cjs&quot;: &quot;ca4eab0101f906098f87f567212626f6bd81efb6c1481a3494c624344e38ad0b&quot;,
+    &quot;tools/proof-session.cjs&quot;: &quot;b50d8322c8557d64b781be2424d2b765e122a9bebe0f41671753f7d3b4878b7b&quot;,
+    &quot;tools/prove-loss.cjs&quot;: &quot;d7160b0348ae3025f90c152ecaafb9011de2c4767f12018a063bcbc1b4bf6683&quot;,
+    &quot;tools/revalidate-five-priority.cjs&quot;: &quot;d164190ac556f3a6afd56e0e43e157694daeff2c618eba72855f6343dfd0c464&quot;,
+    &quot;tools/run-proof-session.cjs&quot;: &quot;93cd9581e35d1d2a21ff56283efbcba456ed4a9f96f0ed4d5f5846ff5c0af824&quot;,
+    &quot;tools/screen-replay.cjs&quot;: &quot;94dc1aaa6ffdb254aa5ca78c23461cc9dc6e7c6c801421d527c8c0d2d5e6f5d6&quot;,
+    &quot;tools/strategy/arena.cjs&quot;: &quot;30c2614e9d718799806a1394d72e6e643a1d5f601febabcf788aa93199fe27e3&quot;,
+    &quot;tools/strategy/browser.cjs&quot;: &quot;066835fb406ba8bc552b3fcadec4361f20e8a8469456548cecc7601e82d37a1c&quot;,
+    &quot;tools/strategy/compare.cjs&quot;: &quot;8970e4548dbba852d0da2601826a429c331e441dc2cbce771233e6f47cefc3e8&quot;,
+    &quot;tools/strategy/freeze.cjs&quot;: &quot;862167c8bd3518bed4173d8b27678560af6a1a446a5eb0839a16ddb5c02dfe6d&quot;,
+    &quot;tools/strategy/manifest.json&quot;: &quot;c4bbc0feeb3435ea246dc34830e8b60646844cf8668d1b4f8f75a4d93cd74f2a&quot;,
+    &quot;tools/strategy/manifest.json.sha256&quot;: &quot;9d3a62f3eaeaff084453b54d1535f48ebec81dc66d6faea0362ba310149a6791&quot;,
+    &quot;tools/strategy/README.md&quot;: &quot;383251b428f9b73a0937a50a777bd7d56cef11c590eab4b6b5df7b80b545bc41&quot;,
+    &quot;tools/strategy/replay.cjs&quot;: &quot;eb0a7d02198261962d3e7f2689c6f14bf45dba80a9accaa86e33187900399ff0&quot;,
+    &quot;tools/strategy/run.cjs&quot;: &quot;1efa76d2493e090ccf848c93e2036daa5430fde0893712f99f4c63a7e099aeee&quot;,
+    &quot;tools/strategy-report.cjs&quot;: &quot;5fa42f6222e1f569ddd7cfbefe596b78966a95add85850573580f87487028a89&quot;,
+    &quot;tools/strategy-ui-check.cjs&quot;: &quot;d45ef3e8c5c5a7ede76985df61cfd8af29ecc37601bfc8394418a1c6dafc079f&quot;,
+    &quot;tools/verify-attack.cjs&quot;: &quot;cb338c7b5ff9c6241a3a07767683d010ec5836deeaa862233923292cdf219c65&quot;,
+    &quot;tools/verify-session.cjs&quot;: &quot;f2f66907647b7a9f5fb9509417f90e12b362591ceb1e89f91d55ae37284edf5e&quot;
+  },
+  &quot;buildHashes&quot;: {
+    &quot;omok&quot;: &quot;c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0&quot;,
+    &quot;gpu&quot;: &quot;c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0&quot;,
+    &quot;dist&quot;: &quot;c66be2e814c25f299202fa10bef382caaede5a187b04d027b684eeca6685b3f0&quot;
+  }
+}</pre></details></section></main></html>

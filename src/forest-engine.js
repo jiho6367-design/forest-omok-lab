@@ -33,7 +33,7 @@ function createForestEngine(options={}){
  }
  function candidates(b){return memoPosition('candidates',b,0,()=>generateCandidates(b),true);}
  function winning(b,p){return memoPosition('winning',b,p,()=>findWinning(b,p),true);}
- function evaluate(b,p){return memoPosition('evaluation',b,p,()=>evaluateUncached(b,p));}
+ function evaluate(b,p){return memoPosition('evaluation',b,p,()=>evaluateUncached(b,p)+(strategy?strategy.positionValue(b,p)*2:0));}
  function getPositionCacheStats(){return {...positionCacheStats,entries:Object.values(positionCaches).reduce((n,c)=>n+c.size,0)};}
 
  const patternIndices=options.patternTable?Array.from({length:N*N},(_,i)=>D.map(([dx,dy])=>Array.from({length:11},(_,k)=>{const x=i%N+(k-5)*dx,y=(i/N|0)+(k-5)*dy;return x>=0&&y>=0&&x<N&&y<N?y*N+x:-1;}))):null;
@@ -56,7 +56,7 @@ function createForestEngine(options={}){
  function generateCandidates(b){let s=new Set();for(let i=0;i<225;i++)if(b[i]){let x=i%15,y=i/15|0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(inside(x+dx,y+dy)&&!b[(y+dy)*15+x+dx])s.add((y+dy)*15+x+dx);}return s.size?[...s]:b.every(v=>!v)?[112]:[];}
  function positional(b,i,p){let score=0,x=i%15,y=i/15|0;b[i]=p;for(let d of D){let a=line(b,i,p,d),l=a[0],r=a[a.length-1],open=(at(b,l%15-d[0],(l/15|0)-d[1])===0?1:0)+(at(b,r%15+d[0],(r/15|0)+d[1])===0?1:0);score+=(a.length>=6?0:[0,2,25,150,1500,100000][a.length])*open;}b[i]=0;return score+14-Math.abs(x-7)-Math.abs(y-7);}
  function value(s){return s.win.length?1e8:s.fours.length>=2?7e5:s.fork43?4e5:s.fours.length?5e4:s.threes.length?2500:0;}
- function ranked(b,p){return candidates(b).map(i=>{let a=inspect(b,i,p),o=inspect(b,i,3-p);return {i,a,o,score:value(a)+(o.legal?value(o)*1.1:0)+positional(b,i,p)+positional(b,i,3-p)*.9};}).filter(m=>m.a.legal).sort((a,b)=>b.score-a.score||a.i-b.i);}
+ function ranked(b,p,rich=false){const pool=strategy?[...new Set([...candidates(b),...strategy.points(b,p)])]:candidates(b);return pool.map(i=>{let a=inspect(b,i,p),o=inspect(b,i,3-p),feature=rich&&a.legal?strategy?.move(b,i,p,a):null;const ownValue=feature&&a.threes.length&&!a.fours.length&&!feature.usableThreeAxes.length?0:value(a);return {i,a,o,score:ownValue+(o.legal?value(o)*1.1:0)+positional(b,i,p)+(strategy&&!o.legal?0:positional(b,i,3-p)*.9)+(feature?.score||0),...(feature?{strategy:feature}:{})};}).filter(m=>m.a.legal).sort((a,b)=>b.score-a.score||a.i-b.i);}
  function findWinning(b,p){let r=[];for(let i of candidates(b)){b[i]=p;if(win(b,i,p).length)r.push(i);b[i]=0;}return r;}
  const coord=i=>String.fromCharCode(65+i%15)+(1+(i/15|0));
  function transformed(i,t){let x=i%15,y=i/15|0;if(t>=4)x=14-x;for(let k=0;k<t%4;k++)[x,y]=[14-y,x];return y*15+x;}
@@ -120,6 +120,9 @@ function createForestEngine(options={}){
  const limitsFor=budget=>budget>=24000?{forcing:25,quiet:14,screen:16,root:32,branch:18,depth:12}:budget>=12000?{forcing:19,quiet:10,screen:12,root:28,branch:16,depth:10}:budget>=7000?{forcing:15,quiet:6,screen:8,root:22,branch:12,depth:8}:{forcing:11,quiet:4,screen:4,root:16,branch:9,depth:6};
  const windows=[];
  for(let y=0;y<15;y++)for(let x=0;x<15;x++)for(let [axis,[dx,dy]]of D.entries()){if(!inside(x+4*dx,y+4*dy))continue;windows.push({axis,cells:Array.from({length:5},(_,k)=>(y+k*dy)*15+x+k*dx),before:inside(x-dx,y-dy)?(y-dy)*15+x-dx:-1,after:inside(x+5*dx,y+5*dy)?(y+5*dy)*15+x+5*dx:-1});}
+ const strategyFactory=typeof createStrategyEngine==='function'?createStrategyEngine:typeof require==='function'?require('./strategy-engine.js'):null;
+ const strategy=options.strategy!==false&&strategyFactory?strategyFactory(15,{inspect,legal:(b,i,p)=>inspect(b,i,p).legal,winning},options):null;
+ const strategicMove=(b,i,p)=>strategy?.move(b,i,p)||null,strategicScore=(b,i,p)=>strategy?.move(b,i,p).score||0,strategicProfile=(b,p)=>strategy?.profile(b,p)||null;
  function evaluateUncached(b,p){
   let score=0,weights=[0,2,18,160,3500,0],early=b.filter(Boolean).length<=12;
   if(!early){for(const w of windows){let mine=0,theirs=0;for(const i of w.cells){mine+=b[i]===p?1:0;theirs+=b[i]===3-p?1:0;}
@@ -200,16 +203,17 @@ function createForestEngine(options={}){
   return null;
  }
  function analyze(board,p,budget=1000,lessons=[]){
+  strategy?.setBudget(Math.min(budget*.12,budget<=1000?100:budget>15000?2500:1000));
   let immediate=urgent(board,p);if(immediate)return immediate;
   const certified=certifiedLoss(board,p);if(certified)return certified;
   // Historical pattern hints do not bypass bounded candidate comparison.
-  let b=board.slice(),start=clockNow(),totalDeadline=start+budget,deadline=start+budget*(budget>=12000?.72:1),nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),counterGuard=b.filter(Boolean).length<=40;
+  let b=board.slice(),start=clockNow(),totalDeadline=start+budget,deadline=start+budget*(budget>=12000?.72:1),nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),strategicSummary=null,lastCandidates=[];
   const check=()=>{nodes++;if(clockNow()>=deadline)throw TIME;};
   const timedProof=(q,ms)=>{let r=forcing(b,q,limits.forcing,Math.max(1,Math.min(ms,deadline-clockNow())),proofCache);nodes+=r.nodes;return r;};
   const verifiedBad=knownRefutations(b,p),verifiedBadSet=new Set(verifiedBad.map(m=>m.i));
-  let roots=ranked(b,p).filter(m=>!verifiedBadSet.has(m.i)),can=canonical(b,p),memory=lessons.filter(l=>l.key===can.key),bad=memory.map(l=>untransform(l.bad,can.t)),good=memory.map(l=>untransform(l.good,can.t));
+  let roots=ranked(b,p,true).filter(m=>!verifiedBadSet.has(m.i)),can=canonical(b,p),memory=lessons.filter(l=>l.key===can.key),bad=memory.map(l=>untransform(l.bad,can.t)),good=memory.map(l=>untransform(l.good,can.t));
   const verifiedRejected=verifiedBad.map(m=>({i:m.i,reason:m.reason,verifiedRefutation:true}));
-  function finish(m,reason,extra={}){return {i:m?.i??null,reason,depth,score:m?.score||0,pv:m?[m.i]:[],ms:clockNow()-start,nodes,proven:false,forcedLoss:false,threats:[],memory:memory.length,bad,shape:m?.a,limits,engineVersion:'3.0-cached-search',...extra};}
+  function finish(m,reason,extra={}){return {i:m?.i??null,reason,depth,score:m?.score||0,pv:m?[m.i]:[],ms:clockNow()-start,nodes,proven:false,forcedLoss:false,threats:[],memory:memory.length,bad,shape:m?.a,limits,engineVersion:'3.0-cached-search',candidates:lastCandidates.length?lastCandidates:m?[{i:m.i,score:m.score,pv:[m.i],depth:0,strategy:m.strategy,comparisonComplete:false}]:[],...(strategy?{strategy:{...(strategicSummary||strategy.profile(board,p)),work:strategy.statistics()}}:{}),...extra};}
   if(!roots.length)return finish(null,'합법적인 후보 없음');
   let w=roots.find(m=>m.a.win.length);if(w)return finish(w,'정확한 5목으로 즉시 승리',{proven:true,depth:1,score:MATE});
   let enemyWins=winning(b,3-p),blocking=roots.filter(m=>enemyWins.includes(m.i));
@@ -223,11 +227,9 @@ function createForestEngine(options={}){
   roots.sort((a,c)=>c.order-a.order);
   let screenEnd=Math.min(deadline,start+budget*.64),checked=[],unknown=[],screenSlice=Math.max(22,budget*.04);
   for(let m of roots){if(clockNow()>=screenEnd){unknown.push(m);continue;}b[m.i]=p;let r;try{
-   // A single winning endpoint is a forced reply, not proof that the attack is safe.
-   // Search the opponent's counterattack on the board after that exact block.
-   if(counterGuard&&m.a.fours.length&&clockNow()<screenEnd){const ends=winning(b,p);if(ends.length===1&&!winning(b,3-p).length&&inspect(b,ends[0],3-p).legal){
-    b[ends[0]]=3-p;try{const counter=forcing(b,3-p,limits.forcing,Math.max(1,Math.min(140,screenEnd-clockNow())),proofCache);if(counter.complete&&counter.proof)m.counterThreat={block:ends[0],pv:counter.proof.pv};}finally{b[ends[0]]=0;}
-   }}
+   // After an opponent's compulsory block it is OUR turn. Only the existing
+   // all-legal-continuation trap verifier below can refute the attack; an
+   // opponent VCF with the turn hypothetically handed over is not a gate.
    r=timedProof(3-p,Math.min(screenSlice,screenEnd-clockNow()));if(!r.proof&&r.complete&&m.a.fours.length){let trap=forcedReplyTrap(b,p,Math.max(1,Math.min(budget*.3,screenEnd-clockNow())),null,limits.forcing,true);m.replyTrap=trap.proof;r.complete=trap.complete;}else if(!r.proof&&r.complete&&checked.length<limits.screen){let trap=quietTrap(b,p,Math.max(1,Math.min(budget*.12,screenEnd-clockNow())),limits.quiet,limits.forcing,true);m.replyTrap=trap.proof;m.quietChecked=trap.complete;r.complete=trap.complete;}
   }finally{b[m.i]=0;}m.lossProof=r.proof;m.screened=r.complete;checked.push(m);}
   // 전체 패배를 선언할 때만 주변 후보 밖의 합법적인 빈칸까지 확인한다.
@@ -242,19 +244,26 @@ function createForestEngine(options={}){
   let options=safe.length?safe:undecided.length?undecided:risky.length?risky:losing;
   let lossProven=!safe.length&&!undecided.length&&!risky.length&&losing.length===roots.length;
   options.sort((a,c)=>(c.score-(bad.includes(c.i)?12000:0))-(a.score-(bad.includes(a.i)?12000:0)));
-  const staticEval=q=>evaluate(b,q),rankCache=new Map();
+  let rootOptions=strategy?strategy.select(b,p,options,limits.root,6,new Set(options.filter(m=>m.a?.fours.length).map(m=>m.i))):options.slice(0,limits.root);
+  const strategicAdjust=new Map();
+  if(strategy&&!lossProven&&clockNow()<deadline){strategicSummary=strategy.probe(b,p,rootOptions,Math.min(strategy.remaining(),Math.max(0,deadline-clockNow())));for(const c of strategicSummary.checks)if(c.complete)strategicAdjust.set(c.i,Math.max(-250,Math.min(250,c.score*.04)));}
+  const staticEval=q=>strategy?memoPosition('evaluation',b,q+'|base',()=>evaluateUncached(b,q)):evaluate(b,q),rankCache=new Map();let quietWork=0;
   const searchMoves=q=>{const key=b.join('')+q;let r=rankCache.get(key);if(!r){r=ranked(b,q);if(rankCache.size<10000)rankCache.set(key,r);}return r;};
-  function search(q,d,alpha,beta,ply){check();let key=b.join('')+q+':'+d+':'+ply,save=tt.get(key),a0=alpha,b0=beta;if(save){if(save.bound==='exact')return save;if(save.bound==='lower')alpha=Math.max(alpha,save.score);else beta=Math.min(beta,save.score);if(alpha>=beta)return save;}
+  function search(q,d,alpha,beta,ply,quietExtension=2){check();let key=b.join('')+q+':'+d+':'+ply+':'+quietExtension,save=tt.get(key),a0=alpha,b0=beta;if(save){if(save.bound==='exact')return save;if(save.bound==='lower')alpha=Math.max(alpha,save.score);else beta=Math.min(beta,save.score);if(alpha>=beta)return save;}
    let wins=winning(b,q);if(wins.length)return {score:MATE-ply,pv:[wins[0]]};let threats=winning(b,3-q);
    if(threats.length>1)return {score:-MATE+ply+1,pv:[]};
-   let moves;if(threats.length){let i=threats[0];if(!inspect(b,i,q).legal)return {score:-MATE+ply+1,pv:[]};moves=[{i}];}else if(d<=0||ply>=limits.forcing)return {score:staticEval(q),pv:[]};else moves=searchMoves(q).slice(0,ply<2?limits.root:limits.branch);
+   let moves,quiet=false;if(threats.length){let i=threats[0];if(!inspect(b,i,q).legal)return {score:-MATE+ply+1,pv:[]};moves=[{i}];}else if(ply>=limits.forcing)return {score:staticEval(q),pv:[]};else{
+    const all=d>0||strategy&&quietExtension>0&&ply<=4&&quietWork<16?searchMoves(q):[];
+    if(d<=0){moves=strategy&&quietExtension>0&&ply<=4&&quietWork<16?strategy.select(b,q,all,4,4).filter(m=>m.strategy.legalExtensions.length&&(m.strategy.usableThreeAxes.length||m.strategy.axes.length>1)):[];if(!moves.length)return {score:staticEval(q),pv:[]};quiet=true;quietWork++;}
+    else moves=strategy?strategy.select(b,q,all,ply<2?limits.root:limits.branch,4,new Set(all.filter(m=>m.a.fours.length).map(m=>m.i))):all.slice(0,ply<2?limits.root:limits.branch);
+   }
    // 탐색 끝에서도 강제 방어를 연장한다. 일반 평가와 확정 승패는 구분한다.
    if(ply>=Math.max(19,limits.forcing))return {score:staticEval(q),pv:[]};if(!moves.length)return {score:0,pv:[]};
-   let best={score:-Infinity,pv:[]};for(let m of moves){b[m.i]=q;let r;try{r=search(3-q,d-1,-beta,-alpha,ply+1);}finally{b[m.i]=0;}let score=-r.score;if(score>best.score)best={score,pv:[m.i,...r.pv]};alpha=Math.max(alpha,score);if(alpha>=beta)break;}
+   let best={score:-Infinity,pv:[]};for(let m of moves){b[m.i]=q;let r;try{r=search(3-q,d-1,-beta,-alpha,ply+1,quiet?quietExtension-1:quietExtension);}finally{b[m.i]=0;}let score=-r.score;if(score>best.score)best={score,pv:[m.i,...r.pv]};alpha=Math.max(alpha,score);if(alpha>=beta)break;}
    tt.set(key,{...best,bound:best.score<=a0?'upper':best.score>=b0?'lower':'exact'});return best;
   }
   let best=options[0],pv=[best.i],score=best.score;
-  if(!lossProven)for(let d=1;d<=limits.depth;d++){let round=null;try{for(let m of options.slice(0,limits.root)){check();b[m.i]=p;let r;try{r=search(3-p,d-1,-Infinity,round?-round.score+(bad.includes(m.i)?12000:0):Infinity,1);}finally{b[m.i]=0;}let v=-r.score-(bad.includes(m.i)&&Math.abs(r.score)<MATE/2?12000:0);if(!round||v>round.score)round={m,score:v,pv:[m.i,...r.pv]};}if(round){best=round.m;pv=round.pv;score=round.score;depth=d;options.sort((a,c)=>(c===best)-(a===best));}}catch(e){if(e!==TIME)throw e;break;}}
+  if(!lossProven)for(let d=1;d<=limits.depth;d++){const round=[];try{for(let m of rootOptions){check();b[m.i]=p;let r;try{r=search(3-p,d-1,-Infinity,Infinity,1);}finally{b[m.i]=0;}let v=-r.score-(bad.includes(m.i)&&Math.abs(r.score)<MATE/2?12000:0)+(Math.abs(r.score)<MATE/2?(strategicAdjust.get(m.i)||0):0);round.push({m,i:m.i,score:v,pv:[m.i,...r.pv],depth:d,strategy:m.strategy,comparisonComplete:true});}if(round.length){round.sort((a,c)=>c.score-a.score);best=round[0].m;pv=round[0].pv;score=round[0].score;depth=d;lastCandidates=round.slice(0,3).map(({m,...row})=>row);rootOptions=round.map(r=>r.m);options.sort((a,c)=>(c===best)-(a===best));}}catch(e){if(e!==TIME)throw e;break;}}
   // Reserve time for the actual chosen move; top-N screening alone can miss it.
   let finalGuard=null,avoidedTrap=false;
   if(!lossProven&&budget>=12000&&clockNow()<totalDeadline){b[best.i]=p;try{
@@ -264,7 +273,7 @@ function createForestEngine(options={}){
    }finally{b[best.i]=0;}
    if(finalGuard.proof||finalGuard.directProof){best.replyTrap=finalGuard.proof;best.lossProof=finalGuard.directProof||best.lossProof;if(!losing.includes(best))losing.push(best);let alternative=options.find(m=>m!==best&&!m.lossProof&&!m.replyTrap&&!m.counterThreat);
     if(!alternative)return finish(null,'검사한 추천 후보에서 강제패배 발견 · 더 이른 국면 복기 필요',{rejected:[...verifiedRejected,...losing.map(m=>({i:m.i,pv:m.lossProof?.pv||[],replyTrap:m.replyTrap}))],counterThreats:checked.filter(m=>m.counterThreat).map(m=>({i:m.i,...m.counterThreat})),finalGuard,limits});
-    best=alternative;pv=[best.i];score=best.score;depth=0;best.screened=false;avoidedTrap=true;
+    best=alternative;pv=[best.i];score=best.score;depth=0;lastCandidates=[];best.screened=false;avoidedTrap=true;
    }
   }
   let reason=enemyWins.length?'상대의 다음 5목 차단':dangerLine.length?'4-3·연속 4 강제 공격 선제 방어':enemy43.length?'상대 4-3 위협 대응 후보':best.a.fork43?'4-3 동시 위협 생성':'공격과 수비를 함께 고려한 추천';
@@ -278,6 +287,6 @@ function createForestEngine(options={}){
   let loss=s.win.length?{proof:null,complete:true}:forcing(after,3-p,11,Math.floor(budget*.3));
   return {...r,actual:i,actualLossProof:loss.proof,reviewLabel:r.lossProven?'이미 강제 패배 상태 · 이 수만의 실수 아님':loss.proof?'이 착수 뒤 상대 연속 4 강제승 확인':r.i!==i?'대안 후보 비교 (추정)':'추천 수와 일치'};
  }
- return {N,D,getPositionCacheStats,win,inspect,shapes,candidates,analyze,urgent,assessMove,limitsFor,suggestBudget,evaluate,patternDefense,knownRefutations,certifiedLoss,forcing,forcedReplyTrap,quietTrap,reviewMove,canonical,transformed,untransform,coord,winning};
+ return {N,D,getPositionCacheStats,win,inspect,shapes,candidates,analyze,urgent,assessMove,limitsFor,suggestBudget,evaluate,strategicMove,strategicScore,strategicProfile,patternDefense,knownRefutations,certifiedLoss,forcing,forcedReplyTrap,quietTrap,reviewMove,canonical,transformed,untransform,coord,winning};
 }
 if(typeof module!=='undefined')module.exports=createForestEngine;

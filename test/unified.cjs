@@ -194,8 +194,18 @@ test('new-game search catches the forced-block counterattack in the 15-ply green
   // E10 is a historical, unproved alternative (its later continuation loses).
   // Timed comparison may prefer another legal move; the counterattack is the
   // regression, not a fixed heuristic coordinate.
-  assert(strict.inspect(pre,defense.i,2).legal);assert.notEqual(defense.i,idx('F7'));assert(!defense.proven);
+  assert(strict.inspect(pre,defense.i,2).legal);assert(!defense.proven);
   assert((defense.counterThreats||[]).some(x=>x.i===idx('F7')&&x.block===idx('H7')));
+  // A future opponent-first VCF cannot demote a completed actual-turn
+  // comparison. If F7 is selected, retain its legal surviving continuation.
+  if(defense.i===idx('F7')){
+    const evidence=defense.counterThreats.find(x=>x.i===defense.i),after=pre.slice();after[defense.i]=2;after[evidence.block]=1;
+    assert(evidence.riskOnly);assert.equal(evidence.actualTurn,2);assert.equal(evidence.hypotheticalTurn,1);
+    const actual=evidence.actualCheck.complete?evidence.actualCheck:strict.forcedReplyTrap((()=>{const b=pre.slice();b[defense.i]=2;return b;})(),2,1000,null,19,true);
+    assert(actual.complete);assert.notEqual(actual.unrefutedReply,null);assert.notEqual(actual.unrefutedReply,undefined);
+    assert(strict.inspect(after,actual.unrefutedReply,2).legal);
+    assert(!(defense.rejected||[]).some(x=>x.i===defense.i));
+  }
   pre[idx('E10')]=2;assert(!strict.forcing(pre,1,21,1000).proof);
 });
 test('new-game search rejects the 30-ply loss setup and never reuses a refuted fallback',()=>{
@@ -225,8 +235,16 @@ test('new-game search traces the 33-ply green loss back through three forced blo
     assert(strict.inspect(position,r.i,2).legal);assert.equal(r.proven,false);
   }
   const at14=strict.analyze(before(14),2,15000,[]);
-  assert(strict.inspect(before(14),at14.i,2).legal);assert.notEqual(at14.i,idx('F7'));
+  assert(strict.inspect(before(14),at14.i,2).legal);assert(!at14.proven);
   assert((at14.counterThreats||[]).some(x=>x.i===idx('F7')&&x.block===idx('H7')));
+  if(at14.i===idx('F7')){
+    const evidence=at14.counterThreats.find(x=>x.i===at14.i),after=before(14);after[at14.i]=2;after[evidence.block]=1;
+    assert(evidence.riskOnly);assert.equal(evidence.actualTurn,2);assert.equal(evidence.hypotheticalTurn,1);
+    const actual=evidence.actualCheck.complete?evidence.actualCheck:strict.forcedReplyTrap((()=>{const b=before(14);b[at14.i]=2;return b;})(),2,1000,null,19,true);
+    assert(actual.complete);assert.notEqual(actual.unrefutedReply,null);assert.notEqual(actual.unrefutedReply,undefined);
+    assert(strict.inspect(after,actual.unrefutedReply,2).legal);
+    assert(!(at14.rejected||[]).some(x=>x.i===at14.i));
+  }
   const at16=strict.analyze(before(16),2,15000,[]);
   assert(strict.inspect(before(16),at16.i,2).legal);assert.notEqual(at16.i,idx('D7'));
   assert((at16.counterThreats||[]).some(x=>x.i===idx('D7')&&x.block===idx('C7')));

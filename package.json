@@ -1,11 +1,11 @@
 {
   "name": "forest-omok-unified",
-  "version": "5.13.1",
+  "version": "5.14.0",
   "private": true,
   "description": "Offline Gomoku with green slime and yellow mushroom characters",
   "scripts": {
     "build": "node build.cjs",
-    "test": "node build.cjs && node test/five-priority.cjs && node test/performance-cache.cjs && node test/recommendation-policy.cjs && node test/reader/test.cjs && node test/unified.cjs && node test/historical.cjs && node test/historical-progress.cjs && node test/proof-certificate.cjs && node test/root-screen.cjs && node test/known-refutations.cjs && node test/vcf-prefilter.cjs",
+    "test": "node build.cjs && node test/five-priority.cjs && node test/performance-cache.cjs && node test/recommendation-policy.cjs && node test/reader/test.cjs && node test/unified.cjs && node test/historical.cjs && node test/historical-progress.cjs && node test/proof-certificate.cjs && node test/root-screen.cjs && node test/known-refutations.cjs && node test/vcf-prefilter.cjs && npm run test:strategy && node test/worker-lifecycle.cjs",
     "verify:opening": "node tools/verify-session.cjs reports/i7-loss-certificate.json 6",
     "test:forcing-extensions": "node test/forcing-extensions.cjs",
     "test:root-selection": "node test/root-selection.cjs",
@@ -14,7 +14,11 @@
     "test:rules": "node test/five-priority.cjs",
     "test:recommendation-policy": "node test/recommendation-policy.cjs",
     "test:worker-lifecycle": "node test/worker-lifecycle.cjs",
-    "test:gpu": "node test/local-gpu.cjs"
+    "test:gpu": "node test/local-gpu.cjs",
+    "test:strategy": "node test/strategy-manifest.cjs && node test/strategy-manifest-replay.cjs && node test/strategy-engine.cjs && node test/strategy-context.cjs && node test/strategy-policy.cjs && node test/strategy-proof.cjs",
+    "verify:strategy": "node tools/strategy/compare.cjs",
+    "arena:strategy": "node tools/strategy/arena.cjs",
+    "test:strategy-ui": "node tools/strategy-ui-check.cjs"
   },
   "engines": {
     "node": ">=20"

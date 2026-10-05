@@ -1,0 +1,86 @@
+
+> forest-omok-unified@5.14.0 test:gpu
+> node test/local-gpu.cjs
+
+PASS 36000 forest inspections; reader legal and ranking equivalence across 80 boards, both colors, edges and overlines
+[
+  {
+    "id": "sixth-move",
+    "cpu": {
+      "score": 240,
+      "pv": [
+        111,
+        126,
+        68
+      ],
+      "nodes": 1847,
+      "depth": 3,
+      "ms": 69.4815000000001
+    },
+    "optimized": {
+      "score": 240,
+      "pv": [
+        111,
+        126,
+        68
+      ],
+      "nodes": 1847,
+      "depth": 3,
+      "ms": 57.00660000000016
+    }
+  },
+  {
+    "id": "quiet-middle",
+    "cpu": {
+      "score": 9999995,
+      "pv": [
+        123,
+        137,
+        65,
+        70,
+        80
+      ],
+      "nodes": 1016,
+      "depth": 3,
+      "ms": 35.55439999999999
+    },
+    "optimized": {
+      "score": 9999995,
+      "pv": [
+        123,
+        137,
+        65,
+        70,
+        80
+      ],
+      "nodes": 1016,
+      "depth": 3,
+      "ms": 27.648799999999937
+    }
+  },
+  {
+    "id": "known-refutations",
+    "cpu": {
+      "score": -1060,
+      "pv": [
+        140,
+        141,
+        93
+      ],
+      "nodes": 2623,
+      "depth": 3,
+      "ms": 59.11519999999996
+    },
+    "optimized": {
+      "score": -1060,
+      "pv": [
+        140,
+        141,
+        93
+      ],
+      "nodes": 2623,
+      "depth": 3,
+      "ms": 47.99520000000007
+    }
+  }
+]

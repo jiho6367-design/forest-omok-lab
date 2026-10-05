@@ -4,6 +4,9 @@ const {chromium}=require('playwright'),{pathToFileURL}=require('node:url'),path=
  const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));
  await page.goto(pathToFileURL(path.resolve('outputs/omok.html')).href);
  await page.waitForFunction(()=>typeof loadGame==='function');
+ await page.waitForFunction(()=>!document.querySelector('#computeMode').disabled);
+ await page.selectOption('#computeMode','optimized');
+ await page.waitForFunction(()=>!document.querySelector('#computeMode').disabled);
  await page.evaluate(()=>{
   $('budget').value='900';$('setup').close();
   const moves='H8 G7 G6 H6 F8'.split(' ');
@@ -14,7 +17,7 @@ const {chromium}=require('playwright'),{pathToFileURL}=require('node:url'),path=
  const result=await page.evaluate(()=>({version:versionBadge.textContent,state:$('analysisState').textContent,move:rec?.i==null?null:E.coord(rec.i),legal:rec?.i!=null&&E.inspect(b,rec.i,turn).legal,proof:rec?.proofStatus,options:[...$('budget').options].map(o=>o.textContent)}));
  assert(result.legal);assert.notEqual(result.move,'I7');assert.equal(result.proof,'UNRESOLVED');assert.equal(errors.length,0,errors.join('\n'));
  assert(result.options.some(x=>x.includes('7초')));assert(result.options[0].includes('15초'));
- assert.equal(result.version,'통합 v'+require('../../package.json').version);
+ assert.equal(result.version,'통합 v'+require('../../package.json').version+' · GPU');
  await page.screenshot({path:'reports/performance/ui-smoke.png',fullPage:true});
  fs.writeFileSync('reports/performance/ui-smoke.json',JSON.stringify({...result,errors},null,2));
  await browser.close();console.log('PASS offline full UI, live Worker recommendation, known-loss exclusion, final status, mode labels');

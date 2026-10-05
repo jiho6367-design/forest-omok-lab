@@ -1,0 +1,4403 @@
+{
+  "recordedAt": "2026-10-04T19:48:13.792Z",
+  "browser": "154.0.4258.53",
+  "checks": [
+    {
+      "name": "GPU live Worker black second",
+      "version": "통합 v5.14.0 · GPU",
+      "first": 2,
+      "me": 1,
+      "turn": 1,
+      "context": {
+        "firstPlayer": 2,
+        "strategyVersion": "initiative-1",
+        "strategyEnabled": true
+      },
+      "cursor": 5,
+      "events": [
+        {
+          "p": 2,
+          "type": "move",
+          "i": 112
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 111
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 127
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 125
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 113
+        }
+      ],
+      "board": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "move": "H7",
+      "legal": true,
+      "proofStatus": "UNRESOLVED",
+      "assessmentStatus": "BOUNDED_FAVORABLE",
+      "ms": 474,
+      "gpuStatus": "GPU 정상 · nvidia blackwell · 59,049개 패턴 검증 완료 · 준비 2426ms",
+      "computeMode": "gpu"
+    },
+    {
+      "name": "PASS preserves first player and toggles current side",
+      "version": "통합 v5.14.0 · GPU",
+      "first": 2,
+      "me": 1,
+      "turn": 2,
+      "context": {
+        "firstPlayer": 2,
+        "strategyVersion": "initiative-1",
+        "strategyEnabled": true
+      },
+      "cursor": 6,
+      "events": [
+        {
+          "p": 2,
+          "type": "move",
+          "i": 112
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 111
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 127
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 125
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 113
+        },
+        {
+          "p": 1,
+          "type": "timeout",
+          "i": null
+        }
+      ],
+      "board": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "move": "H7",
+      "legal": true,
+      "proofStatus": "UNRESOLVED",
+      "assessmentStatus": "BOUNDED_FAVORABLE",
+      "ms": 970,
+      "gpuStatus": "GPU 정상 · nvidia blackwell · 59,049개 패턴 검증 완료 · 준비 2426ms",
+      "computeMode": "gpu"
+    },
+    {
+      "name": "undo PASS",
+      "first": 2,
+      "turn": 1,
+      "cursor": 5
+    },
+    {
+      "name": "redo PASS",
+      "first": 2,
+      "turn": 2,
+      "cursor": 6
+    },
+    {
+      "name": "save and reload active game resumes analysis",
+      "version": "통합 v5.14.0 · GPU",
+      "first": 2,
+      "me": 1,
+      "turn": 2,
+      "context": {
+        "firstPlayer": 2,
+        "strategyVersion": "initiative-1",
+        "strategyEnabled": true
+      },
+      "cursor": 6,
+      "events": [
+        {
+          "p": 2,
+          "type": "move",
+          "i": 112
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 111
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 127
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 125
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 113
+        },
+        {
+          "p": 1,
+          "type": "timeout",
+          "i": null
+        }
+      ],
+      "board": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "move": "H7",
+      "legal": true,
+      "proofStatus": "UNRESOLVED",
+      "assessmentStatus": "BOUNDED_FAVORABLE",
+      "ms": 971,
+      "gpuStatus": "GPU 정상 · nvidia blackwell · 59,049개 패턴 검증 완료 · 준비 175ms",
+      "computeMode": "gpu"
+    },
+    {
+      "name": "text import white first with PASS",
+      "events": 4
+    },
+    {
+      "name": "GPU preset actual Worker temporary and final recommendations",
+      "profile": "fast",
+      "budget": "900",
+      "displays": [
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "INCOMPLETE",
+          "firstPlayer": 2,
+          "depth": 0,
+          "ms": 21.099999964237213
+        },
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BLOCKING_UNCHECKED",
+          "firstPlayer": 2,
+          "depth": 0,
+          "ms": 393.30000001192093
+        },
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "firstPlayer": 2,
+          "depth": 1,
+          "ms": 467.5999999642372
+        },
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "firstPlayer": 2,
+          "depth": 2,
+          "ms": 491.5999999642372
+        },
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "firstPlayer": 2,
+          "depth": 3,
+          "ms": 552.0999999642372
+        },
+        {
+          "partial": false,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "firstPlayer": 2,
+          "depth": 3,
+          "ms": 869
+        }
+      ],
+      "version": "통합 v5.14.0 · GPU",
+      "first": 2,
+      "me": 1,
+      "turn": 1,
+      "context": {
+        "firstPlayer": 2,
+        "strategyVersion": "initiative-1",
+        "strategyEnabled": true
+      },
+      "cursor": 5,
+      "events": [
+        {
+          "p": 2,
+          "type": "move",
+          "i": 112
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 111
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 127
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 125
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 113
+        }
+      ],
+      "board": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "move": "H7",
+      "legal": true,
+      "proofStatus": "UNRESOLVED",
+      "assessmentStatus": "BOUNDED_FAVORABLE",
+      "ms": 869,
+      "gpuStatus": "GPU 정상 · nvidia blackwell · 59,049개 패턴 검증 완료 · 준비 175ms",
+      "computeMode": "gpu"
+    },
+    {
+      "name": "GPU preset actual Worker temporary and final recommendations",
+      "profile": "optimized",
+      "budget": "auto",
+      "displays": [
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "INCOMPLETE",
+          "firstPlayer": 2,
+          "depth": 0,
+          "ms": 20.900000035762787
+        },
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BLOCKING_UNCHECKED",
+          "firstPlayer": 2,
+          "depth": 0,
+          "ms": 541.4000000357628
+        },
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "firstPlayer": 2,
+          "depth": 1,
+          "ms": 614.3000000119209
+        },
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "firstPlayer": 2,
+          "depth": 1,
+          "ms": 614.5
+        },
+        {
+          "partial": false,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "firstPlayer": 2,
+          "depth": 5,
+          "ms": 10061
+        }
+      ],
+      "version": "통합 v5.14.0 · GPU",
+      "first": 2,
+      "me": 1,
+      "turn": 1,
+      "context": {
+        "firstPlayer": 2,
+        "strategyVersion": "initiative-1",
+        "strategyEnabled": true
+      },
+      "cursor": 5,
+      "events": [
+        {
+          "p": 2,
+          "type": "move",
+          "i": 112
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 111
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 127
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 125
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 113
+        }
+      ],
+      "board": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "move": "H7",
+      "legal": true,
+      "proofStatus": "UNRESOLVED",
+      "assessmentStatus": "BOUNDED_FAVORABLE",
+      "ms": 10061,
+      "gpuStatus": "GPU 정상 · nvidia blackwell · 59,049개 패턴 검증 완료 · 준비 175ms",
+      "computeMode": "gpu"
+    },
+    {
+      "name": "GPU preset actual Worker temporary and final recommendations",
+      "profile": "deep",
+      "budget": "25000",
+      "displays": [
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "INCOMPLETE",
+          "firstPlayer": 2,
+          "depth": 0,
+          "ms": 16.5
+        },
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BLOCKING_UNCHECKED",
+          "firstPlayer": 2,
+          "depth": 0,
+          "ms": 449.89999997615814
+        },
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "firstPlayer": 2,
+          "depth": 1,
+          "ms": 515.3999999761581
+        },
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "firstPlayer": 2,
+          "depth": 1,
+          "ms": 516
+        },
+        {
+          "partial": true,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "firstPlayer": 2,
+          "depth": 5,
+          "ms": 10018.699999988079
+        },
+        {
+          "partial": false,
+          "i": 97,
+          "legal": true,
+          "proofStatus": "UNRESOLVED",
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "firstPlayer": 2,
+          "depth": 5,
+          "ms": 10052
+        }
+      ],
+      "version": "통합 v5.14.0 · GPU",
+      "first": 2,
+      "me": 1,
+      "turn": 1,
+      "context": {
+        "firstPlayer": 2,
+        "strategyVersion": "initiative-1",
+        "strategyEnabled": true
+      },
+      "cursor": 5,
+      "events": [
+        {
+          "p": 2,
+          "type": "move",
+          "i": 112
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 111
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 127
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 125
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 113
+        }
+      ],
+      "board": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "move": "H7",
+      "legal": true,
+      "proofStatus": "UNRESOLVED",
+      "assessmentStatus": "BOUNDED_FAVORABLE",
+      "ms": 10052,
+      "gpuStatus": "GPU 정상 · nvidia blackwell · 59,049개 패턴 검증 완료 · 준비 175ms",
+      "computeMode": "gpu"
+    },
+    {
+      "name": "actual opponent prediction promotes same finalized reply with white-first context",
+      "prediction": {
+        "opponent": 97,
+        "key": "strategy-ui-ponder|2|1|true|initiative-1|gpu|000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000122000000000001020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "result": {
+          "i": 142,
+          "reason": "공격과 방어를 비교한 추천",
+          "depth": 6,
+          "nodes": 85139,
+          "ms": 870,
+          "score": -2513.12,
+          "pv": [
+            142,
+            99,
+            141,
+            98,
+            96,
+            126
+          ],
+          "proven": false,
+          "lossProven": false,
+          "forcedLoss": false,
+          "threats": [],
+          "shape": {
+            "threes": [],
+            "fours": [],
+            "details": [
+              {
+                "axis": 0,
+                "three": [],
+                "four": []
+              },
+              {
+                "axis": 1,
+                "three": [],
+                "four": []
+              },
+              {
+                "axis": 2,
+                "three": [],
+                "four": []
+              },
+              {
+                "axis": 3,
+                "three": [],
+                "four": []
+              }
+            ],
+            "win": [],
+            "legal": true,
+            "reason": "",
+            "fork43": false
+          },
+          "urgent": false,
+          "forbiddenDefense": null,
+          "defenseChecked": true,
+          "fallback": false,
+          "kind": "search",
+          "autoReason": null,
+          "automatic": false,
+          "screeningComplete": true,
+          "forcingChecksComplete": true,
+          "strategy": {
+            "initiative": "opponent",
+            "firstPlayer": 2,
+            "strategyVersion": "initiative-1",
+            "evidence": {
+              "ownWins": [],
+              "enemyWins": [],
+              "forcingAxes": [
+                3
+              ],
+              "opponentAxes": [
+                2,
+                1,
+                0,
+                3
+              ],
+              "commonAnchors": 0,
+              "opponentCommonAnchors": 0,
+              "replyCoverage": "bounded",
+              "checkedRoots": 2,
+              "continues": 0,
+              "forcingReplies": 2
+            },
+            "checks": [
+              {
+                "i": 82,
+                "complete": true,
+                "score": -55,
+                "pv": [
+                  82,
+                  49,
+                  81
+                ],
+                "forcingReplies": 2,
+                "continues": 0,
+                "replies": 6,
+                "replyCoverage": "bounded",
+                "extensionPlies": 0,
+                "continuationDepth": 3,
+                "refuted": false,
+                "proven": false
+              },
+              {
+                "i": 142,
+                "complete": true,
+                "score": -78,
+                "pv": [
+                  142,
+                  49,
+                  139
+                ],
+                "forcingReplies": 2,
+                "continues": 0,
+                "replies": 6,
+                "replyCoverage": "bounded",
+                "extensionPlies": 0,
+                "continuationDepth": 3,
+                "refuted": false,
+                "proven": false
+              }
+            ],
+            "complete": true,
+            "ms": 15.199999988079071,
+            "work": {
+              "ms": 100.69999980926514,
+              "limitMs": 100,
+              "skipped": 7355
+            },
+            "context": {
+              "firstPlayer": 2,
+              "strategyVersion": "initiative-1",
+              "strategyEnabled": true
+            },
+            "selected": {
+              "i": 142,
+              "legal": true,
+              "attack": 0,
+              "cut": 120,
+              "dual": 0,
+              "score": 45.6,
+              "axes": [],
+              "anchors": [],
+              "legalExtensions": [],
+              "invalidExtensions": [],
+              "invalidThreeAxes": [],
+              "usableThreeAxes": [],
+              "forcing": false
+            }
+          },
+          "comparisonSource": "reader",
+          "candidates": [
+            {
+              "i": 142,
+              "s": 55078.00000000001,
+              "strategy": {
+                "i": 142,
+                "legal": true,
+                "attack": 0,
+                "cut": 120,
+                "dual": 0,
+                "score": 45.6,
+                "axes": [],
+                "anchors": [],
+                "legalExtensions": [],
+                "invalidExtensions": [],
+                "invalidThreeAxes": [],
+                "usableThreeAxes": [],
+                "forcing": false
+              },
+              "score": -2513.12,
+              "pv": [
+                142,
+                99,
+                141,
+                98,
+                96,
+                126
+              ],
+              "status": "screened",
+              "refutation": [],
+              "lossReason": null,
+              "depth": 6,
+              "comparisonComplete": true,
+              "comparisonSource": "reader"
+            },
+            {
+              "i": 82,
+              "s": 55078.00000000001,
+              "strategy": {
+                "i": 82,
+                "legal": true,
+                "attack": 0,
+                "cut": 120,
+                "dual": 0,
+                "score": 45.6,
+                "axes": [],
+                "anchors": [],
+                "legalExtensions": [],
+                "invalidExtensions": [],
+                "invalidThreeAxes": [],
+                "usableThreeAxes": [],
+                "forcing": false
+              },
+              "score": -2531.2,
+              "pv": [
+                82,
+                99,
+                141,
+                81,
+                65,
+                98
+              ],
+              "status": "screened",
+              "refutation": [],
+              "lossReason": null,
+              "depth": 6,
+              "comparisonComplete": true,
+              "comparisonSource": "reader"
+            }
+          ],
+          "rejected": [
+            {
+              "i": 157,
+              "reason": "fork",
+              "line": [
+                157,
+                82
+              ]
+            },
+            {
+              "i": 67,
+              "reason": "fork",
+              "line": [
+                67,
+                142
+              ]
+            },
+            {
+              "i": 141,
+              "reason": "fork",
+              "line": [
+                141,
+                82
+              ]
+            },
+            {
+              "i": 99,
+              "reason": "fork",
+              "line": [
+                99,
+                82
+              ]
+            },
+            {
+              "i": 81,
+              "reason": "fork",
+              "line": [
+                81,
+                82
+              ]
+            },
+            {
+              "i": 129,
+              "reason": "fork",
+              "line": [
+                129,
+                82
+              ]
+            },
+            {
+              "i": 155,
+              "reason": "fork",
+              "line": [
+                155,
+                82
+              ]
+            },
+            {
+              "i": 65,
+              "reason": "fork",
+              "line": [
+                65,
+                82
+              ]
+            },
+            {
+              "i": 85,
+              "reason": "fork",
+              "line": [
+                85,
+                82
+              ]
+            },
+            {
+              "i": 145,
+              "reason": "fork",
+              "line": [
+                145,
+                82
+              ]
+            },
+            {
+              "i": 115,
+              "reason": "fork",
+              "line": [
+                115,
+                82
+              ]
+            },
+            {
+              "i": 114,
+              "reason": "fork",
+              "line": [
+                114,
+                82
+              ]
+            },
+            {
+              "i": 116,
+              "reason": "fork",
+              "line": [
+                116,
+                82
+              ]
+            },
+            {
+              "i": 49,
+              "reason": "fork",
+              "line": [
+                49,
+                82
+              ]
+            },
+            {
+              "i": 71,
+              "reason": "fork",
+              "line": [
+                71,
+                82
+              ]
+            },
+            {
+              "i": 161,
+              "reason": "fork",
+              "line": [
+                161,
+                82
+              ]
+            },
+            {
+              "i": 169,
+              "reason": "fork",
+              "line": [
+                169,
+                82
+              ]
+            },
+            {
+              "i": 139,
+              "reason": "fork",
+              "line": [
+                139,
+                82
+              ]
+            },
+            {
+              "i": 153,
+              "reason": "fork",
+              "line": [
+                153,
+                82
+              ]
+            },
+            {
+              "i": 167,
+              "reason": "fork",
+              "line": [
+                167,
+                82
+              ]
+            },
+            {
+              "i": 98,
+              "reason": "fork",
+              "line": [
+                98,
+                82
+              ]
+            },
+            {
+              "i": 96,
+              "reason": "fork",
+              "line": [
+                96,
+                82
+              ]
+            },
+            {
+              "i": 128,
+              "reason": "fork",
+              "line": [
+                128,
+                82
+              ]
+            },
+            {
+              "i": 126,
+              "reason": "fork",
+              "line": [
+                126,
+                82
+              ]
+            },
+            {
+              "i": 140,
+              "reason": "fork",
+              "line": [
+                140,
+                82
+              ]
+            },
+            {
+              "i": 95,
+              "reason": "fork",
+              "line": [
+                95,
+                82
+              ]
+            },
+            {
+              "i": 80,
+              "reason": "fork",
+              "line": [
+                80,
+                82
+              ]
+            },
+            {
+              "i": 109,
+              "reason": "fork",
+              "line": [
+                109,
+                82
+              ]
+            },
+            {
+              "i": 110,
+              "reason": "fork",
+              "line": [
+                110,
+                82
+              ]
+            },
+            {
+              "i": 83,
+              "reason": "fork",
+              "line": [
+                83,
+                82
+              ]
+            },
+            {
+              "i": 143,
+              "reason": "fork",
+              "line": [
+                143,
+                82
+              ]
+            },
+            {
+              "i": 93,
+              "reason": "fork",
+              "line": [
+                93,
+                82
+              ]
+            },
+            {
+              "i": 84,
+              "reason": "fork",
+              "line": [
+                84,
+                82
+              ]
+            },
+            {
+              "i": 144,
+              "reason": "fork",
+              "line": [
+                144,
+                82
+              ]
+            },
+            {
+              "i": 173,
+              "reason": "fork",
+              "line": [
+                173,
+                82
+              ]
+            },
+            {
+              "i": 68,
+              "reason": "fork",
+              "line": [
+                68,
+                82
+              ]
+            },
+            {
+              "i": 94,
+              "reason": "fork",
+              "line": [
+                94,
+                82
+              ]
+            },
+            {
+              "i": 100,
+              "reason": "fork",
+              "line": [
+                100,
+                82
+              ]
+            },
+            {
+              "i": 130,
+              "reason": "fork",
+              "line": [
+                130,
+                82
+              ]
+            },
+            {
+              "i": 158,
+              "reason": "fork",
+              "line": [
+                158,
+                82
+              ]
+            },
+            {
+              "i": 64,
+              "reason": "fork",
+              "line": [
+                64,
+                82
+              ]
+            },
+            {
+              "i": 70,
+              "reason": "fork",
+              "line": [
+                70,
+                82
+              ]
+            },
+            {
+              "i": 154,
+              "reason": "fork",
+              "line": [
+                154,
+                82
+              ]
+            },
+            {
+              "i": 160,
+              "reason": "fork",
+              "line": [
+                160,
+                82
+              ]
+            },
+            {
+              "i": 66,
+              "reason": "fork",
+              "line": [
+                66,
+                82
+              ]
+            },
+            {
+              "i": 156,
+              "reason": "fork",
+              "line": [
+                156,
+                82
+              ]
+            },
+            {
+              "i": 124,
+              "reason": "fork",
+              "line": [
+                124,
+                82
+              ]
+            },
+            {
+              "i": 170,
+              "reason": "fork",
+              "line": [
+                170,
+                82
+              ]
+            },
+            {
+              "i": 123,
+              "reason": "fork",
+              "line": [
+                123,
+                82
+              ]
+            },
+            {
+              "i": 122,
+              "reason": "fork",
+              "line": [
+                122,
+                82
+              ]
+            },
+            {
+              "i": 77,
+              "reason": "fork",
+              "line": [
+                77,
+                82
+              ]
+            },
+            {
+              "i": 69,
+              "reason": "fork",
+              "line": [
+                69,
+                82
+              ]
+            },
+            {
+              "i": 159,
+              "reason": "fork",
+              "line": [
+                159,
+                82
+              ]
+            },
+            {
+              "i": 79,
+              "reason": "fork",
+              "line": [
+                79,
+                82
+              ]
+            },
+            {
+              "i": 53,
+              "reason": "fork",
+              "line": [
+                53,
+                82
+              ]
+            },
+            {
+              "i": 101,
+              "reason": "fork",
+              "line": [
+                101,
+                82
+              ]
+            },
+            {
+              "i": 131,
+              "reason": "fork",
+              "line": [
+                131,
+                82
+              ]
+            },
+            {
+              "i": 51,
+              "reason": "fork",
+              "line": [
+                51,
+                82
+              ]
+            },
+            {
+              "i": 171,
+              "reason": "fork",
+              "line": [
+                171,
+                82
+              ]
+            },
+            {
+              "i": 55,
+              "reason": "fork",
+              "line": [
+                55,
+                82
+              ]
+            },
+            {
+              "i": 175,
+              "reason": "fork",
+              "line": [
+                175,
+                82
+              ]
+            },
+            {
+              "i": 108,
+              "reason": "fork",
+              "line": [
+                108,
+                82
+              ]
+            },
+            {
+              "i": 63,
+              "reason": "fork",
+              "line": [
+                63,
+                82
+              ]
+            },
+            {
+              "i": 48,
+              "reason": "fork",
+              "line": [
+                48,
+                82
+              ]
+            },
+            {
+              "i": 56,
+              "reason": "fork",
+              "line": [
+                56,
+                82
+              ]
+            },
+            {
+              "i": 168,
+              "reason": "fork",
+              "line": [
+                168,
+                82
+              ]
+            },
+            {
+              "i": 176,
+              "reason": "fork",
+              "line": [
+                176,
+                82
+              ]
+            },
+            {
+              "i": 107,
+              "reason": "fork",
+              "line": [
+                107,
+                82
+              ]
+            },
+            {
+              "i": 185,
+              "reason": "fork",
+              "line": [
+                185,
+                82
+              ]
+            },
+            {
+              "i": 189,
+              "reason": "fork",
+              "line": [
+                189,
+                82
+              ]
+            },
+            {
+              "i": 41,
+              "reason": "fork",
+              "line": [
+                41,
+                82
+              ]
+            },
+            {
+              "i": 191,
+              "reason": "fork",
+              "line": [
+                191,
+                82
+              ]
+            },
+            {
+              "i": 47,
+              "reason": "fork",
+              "line": [
+                47,
+                82
+              ]
+            },
+            {
+              "i": 121,
+              "reason": "fork",
+              "line": [
+                121,
+                82
+              ]
+            },
+            {
+              "i": 61,
+              "reason": "fork",
+              "line": [
+                61,
+                82
+              ]
+            },
+            {
+              "i": 54,
+              "reason": "fork",
+              "line": [
+                54,
+                82
+              ]
+            },
+            {
+              "i": 78,
+              "reason": "fork",
+              "line": [
+                78,
+                82
+              ]
+            },
+            {
+              "i": 86,
+              "reason": "fork",
+              "line": [
+                86,
+                82
+              ]
+            },
+            {
+              "i": 138,
+              "reason": "fork",
+              "line": [
+                138,
+                82
+              ]
+            },
+            {
+              "i": 146,
+              "reason": "fork",
+              "line": [
+                146,
+                82
+              ]
+            },
+            {
+              "i": 174,
+              "reason": "fork",
+              "line": [
+                174,
+                82
+              ]
+            },
+            {
+              "i": 50,
+              "reason": "fork",
+              "line": [
+                50,
+                82
+              ]
+            },
+            {
+              "i": 52,
+              "reason": "fork",
+              "line": [
+                52,
+                82
+              ]
+            },
+            {
+              "i": 172,
+              "reason": "fork",
+              "line": [
+                172,
+                82
+              ]
+            },
+            {
+              "i": 35,
+              "reason": "fork",
+              "line": [
+                35,
+                82
+              ]
+            },
+            {
+              "i": 39,
+              "reason": "fork",
+              "line": [
+                39,
+                82
+              ]
+            },
+            {
+              "i": 87,
+              "reason": "fork",
+              "line": [
+                87,
+                82
+              ]
+            },
+            {
+              "i": 137,
+              "reason": "fork",
+              "line": [
+                137,
+                82
+              ]
+            },
+            {
+              "i": 147,
+              "reason": "fork",
+              "line": [
+                147,
+                82
+              ]
+            },
+            {
+              "i": 34,
+              "reason": "fork",
+              "line": [
+                34,
+                82
+              ]
+            },
+            {
+              "i": 40,
+              "reason": "fork",
+              "line": [
+                40,
+                82
+              ]
+            },
+            {
+              "i": 62,
+              "reason": "fork",
+              "line": [
+                62,
+                82
+              ]
+            },
+            {
+              "i": 72,
+              "reason": "fork",
+              "line": [
+                72,
+                82
+              ]
+            },
+            {
+              "i": 152,
+              "reason": "fork",
+              "line": [
+                152,
+                82
+              ]
+            },
+            {
+              "i": 162,
+              "reason": "fork",
+              "line": [
+                162,
+                82
+              ]
+            },
+            {
+              "i": 184,
+              "reason": "fork",
+              "line": [
+                184,
+                82
+              ]
+            },
+            {
+              "i": 190,
+              "reason": "fork",
+              "line": [
+                190,
+                82
+              ]
+            },
+            {
+              "i": 36,
+              "reason": "fork",
+              "line": [
+                36,
+                82
+              ]
+            },
+            {
+              "i": 186,
+              "reason": "fork",
+              "line": [
+                186,
+                82
+              ]
+            },
+            {
+              "i": 38,
+              "reason": "fork",
+              "line": [
+                38,
+                82
+              ]
+            },
+            {
+              "i": 92,
+              "reason": "fork",
+              "line": [
+                92,
+                82
+              ]
+            },
+            {
+              "i": 102,
+              "reason": "fork",
+              "line": [
+                102,
+                82
+              ]
+            },
+            {
+              "i": 132,
+              "reason": "fork",
+              "line": [
+                132,
+                82
+              ]
+            },
+            {
+              "i": 188,
+              "reason": "fork",
+              "line": [
+                188,
+                82
+              ]
+            },
+            {
+              "i": 37,
+              "reason": "fork",
+              "line": [
+                37,
+                82
+              ]
+            },
+            {
+              "i": 117,
+              "reason": "fork",
+              "line": [
+                117,
+                82
+              ]
+            },
+            {
+              "i": 187,
+              "reason": "fork",
+              "line": [
+                187,
+                82
+              ]
+            },
+            {
+              "i": 21,
+              "reason": "fork",
+              "line": [
+                21,
+                82
+              ]
+            },
+            {
+              "i": 23,
+              "reason": "fork",
+              "line": [
+                23,
+                82
+              ]
+            },
+            {
+              "i": 91,
+              "reason": "fork",
+              "line": [
+                91,
+                82
+              ]
+            },
+            {
+              "i": 103,
+              "reason": "fork",
+              "line": [
+                103,
+                82
+              ]
+            },
+            {
+              "i": 133,
+              "reason": "fork",
+              "line": [
+                133,
+                82
+              ]
+            },
+            {
+              "i": 201,
+              "reason": "fork",
+              "line": [
+                201,
+                82
+              ]
+            },
+            {
+              "i": 203,
+              "reason": "fork",
+              "line": [
+                203,
+                82
+              ]
+            },
+            {
+              "i": 20,
+              "reason": "fork",
+              "line": [
+                20,
+                82
+              ]
+            },
+            {
+              "i": 24,
+              "reason": "fork",
+              "line": [
+                24,
+                82
+              ]
+            },
+            {
+              "i": 76,
+              "reason": "fork",
+              "line": [
+                76,
+                82
+              ]
+            },
+            {
+              "i": 88,
+              "reason": "fork",
+              "line": [
+                88,
+                82
+              ]
+            },
+            {
+              "i": 136,
+              "reason": "fork",
+              "line": [
+                136,
+                82
+              ]
+            },
+            {
+              "i": 148,
+              "reason": "fork",
+              "line": [
+                148,
+                82
+              ]
+            },
+            {
+              "i": 204,
+              "reason": "fork",
+              "line": [
+                204,
+                82
+              ]
+            },
+            {
+              "i": 19,
+              "reason": "fork",
+              "line": [
+                19,
+                82
+              ]
+            },
+            {
+              "i": 25,
+              "reason": "fork",
+              "line": [
+                25,
+                82
+              ]
+            },
+            {
+              "i": 73,
+              "reason": "fork",
+              "line": [
+                73,
+                82
+              ]
+            },
+            {
+              "i": 151,
+              "reason": "fork",
+              "line": [
+                151,
+                82
+              ]
+            },
+            {
+              "i": 163,
+              "reason": "fork",
+              "line": [
+                163,
+                82
+              ]
+            },
+            {
+              "i": 199,
+              "reason": "fork",
+              "line": [
+                199,
+                82
+              ]
+            },
+            {
+              "i": 106,
+              "reason": "fork",
+              "line": [
+                106,
+                82
+              ]
+            },
+            {
+              "i": 200,
+              "reason": "fork",
+              "line": [
+                200,
+                82
+              ]
+            },
+            {
+              "i": 22,
+              "reason": "fork",
+              "line": [
+                22,
+                82
+              ]
+            },
+            {
+              "i": 118,
+              "reason": "fork",
+              "line": [
+                118,
+                82
+              ]
+            },
+            {
+              "i": 202,
+              "reason": "fork",
+              "line": [
+                202,
+                82
+              ]
+            },
+            {
+              "i": 205,
+              "reason": "fork",
+              "line": [
+                205,
+                82
+              ]
+            },
+            {
+              "i": 33,
+              "reason": "fork",
+              "line": [
+                33,
+                82
+              ]
+            },
+            {
+              "i": 57,
+              "reason": "fork",
+              "line": [
+                57,
+                82
+              ]
+            },
+            {
+              "i": 177,
+              "reason": "fork",
+              "line": [
+                177,
+                82
+              ]
+            },
+            {
+              "i": 183,
+              "reason": "fork",
+              "line": [
+                183,
+                82
+              ]
+            },
+            {
+              "i": 32,
+              "reason": "fork",
+              "line": [
+                32,
+                82
+              ]
+            },
+            {
+              "i": 42,
+              "reason": "fork",
+              "line": [
+                42,
+                82
+              ]
+            },
+            {
+              "i": 182,
+              "reason": "fork",
+              "line": [
+                182,
+                82
+              ]
+            },
+            {
+              "i": 192,
+              "reason": "fork",
+              "line": [
+                192,
+                82
+              ]
+            },
+            {
+              "i": 18,
+              "reason": "fork",
+              "line": [
+                18,
+                82
+              ]
+            },
+            {
+              "i": 26,
+              "reason": "fork",
+              "line": [
+                26,
+                82
+              ]
+            },
+            {
+              "i": 46,
+              "reason": "fork",
+              "line": [
+                46,
+                82
+              ]
+            },
+            {
+              "i": 58,
+              "reason": "fork",
+              "line": [
+                58,
+                82
+              ]
+            },
+            {
+              "i": 166,
+              "reason": "fork",
+              "line": [
+                166,
+                82
+              ]
+            },
+            {
+              "i": 178,
+              "reason": "fork",
+              "line": [
+                178,
+                82
+              ]
+            },
+            {
+              "i": 198,
+              "reason": "fork",
+              "line": [
+                198,
+                82
+              ]
+            },
+            {
+              "i": 206,
+              "reason": "fork",
+              "line": [
+                206,
+                82
+              ]
+            },
+            {
+              "i": 7,
+              "reason": "fork",
+              "line": [
+                7,
+                82
+              ]
+            },
+            {
+              "i": 105,
+              "reason": "fork",
+              "line": [
+                105,
+                82
+              ]
+            },
+            {
+              "i": 119,
+              "reason": "fork",
+              "line": [
+                119,
+                82
+              ]
+            },
+            {
+              "i": 217,
+              "reason": "fork",
+              "line": [
+                217,
+                82
+              ]
+            },
+            {
+              "i": 6,
+              "reason": "fork",
+              "line": [
+                6,
+                82
+              ]
+            },
+            {
+              "i": 8,
+              "reason": "fork",
+              "line": [
+                8,
+                82
+              ]
+            },
+            {
+              "i": 90,
+              "reason": "fork",
+              "line": [
+                90,
+                82
+              ]
+            },
+            {
+              "i": 104,
+              "reason": "fork",
+              "line": [
+                104,
+                82
+              ]
+            },
+            {
+              "i": 134,
+              "reason": "fork",
+              "line": [
+                134,
+                82
+              ]
+            },
+            {
+              "i": 216,
+              "reason": "fork",
+              "line": [
+                216,
+                82
+              ]
+            },
+            {
+              "i": 218,
+              "reason": "fork",
+              "line": [
+                218,
+                82
+              ]
+            },
+            {
+              "i": 5,
+              "reason": "fork",
+              "line": [
+                5,
+                82
+              ]
+            },
+            {
+              "i": 9,
+              "reason": "fork",
+              "line": [
+                9,
+                82
+              ]
+            },
+            {
+              "i": 75,
+              "reason": "fork",
+              "line": [
+                75,
+                82
+              ]
+            },
+            {
+              "i": 89,
+              "reason": "fork",
+              "line": [
+                89,
+                82
+              ]
+            },
+            {
+              "i": 135,
+              "reason": "fork",
+              "line": [
+                135,
+                82
+              ]
+            },
+            {
+              "i": 149,
+              "reason": "fork",
+              "line": [
+                149,
+                82
+              ]
+            },
+            {
+              "i": 215,
+              "reason": "fork",
+              "line": [
+                215,
+                82
+              ]
+            },
+            {
+              "i": 219,
+              "reason": "fork",
+              "line": [
+                219,
+                82
+              ]
+            },
+            {
+              "i": 4,
+              "reason": "fork",
+              "line": [
+                4,
+                82
+              ]
+            },
+            {
+              "i": 10,
+              "reason": "fork",
+              "line": [
+                10,
+                82
+              ]
+            },
+            {
+              "i": 60,
+              "reason": "fork",
+              "line": [
+                60,
+                82
+              ]
+            },
+            {
+              "i": 74,
+              "reason": "fork",
+              "line": [
+                74,
+                82
+              ]
+            },
+            {
+              "i": 150,
+              "reason": "fork",
+              "line": [
+                150,
+                82
+              ]
+            },
+            {
+              "i": 164,
+              "reason": "fork",
+              "line": [
+                164,
+                82
+              ]
+            },
+            {
+              "i": 214,
+              "reason": "fork",
+              "line": [
+                214,
+                82
+              ]
+            },
+            {
+              "i": 220,
+              "reason": "fork",
+              "line": [
+                220,
+                82
+              ]
+            },
+            {
+              "i": 120,
+              "reason": "fork",
+              "line": [
+                120,
+                82
+              ]
+            },
+            {
+              "i": 31,
+              "reason": "fork",
+              "line": [
+                31,
+                82
+              ]
+            },
+            {
+              "i": 17,
+              "reason": "fork",
+              "line": [
+                17,
+                82
+              ]
+            },
+            {
+              "i": 27,
+              "reason": "fork",
+              "line": [
+                27,
+                82
+              ]
+            },
+            {
+              "i": 43,
+              "reason": "fork",
+              "line": [
+                43,
+                82
+              ]
+            },
+            {
+              "i": 193,
+              "reason": "fork",
+              "line": [
+                193,
+                82
+              ]
+            },
+            {
+              "i": 197,
+              "reason": "fork",
+              "line": [
+                197,
+                82
+              ]
+            },
+            {
+              "i": 207,
+              "reason": "fork",
+              "line": [
+                207,
+                82
+              ]
+            },
+            {
+              "i": 3,
+              "reason": "fork",
+              "line": [
+                3,
+                82
+              ]
+            },
+            {
+              "i": 11,
+              "reason": "fork",
+              "line": [
+                11,
+                82
+              ]
+            },
+            {
+              "i": 59,
+              "reason": "fork",
+              "line": [
+                59,
+                82
+              ]
+            },
+            {
+              "i": 165,
+              "reason": "fork",
+              "line": [
+                165,
+                82
+              ]
+            },
+            {
+              "i": 179,
+              "reason": "fork",
+              "line": [
+                179,
+                82
+              ]
+            },
+            {
+              "i": 213,
+              "reason": "fork",
+              "line": [
+                213,
+                82
+              ]
+            },
+            {
+              "i": 221,
+              "reason": "fork",
+              "line": [
+                221,
+                82
+              ]
+            },
+            {
+              "i": 16,
+              "reason": "fork",
+              "line": [
+                16,
+                82
+              ]
+            },
+            {
+              "i": 28,
+              "reason": "fork",
+              "line": [
+                28,
+                82
+              ]
+            },
+            {
+              "i": 196,
+              "reason": "fork",
+              "line": [
+                196,
+                82
+              ]
+            },
+            {
+              "i": 208,
+              "reason": "fork",
+              "line": [
+                208,
+                82
+              ]
+            },
+            {
+              "i": 45,
+              "reason": "fork",
+              "line": [
+                45,
+                82
+              ]
+            },
+            {
+              "i": 181,
+              "reason": "fork",
+              "line": [
+                181,
+                82
+              ]
+            },
+            {
+              "i": 2,
+              "reason": "fork",
+              "line": [
+                2,
+                82
+              ]
+            },
+            {
+              "i": 12,
+              "reason": "fork",
+              "line": [
+                12,
+                82
+              ]
+            },
+            {
+              "i": 30,
+              "reason": "fork",
+              "line": [
+                30,
+                82
+              ]
+            },
+            {
+              "i": 44,
+              "reason": "fork",
+              "line": [
+                44,
+                82
+              ]
+            },
+            {
+              "i": 180,
+              "reason": "fork",
+              "line": [
+                180,
+                82
+              ]
+            },
+            {
+              "i": 194,
+              "reason": "fork",
+              "line": [
+                194,
+                82
+              ]
+            },
+            {
+              "i": 212,
+              "reason": "fork",
+              "line": [
+                212,
+                82
+              ]
+            },
+            {
+              "i": 222,
+              "reason": "fork",
+              "line": [
+                222,
+                82
+              ]
+            },
+            {
+              "i": 1,
+              "reason": "fork",
+              "line": [
+                1,
+                82
+              ]
+            },
+            {
+              "i": 13,
+              "reason": "fork",
+              "line": [
+                13,
+                82
+              ]
+            },
+            {
+              "i": 15,
+              "reason": "fork",
+              "line": [
+                15,
+                82
+              ]
+            },
+            {
+              "i": 29,
+              "reason": "fork",
+              "line": [
+                29,
+                82
+              ]
+            },
+            {
+              "i": 209,
+              "reason": "fork",
+              "line": [
+                209,
+                82
+              ]
+            },
+            {
+              "i": 211,
+              "reason": "fork",
+              "line": [
+                211,
+                82
+              ]
+            },
+            {
+              "i": 223,
+              "reason": "fork",
+              "line": [
+                223,
+                82
+              ]
+            },
+            {
+              "i": 195,
+              "reason": "fork",
+              "line": [
+                195,
+                82
+              ]
+            },
+            {
+              "i": 0,
+              "reason": "fork",
+              "line": [
+                0,
+                82
+              ]
+            },
+            {
+              "i": 14,
+              "reason": "fork",
+              "line": [
+                14,
+                82
+              ]
+            },
+            {
+              "i": 210,
+              "reason": "fork",
+              "line": [
+                210,
+                82
+              ]
+            },
+            {
+              "i": 224,
+              "reason": "fork",
+              "line": [
+                224,
+                82
+              ]
+            }
+          ],
+          "engineVersion": "unified-initiative-1",
+          "memory": 0,
+          "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+          "patternHint": null,
+          "proofStatus": "UNRESOLVED",
+          "unverifiedDefense": true,
+          "assessmentStatus": "BOUNDED_FAVORABLE",
+          "timedOut": false,
+          "analysisIncomplete": false,
+          "workerError": null
+        }
+      },
+      "version": "통합 v5.14.0 · GPU",
+      "first": 2,
+      "me": 1,
+      "turn": 1,
+      "context": {
+        "firstPlayer": 2,
+        "strategyVersion": "initiative-1",
+        "strategyEnabled": true
+      },
+      "cursor": 7,
+      "events": [
+        {
+          "p": 2,
+          "type": "move",
+          "i": 112
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 111
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 127
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 125
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 113
+        },
+        {
+          "p": 1,
+          "type": "timeout",
+          "i": null
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 97
+        }
+      ],
+      "board": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "move": "H10",
+      "legal": true,
+      "proofStatus": "UNRESOLVED",
+      "assessmentStatus": "BOUNDED_FAVORABLE",
+      "ms": 870,
+      "gpuStatus": "GPU 정상 · nvidia blackwell · 59,049개 패턴 검증 완료 · 준비 175ms",
+      "computeMode": "gpu"
+    },
+    {
+      "name": "unavailable WebGPU falls back to CPU",
+      "version": "통합 v5.14.0 · GPU",
+      "first": 2,
+      "me": 1,
+      "turn": 1,
+      "context": {
+        "firstPlayer": 2,
+        "strategyVersion": "initiative-1",
+        "strategyEnabled": true
+      },
+      "cursor": 5,
+      "events": [
+        {
+          "p": 2,
+          "type": "move",
+          "i": 112
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 111
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 127
+        },
+        {
+          "p": 1,
+          "type": "move",
+          "i": 125
+        },
+        {
+          "p": 2,
+          "type": "move",
+          "i": 113
+        }
+      ],
+      "board": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "move": "H7",
+      "legal": true,
+      "proofStatus": "UNRESOLVED",
+      "assessmentStatus": "BOUNDED_FAVORABLE",
+      "ms": 483,
+      "gpuStatus": "GPU 사용 불가 · 현재 CPU 실행: 이 브라우저에서 WebGPU가 제공되지 않습니다. Edge/Chrome의 그래픽 가속 설정을 확인하세요.",
+      "computeMode": "cpu"
+    }
+  ],
+  "errors": [],
+  "gpu": {
+    "adapter": {
+      "vendor": "nvidia",
+      "architecture": "blackwell",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    },
+    "gpuSetupMs": 37.10000002384186,
+    "dispatchReadbackMs": 2.899999976158142,
+    "validationMs": 7.399999976158142,
+    "totalMs": 44.5,
+    "verifiedPatterns": 59049
+  },
+  "passed": true
+}

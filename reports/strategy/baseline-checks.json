@@ -1,0 +1,26 @@
+{
+  "recordedAt": "2026-10-04T17:25:29.270Z",
+  "baselineCommit": "72a11f7fd3bd7b4c922d337b9cfdc036ee0030ed",
+  "command": "npm.cmd test",
+  "exitCode": 0,
+  "readerScenarios": 60,
+  "unifiedScenarios": 35,
+  "trackedFileHashMismatches": [],
+  "gpuPreflight": {
+    "ok": true,
+    "adapter": {
+      "vendor": "nvidia",
+      "architecture": "blackwell",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    },
+    "verifiedPatterns": 59049,
+    "totalMs": 501.5,
+    "dispatchReadbackMs": 8.199999988079071,
+    "browser": "154.0.4258.53",
+    "wallMs": 505,
+    "recordedAt": "2026-10-04T17:23:28.392Z"
+  },
+  "note": "Complete baseline npm test executed; actual browser GPU preparation and shader-table validation separately checked. No baseline/improved strength comparison yet."
+}

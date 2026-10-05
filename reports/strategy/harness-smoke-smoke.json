@@ -1,0 +1,785 @@
+{
+  "version": 1,
+  "kind": "smoke",
+  "label": "harness-smoke",
+  "manifestHash": "c4bbc0feeb3435ea246dc34830e8b60646844cf8668d1b4f8f75a4d93cd74f2a",
+  "createdAt": "2026-10-04T17:36:16.949Z",
+  "metadata": {
+    "browser": "154.0.4258.53",
+    "gpu": {
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "blackwell",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "gpuSetupMs": 244.7000000178814,
+      "dispatchReadbackMs": 4.300000011920929,
+      "validationMs": 10,
+      "totalMs": 254.7000000178814,
+      "verifiedPatterns": 59049,
+      "mode": "gpu"
+    },
+    "computeRequested": "gpu",
+    "versions": {
+      "baseline": {
+        "fingerprint": "9e0101e69418606d77f28c7e6eb6c854da4d561ba8b19cbef7207b60984b61fc"
+      },
+      "improved": {
+        "fingerprint": "7d8c5eb8e833d7a19395a0104f960d36a14cdc30a02e47be6f26a3eb611345ce"
+      }
+    }
+  },
+  "cpu": {
+    "model": "Intel(R) Core(TM) Ultra 7 356H",
+    "logical": 16
+  },
+  "rows": [
+    {
+      "id": "dev-B1/fast/baseline",
+      "case": "dev-B1",
+      "split": "development",
+      "category": "B",
+      "family": "vertical-unique-urgent",
+      "mode": "fast",
+      "version": "baseline",
+      "externalBudgetMs": 900,
+      "requestedPresetMs": 900,
+      "automatic": false,
+      "result": {
+        "i": 172,
+        "reason": "상대의 다음 5목을 막는 필수 방어",
+        "depth": 1,
+        "nodes": 0,
+        "ms": 16,
+        "score": 0,
+        "pv": [
+          172
+        ],
+        "proven": false,
+        "lossProven": false,
+        "forcedLoss": false,
+        "threats": [
+          172
+        ],
+        "shape": {
+          "threes": [],
+          "fours": [],
+          "details": [
+            {
+              "axis": 0,
+              "three": [],
+              "four": []
+            },
+            {
+              "axis": 1,
+              "three": [],
+              "four": []
+            },
+            {
+              "axis": 2,
+              "three": [],
+              "four": []
+            },
+            {
+              "axis": 3,
+              "three": [],
+              "four": []
+            }
+          ],
+          "win": [],
+          "legal": true,
+          "reason": "",
+          "fork43": false
+        },
+        "urgent": true,
+        "forbiddenDefense": null,
+        "defenseChecked": false,
+        "fallback": false,
+        "kind": "block",
+        "autoReason": "유일한 즉시 방어점 · 이후 판세 미검사",
+        "automatic": true,
+        "candidates": [
+          {
+            "i": 172,
+            "score": 0,
+            "pv": [
+              172
+            ],
+            "status": "mandatory"
+          }
+        ],
+        "rejected": [],
+        "engineVersion": "unified-4.0",
+        "memory": 0,
+        "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+        "proofStatus": "UNRESOLVED",
+        "unverifiedDefense": true,
+        "timedOut": false
+      },
+      "error": null,
+      "invalid": null,
+      "elapsedMs": 16.299999982118607,
+      "progress": [],
+      "acceptanceProblems": [],
+      "continuation": [
+        {
+          "p": 1,
+          "i": 172,
+          "coord": "H12"
+        },
+        {
+          "p": 2,
+          "i": 141,
+          "coord": "G10",
+          "engine": "baseline",
+          "depth": 4,
+          "score": -279,
+          "proven": false,
+          "elapsedMs": 858.7999999821186
+        },
+        {
+          "p": 1,
+          "i": 3,
+          "coord": "D1",
+          "engine": "baseline",
+          "depth": 4,
+          "score": -326,
+          "proven": false,
+          "elapsedMs": 857.3000000119209
+        }
+      ],
+      "continuationStatus": "two-followups-played"
+    },
+    {
+      "id": "dev-B1/fast/improved",
+      "case": "dev-B1",
+      "split": "development",
+      "category": "B",
+      "family": "vertical-unique-urgent",
+      "mode": "fast",
+      "version": "improved",
+      "externalBudgetMs": 900,
+      "requestedPresetMs": 900,
+      "automatic": false,
+      "result": {
+        "i": 172,
+        "reason": "상대의 다음 5목을 막는 필수 방어",
+        "depth": 1,
+        "nodes": 0,
+        "ms": 19,
+        "score": 0,
+        "pv": [
+          172
+        ],
+        "proven": false,
+        "lossProven": false,
+        "forcedLoss": false,
+        "threats": [
+          172
+        ],
+        "shape": {
+          "threes": [],
+          "fours": [],
+          "details": [
+            {
+              "axis": 0,
+              "three": [],
+              "four": []
+            },
+            {
+              "axis": 1,
+              "three": [],
+              "four": []
+            },
+            {
+              "axis": 2,
+              "three": [],
+              "four": []
+            },
+            {
+              "axis": 3,
+              "three": [],
+              "four": []
+            }
+          ],
+          "win": [],
+          "legal": true,
+          "reason": "",
+          "fork43": false
+        },
+        "urgent": true,
+        "forbiddenDefense": null,
+        "defenseChecked": false,
+        "fallback": false,
+        "kind": "block",
+        "autoReason": "유일한 즉시 방어점 · 이후 판세 미검사",
+        "automatic": true,
+        "strategy": {
+          "initiative": "opponent",
+          "firstPlayer": 1,
+          "strategyVersion": "initiative-1",
+          "evidence": {
+            "ownWins": [],
+            "enemyWins": [
+              172
+            ],
+            "forcingAxes": [
+              0
+            ],
+            "opponentAxes": [
+              1
+            ],
+            "commonAnchors": 0,
+            "opponentCommonAnchors": 0,
+            "replyCoverage": "not-checked"
+          },
+          "context": {
+            "firstPlayer": 1,
+            "strategyVersion": "initiative-1",
+            "strategyEnabled": true
+          },
+          "selected": null
+        },
+        "comparisonSource": "reader",
+        "candidates": [
+          {
+            "i": 172,
+            "score": 0,
+            "pv": [
+              172
+            ],
+            "status": "mandatory",
+            "depth": 1,
+            "comparisonSource": "reader",
+            "comparisonComplete": true
+          }
+        ],
+        "rejected": [],
+        "engineVersion": "unified-initiative-1",
+        "memory": 0,
+        "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+        "proofStatus": "UNRESOLVED",
+        "unverifiedDefense": true,
+        "assessmentStatus": "BLOCKING_UNCHECKED",
+        "timedOut": false,
+        "analysisIncomplete": false,
+        "workerError": null
+      },
+      "error": null,
+      "invalid": null,
+      "elapsedMs": 19.5,
+      "progress": [],
+      "acceptanceProblems": [],
+      "continuation": [
+        {
+          "p": 1,
+          "i": 172,
+          "coord": "H12"
+        },
+        {
+          "p": 2,
+          "i": 141,
+          "coord": "G10",
+          "engine": "baseline",
+          "depth": 4,
+          "score": -279,
+          "proven": false,
+          "elapsedMs": 858.2999999821186
+        },
+        {
+          "p": 1,
+          "i": 6,
+          "coord": "G1",
+          "engine": "improved",
+          "depth": 1,
+          "score": 9999997,
+          "proven": false,
+          "elapsedMs": 486
+        }
+      ],
+      "continuationStatus": "two-followups-played"
+    }
+  ],
+  "games": [
+    {
+      "id": "O1-fast-0",
+      "opening": "O1",
+      "mode": "fast",
+      "stage": 1,
+      "improvedFirst": false,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O1-fast-1",
+      "opening": "O1",
+      "mode": "fast",
+      "stage": 1,
+      "improvedFirst": true,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O1-auto-0",
+      "opening": "O1",
+      "mode": "auto",
+      "stage": 1,
+      "improvedFirst": false,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O1-auto-1",
+      "opening": "O1",
+      "mode": "auto",
+      "stage": 1,
+      "improvedFirst": true,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O1-deep25-0",
+      "opening": "O1",
+      "mode": "deep25",
+      "stage": 1,
+      "improvedFirst": false,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O1-deep25-1",
+      "opening": "O1",
+      "mode": "deep25",
+      "stage": 1,
+      "improvedFirst": true,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O2-fast-0",
+      "opening": "O2",
+      "mode": "fast",
+      "stage": 2,
+      "improvedFirst": true,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O2-fast-1",
+      "opening": "O2",
+      "mode": "fast",
+      "stage": 2,
+      "improvedFirst": false,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O2-auto-0",
+      "opening": "O2",
+      "mode": "auto",
+      "stage": 2,
+      "improvedFirst": true,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O2-auto-1",
+      "opening": "O2",
+      "mode": "auto",
+      "stage": 2,
+      "improvedFirst": false,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O2-deep25-0",
+      "opening": "O2",
+      "mode": "deep25",
+      "stage": 2,
+      "improvedFirst": true,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O2-deep25-1",
+      "opening": "O2",
+      "mode": "deep25",
+      "stage": 2,
+      "improvedFirst": false,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O3-fast-0",
+      "opening": "O3",
+      "mode": "fast",
+      "stage": 3,
+      "improvedFirst": false,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O3-fast-1",
+      "opening": "O3",
+      "mode": "fast",
+      "stage": 3,
+      "improvedFirst": true,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O3-auto-0",
+      "opening": "O3",
+      "mode": "auto",
+      "stage": 3,
+      "improvedFirst": false,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O3-auto-1",
+      "opening": "O3",
+      "mode": "auto",
+      "stage": 3,
+      "improvedFirst": true,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O3-deep25-0",
+      "opening": "O3",
+      "mode": "deep25",
+      "stage": 3,
+      "improvedFirst": false,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O3-deep25-1",
+      "opening": "O3",
+      "mode": "deep25",
+      "stage": 3,
+      "improvedFirst": true,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O4-fast-0",
+      "opening": "O4",
+      "mode": "fast",
+      "stage": 4,
+      "improvedFirst": true,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O4-fast-1",
+      "opening": "O4",
+      "mode": "fast",
+      "stage": 4,
+      "improvedFirst": false,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O4-auto-0",
+      "opening": "O4",
+      "mode": "auto",
+      "stage": 4,
+      "improvedFirst": true,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O4-auto-1",
+      "opening": "O4",
+      "mode": "auto",
+      "stage": 4,
+      "improvedFirst": false,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O4-deep25-0",
+      "opening": "O4",
+      "mode": "deep25",
+      "stage": 4,
+      "improvedFirst": true,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O4-deep25-1",
+      "opening": "O4",
+      "mode": "deep25",
+      "stage": 4,
+      "improvedFirst": false,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O5-fast-0",
+      "opening": "O5",
+      "mode": "fast",
+      "stage": 5,
+      "improvedFirst": false,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O5-fast-1",
+      "opening": "O5",
+      "mode": "fast",
+      "stage": 5,
+      "improvedFirst": true,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O5-auto-0",
+      "opening": "O5",
+      "mode": "auto",
+      "stage": 5,
+      "improvedFirst": false,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O5-auto-1",
+      "opening": "O5",
+      "mode": "auto",
+      "stage": 5,
+      "improvedFirst": true,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O5-deep25-0",
+      "opening": "O5",
+      "mode": "deep25",
+      "stage": 5,
+      "improvedFirst": false,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O5-deep25-1",
+      "opening": "O5",
+      "mode": "deep25",
+      "stage": 5,
+      "improvedFirst": true,
+      "firstPlayer": 1,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O6-fast-0",
+      "opening": "O6",
+      "mode": "fast",
+      "stage": 6,
+      "improvedFirst": true,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O6-fast-1",
+      "opening": "O6",
+      "mode": "fast",
+      "stage": 6,
+      "improvedFirst": false,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O6-auto-0",
+      "opening": "O6",
+      "mode": "auto",
+      "stage": 6,
+      "improvedFirst": true,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O6-auto-1",
+      "opening": "O6",
+      "mode": "auto",
+      "stage": 6,
+      "improvedFirst": false,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O6-deep25-0",
+      "opening": "O6",
+      "mode": "deep25",
+      "stage": 6,
+      "improvedFirst": true,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    },
+    {
+      "id": "O6-deep25-1",
+      "opening": "O6",
+      "mode": "deep25",
+      "stage": 6,
+      "improvedFirst": false,
+      "firstPlayer": 2,
+      "status": "pending",
+      "moves": [],
+      "interruptions": [],
+      "totalElapsedMs": 0
+    }
+  ],
+  "runs": [
+    {
+      "startedAt": "2026-10-04T17:36:16.950Z",
+      "minutes": 0.5,
+      "stage": 1,
+      "selectedModes": [
+        "fast"
+      ],
+      "split": "development",
+      "gpuPreparation": {
+        "adapter": {
+          "vendor": "nvidia",
+          "architecture": "blackwell",
+          "device": "",
+          "description": "",
+          "isFallbackAdapter": false
+        },
+        "gpuSetupMs": 244.7000000178814,
+        "dispatchReadbackMs": 4.300000011920929,
+        "validationMs": 10,
+        "totalMs": 254.7000000178814,
+        "verifiedPatterns": 59049,
+        "mode": "gpu"
+      },
+      "completedJobs": 2,
+      "stopReason": null,
+      "finishedAt": "2026-10-04T17:36:20.076Z",
+      "elapsedMs": 4555
+    }
+  ],
+  "summary": {
+    "scheduled": 36,
+    "completed": 0,
+    "unfinished": 0,
+    "pending": 36,
+    "first": {
+      "wins": 0,
+      "draws": 0,
+      "losses": 0
+    },
+    "second": {
+      "wins": 0,
+      "draws": 0,
+      "losses": 0
+    }
+  }
+}

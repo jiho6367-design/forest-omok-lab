@@ -29,9 +29,9 @@ $('budget').onchange=event=>{
  syncGPUProfile();previousBudgetChange?.(event);
 };
 syncGPUProfile(true);
-versionBadge.textContent='통합 v5.13.1 · GPU';
-versionBadge.setAttribute('aria-label','통합 버전 5.13.1');
-versionBadge.title='GPU 혼합 분석 · 분석 모드 3종 · 정확한 5목 우선 고정';
+versionBadge.textContent='통합 v5.14.0 · GPU';
+versionBadge.setAttribute('aria-label','통합 버전 5.14.0');
+versionBadge.title='공격 연결·선제 차단·주도권 분석 · GPU 혼합 · 정확한 5목 우선';
 let gpuPrepared=null,cpuPatterns=null,modeRequest=0,benchmarkWorker=null,cancelBenchmark=null;
 async function selectComputeMode(reanalyze=false){
  const request=++modeRequest,mode=$('computeMode').value;stopWorker();globalThis.omokAcceleration={mode:'cpu',table:null,optimized:false};
@@ -76,4 +76,4 @@ async function benchmarkGPU(){
 }
 $('gpuBenchmark').onclick=benchmarkGPU;
 $('gpuCancel').onclick=()=>cancelBenchmark?.();
-selectComputeMode().then(()=>{if(location.search.includes('diagnostics')){$('setup').close();benchmarkGPU();}});
+selectComputeMode(true).then(()=>{if(location.search.includes('diagnostics')){$('setup').close();benchmarkGPU();}});

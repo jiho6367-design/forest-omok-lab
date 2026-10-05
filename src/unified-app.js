@@ -3,6 +3,7 @@
 stopWorker();
 const analysisPlan=document.createElement('p');analysisPlan.id='analysisPlan';analysisPlan.className='muted';$('sequence').after(analysisPlan);
 const predictionNote=document.createElement('p');predictionNote.id='predictionNote';predictionNote.className='muted';analysisPlan.after(predictionNote);
+const strategyNote=document.createElement('p');strategyNote.id='strategyEvidence';strategyNote.className='muted';predictionNote.after(strategyNote);
 const candidateList=document.createElement('div');candidateList.className='row';candidateList.id='candidates';$('reason').after(candidateList);
 const ruleLabel=document.createElement('p');ruleLabel.className='muted';$('turnInfo').after(ruleLabel);
 function setAnalysisStatus(label,detail,mode='ready'){
@@ -13,7 +14,7 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority" disabled><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.12.5';versionBadge.title='자동 종료: 완료 깊이·PV·후보 순위·평가 격차 안정성 확인';versionBadge.setAttribute('aria-label','통합 버전 5.12.5');
+versionBadge.textContent='통합 v5.14.0';versionBadge.title='공격 연결·선제 차단·응수 비교와 주도권 근거';versionBadge.setAttribute('aria-label','통합 버전 5.14.0');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
 wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 아래에서 선택한 시간으로 분석합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 $('budget').replaceChildren();
@@ -44,7 +45,8 @@ persist=function(){
 const baseStopWorker=stopWorker;
 function cancelPonder(){ponder?.worker?.terminate();ponder=null;predictionNote.textContent='';}
 stopWorker=function(){if(!keepPonder)cancelPonder();baseStopWorker();};
-const positionKey=(board,p)=>[g?.id,p,g?.rules?.fivePriority!==false,board.join('')].join('|');
+const positionKey=(board,p)=>[g?.id,g?.first??'unknown',p,g?.rules?.fivePriority!==false,
+  E.getContext?.().strategyVersion||E.strategyVersion||'legacy',globalThis.omokAcceleration?.mode||'cpu',board.join('')].join('|');
 function configuredOwnBudget(board,p,available=40000,explicit){
   const choice=explicit??($('budget').value==='auto'?null:+$('budget').value);
   const plan=choice==null?E.suggestBudget(board,p,available):{ms:Math.max(30,Math.min(choice,available-3000)),reason:'직접 선택'};
@@ -63,7 +65,7 @@ function selectedBudget(board,p,explicit){
 }
 function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   const started=performance.now();
-  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const E=createEngine({...e.data.rules,patternTable:e.data.patternTable,optimized:e.data.optimized});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r}));postMessage({result:r})}catch(x){postMessage({error:String(x)})}}';
+  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const E=createEngine({...e.data.rules,firstPlayer:e.data.firstPlayer,patternTable:e.data.patternTable,optimized:e.data.optimized});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r}));postMessage({result:r})}catch(x){postMessage({error:String(x)})}}';
   const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));let w;
   try{w=new Worker(url);}finally{URL.revokeObjectURL(url);}
   const limit=typeof budget==='object'?budget.ms:Number(budget);
@@ -80,7 +82,12 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   },100);
   const terminate=w.terminate.bind(w);
   w.terminate=()=>{finished=true;clearTimeout(timer);clearInterval(heartbeat);terminate();};
-  const finish=(result,error)=>{if(finished)return;finished=true;clearTimeout(timer);w.terminate();if(result)onDone({...result,ms:Math.round(performance.now()-started),timedOut:!!error});else onError(error||'Worker 오류');};
+  const finish=(result,error)=>{if(finished)return;finished=true;clearTimeout(timer);w.terminate();if(result){
+    const timedOut=error==='시간 상한 도달'||!!result.timedOut;
+    const output={...result,ms:Math.round(performance.now()-started),timedOut,
+      analysisIncomplete:!!error||!!result.analysisIncomplete,workerError:error||result.workerError||null};
+    onDone(E.finalizeResult?E.finalizeResult(board,p,output):output);
+  }else onError(error||'Worker 오류');};
   // A terminated Worker cannot finish an incomplete depth. Only retain a
   // completed progress report; the initial provisional candidate is excluded.
   timer=setTimeout(()=>{
@@ -96,9 +103,10 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
       if(r?.depth>0||r?.proven||r?.lossProven)lastVerified=r;onProgress(r);}
     else finish(e.data.result);};
   w.onerror=e=>finish(lastVerified,e.message||'Worker 오류');
-  w.postMessage({patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{}});return w;
+  w.postMessage({firstPlayer:g?.first??null,patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{}});return w;
 }
 function acceptResult(result,partial=false){
+  if(result&&E.finalizeResult)result=E.finalizeResult(b,turn,result);
   if(!result||(result.i!=null&&!E.inspect(b,result.i,turn).legal))return false;
   rec=result;lastProgress=result;
   if(partial)setAnalysisStatus('분석 중','현재 표시는 임시 후보입니다. 계산이 끝나면 최종 추천으로 바뀝니다.','thinking');
@@ -107,7 +115,10 @@ function acceptResult(result,partial=false){
     `상대의 ${E.coord(result.forbiddenDefense)} 5목을 막는 수가 3×3 금수입니다. 표시된 합법 수는 승리 수가 아닙니다.`:
     '강제패배가 확인되었습니다. 표시된 합법 수는 승리 수가 아닙니다.','warning');
   else if(result.i==null)setAnalysisStatus('분석 완료 · 추천 없음','검사한 후보가 배제되었고 안전한 대안을 확인하지 못했습니다. 더 이른 수에서 복기하세요.','warning');
-  else if(result.unverifiedDefense)setAnalysisStatus('분석 완료 · 방어 미증명','강제패배가 확인되었거나 응수 검사가 끝나지 않은 위험 후보를 제외했습니다. 현재 좌표는 합법 대안이며 무패는 확인되지 않았습니다.','warning');
+  else if(result.assessmentStatus==='BOUNDED_FAVORABLE')setAnalysisStatus('분석 완료 · 제한 비교 추천','완료된 깊이에서 공격·방어를 비교한 추천입니다. 강제승이나 이후 안전의 증명은 아닙니다.','complete');
+  else if(result.assessmentStatus==='BLOCKING_UNCHECKED')setAnalysisStatus('분석 완료 · 차단 후보','상대 위협이나 연결을 차단하는 후보입니다. 그 뒤의 안전과 승리는 확인되지 않았습니다.','warning');
+  else if(result.assessmentStatus==='INCOMPLETE')setAnalysisStatus('분석 완료 · 판단 미완료',result.timedOut?'시간 상한에 도달했습니다. 마지막 완료 깊이와 합법 후보를 보존했으며 이후 안전은 미확인입니다.':'응수 비교가 충분히 완료되지 않았습니다. 합법 후보이며 승리·안전은 미확인입니다.','warning');
+  else if(result.unverifiedDefense)setAnalysisStatus('분석 완료 · 방어 미증명','현재 좌표는 합법 대안이며 이후 안전은 확인되지 않았습니다.','warning');
   else setAnalysisStatus('분석 완료','아래 1순위가 최종 추천입니다. 해당 좌표를 두세요.','complete');
   render();return true;
 }
@@ -155,11 +166,15 @@ render=function(){unifiedRender();
   ruleLabel.textContent=g?`정확한 5목 우선 (숲속 기존 규칙) · ${g.timer===false?'시간 제한 없음':'40초 초과 PASS'}`:'';
   candidateList.replaceChildren();
   for(const [k,m] of (rec?.candidates||[]).slice(0,3).entries()){
-    const el=document.createElement('span');el.className='badge';el.textContent=`${k+1}순위 ${E.coord(m.i)}`;candidateList.append(el);
+    const el=document.createElement('span');el.className='badge';el.textContent=`${k+1}순위 ${E.coord(m.i)}${m.comparisonComplete?' · '+m.depth+'반수':''}`;candidateList.append(el);
   }
   analysisPlan.textContent=rec?.autoReason?'자동 분석 · '+rec.autoReason:activePlan;
   if(rec?.lossProven||rec?.proven)$('metrics').textContent=(rec.proven?'강제승 확인':'강제패배 확인 · 합법 후보 유지')+` · ${rec.ms||0}ms`;
   if(rec?.i!=null&&!rec.proven&&!rec.lossProven)$('metrics').textContent=`완료 깊이 ${rec.depth||0}반수 · ${rec.ms||0}ms · ${(rec.nodes||0).toLocaleString()}노드 · 제한 탐색`;
+  const strategy=rec?.strategy,initiative=strategy?.initiative,
+    initiativeText={own:names[turn]+' 공격 주도',opponent:names[3-turn]+' 공격 주도',contested:'양쪽 위협 경합',unknown:'주도권 판단 불확실'}[initiative];
+  const selected=strategy?.selected;
+  strategyNote.textContent=strategy?`${g?.first===turn?'선공':'후공'} 착수자 · ${initiativeText||'주도권 판단 불확실'}${selected?.cut>0?' · 상대 연결 차단 근거 있음':''}${selected?.dual>0?' · 차단과 공격 연결을 겸함':''} · 제한 응수 검사, 안전 보장 아님`:'';
 };
 
 // Text records are parsed before changing the current game. Forest JSON stays
