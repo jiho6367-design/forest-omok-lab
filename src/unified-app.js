@@ -14,7 +14,7 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority" disabled><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.14.7';versionBadge.title='공격 연결·선제 차단·응수 비교와 주도권 근거';versionBadge.setAttribute('aria-label','통합 버전 5.14.7');
+versionBadge.textContent='통합 v5.15.0';versionBadge.title='턴 사이 탐색 기록 재사용 · 공격 연결·선제 차단';versionBadge.setAttribute('aria-label','통합 버전 5.15.0');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
 wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 추천 카드의 분석 시간 설정으로 계산합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 const settingsPolicy=OmokAnalysisSettings;
@@ -88,13 +88,22 @@ function selectedBudget(board,p){
 }
 function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   const started=performance.now();
-  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const E=createEngine({...e.data.rules,firstPlayer:e.data.firstPlayer,patternTable:e.data.patternTable,optimized:e.data.optimized});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r}));postMessage({result:r})}catch(x){postMessage({error:String(x)})}}';
+  // Main-page session memory survives normal completion and hard cancellation.
+  // Foreground and predicted-reply Workers import the same completed nodes.
+  const memoryKey=[g?.id??'session',g?.first??'unknown',g?.rules?.fivePriority!==false,
+    E.strategyVersion||'initiative-1',globalThis.omokAcceleration?.mode||'cpu'].join('|');
+  let session=null;
+  if(typeof OmokSearchMemory!=='undefined'){
+    if(spawnAnalysis.memory?.key!==memoryKey)spawnAnalysis.memory={key:memoryKey,store:OmokSearchMemory.create()};
+    session=spawnAnalysis.memory;session.store.begin();
+  }
+  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const memory=typeof OmokSearchMemory!=="undefined"?OmokSearchMemory.create({snapshot:e.data.searchMemory}):null;const E=createEngine({...e.data.rules,firstPlayer:e.data.firstPlayer,patternTable:e.data.patternTable,optimized:e.data.optimized,searchMemory:memory});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r,searchMemory:memory?.delta(512)}));postMessage({result:r,searchMemory:memory?.delta(4096)})}catch(x){postMessage({error:String(x)})}}';
   const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));let w;
   try{w=new Worker(url);}finally{URL.revokeObjectURL(url);}
   const limit=typeof budget==='object'?budget.ms:Number(budget);
   const reserve=Math.min(1500,Math.max(60,limit*.06)),searchLimit=Math.max(30,limit-reserve);
   const searchBudget=typeof budget==='object'?{...budget,ms:searchLimit}:searchLimit;
-  let finished=false,lastVerified=null,lastLegal=null;
+  let finished=false,lastVerified=null,lastLegal=null,latestRefuted=new Set(),latestRefutations=new Map();
   const health=spawnAnalysis.health||(spawnAnalysis.health={blockedUntil:0,healthySince:0,lastLag:0});
   let tickAt=performance.now(),timer;
   const heartbeat=setInterval(()=>{
@@ -105,7 +114,20 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   },100);
   const terminate=w.terminate.bind(w);
   w.terminate=()=>{finished=true;clearTimeout(timer);clearInterval(heartbeat);terminate();};
-  const finish=(result,error)=>{if(finished)return;finished=true;clearTimeout(timer);w.terminate();if(result){
+  const rejectedSnapshot=r=>!!r&&!r.lossProven&&r.i!=null&&latestRefuted.has(r.i);
+  const rememberRefutations=r=>{
+    for(const m of r?.rejected||[])if(m.pv?.length||m.line?.length||m.replyTrap||m.verifiedRefutation){latestRefuted.add(m.i);latestRefutations.set(m.i,m);}
+    if(lastVerified&&rejectedSnapshot(lastVerified))lastVerified=null;
+    if(lastLegal&&rejectedSnapshot(lastLegal))lastLegal=null;
+  };
+  const retainEvidence=r=>r?{...r,rejected:[...new Map([...(r.rejected||[]).map(m=>[m.i,m]),...latestRefutations]).values()],
+    candidates:(r.candidates||[]).filter(m=>r.lossProven||!latestRefuted.has(m.i))}:r;
+  const available=()=>lastVerified||(lastLegal?{...lastLegal,depth:0,unverifiedDefense:true}:null)||E.urgent(board,p)||{
+    i:Array.from({length:225},(_,i)=>i).find(i=>!latestRefuted.has(i)&&E.inspect(board,i,p).legal)??Array.from({length:225},(_,i)=>i).find(i=>E.inspect(board,i,p).legal)??null,
+    depth:0,nodes:0,pv:[],unverifiedDefense:true,candidates:[]};
+  const finish=(result,error)=>{if(finished)return;rememberRefutations(result);
+    if(rejectedSnapshot(result)){result=available();error=error||'반증된 이전 추천 제외 · 대안 검사 미완료';}
+    finished=true;clearTimeout(timer);w.terminate();if(result){result=retainEvidence(result);
     const timedOut=error==='시간 상한 도달'||!!result.timedOut;
     const output={...result,ms:Math.round(performance.now()-started),timedOut,
       analysisIncomplete:!!error||!!result.analysisIncomplete,workerError:error||result.workerError||null,externalBudgetMs:limit,internalBudgetMs:searchLimit};
@@ -116,17 +138,25 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   timer=setTimeout(()=>{
     const fallback=lastVerified||(lastLegal?{...lastLegal,depth:0,
       reason:'시간 상한 도달 · 임시 합법 후보 (깊이 검증 미완료)',unverifiedDefense:true}:null)||E.urgent(board,p)||{
-      i:Array.from({length:225},(_,i)=>i).find(i=>E.inspect(board,i,p).legal)??null,
+      i:Array.from({length:225},(_,i)=>i).find(i=>!latestRefuted.has(i)&&E.inspect(board,i,p).legal)??Array.from({length:225},(_,i)=>i).find(i=>E.inspect(board,i,p).legal)??null,
       depth:0,nodes:0,pv:[],reason:'시간 상한 도달 · 합법 후보 (심층 검증 미완료)',
       unverifiedDefense:true,candidates:[]};
     finish(fallback,'시간 상한 도달');
   },Math.max(0,limit-(performance.now()-started)));
-  w.onmessage=e=>{if(finished)return;if(e.data.error)finish(lastVerified,e.data.error);
-    else if(e.data.progress){const r=e.data.result;if(r?.i!=null&&E.inspect(board,r.i,p).legal)lastLegal=r;
-      if(r?.depth>0||r?.proven||r?.lossProven)lastVerified=r;onProgress(r);}
+  w.onmessage=e=>{if(finished)return;
+    if(session&&spawnAnalysis.memory===session)session.store.merge(e.data.searchMemory);
+    if(e.data.error)finish(lastVerified,e.data.error);
+    else if(e.data.progress){const r=e.data.result;
+      // New proof evidence supersedes older comparison snapshots, including
+      // when the replacement has no completed depth. The watchdog must not
+      // restore a refuted move after cancellation or timeout.
+      rememberRefutations(r);if(rejectedSnapshot(r))return;
+      const legal=r?.i!=null&&E.inspect(board,r.i,p).legal;
+      if(legal)lastLegal=r;
+      if(r?.lossProven||legal&&(r?.depth>0||r?.proven))lastVerified=r;onProgress(retainEvidence(r));}
     else finish(e.data.result);};
   w.onerror=e=>finish(lastVerified,e.message||'Worker 오류');
-  w.postMessage({firstPlayer:g?.first??null,patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{}});return w;
+  w.postMessage({firstPlayer:g?.first??null,patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{},searchMemory:session?.store.snapshot()});return w;
 }
 function acceptResult(result,partial=false){
   if(result&&E.finalizeResult)result=E.finalizeResult(b,turn,result);
@@ -198,6 +228,7 @@ render=function(){unifiedRender();
   analysisPlan.textContent=formatAnalysisPlan(rec?.analysisPolicy||currentAnalysisPolicy,rec)||activePlan;
   if(rec?.lossProven||rec?.proven)$('metrics').textContent=(rec.proven?'강제승 확인':'강제패배 확인 · 합법 후보 유지')+` · ${rec.ms||0}ms`;
   if(rec?.i!=null&&!rec.proven&&!rec.lossProven)$('metrics').textContent=`완료 깊이 ${rec.depth||0}반수 · ${rec.ms||0}ms · ${(rec.nodes||0).toLocaleString()}노드 · 제한 탐색`;
+  if(rec?.searchMemory?.reused)$('metrics').textContent+=` · 이전 계산 ${rec.searchMemory.reused.toLocaleString()}회 재사용`;
   const strategy=rec?.strategy,initiative=strategy?.initiative,
     initiativeText={own:names[turn]+' 공격 주도',opponent:names[3-turn]+' 공격 주도',contested:'양쪽 위협 경합',unknown:'주도권 판단 불확실'}[initiative];
   const selected=strategy?.selected;

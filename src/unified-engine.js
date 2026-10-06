@@ -5,8 +5,10 @@ function createEngine(options={}) {
   // Exact five takes precedence even when loading a legacy strict-rule setting.
   const normalizeFirst=value=>[1,2].includes(value)?value:null;
   const strategyVersion='initiative-1';
+  const searchMemory=options.searchMemory===false?null:options.searchMemory||
+    (typeof OmokSearchMemory!=='undefined'?OmokSearchMemory.create({snapshot:options.memorySnapshot}):null);
   const rules={fivePriority:true,patternTable:options.patternTable,optimized:options.optimized,
-    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy};
+    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy,searchMemory,memoryManaged:true};
   let forest=createForestEngine(rules);
   const fast=b=>createReaderEngine(15,b,rules);
   const inspect=(b,i,p)=>![1,2].includes(p)?{legal:false,reason:'돌 색 오류',threes:[],fours:[],win:[]}:forest.inspect(b,i,p);
@@ -14,7 +16,7 @@ function createEngine(options={}) {
     rules.fivePriority=true;
     if(Object.prototype.hasOwnProperty.call(next,'firstPlayer')||next.context){
       const firstPlayer=normalizeFirst(next.firstPlayer??next.context?.firstPlayer);
-      if(firstPlayer!==rules.firstPlayer){rules.firstPlayer=firstPlayer;forest=createForestEngine(rules);}
+      if(firstPlayer!==rules.firstPlayer){searchMemory?.clear();rules.firstPlayer=firstPlayer;forest=createForestEngine(rules);}
     }
   }
   const getContext=()=>({firstPlayer:rules.firstPlayer,strategyVersion,strategyEnabled:rules.strategy!==false});
@@ -111,7 +113,7 @@ function createEngine(options={}) {
       forbiddenDefense,
       defenseChecked:first?.status==='screened',fallback:!!r.fallback,kind:r.kind,
       autoReason:r.autoReason,automatic:r.automatic,screeningComplete:r.screeningComplete,
-      forcingChecksComplete:r.forcingChecksComplete,strategy:r.strategy,comparisonSource:'reader',
+      forcingChecksComplete:r.forcingChecksComplete,counterProof:r.counterProof,counterChecks:r.counterChecks,strategy:r.strategy,comparisonSource:'reader',
       candidates:(r.moves||[]).map(m=>{const pv=validPV(board,p,m.pv);return {...m,pv,depth:m.depth??r.depth??0,comparisonSource:'reader',
         comparisonDepthExplicit:Number.isInteger(m.depth)&&m.depth>0,
         comparisonPVComplete:Array.isArray(m.pv)&&m.pv.length>0&&pv.length===m.pv.length&&pv[0]===m.i};}),rejected:r.rejectedMoves||[],
@@ -164,6 +166,30 @@ function createEngine(options={}) {
     const can=forest.canonical(board,p),memory=lessons.filter(l=>l.key===can.key);
     best.memory=memory.length;
     best.patternHint=forest.patternDefense(board,p)?.i??null;
+    // Wide quiet-counter proofs have their own reserve only in the early/middle
+    // game. Dense positions retain Forest's established final-guard time.
+    const counterContextEligible=deep&&limit>=12000&&board.filter(Boolean).length>=16&&board.filter(Boolean).length<=40;
+    let counterContext=counterContextEligible&&e.counterSeeds(3-p,Math.min(40,limit-(clockNow()-started)-1000)).length>0;
+    // Reuse Reader's incremental windows for the complete counter-threat
+    // certificate. Keep the same total move clock and reserve ordinary search
+    // if this bounded proof does not cover every legal defense.
+    if(deep&&!best.proven&&!best.lossProven&&best.i!=null&&limit-(clockNow()-started)>4000&&e.forcingWin(3-p,13,80)){
+      counterContext=counterContextEligible;
+      // Keep at least 12 seconds for the established dense-position search
+      // and final guard; the new global probe may return partial evidence.
+      const available=limit-(clockNow()-started),counterBudget=Math.min(7000,limit*.5,available-3000,
+        counterContextEligible?Infinity:Math.max(0,available-12400));
+      const check=counterBudget>0?e.counterLoss(p,counterBudget,19,1):{lossProven:false,complete:false,branches:[]};
+      if(check.lossProven)return ensureLegalCandidate({...best,lossProven:true,forcedLoss:true,kind:'lost',proven:false,score:-1e8,ms:clockNow()-started,
+        reason:'시간 끌기 반격을 포함한 모든 합법 응수에서 강제패배 확인',rejected:e.counterRejections(p,check),counterProof:{complete:true,checkedRoots:check.branches.length,forcing:19,quiet:1,ms:check.ms},comparisonSource:'reader',automatic});
+      const completed=e.counterRejections(p,check);
+      if(completed.length){
+        best=ensureLegalCandidate({...best,rejected:[...(best.rejected||[]),...completed]});
+        progress({...best,analysisIncomplete:true,reason:best.reason+' · 전체 패배는 미확인, 완료된 개별 반증 보존'});
+        if(best.lossProven)return best;
+      }
+
+    }
     if(!deep||best.proven||best.lossProven||best.kind==='terminal'||best.i==null)return ensureLegalCandidate(best);
     // Freeze per-candidate provenance before later safety exclusions can
     // replace the selected move. A global depth is not another move's work.
@@ -203,10 +229,12 @@ function createEngine(options={}) {
       if(alternative)best={...best,i:alternative.i,score:alternative.score,pv:alternative.pv,shape:inspect(board,alternative.i,p),
         reason:'상대가 강제 방어한 뒤의 반격 위험 제외 · 대안 추가 검증',unverifiedDefense:true};
     }
+    // The final incremental counter proof below replaces the earlier
+    // repeated Forest quiet probes; its reserve is inside this move clock.
     // A quiet counterattack can refute a forced-looking defensive move even
     // when it creates no four. Reserve a bounded proof check before minimax
     // spends the whole 15-second budget on the same losing candidate.
-    if(limit>=12000&&board.filter(Boolean).length>=16&&board.filter(Boolean).length<=40&&
+    if(!counterContext&&limit>=12000&&board.filter(Boolean).length>=16&&board.filter(Boolean).length<=40&&
       forest.forcing(board,3-p,19,120).proof&&limit-(clockNow()-started)>7000){
       for(const m of (best.candidates||[]).slice(0,limit>=20000?3:2)){
         const shape=inspect(board,m.i,p);if(!shape.legal||shape.win.length||clockNow()-started>limit-6000)continue;
@@ -248,7 +276,8 @@ function createEngine(options={}) {
       }
     }
     progress({...best,reason:best.reason+' · 심층 위협 검사 중'});
-    const remaining=limit-(clockNow()-started)-Math.min(400,limit*.04);
+    const counterReserve=counterContext?Math.min(5000,limit*.34):0;
+    const remaining=limit-(clockNow()-started)-Math.min(400,limit*.04)-counterReserve;
     if(remaining>50){
       const extended=forest.analyze(board,p,remaining,lessons);
       if(extended.i!=null&&inspect(board,extended.i,p).legal&&!refuted.has(extended.i)&&(!counterRisk.has(extended.i)||extended.proven)){
@@ -315,6 +344,35 @@ function createEngine(options={}) {
         if(extended.lossProven){best.lossProven=true;best.forcedLoss=true;best.kind='lost';}
       }
     }
+    if(counterContext&&!best.proven&&!best.lossProven&&best.i!=null&&clockNow()-started<limit-80){
+      const checks=[],bad=new Set((best.rejected||[]).filter(refutation).map(m=>m.i)),seen=new Set(),
+        pool=[{i:best.i},...(best.candidates||[])].filter(m=>!seen.has(m.i)&&seen.add(m.i)).slice(0,3),
+        proofEnd=Math.min(started+limit-80,clockNow()+counterReserve);
+      for(const m of pool){
+        if(clockNow()>=proofEnd)break;
+        const check=e.counterMove(m.i,p,Math.max(0,proofEnd-clockNow()),19,2);
+        checks.push({i:m.i,complete:check.complete,refuted:!!check.proof,ms:check.ms,forcing:19,quiet:2});
+        if(!check.proof)continue;
+        bad.add(m.i);best.rejected=[...(best.rejected||[]),{i:m.i,pv:check.proof.pv,reason:'공격 준비와 시간 끌기 반격을 포함한 상대 강제승 확인',counterProof:{forcing:19,quiet:2,complete:true}}];
+        if(bad.has(best.i)){
+          const next=(best.candidates||[]).find(c=>!bad.has(c.i)&&inspect(board,c.i,p).legal);
+          best=next?{...best,i:next.i,pv:next.pv,score:next.score,depth:next.depth||0,proven:false,proof:null,finalGuard:null,counterVerification:null,retainedComparison:null,strategy:best.strategy?{...best.strategy,initiative:'unknown',selectedCheck:null}:null,defenseChecked:false,unverifiedDefense:true,kind:'search',reason:'검증된 강제패배 수 제외 · 공격 대안 비교 유지'}:
+            {...best,i:null,pv:[],depth:0,proven:false,proof:null,finalGuard:null,counterVerification:null,retainedComparison:null,kind:'incomplete'};
+        }
+        // Publish refutations before another probe so cancel/watchdog cannot
+        // return the already refuted, previously compared recommendation.
+        progress({...best,counterChecks:checks.slice(),analysisIncomplete:true,reason:'증명된 패배 수 제외 · 나머지 후보 검사 중'});
+
+      }
+      best.candidates=(best.candidates||[]).filter(m=>!bad.has(m.i));
+      if(bad.has(best.i)){
+        const alternative=best.candidates.find(m=>inspect(board,m.i,p).legal);
+        best=alternative?{...best,i:alternative.i,pv:alternative.pv,score:alternative.score,depth:alternative.depth||0,proven:false,proof:null,kind:'search',finalGuard:null,counterVerification:null,retainedComparison:null,strategy:best.strategy?{...best.strategy,initiative:'unknown',selectedCheck:null}:null,defenseChecked:false,unverifiedDefense:true,reason:'검증된 강제패배 수 제외 · 공격 대안 비교 유지'}:
+          {...best,i:null,pv:[],proven:false,proof:null,finalGuard:null,counterVerification:null,retainedComparison:null,strategy:best.strategy?{...best.strategy,initiative:'unknown',selectedCheck:null}:null,kind:'incomplete',depth:0};
+      }
+      best.counterChecks=checks;
+      best.analysisIncomplete=!!best.analysisIncomplete||best.i==null||checks.some(c=>c.i===best.i&&!c.complete);
+    }
     if(known.length&&!best.proven&&!best.reason.includes('강제패배 수 제외'))
       best.reason=`${forest.coord(known[0].i)} 강제패배 수 제외 · `+best.reason+' · 대안의 전체 승리는 미증명';
     const diagnostics=new Map((best.counterThreats||[]).map(m=>[m.i,m]));
@@ -324,7 +382,8 @@ function createEngine(options={}) {
     return ensureLegalCandidate(best);
   }
   function analyze(board,p,budget='auto',lessons=[],progress=()=>{}) {
-    const describe=r=>finalizeResult(board,p,r);
+    searchMemory?.begin();
+    const describe=r=>({...finalizeResult(board,p,r),searchMemory:searchMemory?.stats()});
     const limit=Number(budget),staged=Number.isFinite(limit)&&limit>=20000;
     if(!staged)return describe(analyzeCore(board,p,budget,lessons,r=>progress(describe(r))));
     const started=clockNow(),deadline=started+limit;
@@ -423,6 +482,9 @@ function createEngine(options={}) {
   // configure can rebuild context-sensitive evaluation caches. Forward public
   // Forest methods to the current instance rather than retaining stale closures.
   const api={...forest};for(const name of Object.keys(api))if(typeof api[name]==='function')api[name]=(...args)=>forest[name](...args);
-  return {...api,configure,getContext,strategyVersion,finalizeResult,inspect,urgent,analyze,suggestBudget,assessMove,reviewMove,validPV};
+  return {...api,configure,getContext,strategyVersion,finalizeResult,inspect,urgent,analyze,suggestBudget,assessMove,reviewMove,validPV,
+    getSearchMemoryStats:()=>searchMemory?.stats()||null,
+    exportSearchMemory:()=>searchMemory?.snapshot()||null,
+    clearSearchMemory:()=>searchMemory?.clear()};
 }
 if(typeof module!=='undefined')module.exports=createEngine;

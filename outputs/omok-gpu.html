@@ -15,7 +15,76 @@
 <div class="card"><h2>실수를 다음 실력으로</h2><p class="muted">복기에서 위험했던 수와 대안을 저장하세요. 같은 국면의 회전·대칭도 기억합니다.</p><div class="toolbar"><button id="postmortem">패배 복기 분석</button><button id="learn">현재 수를 학습 기록에</button><button id="lessons">패배 방지 기록</button></div><details><summary>규칙과 저장 안내</summary><p>열린 3은 한 수로 양끝이 빈 연속 4가 되는 세 돌입니다. 중간 한 칸이 빈 형태도 포함합니다. 서로 다른 2개 축에 동시에 만들면 양쪽 모두 3×3 금지입니다. 정확한 5목 완성은 우선 허용합니다.</p><p>40초가 지나면 돌 없이 턴이 넘어갑니다. 잘못된 착수는 시간을 초기화하지 않습니다. 설정·복기 중에는 정지하며, 무르기·다시 진행은 40초를 부여합니다. 앱을 다시 열면 일시 정지 상태로 복원합니다.</p><p>기록은 이 브라우저에 저장됩니다. 파일 이동·다른 브라우저·브라우저 데이터 삭제 시 접근하지 못할 수 있으므로 JSON으로 백업하세요. 패배 기록은 유사한 전체 판 상태의 참고 자료이며 자동으로 알고리즘 소스를 바꾸지 않습니다.</p></details></div></aside></main></div>
 <dialog id="setup"><h2>새로운 한 판</h2><p class="muted">상대 돌까지 직접 입력하며 나의 다음 수를 연구합니다.</p><label>내 캐릭터<select id="my"><option value="2">초록 슬라임</option><option value="1">노란 버섯</option></select></label><label>누가 먼저 둘까요?<select id="starter"><option value="me">내가 먼저</option><option value="other">상대가 먼저</option></select></label><p class="muted">선후공에 관계없이 두 캐릭터의 규칙은 같습니다.</p><div class="modal-actions"><button id="cancelSetup">취소</button><button id="start" class="primary">게임 시작</button></div></dialog>
 <dialog id="modal"><h2 id="modalTitle"></h2><div id="modalBody"></div><div class="modal-actions"><button id="closeModal">닫기</button></div></dialog>
-<script id="engineSource">// The same exact geometric line patterns are generated on CPU or WebGPU.
+<script id="engineSource">/* Bounded, portable completed-node memory. A Worker may be killed at any time;
+ * only records published before cancellation survive in the page session. */
+const OmokSearchMemory=(()=>{
+ const VERSION=1,DEFAULT_ENTRIES=4096,DEFAULT_BYTES=6*1024*1024;
+ const scope=(engine,N,o={})=>[engine,'node-v1',N,'exact5-both33',o.firstPlayer??o.context?.firstPlayer??'unknown',
+  o.strategy!==false?'initiative-1':'no-strategy',o.optimized?1:0,!!o.patternTable,
+  o.vcfPrefilter!==false,!!o.counterProofDetails].join('|');
+ const toStored=(v,ply,mate)=>Math.abs(v)>mate-1000?v+(v>0?ply:-ply):v;
+ const fromStored=(v,ply,mate)=>Math.abs(v)>mate-1000?v+(v>0?-ply:ply):v;
+ function create(options={}){
+  const maxEntries=Math.max(1,Math.min(DEFAULT_ENTRIES,options.maxEntries||DEFAULT_ENTRIES));
+  const maxBytes=Math.max(1024,Math.min(DEFAULT_BYTES,options.maxBytes||DEFAULT_BYTES));
+  const records=new Map(),pending=new Map(),heap=[];let generation=0,bytes=0;
+  const counters={hits:0,reused:0,misses:0,writes:0,evictions:0,imported:0,rejected:0};
+  const weight=r=>r.priority+2*r.generation;
+  function swap(a,b){const r=heap[a];heap[a]=heap[b];heap[b]=r;heap[a].index=a;heap[b].index=b;}
+  function repair(i){if(i&&weight(heap[i])<weight(heap[(i-1)>>1])){
+    while(i){const p=(i-1)>>1;if(weight(heap[p])<=weight(heap[i]))break;swap(p,i);i=p;}
+   }else for(;;){const a=i*2+1,b=a+1;let next=i;
+    if(a<heap.length&&weight(heap[a])<weight(heap[next]))next=a;
+    if(b<heap.length&&weight(heap[b])<weight(heap[next]))next=b;
+    if(next===i)break;swap(i,next);i=next;
+   }
+  }
+  function remove(key){const old=records.get(key);if(old){
+   bytes-=old.bytes;records.delete(key);pending.delete(key);const i=old.index,last=heap.pop();
+   if(i<heap.length){heap[i]=last;last.index=i;repair(i);}
+  }}
+  function put(ns,key,value,priority=0,age=generation,imported=false){
+   if(typeof ns!=='string'||typeof key!=='string'||ns.length>200||key.length>1200||value===undefined){counters.rejected++;return;}
+   let encoded;try{encoded=JSON.stringify(value);}catch{counters.rejected++;return;}
+   if(encoded===undefined||encoded.length>24000){counters.rejected++;return;}
+   const id=ns+'\n'+key,cost=(ns.length+key.length+encoded.length)*2+192;
+   if(cost>maxBytes){counters.rejected++;return;}
+   const old=records.get(id),rank=Number.isFinite(priority)?Math.max(0,Math.min(100,priority)):0;
+   // A late prediction must not replace a newer, deeper/exact record.
+   if(old&&old.generation>age&&old.priority>=rank)return;
+   remove(id);const row={id,ns,key,value,priority:rank,generation:age,bytes:cost,index:heap.length};records.set(id,row);bytes+=cost;heap.push(row);repair(row.index);
+   if(imported)counters.imported++;else{counters.writes++;pending.set(id,row);}
+   while(records.size>maxEntries||bytes>maxBytes){remove(heap[0].id);counters.evictions++;}
+  }
+  function get(ns,key){const id=ns+'\n'+key,r=records.get(id);if(!r){counters.misses++;return undefined;}
+   counters.hits++;if(r.generation<generation){counters.reused++;r.generation=generation;repair(r.index);pending.set(id,r);}
+   return r.value;
+  }
+  function rows(source,limit){return Array.from(source.values()).sort((a,b)=>b.generation-a.generation||b.priority-a.priority)
+   .slice(0,limit).map(r=>[r.ns,r.key,r.value,r.priority,r.generation]);}
+  function merge(packet){
+   if(!packet||packet.version!==VERSION||!Array.isArray(packet.rows))return false;
+   for(const r of packet.rows.slice(0,DEFAULT_ENTRIES))if(Array.isArray(r)&&r.length===5&&Number.isInteger(r[4])&&r[4]>=0)
+    put(r[0],r[1],r[2],r[3],r[4],true);
+   generation=Math.max(generation,Number.isInteger(packet.generation)?packet.generation:0);return true;
+  }
+  const api={get,put,begin:()=>++generation,clear:()=>{records.clear();pending.clear();heap.length=0;bytes=0;generation=0;},
+   merge,snapshot:()=>({version:VERSION,generation,rows:rows(records,maxEntries)}),
+   delta:(limit=512)=>{const exported=rows(pending,Math.min(maxEntries,limit));for(const r of exported)pending.delete(r[0]+'\n'+r[1]);return {version:VERSION,generation,rows:exported};},
+   stats:()=>({...counters,entries:records.size,estimatedBytes:bytes,maxEntries,maxBytes,generation}),
+   // Preserve the original request's complete memo graph. The bounded
+   // cross-turn table is a second layer, not a cap on the active proof search.
+   cache:ns=>{const local=new Map();const read=key=>{if(local.has(key))return local.get(key);
+     const value=get(ns,key);if(value!==undefined)local.set(key,value);return value;};
+    return {get:read,has:key=>read(key)!==undefined,set:(key,value)=>{local.set(key,value);put(ns,key,value,value?12:0);},
+     get size(){return local.size;},clear:()=>local.clear()};}};
+  merge(options.snapshot);return api;
+ }
+ return {VERSION,create,scope,toStored,fromStored};
+})();
+
+
+// The same exact geometric line patterns are generated on CPU or WebGPU.
 const OmokGPU = (() => {
  const SIZE=59049;
  function reference(code){
@@ -283,6 +352,7 @@ function createReaderEngine(N, board, options={}) {
   const clockNow=typeof performance!=='undefined'?performance.now.bind(performance):Date.now.bind(Date);
   if(![15,19].includes(N)||board.length!==N*N||board.some(v=>![0,1,2].includes(v)))throw Error('Invalid board');
   const b=Array.from(board),dirs=[[1,0],[0,1],[1,1],[1,-1]],M=10000000;
+  const memory=options.searchMemory||null,memScope=memory?OmokSearchMemory.scope('reader',N,options):'';
   const inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N, at=(x,y)=>inside(x,y)?b[y*N+x]:3;
   const strategyFactory=typeof createStrategyEngine==='function'?createStrategyEngine:typeof require==='function'?require('./strategy-engine.js'):null;
   const forestFactory=typeof createForestEngine==='function'?createForestEngine:typeof require==='function'?require('./forest-engine.js'):null;
@@ -308,9 +378,12 @@ function createReaderEngine(N, board, options={}) {
     const pre=inside(x-dx,y-dy)?(y-dy)*N+x-dx:-1,post=inside(x+5*dx,y+5*dy)?(y+5*dy)*N+x+5*dx:-1;
     const id=windows.length;windows.push({id,cells,pre,post,axis});counts1.push(cells.filter(i=>b[i]===1).length);counts2.push(cells.filter(i=>b[i]===2).length);for(let i of cells)cellAffected[i].push(id);for(let i of [...cells,pre,post])if(i>=0)affected[i].push(id);
   }
+  const fourWindows=[null,new Set(),new Set()],forcingWindows=[null,new Set(),new Set()];
+  function indexWindow(id,old1=-1,old2=-1){const a=counts1[id],c=counts2[id];if((a===4&&!c)!==(old1===4&&!old2)){if(a===4&&!c)fourWindows[1].add(id);else fourWindows[1].delete(id);}if((c===4&&!a)!==(old2===4&&!old1)){if(c===4&&!a)fourWindows[2].add(id);else fourWindows[2].delete(id);}if((a>=3&&!c)!==(old1>=3&&!old2)){if(a>=3&&!c)forcingWindows[1].add(id);else forcingWindows[1].delete(id);}if((c>=3&&!a)!==(old2>=3&&!old1)){if(c>=3&&!a)forcingWindows[2].add(id);else forcingWindows[2].delete(id);}}
+  windows.forEach(w=>indexWindow(w.id));
   function value(w){const n1=counts1[w.id],n2=counts2[w.id];if(n1&&n2||!n1&&!n2)return 0;let p=n1?1:2,n=n1||n2;if(b[w.pre]===p||b[w.post]===p)return 0;let v=[0,2,25,420,24000,2000000][n];return p===1?v:-v;}
   windows.forEach((w,k)=>{contributions[k]=value(w);total+=contributions[k];});
-  function set(i,p){const before=b[i];for(const id of cellAffected[i]){counts1[id]+=(p===1)-(before===1);counts2[id]+=(p===2)-(before===2);}b[i]=p;for(let id of affected[i]){const v=value(windows[id]);total+=v-contributions[id];contributions[id]=v;}}
+  function set(i,p){const before=b[i];for(const id of cellAffected[i]){const old1=counts1[id],old2=counts2[id];counts1[id]+=(p===1)-(before===1);counts2[id]+=(p===2)-(before===2);indexWindow(id,old1,old2);}b[i]=p;for(let id of affected[i]){const v=value(windows[id]);total+=v-contributions[id];contributions[id]=v;}}
   function tick(){nodes++;if(clockNow()>Math.min(deadline,phaseDeadline))throw Error('timeout');}
   function run(i,p,dx,dy){let x=i%N,y=Math.floor(i/N),len=1;for(let s of [-1,1]){let k=1;while(at(x+s*k*dx,y+s*k*dy)===p){len++;k++;}}return len;}
   function exact(i,p){return dirs.some(([dx,dy])=>run(i,p,dx,dy)===5);}
@@ -330,8 +403,8 @@ function createReaderEngine(N, board, options={}) {
   function moveInfo(i,p){if(!Number.isInteger(i)||i<0||i>=b.length||![1,2].includes(p))return {i,legal:false,reason:'invalid',threes:[]};if(b[i])return {i,legal:false,reason:'occupied',threes:[]};b[i]=p;let details,priority;try{priority=exact(i,p);details=openThrees(i,p,true);}finally{b[i]=0;}const ok=priority||details.length<2;return {i,legal:ok,reason:ok?'legal':'double-three',threes:details};}
   function legal(i,p){if(!Number.isInteger(i)||i<0||i>=b.length||![1,2].includes(p)||b[i])return false;b[i]=p;let ok=(exact(i,p))||threes(i,p)<2;b[i]=0;return ok;}
   function winMove(i,p){if(!legal(i,p))return false;b[i]=p;let yes=exact(i,p);b[i]=0;return yes;}
-  function wins(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(let id=0;id<windows.length;id++){if(own[id]!==4||enemy[id])continue;const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;const empty=w.cells.find(i=>!b[i]);if(legal(empty,p))res.add(empty);}return [...res];}
-  function forcingCandidates(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(let id=0;id<windows.length;id++){if(own[id]<3||enemy[id])continue;const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;for(const i of w.cells)if(!b[i])res.add(i);}return [...res].filter(i=>legal(i,p));}
+  function wins(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(const id of [...fourWindows[p]].sort((a,c)=>a-c)){const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;const empty=w.cells.find(i=>!b[i]);if(legal(empty,p))res.add(empty);}return [...res];}
+  function forcingCandidates(p){const res=new Set(),own=p===1?counts1:counts2,enemy=p===1?counts2:counts1;for(const id of [...forcingWindows[p]].sort((a,c)=>a-c)){const w=windows[id];if(b[w.pre]===p||b[w.post]===p)continue;for(const i of w.cells)if(!b[i])res.add(i);}return [...res].filter(i=>legal(i,p));}
   function candidates(){const s=new Set();for(let i=0;i<b.length;i++)if(b[i]){const x=i%N,y=Math.floor(i/N);for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){let xx=x+dx,yy=y+dy;if(inside(xx,yy)&&!b[yy*N+xx])s.add(yy*N+xx);}}if(strategy)for(const i of strategy.searchPoints(b,1))s.add(i);if(!s.size&&!b.some(Boolean))s.add(Math.floor(N/2)*(N+1));return [...s];}
   const localWindows=options.optimized?affected.map((ids,i)=>ids.map(id=>({w:windows[id],increment:cellAffected[i].includes(id)?1:0}))):null;
   function localFast(i,p){let sum=0;for(const {w,increment} of localWindows[i]){if(w.pre===i||w.post===i||b[w.pre]===p||b[w.post]===p)continue;const enemy=p===1?counts2[w.id]:counts1[w.id];if(!enemy)sum+=[0,1,20,400,25000,2000000][(p===1?counts1[w.id]:counts2[w.id])+increment];}return sum;}
@@ -380,12 +453,55 @@ function createReaderEngine(N, board, options={}) {
     }finally{set(i,0);}}
     return null;
   }
+
+  const counterMemo=memory?memory.cache(memScope+'|counter'):new Map();
+  // Wider preparation probes admit a voluntary four followed by a quiet
+  // attack. Narrow one-setup loss checks retain their cheaper discovery path.
+  // This affects OR discovery; both modes prove every required defense.
+  function counterSolve(p,left,quietLeft,optionalFours=false){
+    tick();const key=b.join('')+'|'+p+'|'+left+'|'+quietLeft+'|'+(optionalFours?1:0),known=counterMemo.get(key);if(known!==undefined)return known;
+    const own=wins(p);if(own.length)return {pv:[own[0]],type:'vcf'};if(left<1)return null;
+    const danger=wins(3-p);if(danger.length>1||danger.length===1&&!legal(danger[0],p))return null;
+    const direct=vcf(p,Math.min(7,left));if(direct){const proof={pv:direct,type:'vcf'};counterMemo.set(key,proof);return proof;}
+    if(left<3)return null;
+    const attacks=danger.length?[danger[0]]:quietLeft>0?rank(p).map(m=>m.i):[];
+    for(const i of attacks){tick();set(i,p);try{
+      if(exact(i,p))return {pv:[i],type:'vcf'};if(wins(3-p).length)continue;
+      const ends=wins(p);if(!danger.length&&ends.length&&(!optionalFours||quietLeft<=0))continue;const forced=ends.length===1,remainingQuiet=quietLeft-(danger.length||forced?0:1);
+      if(!danger.length&&!forced&&!cellAffected[i].some(id=>{const w=windows[id];return (p===1?counts1[id]:counts2[id])>=3&&!(p===1?counts2[id]:counts1[id])&&b[w.pre]!==p&&b[w.post]!==p;}))continue;
+      if(ends.length>=2)return {pv:[i],type:'vcf'};
+      const replies=forced?[ends[0]]:rank(3-p,b.flatMap((v,j)=>v?[]:[j])).map(m=>m.i),branches=[];let all=true;
+      for(const j of replies){tick();if(!legal(j,3-p)){if(forced)return {pv:[i],type:'vcf'};continue;}set(j,3-p);let child;try{if(exact(j,3-p)){all=false;break;}child=counterSolve(p,left-2,remainingQuiet,optionalFours);}finally{set(j,0);}if(!child){all=false;break;}branches.push({i:j,proof:child});}
+      if(all&&branches.length){const proof={type:'move',i,forced,checkedReplies:branches.length,...(options.counterProofDetails?{branches}:{}),pv:[i,branches[0].i,...branches[0].proof.pv]};counterMemo.set(key,proof);return proof;}
+    }finally{set(i,0);}}
+    counterMemo.set(key,null);return null;
+  }
+  function counterCertificate(p,ms=1000,left=19,quiet=1){const savedDeadline=deadline,savedPhase=phaseDeadline;deadline=Math.min(savedDeadline,clockNow()+Math.max(0,ms));phaseDeadline=Math.min(savedPhase,deadline);const start=clockNow();try{let direct=null;if(left>7){const phase=phaseDeadline;try{phaseDeadline=Math.min(deadline,clockNow()+Math.min(120,Math.max(0,ms*.12)));direct=vcf(p,left);}catch(error){if(error.message!=='timeout')throw error;}finally{phaseDeadline=phase;}}return {proof:direct?{type:'vcf',pv:direct,bound:left,quietNeeded:0}:counterSolve(p,left,quiet,quiet>=2),complete:true,ms:clockNow()-start,nodes,memo:counterMemo.size};}catch(e){if(e.message!=='timeout')throw e;return {proof:null,complete:false,ms:clockNow()-start,nodes,memo:counterMemo.size};}finally{deadline=savedDeadline;phaseDeadline=savedPhase;}}
+
+
+  function counterLoss(p,ms=1000,left=19,quiet=1){const savedDeadline=deadline,savedPhase=phaseDeadline;deadline=Math.min(savedDeadline,clockNow()+Math.max(0,ms));phaseDeadline=Math.min(savedPhase,deadline);const start=clockNow(),branches=[];try{if(wins(p).length)return {lossProven:false,complete:true,ownImmediateWin:true};const danger=wins(3-p),ordered=rank(p,b.flatMap((v,i)=>v?[]:[i]));const critical=new Set(forcingCandidates(3-p));ordered.sort((a,c)=>(critical.has(c.i)?1:0)-(critical.has(a.i)?1:0));for(const {i}of ordered){tick();set(i,p);let proof;try{if(exact(i,p))return {lossProven:false,complete:true,ownImmediateWin:true};proof=counterSolve(3-p,left,quiet,quiet>=2);}finally{set(i,0);}if(!proof)return {lossProven:false,complete:true,unrefuted:i,branches,ms:clockNow()-start,memo:counterMemo.size};branches.push({i,proof});}return {lossProven:branches.length>0,complete:true,branches,ms:clockNow()-start,memo:counterMemo.size,nodes};}catch(e){if(e.message!=='timeout')throw e;return {lossProven:false,complete:false,branches,ms:clockNow()-start,memo:counterMemo.size,nodes};}finally{deadline=savedDeadline;phaseDeadline=savedPhase;}}
+
+  // Expose a representative legal line for each completed AND root while
+  // keeping the complete proof coverage and historical diagnostic categories.
+  function counterRejections(p,check){
+    if(!Array.isArray(check?.branches))return [];
+    return check.branches.map(root=>{let reason='forcing-line';set(root.i,p);try{
+      const proof=root.proof;if(proof.type!=='vcf'){
+        const own=wins(p);
+        if(own.length===1&&proof.i===own[0])reason='forced-reply-trap';
+        else{set(proof.i,3-p);try{reason=openThrees(proof.i,3-p)?'three-threat':'counter-threat';}finally{set(proof.i,0);}}
+      }
+    }finally{set(root.i,0);}return {i:root.i,reason,line:[root.i,...root.proof.pv],verifiedRefutation:true,counterProof:{complete:true,forcing:19,quiet:1}};});
+  }
+
+  function counterMove(i,p,ms=1000,left=19,quiet=2){if(!legal(i,p)||winMove(i,p))return {proof:null,complete:true,ownWin:winMove(i,p)};set(i,p);try{return counterCertificate(3-p,ms,left,quiet);}finally{set(i,0);}}
+
   function search(p,depth,alpha,beta,ply,extension=6,quietExtension=1){
     tick();const own=wins(p);if(own.length)return {score:M-ply,pv:[own[0]]};const danger=wins(3-p);
     if(danger.length>1||danger.length===1&&!legal(danger[0],p))return {score:-M+ply+1,pv:[]};
     // Do not replace a forcing win just beyond the horizon with a positional
     // score. A bounded proof probe is sound when found; a timeout proves nothing.
-    if(depth<=1&&!danger.length){const tacticalKey=b.join('')+p;let proof=tacticalCache.get(tacticalKey);if(proof===undefined){const previous=phaseDeadline;try{phaseDeadline=options.fixedWork?Infinity:Math.min(previous,deadline,clockNow()+5);proof=vcf(p,9);if(tacticalCache.size<30000)tacticalCache.set(tacticalKey,proof);}catch(e){if(e.message!=='timeout')throw e;proof=null;}finally{phaseDeadline=previous;}}if(proof)return {score:M-ply-proof.length,pv:proof};}
+    if(depth<=1&&!danger.length){const tacticalKey=b.join('')+p;let proof=tacticalCache.get(tacticalKey);if(proof===undefined&&memory)proof=memory.get(memScope+'|vcf9',tacticalKey);if(proof===undefined){const previous=phaseDeadline;try{phaseDeadline=options.fixedWork?Infinity:Math.min(previous,deadline,clockNow()+5);proof=vcf(p,9);if(tacticalCache.size<30000)tacticalCache.set(tacticalKey,proof);memory?.put(memScope+'|vcf9',tacticalKey,proof,proof?12:1);}catch(e){if(e.message!=='timeout')throw e;proof=null;}finally{phaseDeadline=previous;}}if(proof)return {score:M-ply-proof.length,pv:proof};}
     const staticScore=()=> (p===1?total:-total);
     let quietMoves=null;
     // Quiet extensions are branch-local. A global work cap used to change
@@ -412,6 +528,14 @@ function createReaderEngine(N, board, options={}) {
     if(depth<=0&&!danger.length&&!quietMoves?.length)return {score:staticScore(),pv:[]};
     if(depth<=0&&extension<=0)return {score:staticScore(),pv:[]};
     const key=b.join('')+p,entry=tt.get(key),a0=alpha,b0=beta;
+    // The quiet extension model depends on distance from the root. Reuse an
+    // exact matching subproblem; normalize mate distance when the root moves.
+    const memoryKey=memory?key+'|'+depth+'|'+extension+'|'+quietExtension+'|'+Math.max(0,4-ply):'';
+    const saved=memory?.get(memScope+'|search',memoryKey);
+    if(saved){const score=OmokSearchMemory.fromStored(saved.score,ply,M);
+      if(saved.bound==='exact')return {score,pv:saved.pv};
+      if(saved.bound==='lower')alpha=Math.max(alpha,score);else beta=Math.min(beta,score);
+      if(alpha>=beta)return {score,pv:saved.pv};}
     if(entry&&entry.depth>=depth&&entry.extension>=extension&&entry.quietExtension>=quietExtension){if(entry.bound==='exact')return {score:entry.score,pv:entry.pv};if(entry.bound==='lower')alpha=Math.max(alpha,entry.score);else beta=Math.min(beta,entry.score);if(alpha>=beta)return {score:entry.score,pv:entry.pv};}
     let moves;if(danger.length)moves=[{i:danger[0],s:M}];else{
       if(quietMoves?.length)moves=quietMoves;
@@ -420,12 +544,14 @@ function createReaderEngine(N, board, options={}) {
     }
     if(!moves.length)return {score:b.every(Boolean)?0:-M+ply,pv:[]};let best={score:-Infinity,pv:[]};
     for(let {i}of moves){set(i,p);let child;try{child=search(3-p,depth-1,-beta,-alpha,ply+1,depth<=0?extension-1:extension,quietMoves?.length?quietExtension-1:quietExtension);}finally{set(i,0);}const score=-child.score;if(score>best.score)best={score,pv:[i,...child.pv]};alpha=Math.max(alpha,score);if(alpha>=beta)break;}
-    if(tt.size>50000)tt.clear();tt.set(key,{...best,depth,extension,quietExtension,bound:best.score<=a0?'upper':best.score>=b0?'lower':'exact'});return best;
+    const bound=best.score<=a0?'upper':best.score>=b0?'lower':'exact';
+    if(tt.size>50000)tt.clear();tt.set(key,{...best,depth,extension,quietExtension,bound});
+    memory?.put(memScope+'|search',memoryKey,{score:OmokSearchMemory.toStored(best.score,ply,M),pv:best.pv,bound},Math.max(0,depth)*2+(bound==='exact'?4:0));return best;
   }
   function state(){let winners=[],lines=[];for(let w of windows){let p=b[w.cells[0]];if(p&&w.cells.every(i=>b[i]===p)&&b[w.pre]!==p&&b[w.post]!==p){if(!winners.includes(p))winners.push(p);lines.push(w.cells);}}return {winners,lines,full:b.every(Boolean)};}
-  function analyze(p,ms=5000,onProgress=()=>{}){
+  function analyzeInternal(p,ms=5000,onProgress=()=>{}){
     const automatic=ms==='auto'||(typeof ms==='object'&&ms.automatic===true);if(automatic)ms=typeof ms==='object'?Math.max(30,Math.min(8000,Number(ms.maxMs)||8000)):8000;
-    if(![1,2].includes(p))throw Error('Invalid player');nodes=0;tt.clear();tacticalCache.clear();const start=clockNow();deadline=start+Math.max(30,ms);phaseDeadline=Infinity;
+    if(![1,2].includes(p))throw Error('Invalid player');nodes=0;tt.clear();tacticalCache.clear();if(!memory)counterMemo.clear();if(memory&&!options.memoryManaged)memory.begin();const start=clockNow();deadline=start+Math.max(30,ms);phaseDeadline=Infinity;
     strategy?.setBudget(Math.min(ms*.12,ms<=1000?100:ms>15000?2500:1000));
     const terminal=state();if(terminal.winners.length||terminal.full)return {kind:'terminal',...terminal,moves:[],depth:0,nodes,danger:[],automatic,autoReason:automatic?'대국 종료':null};
     const own=wins(p),danger=wins(3-p);
@@ -459,6 +585,21 @@ function createReaderEngine(N, board, options={}) {
     if(!roots.length)return output('none',[]);
     onProgress(output('incomplete',[],0,{screeningComplete:false}));
     try{phaseDeadline=start+Math.min(ms*.22,2200);const proof=vcf(p,13);if(proof)return output('forced',[{i:proof[0],score:M-1,pv:proof,status:'proven'}],proof.length,{proof:'forcing-four'});}catch(e){if(e.message!=='timeout')throw e;}finally{phaseDeadline=Infinity;}
+    // Counter fours can delay a quiet win without escaping it. This separate
+    // proof checks every legal root and every quiet-setup defense. Its bounded
+    // discovery failures remain unknown; it never labels a move safe.
+    let counterCheck=null;
+    if(ms>=3000&&clockNow()<deadline-1000){
+      const savedPhase=phaseDeadline;
+      let virtual=null;try{phaseDeadline=Math.min(deadline,clockNow()+80);virtual=vcf(3-p,13);}catch(err){if(err.message!=='timeout')throw err;}finally{phaseDeadline=savedPhase;}
+      if(virtual){
+        counterCheck=counterLoss(p,Math.min(6500,ms*.82,deadline-clockNow()-600),19,1);
+        if(counterCheck.lossProven){const rejectedMoves=counterRejections(p,counterCheck);return output('lost',[],0,{lossReason:rejectedMoves.some(m=>m.reason==='counter-threat')?'counter-threat':'forcing-line',counterProof:{complete:true,checkedRoots:counterCheck.branches.length,forcing:19,quiet:1,ms:counterCheck.ms},screened:rejectedMoves.length,rejectedMoves,screeningComplete:true,forcingChecksComplete:true});}
+      }
+    }
+    const counterRejected=counterCheck?counterRejections(p,counterCheck):[],counterBad=new Set(counterRejected.map(m=>m.i));
+    roots=roots.filter(r=>!counterBad.has(r.i));
+    if(!roots.length)return output('lost',[],0,{lossReason:'counter-threat',screened:counterRejected.length,rejectedMoves:counterRejected,screeningComplete:true,forcingChecksComplete:true});
     const screeningDeadline=Math.min(deadline,start+(automatic?2200:Math.max(10,ms*.45)));
     const screened=[];let screeningComplete=true,forcingChecksComplete=true;
     for(let r of roots){if(clockNow()>screeningDeadline){screeningComplete=false;break;}phaseDeadline=screeningDeadline;let status='screened',refutation=[],lossReason=null;try{tick();set(r.i,p);try{const threats=wins(3-p);if(threats.length){status='loss';refutation=[threats[0]];lossReason='immediate';}else{const f=fork(3-p);if(f){status='loss';refutation=[f.i];lossReason=f.forbiddenBlock?'forbidden-defense':'fork';}
@@ -470,17 +611,17 @@ function createReaderEngine(N, board, options={}) {
       screened.push({...r,score:status==='loss'?-M+3:r.s,pv:[r.i],status,refutation,lossReason});
     }
     phaseDeadline=Infinity;
-    const rejectedMoves=screened.filter(r=>r.status==='loss').map(r=>({i:r.i,reason:r.lossReason,line:[r.i,...r.refutation]}));
+    const rejectedMoves=[...counterRejected,...screened.filter(r=>r.status==='loss').map(r=>({i:r.i,reason:r.lossReason,line:[r.i,...r.refutation]}))];
     // Unexamined points remain candidates; a partial screen cannot prove loss.
     const checked=new Set(screened.map(r=>r.i));
     const pending=roots.filter(r=>!checked.has(r.i)).map(r=>({...r,score:r.s,pv:[r.i],status:'unverified'}));
     if(pending.length){screeningComplete=false;forcingChecksComplete=false;}
     let safe=[...screened.filter(r=>r.status!=='loss'),...pending];if(!safe.length){
-      if(screeningComplete)return output('lost',[],3,{lossReason:'forcing-line',screened:screened.length,rejectedMoves});
-      return output('incomplete',[],0,{screened:screened.length});
+      if(screeningComplete)return output('lost',[],3,{lossReason:'forcing-line',screened:screened.length+counterRejected.length,rejectedMoves});
+      return output('incomplete',[],0,{screened:screened.length+counterRejected.length,rejected:rejectedMoves.length,rejectedMoves,screeningComplete:false,forcingChecksComplete:false});
     }
-    let best=safe.slice(0,3),depth=0;const rejected=screened.filter(r=>r.status==='loss').length;
-    const kind=danger.length?'block':'search',extra={screeningComplete,forcingChecksComplete,screened:screened.length,rejected,rejectedMoves};
+    let best=safe.slice(0,3),depth=0;const rejected=rejectedMoves.length;
+    const kind=danger.length?'block':'search',extra={screeningComplete,forcingChecksComplete,screened:screened.length+counterRejected.length,rejected,rejectedMoves};
     onProgress(output(kind,best,depth,extra));
     const forceSet=new Set(forcingCandidates(p));let frontier=strategy?strategy.searchSelect(b,p,safe,24,6,forceSet,own.length?'own':danger.length?'opponent':'unknown'):safe.filter((r,k)=>k<24||forceSet.has(r.i));
     const strategicAdjust=new Map(),pressureChecks=new Map(),tempoChecks=new Map();
@@ -506,8 +647,13 @@ function createReaderEngine(N, board, options={}) {
     }
     return output(kind,best,depth,{...extra,autoReason:automatic?stopReason:null});
   }
-  function fixedWork(p,depth=3){nodes=0;strategy?.setBudget(Infinity);deadline=Infinity;phaseDeadline=Infinity;tt.clear();tacticalCache.clear();const start=clockNow(),result=search(p,depth,-Infinity,Infinity,0);return {...result,nodes,depth,ms:clockNow()-start};}
-  return {fixedWork,rank,legal,moveInfo,winMove,threes,analyze,state,board:b,winningMoves:wins,threatWin:(p,ms=1000)=>{deadline=clockNow()+ms;try{return threatWin(p);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}},forcingWin:(p,depth=13,ms=1000)=>{deadline=clockNow()+ms;try{return vcf(p,depth);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}}};
+  function analyze(p,ms=5000,onProgress=()=>{}){const oldDeadline=deadline,oldPhase=phaseDeadline;try{return analyzeInternal(p,ms,onProgress);}finally{deadline=oldDeadline;phaseDeadline=oldPhase;}}
+  // A closed or broken three can connect a second attack axis even when it
+  // is absent from geometric open-three descriptors. This only schedules
+  // bounded proof work; it is never itself a threat or a loss certificate.
+  function counterSeeds(p,ms=40){const oldDeadline=deadline,oldPhase=phaseDeadline;deadline=Math.min(oldDeadline,clockNow()+Math.max(0,ms));phaseDeadline=Math.min(oldPhase,deadline);const found=[];try{for(const {i}of rank(p)){tick();set(i,p);try{if(wins(p).length||threes(i,p))continue;const axes=new Set(),three=[];for(const id of cellAffected[i]){const w=windows[id],own=p===1?counts1[id]:counts2[id],enemy=p===1?counts2[id]:counts1[id];if(enemy||b[w.pre]===p||b[w.post]===p)continue;if(own>=2)axes.add(w.axis);if(own>=3)three.push(id);}if(three.length&&axes.size>=2)found.push(i);}finally{set(i,0);}}}catch(error){if(error.message!=='timeout')throw error;}finally{deadline=oldDeadline;phaseDeadline=oldPhase;}return found;}
+  function fixedWork(p,depth=3){nodes=0;strategy?.setBudget(Infinity);deadline=Infinity;phaseDeadline=Infinity;tt.clear();tacticalCache.clear();if(memory&&!options.memoryManaged)memory.begin();const start=clockNow(),result=search(p,depth,-Infinity,Infinity,0);return {...result,nodes,depth,ms:clockNow()-start,searchMemory:memory?.stats()};}
+  return {fixedWork,rank,counterRejections,counterSeeds,counterMove,counterLoss,counterCertificate,legal,moveInfo,winMove,threes,analyze,state,board:b,winningMoves:wins,threatWin:(p,ms=1000)=>{deadline=clockNow()+ms;try{return threatWin(p);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}},forcingWin:(p,depth=13,ms=1000)=>{deadline=clockNow()+ms;try{return vcf(p,depth);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}}};
 }
 function autoStable(rounds,depth,elapsed,checks,moves){
   if(elapsed<1000||depth<4||rounds.length<3||!checks.screeningComplete||!checks.forcingChecksComplete||!moves.length||moves[0].status==='unverified')return false;
@@ -534,6 +680,7 @@ function autoStable(rounds,depth,elapsed,checks,moves){
 function createForestEngine(options={}){
   const clockNow=typeof performance!=='undefined'?performance.now.bind(performance):Date.now.bind(Date);
  const N=15,D=[[1,0],[0,1],[1,1],[1,-1]],inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
+ const searchMemory=options.searchMemory||null,memScope=searchMemory?OmokSearchMemory.scope('forest',N,options):'';
  const forcingWindows=[];
  for(let y=0;y<N;y++)for(let x=0;x<N;x++)for(const [dx,dy]of D)if(inside(x+4*dx,y+4*dy)){
   forcingWindows.push(Array.from({length:5},(_,k)=>(y+k*dy)*N+x+k*dx));
@@ -556,9 +703,13 @@ function createForestEngine(options={}){
   if(options.positionCache===false)return compute();
   const cache=positionCaches[kind],key=b.join('')+'|'+p,found=cache.get(key);
   if(found!==undefined){positionCacheStats.hits++;return copy?found.slice():found;}
+  // Budget-measured strategic descriptors are not pure position values.
+  const portable=searchMemory&&(kind!=='evaluation'||!strategy||String(p).endsWith('|base'));
+  const remembered=portable?searchMemory.get(memScope+'|'+kind,key):undefined;
+  if(remembered!==undefined){positionCacheStats.hits++;return copy?remembered.slice():remembered;}
   positionCacheStats.misses++;const result=compute();
   if(cache.size>=2048)cache.delete(cache.keys().next().value);
-  cache.set(key,copy?result.slice():result);return result;
+  cache.set(key,copy?result.slice():result);if(portable)searchMemory.put(memScope+'|'+kind,key,result,1);return result;
  }
  function candidates(b){return memoPosition('candidates',b,0,()=>generateCandidates(b),true);}
  function winning(b,p){return memoPosition('winning',b,p,()=>findWinning(b,p),true);}
@@ -585,7 +736,7 @@ function createForestEngine(options={}){
  function generateCandidates(b){let s=new Set();for(let i=0;i<225;i++)if(b[i]){let x=i%15,y=i/15|0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(inside(x+dx,y+dy)&&!b[(y+dy)*15+x+dx])s.add((y+dy)*15+x+dx);}return s.size?[...s]:b.every(v=>!v)?[112]:[];}
  function positional(b,i,p){let score=0,x=i%15,y=i/15|0;b[i]=p;for(let d of D){let a=line(b,i,p,d),l=a[0],r=a[a.length-1],open=(at(b,l%15-d[0],(l/15|0)-d[1])===0?1:0)+(at(b,r%15+d[0],(r/15|0)+d[1])===0?1:0);score+=(a.length>=6?0:[0,2,25,150,1500,100000][a.length])*open;}b[i]=0;return score+14-Math.abs(x-7)-Math.abs(y-7);}
  function value(s){return s.win.length?1e8:s.fours.length>=2?7e5:s.fork43?4e5:s.fours.length?5e4:s.threes.length?2500:0;}
- function ranked(b,p,rich=false){const pool=strategy?[...new Set([...candidates(b),...strategy.points(b,p)])]:candidates(b);return pool.map(i=>{let a=inspect(b,i,p),o=inspect(b,i,3-p),feature=rich&&a.legal?strategy?.move(b,i,p,a):null;const ownValue=feature&&a.threes.length&&!a.fours.length&&!feature.usableThreeAxes.length?0:value(a);return {i,a,o,score:ownValue+(o.legal?value(o)*1.1:0)+positional(b,i,p)+(strategy&&!o.legal?0:positional(b,i,3-p)*.9)+(feature?.score||0),...(feature?{strategy:feature}:{})};}).filter(m=>m.a.legal).sort((a,b)=>b.score-a.score||a.i-b.i);}
+ function ranked(b,p,rich=false,search=false){const pool=strategy?[...new Set([...candidates(b),...(search?strategy.searchPoints(b,p):strategy.points(b,p))])]:candidates(b);return pool.map(i=>{let a=inspect(b,i,p),o=inspect(b,i,3-p),feature=rich&&a.legal?strategy?.move(b,i,p,a):null;const ownValue=feature&&a.threes.length&&!a.fours.length&&!feature.usableThreeAxes.length?0:value(a);return {i,a,o,score:ownValue+(o.legal?value(o)*1.1:0)+positional(b,i,p)+(strategy&&!o.legal?0:positional(b,i,3-p)*.9)+(feature?.score||0),...(feature?{strategy:feature}:{})};}).filter(m=>m.a.legal).sort((a,b)=>b.score-a.score||a.i-b.i);}
  function findWinning(b,p){let r=[];for(let i of candidates(b)){b[i]=p;if(win(b,i,p).length)r.push(i);b[i]=0;}return r;}
  const coord=i=>String.fromCharCode(65+i%15)+(1+(i/15|0));
  function transformed(i,t){let x=i%15,y=i/15|0;if(t>=4)x=14-x;for(let k=0;k<t%4;k++)[x,y]=[14-y,x];return y*15+x;}
@@ -595,6 +746,7 @@ function createForestEngine(options={}){
  // 유일 방어가 있으면 실제로 착수한다. 반격/금수/장목을 모두 같은 규칙으로 검사.
  // proof 없음은 안전의 증명이 아니다. 시간 초과는 unknown으로 구분한다.
  function forcing(board,p,maxPlies=11,budget=100,cache=new Map()){
+  if(searchMemory&&arguments[4]===undefined)cache=searchMemory.cache(memScope+'|forcing');
   let b=board.slice(),end=clockNow()+budget,nodes=0,TIME={},prefiltered=false;
   function solve(left){if(clockNow()>=end)throw TIME;nodes++;let key=b.join('')+p+':'+left;if(cache.has(key))return cache.get(key);
    if(nodes===1&&options.vcfPrefilter!==false&&!mayStartForcing(b,p)){prefiltered=true;cache.set(key,null);return null;}
@@ -623,6 +775,7 @@ function createForestEngine(options={}){
  // After our forcing four, check the opponent's mandatory quiet block too.
  // A certificate requires a winning reply against EVERY legal continuation.
  function forcedReplyTrap(board,p,budget=200,setup=null,maxPlies=11,includeQuiet=false,cache=new Map()){
+  if(searchMemory&&arguments[7]===undefined)cache=searchMemory.cache(memScope+'|forcing');
   let b=board.slice(),end=clockNow()+budget,threats=winning(b,p),branches=[];
   const scoped=r=>({...r,scopeComplete:r.complete===true});
   if(setup==null&&(threats.length!==1||winning(b,3-p).length))return scoped({complete:true,proof:null});
@@ -642,6 +795,7 @@ function createForestEngine(options={}){
   branches.sort((a,c)=>a.i-c.i);return scoped({complete:true,proof:branches.length?{block,branches}:null});
  }
  function quietTrap(board,p,budget=300,width=4,maxPlies=11,includeCounter=false,cache=new Map()){
+  if(searchMemory&&arguments[7]===undefined)cache=searchMemory.cache(memScope+'|forcing');
   const end=clockNow()+budget,moves=ranked(board,3-p).filter(m=>m.a.threes.length&&!m.a.fours.length).slice(0,width);
   for(const m of moves){if(clockNow()>=end)return {complete:false,proof:null,scopeComplete:false};const r=forcedReplyTrap(board,p,end-clockNow(),m.i,maxPlies,includeCounter,cache);if(r.proof)return r;if(!r.complete)return r;}
   return {complete:true,proof:null,scopeComplete:true};
@@ -743,7 +897,7 @@ function createForestEngine(options={}){
   // Historical pattern hints do not bypass bounded candidate comparison.
   // Grow the guard reserve continuously; at 12s it still has 1s to verify.
   const guardReserve=Math.min(budget*.28,Math.max(0,budget-11000));
-  let b=board.slice(),start=clockNow(),totalDeadline=start+budget,deadline=start+budget-guardReserve,nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),strategicSummary=null,lastCandidates=[],lastComparison=[];
+  let b=board.slice(),start=clockNow(),totalDeadline=start+budget,deadline=start+budget-guardReserve,nodes=0,depth=0,tt=new Map(),proofCache=searchMemory?searchMemory.cache(memScope+'|forcing'):new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),strategicSummary=null,lastCandidates=[],lastComparison=[];
   const check=()=>{nodes++;if(clockNow()>=deadline)throw TIME;};
   const timedProof=(q,ms)=>{let r=forcing(b,q,limits.forcing,Math.max(1,Math.min(ms,deadline-clockNow())),proofCache);nodes+=r.nodes;return r;};
   const verifiedBad=knownRefutations(b,p),verifiedBadSet=new Set(verifiedBad.map(m=>m.i));
@@ -791,19 +945,25 @@ function createForestEngine(options={}){
   const staticEval=q=>strategy?memoPosition('evaluation',b,q+'|base',()=>evaluateUncached(b,q)):evaluate(b,q),rankCache=new Map();
   // Quiet preparation is bounded per line by quietExtension and ply.
   // A mutable quota shared by unrelated roots changes the TT evaluation.
-  const searchMoves=q=>{const key=b.join('')+q;let r=rankCache.get(key);if(!r){r=ranked(b,q);if(rankCache.size<10000)rankCache.set(key,r);}return r;};
-  function search(q,d,alpha,beta,ply,quietExtension=2){check();let key=b.join('')+q+':'+d+':'+ply+':'+quietExtension,save=tt.get(key),a0=alpha,b0=beta;if(save){if(save.bound==='exact')return save;if(save.bound==='lower')alpha=Math.max(alpha,save.score);else beta=Math.min(beta,save.score);if(alpha>=beta)return save;}
+  // Inner candidate rules also use raw, unmetered support so earlier work
+  // cannot switch a cached subproblem to an empty extension descriptor.
+  const searchMoves=q=>{const key=b.join('')+q;let r=rankCache.get(key);if(!r){r=ranked(b,q,false,true);if(rankCache.size<10000)rankCache.set(key,r);}return r;};
+  function search(q,d,alpha,beta,ply,quietExtension=2){check();let key=b.join('')+q+':'+d+':'+ply+':'+quietExtension,save=tt.get(key),a0=alpha,b0=beta;
+   const memoryKey=searchMemory?b.join('')+'|'+q+'|'+d+'|'+quietExtension+'|'+[Math.max(0,2-ply),Math.max(0,4-ply),limits.forcing-ply,Math.max(19,limits.forcing)-ply,limits.root,limits.branch].join(','):'';
+   if(!save&&searchMemory){const stored=searchMemory.get(memScope+'|search',memoryKey);if(stored)save={...stored,score:OmokSearchMemory.fromStored(stored.score,ply,MATE)};}
+   if(save){if(save.bound==='exact')return save;if(save.bound==='lower')alpha=Math.max(alpha,save.score);else beta=Math.min(beta,save.score);if(alpha>=beta)return save;}
    let wins=winning(b,q);if(wins.length)return {score:MATE-ply,pv:[wins[0]]};let threats=winning(b,3-q);
    if(threats.length>1)return {score:-MATE+ply+1,pv:[]};
    let moves,quiet=false;if(threats.length){let i=threats[0];if(!inspect(b,i,q).legal)return {score:-MATE+ply+1,pv:[]};moves=[{i}];}else if(ply>=limits.forcing)return {score:staticEval(q),pv:[]};else{
     const all=d>0||strategy&&quietExtension>0&&ply<=4?searchMoves(q):[];
-    if(d<=0){moves=strategy&&quietExtension>0&&ply<=4?strategy.select(b,q,all,4,4).filter(m=>m.strategy.legalExtensions.length&&(m.strategy.usableThreeAxes.length||m.strategy.axes.length>1)):[];if(!moves.length)return {score:staticEval(q),pv:[]};quiet=true;}
-    else moves=strategy?strategy.select(b,q,all,ply<2?limits.root:limits.branch,4,new Set(all.filter(m=>m.a.fours.length).map(m=>m.i))):all.slice(0,ply<2?limits.root:limits.branch);
+    if(d<=0){moves=strategy&&quietExtension>0&&ply<=4?strategy.searchSelect(b,q,all,4,4,new Set(),'unknown').filter(m=>m.strategy.legalExtensions.length&&(m.strategy.usableThreeAxes.length||m.strategy.axes.length>1)):[];if(!moves.length)return {score:staticEval(q),pv:[]};quiet=true;}
+    else moves=strategy?strategy.searchSelect(b,q,all,ply<2?limits.root:limits.branch,4,new Set(all.filter(m=>m.a.fours.length).map(m=>m.i)),'unknown'):all.slice(0,ply<2?limits.root:limits.branch);
    }
    // 탐색 끝에서도 강제 방어를 연장한다. 일반 평가와 확정 승패는 구분한다.
    if(ply>=Math.max(19,limits.forcing))return {score:staticEval(q),pv:[]};if(!moves.length)return {score:0,pv:[]};
    let best={score:-Infinity,pv:[]};for(let m of moves){b[m.i]=q;let r;try{r=search(3-q,d-1,-beta,-alpha,ply+1,quiet?quietExtension-1:quietExtension);}finally{b[m.i]=0;}let score=-r.score;if(score>best.score)best={score,pv:[m.i,...r.pv]};alpha=Math.max(alpha,score);if(alpha>=beta)break;}
-   tt.set(key,{...best,bound:best.score<=a0?'upper':best.score>=b0?'lower':'exact'});return best;
+   const bound=best.score<=a0?'upper':best.score>=b0?'lower':'exact';tt.set(key,{...best,bound});
+   searchMemory?.put(memScope+'|search',memoryKey,{...best,score:OmokSearchMemory.toStored(best.score,ply,MATE),bound},Math.max(0,d)*2+(bound==='exact'?4:0));return best;
   }
   let best=options[0],pv=[best.i],score=best.score;
   if(!lossProven)for(let d=1;d<=limits.depth;d++){const round=[];try{for(let m of rootOptions){check();b[m.i]=p;let r;try{r=search(3-p,d-1,-Infinity,Infinity,1);}finally{b[m.i]=0;}let v=-r.score-(bad.includes(m.i)&&Math.abs(r.score)<MATE/2?12000:0)+(Math.abs(r.score)<MATE/2?(strategicAdjust.get(m.i)||0):0);round.push({m,i:m.i,score:v,pv:[m.i,...r.pv],depth:d,strategy:m.strategy,comparisonComplete:true});}if(round.length){round.sort((a,c)=>c.score-a.score);best=round[0].m;pv=round[0].pv;score=round[0].score;depth=d;lastComparison=round;lastCandidates=round.slice(0,3).map(({m,...row})=>row);rootOptions=round.map(r=>r.m);options.sort((a,c)=>(c===best)-(a===best));}}catch(e){if(e!==TIME)throw e;break;}}
@@ -881,8 +1041,10 @@ function createEngine(options={}) {
   // Exact five takes precedence even when loading a legacy strict-rule setting.
   const normalizeFirst=value=>[1,2].includes(value)?value:null;
   const strategyVersion='initiative-1';
+  const searchMemory=options.searchMemory===false?null:options.searchMemory||
+    (typeof OmokSearchMemory!=='undefined'?OmokSearchMemory.create({snapshot:options.memorySnapshot}):null);
   const rules={fivePriority:true,patternTable:options.patternTable,optimized:options.optimized,
-    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy};
+    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy,searchMemory,memoryManaged:true};
   let forest=createForestEngine(rules);
   const fast=b=>createReaderEngine(15,b,rules);
   const inspect=(b,i,p)=>![1,2].includes(p)?{legal:false,reason:'돌 색 오류',threes:[],fours:[],win:[]}:forest.inspect(b,i,p);
@@ -890,7 +1052,7 @@ function createEngine(options={}) {
     rules.fivePriority=true;
     if(Object.prototype.hasOwnProperty.call(next,'firstPlayer')||next.context){
       const firstPlayer=normalizeFirst(next.firstPlayer??next.context?.firstPlayer);
-      if(firstPlayer!==rules.firstPlayer){rules.firstPlayer=firstPlayer;forest=createForestEngine(rules);}
+      if(firstPlayer!==rules.firstPlayer){searchMemory?.clear();rules.firstPlayer=firstPlayer;forest=createForestEngine(rules);}
     }
   }
   const getContext=()=>({firstPlayer:rules.firstPlayer,strategyVersion,strategyEnabled:rules.strategy!==false});
@@ -987,7 +1149,7 @@ function createEngine(options={}) {
       forbiddenDefense,
       defenseChecked:first?.status==='screened',fallback:!!r.fallback,kind:r.kind,
       autoReason:r.autoReason,automatic:r.automatic,screeningComplete:r.screeningComplete,
-      forcingChecksComplete:r.forcingChecksComplete,strategy:r.strategy,comparisonSource:'reader',
+      forcingChecksComplete:r.forcingChecksComplete,counterProof:r.counterProof,counterChecks:r.counterChecks,strategy:r.strategy,comparisonSource:'reader',
       candidates:(r.moves||[]).map(m=>{const pv=validPV(board,p,m.pv);return {...m,pv,depth:m.depth??r.depth??0,comparisonSource:'reader',
         comparisonDepthExplicit:Number.isInteger(m.depth)&&m.depth>0,
         comparisonPVComplete:Array.isArray(m.pv)&&m.pv.length>0&&pv.length===m.pv.length&&pv[0]===m.i};}),rejected:r.rejectedMoves||[],
@@ -1040,6 +1202,30 @@ function createEngine(options={}) {
     const can=forest.canonical(board,p),memory=lessons.filter(l=>l.key===can.key);
     best.memory=memory.length;
     best.patternHint=forest.patternDefense(board,p)?.i??null;
+    // Wide quiet-counter proofs have their own reserve only in the early/middle
+    // game. Dense positions retain Forest's established final-guard time.
+    const counterContextEligible=deep&&limit>=12000&&board.filter(Boolean).length>=16&&board.filter(Boolean).length<=40;
+    let counterContext=counterContextEligible&&e.counterSeeds(3-p,Math.min(40,limit-(clockNow()-started)-1000)).length>0;
+    // Reuse Reader's incremental windows for the complete counter-threat
+    // certificate. Keep the same total move clock and reserve ordinary search
+    // if this bounded proof does not cover every legal defense.
+    if(deep&&!best.proven&&!best.lossProven&&best.i!=null&&limit-(clockNow()-started)>4000&&e.forcingWin(3-p,13,80)){
+      counterContext=counterContextEligible;
+      // Keep at least 12 seconds for the established dense-position search
+      // and final guard; the new global probe may return partial evidence.
+      const available=limit-(clockNow()-started),counterBudget=Math.min(7000,limit*.5,available-3000,
+        counterContextEligible?Infinity:Math.max(0,available-12400));
+      const check=counterBudget>0?e.counterLoss(p,counterBudget,19,1):{lossProven:false,complete:false,branches:[]};
+      if(check.lossProven)return ensureLegalCandidate({...best,lossProven:true,forcedLoss:true,kind:'lost',proven:false,score:-1e8,ms:clockNow()-started,
+        reason:'시간 끌기 반격을 포함한 모든 합법 응수에서 강제패배 확인',rejected:e.counterRejections(p,check),counterProof:{complete:true,checkedRoots:check.branches.length,forcing:19,quiet:1,ms:check.ms},comparisonSource:'reader',automatic});
+      const completed=e.counterRejections(p,check);
+      if(completed.length){
+        best=ensureLegalCandidate({...best,rejected:[...(best.rejected||[]),...completed]});
+        progress({...best,analysisIncomplete:true,reason:best.reason+' · 전체 패배는 미확인, 완료된 개별 반증 보존'});
+        if(best.lossProven)return best;
+      }
+
+    }
     if(!deep||best.proven||best.lossProven||best.kind==='terminal'||best.i==null)return ensureLegalCandidate(best);
     // Freeze per-candidate provenance before later safety exclusions can
     // replace the selected move. A global depth is not another move's work.
@@ -1079,10 +1265,12 @@ function createEngine(options={}) {
       if(alternative)best={...best,i:alternative.i,score:alternative.score,pv:alternative.pv,shape:inspect(board,alternative.i,p),
         reason:'상대가 강제 방어한 뒤의 반격 위험 제외 · 대안 추가 검증',unverifiedDefense:true};
     }
+    // The final incremental counter proof below replaces the earlier
+    // repeated Forest quiet probes; its reserve is inside this move clock.
     // A quiet counterattack can refute a forced-looking defensive move even
     // when it creates no four. Reserve a bounded proof check before minimax
     // spends the whole 15-second budget on the same losing candidate.
-    if(limit>=12000&&board.filter(Boolean).length>=16&&board.filter(Boolean).length<=40&&
+    if(!counterContext&&limit>=12000&&board.filter(Boolean).length>=16&&board.filter(Boolean).length<=40&&
       forest.forcing(board,3-p,19,120).proof&&limit-(clockNow()-started)>7000){
       for(const m of (best.candidates||[]).slice(0,limit>=20000?3:2)){
         const shape=inspect(board,m.i,p);if(!shape.legal||shape.win.length||clockNow()-started>limit-6000)continue;
@@ -1124,7 +1312,8 @@ function createEngine(options={}) {
       }
     }
     progress({...best,reason:best.reason+' · 심층 위협 검사 중'});
-    const remaining=limit-(clockNow()-started)-Math.min(400,limit*.04);
+    const counterReserve=counterContext?Math.min(5000,limit*.34):0;
+    const remaining=limit-(clockNow()-started)-Math.min(400,limit*.04)-counterReserve;
     if(remaining>50){
       const extended=forest.analyze(board,p,remaining,lessons);
       if(extended.i!=null&&inspect(board,extended.i,p).legal&&!refuted.has(extended.i)&&(!counterRisk.has(extended.i)||extended.proven)){
@@ -1191,6 +1380,35 @@ function createEngine(options={}) {
         if(extended.lossProven){best.lossProven=true;best.forcedLoss=true;best.kind='lost';}
       }
     }
+    if(counterContext&&!best.proven&&!best.lossProven&&best.i!=null&&clockNow()-started<limit-80){
+      const checks=[],bad=new Set((best.rejected||[]).filter(refutation).map(m=>m.i)),seen=new Set(),
+        pool=[{i:best.i},...(best.candidates||[])].filter(m=>!seen.has(m.i)&&seen.add(m.i)).slice(0,3),
+        proofEnd=Math.min(started+limit-80,clockNow()+counterReserve);
+      for(const m of pool){
+        if(clockNow()>=proofEnd)break;
+        const check=e.counterMove(m.i,p,Math.max(0,proofEnd-clockNow()),19,2);
+        checks.push({i:m.i,complete:check.complete,refuted:!!check.proof,ms:check.ms,forcing:19,quiet:2});
+        if(!check.proof)continue;
+        bad.add(m.i);best.rejected=[...(best.rejected||[]),{i:m.i,pv:check.proof.pv,reason:'공격 준비와 시간 끌기 반격을 포함한 상대 강제승 확인',counterProof:{forcing:19,quiet:2,complete:true}}];
+        if(bad.has(best.i)){
+          const next=(best.candidates||[]).find(c=>!bad.has(c.i)&&inspect(board,c.i,p).legal);
+          best=next?{...best,i:next.i,pv:next.pv,score:next.score,depth:next.depth||0,proven:false,proof:null,finalGuard:null,counterVerification:null,retainedComparison:null,strategy:best.strategy?{...best.strategy,initiative:'unknown',selectedCheck:null}:null,defenseChecked:false,unverifiedDefense:true,kind:'search',reason:'검증된 강제패배 수 제외 · 공격 대안 비교 유지'}:
+            {...best,i:null,pv:[],depth:0,proven:false,proof:null,finalGuard:null,counterVerification:null,retainedComparison:null,kind:'incomplete'};
+        }
+        // Publish refutations before another probe so cancel/watchdog cannot
+        // return the already refuted, previously compared recommendation.
+        progress({...best,counterChecks:checks.slice(),analysisIncomplete:true,reason:'증명된 패배 수 제외 · 나머지 후보 검사 중'});
+
+      }
+      best.candidates=(best.candidates||[]).filter(m=>!bad.has(m.i));
+      if(bad.has(best.i)){
+        const alternative=best.candidates.find(m=>inspect(board,m.i,p).legal);
+        best=alternative?{...best,i:alternative.i,pv:alternative.pv,score:alternative.score,depth:alternative.depth||0,proven:false,proof:null,kind:'search',finalGuard:null,counterVerification:null,retainedComparison:null,strategy:best.strategy?{...best.strategy,initiative:'unknown',selectedCheck:null}:null,defenseChecked:false,unverifiedDefense:true,reason:'검증된 강제패배 수 제외 · 공격 대안 비교 유지'}:
+          {...best,i:null,pv:[],proven:false,proof:null,finalGuard:null,counterVerification:null,retainedComparison:null,strategy:best.strategy?{...best.strategy,initiative:'unknown',selectedCheck:null}:null,kind:'incomplete',depth:0};
+      }
+      best.counterChecks=checks;
+      best.analysisIncomplete=!!best.analysisIncomplete||best.i==null||checks.some(c=>c.i===best.i&&!c.complete);
+    }
     if(known.length&&!best.proven&&!best.reason.includes('강제패배 수 제외'))
       best.reason=`${forest.coord(known[0].i)} 강제패배 수 제외 · `+best.reason+' · 대안의 전체 승리는 미증명';
     const diagnostics=new Map((best.counterThreats||[]).map(m=>[m.i,m]));
@@ -1200,7 +1418,8 @@ function createEngine(options={}) {
     return ensureLegalCandidate(best);
   }
   function analyze(board,p,budget='auto',lessons=[],progress=()=>{}) {
-    const describe=r=>finalizeResult(board,p,r);
+    searchMemory?.begin();
+    const describe=r=>({...finalizeResult(board,p,r),searchMemory:searchMemory?.stats()});
     const limit=Number(budget),staged=Number.isFinite(limit)&&limit>=20000;
     if(!staged)return describe(analyzeCore(board,p,budget,lessons,r=>progress(describe(r))));
     const started=clockNow(),deadline=started+limit;
@@ -1299,7 +1518,10 @@ function createEngine(options={}) {
   // configure can rebuild context-sensitive evaluation caches. Forward public
   // Forest methods to the current instance rather than retaining stale closures.
   const api={...forest};for(const name of Object.keys(api))if(typeof api[name]==='function')api[name]=(...args)=>forest[name](...args);
-  return {...api,configure,getContext,strategyVersion,finalizeResult,inspect,urgent,analyze,suggestBudget,assessMove,reviewMove,validPV};
+  return {...api,configure,getContext,strategyVersion,finalizeResult,inspect,urgent,analyze,suggestBudget,assessMove,reviewMove,validPV,
+    getSearchMemoryStats:()=>searchMemory?.stats()||null,
+    exportSearchMemory:()=>searchMemory?.snapshot()||null,
+    clearSearchMemory:()=>searchMemory?.clear()};
 }
 if(typeof module!=='undefined')module.exports=createEngine;
 </script>
@@ -1546,7 +1768,7 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority" disabled><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.14.7';versionBadge.title='공격 연결·선제 차단·응수 비교와 주도권 근거';versionBadge.setAttribute('aria-label','통합 버전 5.14.7');
+versionBadge.textContent='통합 v5.15.0';versionBadge.title='턴 사이 탐색 기록 재사용 · 공격 연결·선제 차단';versionBadge.setAttribute('aria-label','통합 버전 5.15.0');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
 wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 추천 카드의 분석 시간 설정으로 계산합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 const settingsPolicy=OmokAnalysisSettings;
@@ -1620,13 +1842,22 @@ function selectedBudget(board,p){
 }
 function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   const started=performance.now();
-  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const E=createEngine({...e.data.rules,firstPlayer:e.data.firstPlayer,patternTable:e.data.patternTable,optimized:e.data.optimized});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r}));postMessage({result:r})}catch(x){postMessage({error:String(x)})}}';
+  // Main-page session memory survives normal completion and hard cancellation.
+  // Foreground and predicted-reply Workers import the same completed nodes.
+  const memoryKey=[g?.id??'session',g?.first??'unknown',g?.rules?.fivePriority!==false,
+    E.strategyVersion||'initiative-1',globalThis.omokAcceleration?.mode||'cpu'].join('|');
+  let session=null;
+  if(typeof OmokSearchMemory!=='undefined'){
+    if(spawnAnalysis.memory?.key!==memoryKey)spawnAnalysis.memory={key:memoryKey,store:OmokSearchMemory.create()};
+    session=spawnAnalysis.memory;session.store.begin();
+  }
+  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const memory=typeof OmokSearchMemory!=="undefined"?OmokSearchMemory.create({snapshot:e.data.searchMemory}):null;const E=createEngine({...e.data.rules,firstPlayer:e.data.firstPlayer,patternTable:e.data.patternTable,optimized:e.data.optimized,searchMemory:memory});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r,searchMemory:memory?.delta(512)}));postMessage({result:r,searchMemory:memory?.delta(4096)})}catch(x){postMessage({error:String(x)})}}';
   const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));let w;
   try{w=new Worker(url);}finally{URL.revokeObjectURL(url);}
   const limit=typeof budget==='object'?budget.ms:Number(budget);
   const reserve=Math.min(1500,Math.max(60,limit*.06)),searchLimit=Math.max(30,limit-reserve);
   const searchBudget=typeof budget==='object'?{...budget,ms:searchLimit}:searchLimit;
-  let finished=false,lastVerified=null,lastLegal=null;
+  let finished=false,lastVerified=null,lastLegal=null,latestRefuted=new Set(),latestRefutations=new Map();
   const health=spawnAnalysis.health||(spawnAnalysis.health={blockedUntil:0,healthySince:0,lastLag:0});
   let tickAt=performance.now(),timer;
   const heartbeat=setInterval(()=>{
@@ -1637,7 +1868,20 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   },100);
   const terminate=w.terminate.bind(w);
   w.terminate=()=>{finished=true;clearTimeout(timer);clearInterval(heartbeat);terminate();};
-  const finish=(result,error)=>{if(finished)return;finished=true;clearTimeout(timer);w.terminate();if(result){
+  const rejectedSnapshot=r=>!!r&&!r.lossProven&&r.i!=null&&latestRefuted.has(r.i);
+  const rememberRefutations=r=>{
+    for(const m of r?.rejected||[])if(m.pv?.length||m.line?.length||m.replyTrap||m.verifiedRefutation){latestRefuted.add(m.i);latestRefutations.set(m.i,m);}
+    if(lastVerified&&rejectedSnapshot(lastVerified))lastVerified=null;
+    if(lastLegal&&rejectedSnapshot(lastLegal))lastLegal=null;
+  };
+  const retainEvidence=r=>r?{...r,rejected:[...new Map([...(r.rejected||[]).map(m=>[m.i,m]),...latestRefutations]).values()],
+    candidates:(r.candidates||[]).filter(m=>r.lossProven||!latestRefuted.has(m.i))}:r;
+  const available=()=>lastVerified||(lastLegal?{...lastLegal,depth:0,unverifiedDefense:true}:null)||E.urgent(board,p)||{
+    i:Array.from({length:225},(_,i)=>i).find(i=>!latestRefuted.has(i)&&E.inspect(board,i,p).legal)??Array.from({length:225},(_,i)=>i).find(i=>E.inspect(board,i,p).legal)??null,
+    depth:0,nodes:0,pv:[],unverifiedDefense:true,candidates:[]};
+  const finish=(result,error)=>{if(finished)return;rememberRefutations(result);
+    if(rejectedSnapshot(result)){result=available();error=error||'반증된 이전 추천 제외 · 대안 검사 미완료';}
+    finished=true;clearTimeout(timer);w.terminate();if(result){result=retainEvidence(result);
     const timedOut=error==='시간 상한 도달'||!!result.timedOut;
     const output={...result,ms:Math.round(performance.now()-started),timedOut,
       analysisIncomplete:!!error||!!result.analysisIncomplete,workerError:error||result.workerError||null,externalBudgetMs:limit,internalBudgetMs:searchLimit};
@@ -1648,17 +1892,25 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   timer=setTimeout(()=>{
     const fallback=lastVerified||(lastLegal?{...lastLegal,depth:0,
       reason:'시간 상한 도달 · 임시 합법 후보 (깊이 검증 미완료)',unverifiedDefense:true}:null)||E.urgent(board,p)||{
-      i:Array.from({length:225},(_,i)=>i).find(i=>E.inspect(board,i,p).legal)??null,
+      i:Array.from({length:225},(_,i)=>i).find(i=>!latestRefuted.has(i)&&E.inspect(board,i,p).legal)??Array.from({length:225},(_,i)=>i).find(i=>E.inspect(board,i,p).legal)??null,
       depth:0,nodes:0,pv:[],reason:'시간 상한 도달 · 합법 후보 (심층 검증 미완료)',
       unverifiedDefense:true,candidates:[]};
     finish(fallback,'시간 상한 도달');
   },Math.max(0,limit-(performance.now()-started)));
-  w.onmessage=e=>{if(finished)return;if(e.data.error)finish(lastVerified,e.data.error);
-    else if(e.data.progress){const r=e.data.result;if(r?.i!=null&&E.inspect(board,r.i,p).legal)lastLegal=r;
-      if(r?.depth>0||r?.proven||r?.lossProven)lastVerified=r;onProgress(r);}
+  w.onmessage=e=>{if(finished)return;
+    if(session&&spawnAnalysis.memory===session)session.store.merge(e.data.searchMemory);
+    if(e.data.error)finish(lastVerified,e.data.error);
+    else if(e.data.progress){const r=e.data.result;
+      // New proof evidence supersedes older comparison snapshots, including
+      // when the replacement has no completed depth. The watchdog must not
+      // restore a refuted move after cancellation or timeout.
+      rememberRefutations(r);if(rejectedSnapshot(r))return;
+      const legal=r?.i!=null&&E.inspect(board,r.i,p).legal;
+      if(legal)lastLegal=r;
+      if(r?.lossProven||legal&&(r?.depth>0||r?.proven))lastVerified=r;onProgress(retainEvidence(r));}
     else finish(e.data.result);};
   w.onerror=e=>finish(lastVerified,e.message||'Worker 오류');
-  w.postMessage({firstPlayer:g?.first??null,patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{}});return w;
+  w.postMessage({firstPlayer:g?.first??null,patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{},searchMemory:session?.store.snapshot()});return w;
 }
 function acceptResult(result,partial=false){
   if(result&&E.finalizeResult)result=E.finalizeResult(b,turn,result);
@@ -1730,6 +1982,7 @@ render=function(){unifiedRender();
   analysisPlan.textContent=formatAnalysisPlan(rec?.analysisPolicy||currentAnalysisPolicy,rec)||activePlan;
   if(rec?.lossProven||rec?.proven)$('metrics').textContent=(rec.proven?'강제승 확인':'강제패배 확인 · 합법 후보 유지')+` · ${rec.ms||0}ms`;
   if(rec?.i!=null&&!rec.proven&&!rec.lossProven)$('metrics').textContent=`완료 깊이 ${rec.depth||0}반수 · ${rec.ms||0}ms · ${(rec.nodes||0).toLocaleString()}노드 · 제한 탐색`;
+  if(rec?.searchMemory?.reused)$('metrics').textContent+=` · 이전 계산 ${rec.searchMemory.reused.toLocaleString()}회 재사용`;
   const strategy=rec?.strategy,initiative=strategy?.initiative,
     initiativeText={own:names[turn]+' 공격 주도',opponent:names[3-turn]+' 공격 주도',contested:'양쪽 위협 경합',unknown:'주도권 판단 불확실'}[initiative];
   const selected=strategy?.selected;
@@ -1867,8 +2120,8 @@ const gpuPanel=document.createElement('div');gpuPanel.className='card';gpuPanel.
 $('nextMovePanel').after(gpuPanel);
 $('computeMode').value=initialCompute;
 const gpuAnalysisMode=document.createElement('p');gpuAnalysisMode.id='gpuAnalysisMode';gpuAnalysisMode.className='muted';$('computeMode').parentElement.after(gpuAnalysisMode);syncAnalysisSettingsUI();
-versionBadge.textContent='통합 v5.14.7 · GPU';
-versionBadge.setAttribute('aria-label','통합 버전 5.14.7');
+versionBadge.textContent='통합 v5.15.0 · GPU';
+versionBadge.setAttribute('aria-label','통합 버전 5.15.0');
 versionBadge.title='공격 연결·선제 차단·주도권 분석 · GPU 혼합 · 정확한 5목 우선';
 let gpuPrepared=null,cpuPatterns=null,modeRequest=0,benchmarkWorker=null,cancelBenchmark=null;
 async function selectComputeMode(reanalyze=false){

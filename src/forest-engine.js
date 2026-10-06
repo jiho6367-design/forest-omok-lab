@@ -5,6 +5,7 @@
 function createForestEngine(options={}){
   const clockNow=typeof performance!=='undefined'?performance.now.bind(performance):Date.now.bind(Date);
  const N=15,D=[[1,0],[0,1],[1,1],[1,-1]],inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
+ const searchMemory=options.searchMemory||null,memScope=searchMemory?OmokSearchMemory.scope('forest',N,options):'';
  const forcingWindows=[];
  for(let y=0;y<N;y++)for(let x=0;x<N;x++)for(const [dx,dy]of D)if(inside(x+4*dx,y+4*dy)){
   forcingWindows.push(Array.from({length:5},(_,k)=>(y+k*dy)*N+x+k*dx));
@@ -27,9 +28,13 @@ function createForestEngine(options={}){
   if(options.positionCache===false)return compute();
   const cache=positionCaches[kind],key=b.join('')+'|'+p,found=cache.get(key);
   if(found!==undefined){positionCacheStats.hits++;return copy?found.slice():found;}
+  // Budget-measured strategic descriptors are not pure position values.
+  const portable=searchMemory&&(kind!=='evaluation'||!strategy||String(p).endsWith('|base'));
+  const remembered=portable?searchMemory.get(memScope+'|'+kind,key):undefined;
+  if(remembered!==undefined){positionCacheStats.hits++;return copy?remembered.slice():remembered;}
   positionCacheStats.misses++;const result=compute();
   if(cache.size>=2048)cache.delete(cache.keys().next().value);
-  cache.set(key,copy?result.slice():result);return result;
+  cache.set(key,copy?result.slice():result);if(portable)searchMemory.put(memScope+'|'+kind,key,result,1);return result;
  }
  function candidates(b){return memoPosition('candidates',b,0,()=>generateCandidates(b),true);}
  function winning(b,p){return memoPosition('winning',b,p,()=>findWinning(b,p),true);}
@@ -56,7 +61,7 @@ function createForestEngine(options={}){
  function generateCandidates(b){let s=new Set();for(let i=0;i<225;i++)if(b[i]){let x=i%15,y=i/15|0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(inside(x+dx,y+dy)&&!b[(y+dy)*15+x+dx])s.add((y+dy)*15+x+dx);}return s.size?[...s]:b.every(v=>!v)?[112]:[];}
  function positional(b,i,p){let score=0,x=i%15,y=i/15|0;b[i]=p;for(let d of D){let a=line(b,i,p,d),l=a[0],r=a[a.length-1],open=(at(b,l%15-d[0],(l/15|0)-d[1])===0?1:0)+(at(b,r%15+d[0],(r/15|0)+d[1])===0?1:0);score+=(a.length>=6?0:[0,2,25,150,1500,100000][a.length])*open;}b[i]=0;return score+14-Math.abs(x-7)-Math.abs(y-7);}
  function value(s){return s.win.length?1e8:s.fours.length>=2?7e5:s.fork43?4e5:s.fours.length?5e4:s.threes.length?2500:0;}
- function ranked(b,p,rich=false){const pool=strategy?[...new Set([...candidates(b),...strategy.points(b,p)])]:candidates(b);return pool.map(i=>{let a=inspect(b,i,p),o=inspect(b,i,3-p),feature=rich&&a.legal?strategy?.move(b,i,p,a):null;const ownValue=feature&&a.threes.length&&!a.fours.length&&!feature.usableThreeAxes.length?0:value(a);return {i,a,o,score:ownValue+(o.legal?value(o)*1.1:0)+positional(b,i,p)+(strategy&&!o.legal?0:positional(b,i,3-p)*.9)+(feature?.score||0),...(feature?{strategy:feature}:{})};}).filter(m=>m.a.legal).sort((a,b)=>b.score-a.score||a.i-b.i);}
+ function ranked(b,p,rich=false,search=false){const pool=strategy?[...new Set([...candidates(b),...(search?strategy.searchPoints(b,p):strategy.points(b,p))])]:candidates(b);return pool.map(i=>{let a=inspect(b,i,p),o=inspect(b,i,3-p),feature=rich&&a.legal?strategy?.move(b,i,p,a):null;const ownValue=feature&&a.threes.length&&!a.fours.length&&!feature.usableThreeAxes.length?0:value(a);return {i,a,o,score:ownValue+(o.legal?value(o)*1.1:0)+positional(b,i,p)+(strategy&&!o.legal?0:positional(b,i,3-p)*.9)+(feature?.score||0),...(feature?{strategy:feature}:{})};}).filter(m=>m.a.legal).sort((a,b)=>b.score-a.score||a.i-b.i);}
  function findWinning(b,p){let r=[];for(let i of candidates(b)){b[i]=p;if(win(b,i,p).length)r.push(i);b[i]=0;}return r;}
  const coord=i=>String.fromCharCode(65+i%15)+(1+(i/15|0));
  function transformed(i,t){let x=i%15,y=i/15|0;if(t>=4)x=14-x;for(let k=0;k<t%4;k++)[x,y]=[14-y,x];return y*15+x;}
@@ -66,6 +71,7 @@ function createForestEngine(options={}){
  // 유일 방어가 있으면 실제로 착수한다. 반격/금수/장목을 모두 같은 규칙으로 검사.
  // proof 없음은 안전의 증명이 아니다. 시간 초과는 unknown으로 구분한다.
  function forcing(board,p,maxPlies=11,budget=100,cache=new Map()){
+  if(searchMemory&&arguments[4]===undefined)cache=searchMemory.cache(memScope+'|forcing');
   let b=board.slice(),end=clockNow()+budget,nodes=0,TIME={},prefiltered=false;
   function solve(left){if(clockNow()>=end)throw TIME;nodes++;let key=b.join('')+p+':'+left;if(cache.has(key))return cache.get(key);
    if(nodes===1&&options.vcfPrefilter!==false&&!mayStartForcing(b,p)){prefiltered=true;cache.set(key,null);return null;}
@@ -94,6 +100,7 @@ function createForestEngine(options={}){
  // After our forcing four, check the opponent's mandatory quiet block too.
  // A certificate requires a winning reply against EVERY legal continuation.
  function forcedReplyTrap(board,p,budget=200,setup=null,maxPlies=11,includeQuiet=false,cache=new Map()){
+  if(searchMemory&&arguments[7]===undefined)cache=searchMemory.cache(memScope+'|forcing');
   let b=board.slice(),end=clockNow()+budget,threats=winning(b,p),branches=[];
   const scoped=r=>({...r,scopeComplete:r.complete===true});
   if(setup==null&&(threats.length!==1||winning(b,3-p).length))return scoped({complete:true,proof:null});
@@ -113,6 +120,7 @@ function createForestEngine(options={}){
   branches.sort((a,c)=>a.i-c.i);return scoped({complete:true,proof:branches.length?{block,branches}:null});
  }
  function quietTrap(board,p,budget=300,width=4,maxPlies=11,includeCounter=false,cache=new Map()){
+  if(searchMemory&&arguments[7]===undefined)cache=searchMemory.cache(memScope+'|forcing');
   const end=clockNow()+budget,moves=ranked(board,3-p).filter(m=>m.a.threes.length&&!m.a.fours.length).slice(0,width);
   for(const m of moves){if(clockNow()>=end)return {complete:false,proof:null,scopeComplete:false};const r=forcedReplyTrap(board,p,end-clockNow(),m.i,maxPlies,includeCounter,cache);if(r.proof)return r;if(!r.complete)return r;}
   return {complete:true,proof:null,scopeComplete:true};
@@ -214,7 +222,7 @@ function createForestEngine(options={}){
   // Historical pattern hints do not bypass bounded candidate comparison.
   // Grow the guard reserve continuously; at 12s it still has 1s to verify.
   const guardReserve=Math.min(budget*.28,Math.max(0,budget-11000));
-  let b=board.slice(),start=clockNow(),totalDeadline=start+budget,deadline=start+budget-guardReserve,nodes=0,depth=0,tt=new Map(),proofCache=new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),strategicSummary=null,lastCandidates=[],lastComparison=[];
+  let b=board.slice(),start=clockNow(),totalDeadline=start+budget,deadline=start+budget-guardReserve,nodes=0,depth=0,tt=new Map(),proofCache=searchMemory?searchMemory.cache(memScope+'|forcing'):new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),strategicSummary=null,lastCandidates=[],lastComparison=[];
   const check=()=>{nodes++;if(clockNow()>=deadline)throw TIME;};
   const timedProof=(q,ms)=>{let r=forcing(b,q,limits.forcing,Math.max(1,Math.min(ms,deadline-clockNow())),proofCache);nodes+=r.nodes;return r;};
   const verifiedBad=knownRefutations(b,p),verifiedBadSet=new Set(verifiedBad.map(m=>m.i));
@@ -262,19 +270,25 @@ function createForestEngine(options={}){
   const staticEval=q=>strategy?memoPosition('evaluation',b,q+'|base',()=>evaluateUncached(b,q)):evaluate(b,q),rankCache=new Map();
   // Quiet preparation is bounded per line by quietExtension and ply.
   // A mutable quota shared by unrelated roots changes the TT evaluation.
-  const searchMoves=q=>{const key=b.join('')+q;let r=rankCache.get(key);if(!r){r=ranked(b,q);if(rankCache.size<10000)rankCache.set(key,r);}return r;};
-  function search(q,d,alpha,beta,ply,quietExtension=2){check();let key=b.join('')+q+':'+d+':'+ply+':'+quietExtension,save=tt.get(key),a0=alpha,b0=beta;if(save){if(save.bound==='exact')return save;if(save.bound==='lower')alpha=Math.max(alpha,save.score);else beta=Math.min(beta,save.score);if(alpha>=beta)return save;}
+  // Inner candidate rules also use raw, unmetered support so earlier work
+  // cannot switch a cached subproblem to an empty extension descriptor.
+  const searchMoves=q=>{const key=b.join('')+q;let r=rankCache.get(key);if(!r){r=ranked(b,q,false,true);if(rankCache.size<10000)rankCache.set(key,r);}return r;};
+  function search(q,d,alpha,beta,ply,quietExtension=2){check();let key=b.join('')+q+':'+d+':'+ply+':'+quietExtension,save=tt.get(key),a0=alpha,b0=beta;
+   const memoryKey=searchMemory?b.join('')+'|'+q+'|'+d+'|'+quietExtension+'|'+[Math.max(0,2-ply),Math.max(0,4-ply),limits.forcing-ply,Math.max(19,limits.forcing)-ply,limits.root,limits.branch].join(','):'';
+   if(!save&&searchMemory){const stored=searchMemory.get(memScope+'|search',memoryKey);if(stored)save={...stored,score:OmokSearchMemory.fromStored(stored.score,ply,MATE)};}
+   if(save){if(save.bound==='exact')return save;if(save.bound==='lower')alpha=Math.max(alpha,save.score);else beta=Math.min(beta,save.score);if(alpha>=beta)return save;}
    let wins=winning(b,q);if(wins.length)return {score:MATE-ply,pv:[wins[0]]};let threats=winning(b,3-q);
    if(threats.length>1)return {score:-MATE+ply+1,pv:[]};
    let moves,quiet=false;if(threats.length){let i=threats[0];if(!inspect(b,i,q).legal)return {score:-MATE+ply+1,pv:[]};moves=[{i}];}else if(ply>=limits.forcing)return {score:staticEval(q),pv:[]};else{
     const all=d>0||strategy&&quietExtension>0&&ply<=4?searchMoves(q):[];
-    if(d<=0){moves=strategy&&quietExtension>0&&ply<=4?strategy.select(b,q,all,4,4).filter(m=>m.strategy.legalExtensions.length&&(m.strategy.usableThreeAxes.length||m.strategy.axes.length>1)):[];if(!moves.length)return {score:staticEval(q),pv:[]};quiet=true;}
-    else moves=strategy?strategy.select(b,q,all,ply<2?limits.root:limits.branch,4,new Set(all.filter(m=>m.a.fours.length).map(m=>m.i))):all.slice(0,ply<2?limits.root:limits.branch);
+    if(d<=0){moves=strategy&&quietExtension>0&&ply<=4?strategy.searchSelect(b,q,all,4,4,new Set(),'unknown').filter(m=>m.strategy.legalExtensions.length&&(m.strategy.usableThreeAxes.length||m.strategy.axes.length>1)):[];if(!moves.length)return {score:staticEval(q),pv:[]};quiet=true;}
+    else moves=strategy?strategy.searchSelect(b,q,all,ply<2?limits.root:limits.branch,4,new Set(all.filter(m=>m.a.fours.length).map(m=>m.i)),'unknown'):all.slice(0,ply<2?limits.root:limits.branch);
    }
    // 탐색 끝에서도 강제 방어를 연장한다. 일반 평가와 확정 승패는 구분한다.
    if(ply>=Math.max(19,limits.forcing))return {score:staticEval(q),pv:[]};if(!moves.length)return {score:0,pv:[]};
    let best={score:-Infinity,pv:[]};for(let m of moves){b[m.i]=q;let r;try{r=search(3-q,d-1,-beta,-alpha,ply+1,quiet?quietExtension-1:quietExtension);}finally{b[m.i]=0;}let score=-r.score;if(score>best.score)best={score,pv:[m.i,...r.pv]};alpha=Math.max(alpha,score);if(alpha>=beta)break;}
-   tt.set(key,{...best,bound:best.score<=a0?'upper':best.score>=b0?'lower':'exact'});return best;
+   const bound=best.score<=a0?'upper':best.score>=b0?'lower':'exact';tt.set(key,{...best,bound});
+   searchMemory?.put(memScope+'|search',memoryKey,{...best,score:OmokSearchMemory.toStored(best.score,ply,MATE),bound},Math.max(0,d)*2+(bound==='exact'?4:0));return best;
   }
   let best=options[0],pv=[best.i],score=best.score;
   if(!lossProven)for(let d=1;d<=limits.depth;d++){const round=[];try{for(let m of rootOptions){check();b[m.i]=p;let r;try{r=search(3-p,d-1,-Infinity,Infinity,1);}finally{b[m.i]=0;}let v=-r.score-(bad.includes(m.i)&&Math.abs(r.score)<MATE/2?12000:0)+(Math.abs(r.score)<MATE/2?(strategicAdjust.get(m.i)||0):0);round.push({m,i:m.i,score:v,pv:[m.i,...r.pv],depth:d,strategy:m.strategy,comparisonComplete:true});}if(round.length){round.sort((a,c)=>c.score-a.score);best=round[0].m;pv=round[0].pv;score=round[0].score;depth=d;lastComparison=round;lastCandidates=round.slice(0,3).map(({m,...row})=>row);rootOptions=round.map(r=>r.m);options.sort((a,c)=>(c===best)-(a===best));}}catch(e){if(e!==TIME)throw e;break;}}

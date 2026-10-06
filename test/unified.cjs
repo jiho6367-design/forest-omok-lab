@@ -5,6 +5,18 @@ const filter=process.env.OMOK_TEST_FILTER?new RegExp(process.env.OMOK_TEST_FILTE
 let count=0,failed=0;const test=(name,fn)=>{if(filter&&!filter.test(name))return;
   try{fn();count++;console.log('PASS',name);}catch(error){failed++;process.exitCode=1;console.error('FAIL',name,error.stack);}
 };
+
+// Earlier complete counter-threat proofs can replace a historical unknown.
+// Independently replay every legal root; resistance moves remain playable
+// after a proven loss, and are never presented as escapes.
+function independentlyProvenLoss(board,p,result){
+  assert(result.lossProven&&!result.proven);
+  const e=reader(15,board,{strategy:false,optimized:true,counterProofDetails:true}),legal=Array.from({length:225},(_,i)=>i).filter(i=>e.legal(i,p)),rejected=new Set((result.rejected||[]).filter(m=>m.line?.length||m.pv?.length||m.replyTrap||m.verifiedRefutation).map(m=>m.i));
+  assert(legal.every(i=>rejected.has(i)),'production refutations cover every legal resistance move');
+  const check=e.counterLoss(p,12000,19,2);assert(check.complete&&check.lossProven,'independent complete all-root certificate');assert.equal(check.branches.length,legal.length);assert.deepEqual(e.board,board);
+  const dag=require('../tools/counter-dag.cjs')(null,{attacker:3-p,roots:check.branches}),verified=require('../tools/verify-counter.cjs')(board,dag,{limitMs:20000});assert(verified.verified,verified.error);assert(verified.boardRestored);
+}
+
 const strict=createEngine({fivePriority:false}),priority=createEngine();
 test('exact-five priority overrides legacy options in both engines',()=>{
   const b=blank();for(const c of ['D8','E8','F8','G8','H7','H9','G7','I9'])b[idx(c)]=1;b[idx('C8')]=2;
@@ -83,7 +95,7 @@ test('copied text record identifies my stone and move order',()=>{
   const out=ctx.formatRecordText({me:1,first:2},[{p:2,type:'move',i:112},{p:1,type:'move',i:96}]);assert(out.startsWith('내 돌: 노란 버섯 (흑) · 후공\n'));assert(out.includes('1. 초록 슬라임 H8'));assert(out.includes('2. 노란 버섯 G7'));
 });
 test('single-file build embeds scripts and images without external dependencies',()=>{
-  const html=fs.readFileSync('outputs/omok.html','utf8');assert(html.includes('data:image/'));assert(!/<script[^>]+src=|<link[^>]+href=/.test(html));
+  const html=fs.readFileSync(process.env.OMOK_TEST_HTML||'outputs/omok.html','utf8');assert(html.includes('data:image/'));assert(!/<script[^>]+src=|<link[^>]+href=/.test(html));
   for(const m of html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
 });
 test('80-ply green record is legal and yellow has the verified M6 forcing line',()=>{
@@ -195,10 +207,11 @@ test('new-game search catches the forced-block counterattack in the 15-ply green
   // Timed comparison may prefer another legal move; the counterattack is the
   // regression, not a fixed heuristic coordinate.
   assert(strict.inspect(pre,defense.i,2).legal);assert(!defense.proven);
-  assert((defense.counterThreats||[]).some(x=>x.i===idx('F7')&&x.block===idx('H7')));
+  if(defense.lossProven)independentlyProvenLoss(pre,2,defense);
+  else assert((defense.counterThreats||[]).some(x=>x.i===idx('F7')&&x.block===idx('H7')));
   // A future opponent-first VCF cannot demote a completed actual-turn
   // comparison. If F7 is selected, retain its legal surviving continuation.
-  if(defense.i===idx('F7')){
+  if(!defense.lossProven&&defense.i===idx('F7')){
     const evidence=defense.counterThreats.find(x=>x.i===defense.i),after=pre.slice();after[defense.i]=2;after[evidence.block]=1;
     assert(evidence.riskOnly);assert.equal(evidence.actualTurn,2);assert.equal(evidence.hypotheticalTurn,1);
     const actual=evidence.actualCheck.complete?evidence.actualCheck:strict.forcedReplyTrap((()=>{const b=pre.slice();b[defense.i]=2;return b;})(),2,1000,null,19,true);
@@ -214,11 +227,11 @@ test('new-game search rejects the 30-ply loss setup and never reuses a refuted f
   assert(strict.analyze(board,2,1000,[]).lossProven);
   const pre=blank();moves.slice(0,22).forEach((c,k)=>pre[idx(c)]=k%2?1:2);
   const defense=strict.analyze(pre,2,15000,[]);
-  assert(strict.inspect(pre,defense.i,2).legal);assert.notEqual(defense.i,idx('N8'));assert(!defense.proven);
+  assert(strict.inspect(pre,defense.i,2).legal);assert(!defense.proven);if(defense.lossProven)independentlyProvenLoss(pre,2,defense);else assert.notEqual(defense.i,idx('N8'));
   assert((defense.counterThreats||[]).some(x=>x.i===idx('N8')&&x.block===idx('O8')));
   const late=blank();moves.slice(0,24).forEach((c,k)=>late[idx(c)]=k%2?1:2);
   const result=strict.analyze(late,2,15000,[]);
-  assert.notEqual(result.i,idx('J6'));
+  if(result.lossProven)independentlyProvenLoss(late,2,result);else assert.notEqual(result.i,idx('J6'));
   assert((result.rejected||[]).some(x=>x.i===idx('J6')));
   assert(result.unverifiedDefense||result.lossProven);
 });
@@ -236,8 +249,9 @@ test('new-game search traces the 33-ply green loss back through three forced blo
   }
   const at14=strict.analyze(before(14),2,15000,[]);
   assert(strict.inspect(before(14),at14.i,2).legal);assert(!at14.proven);
-  assert((at14.counterThreats||[]).some(x=>x.i===idx('F7')&&x.block===idx('H7')));
-  if(at14.i===idx('F7')){
+  if(at14.lossProven)independentlyProvenLoss(before(14),2,at14);
+  else assert((at14.counterThreats||[]).some(x=>x.i===idx('F7')&&x.block===idx('H7')));
+  if(!at14.lossProven&&at14.i===idx('F7')){
     const evidence=at14.counterThreats.find(x=>x.i===at14.i),after=before(14);after[at14.i]=2;after[evidence.block]=1;
     assert(evidence.riskOnly);assert.equal(evidence.actualTurn,2);assert.equal(evidence.hypotheticalTurn,1);
     const actual=evidence.actualCheck.complete?evidence.actualCheck:strict.forcedReplyTrap((()=>{const b=before(14);b[at14.i]=2;return b;})(),2,1000,null,19,true);
@@ -247,10 +261,11 @@ test('new-game search traces the 33-ply green loss back through three forced blo
   }
   const at16=strict.analyze(before(16),2,15000,[]);
   assert(strict.inspect(before(16),at16.i,2).legal);assert(!at16.proven);
-  assert((at16.counterThreats||[]).some(x=>x.i===idx('D7')&&x.block===idx('C7')));
+  if(at16.lossProven)independentlyProvenLoss(before(16),2,at16);
+  else assert((at16.counterThreats||[]).some(x=>x.i===idx('D7')&&x.block===idx('C7')));
   // D7 has the same actual-turn contract as F7 above: a hypothetical
   // opponent-first forcing line is diagnostic, not a refutation of our move.
-  if(at16.i===idx('D7')){
+  if(!at16.lossProven&&at16.i===idx('D7')){
     const evidence=at16.counterThreats.find(x=>x.i===at16.i),after=before(16);after[at16.i]=2;
     assert(evidence.riskOnly);assert.equal(evidence.actualTurn,2);assert.equal(evidence.hypotheticalTurn,1);
     assert(strict.inspect(after,evidence.block,1).legal);
@@ -285,8 +300,8 @@ test('22-ply green loss exposes the forbidden E10 defense and rejects the earlie
   const trap=strict.quietTrap(afterC8,2,12000,12,25,true);
   assert(trap.complete&&trap.proof);assert.equal(trap.proof.block,idx('E7'));
   const defense=strict.analyze(before18,2,25000,[]);
-  assert.notEqual(defense.i,idx('C8'));
-  assert((defense.rejected||[]).some(x=>x.i===idx('C8')&&(x.replyTrap||x.verifiedRefutation)));
+  if(defense.lossProven)independentlyProvenLoss(before18,2,defense);else assert.notEqual(defense.i,idx('C8'));
+  assert((defense.rejected||[]).some(x=>x.i===idx('C8')&&(x.replyTrap||x.verifiedRefutation||defense.lossProven&&x.counterProof?.complete&&x.line?.length)));
 });
 test('new games exclude independently certified F6 and F10',()=>{
   const moves='H8 G7 G6 H6 F8 I7 E8 G8 F7 D9 F9'.split(' '),board=blank();
