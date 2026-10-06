@@ -3,6 +3,9 @@
 기존 CPU 수읽기/금수 검사/검증된 반증을 유지하고, 작은 국면 가치 신경망의 제한된 평가 보정을 학습합니다. 자료 생성·변형 대국·수읽기·대국 검증은 CPU, 신경망 미니배치 학습은 GPU(CUDA)입니다. 기존 GPU 혼합의 59,049개 정적 패턴표와 신경망 학습은 서로 다른 기능입니다. 반복 실행은 Node/Python 로컬 프로그램이며 ChatGPT/Codex/외부 AI API를 호출하지 않습니다.
 
 저장소 루트에서 사용:
+  outputs/start-learning.cmd 더블클릭: 서버를 켠 뒤 기본 브라우저를 자동으로 엽니다.
+  재부팅 후에도 같은 파일을 더블클릭하면 됩니다. 사용하는 동안 처음 열린 서버 창을 열어 둡니다.
+  이미 실행 중이면 기존 학습 화면을 엽니다. 저장된 기보·모델·진행 상태는 유지됩니다.
   node tools/learning/run.cjs init --run=outputs/learning/my-run
   node tools/learning/run.cjs import --run=outputs/learning/my-run --input=C:/path/omok-records.json
   node tools/learning/run.cjs cycle --run=outputs/learning/my-run --games=8 --pairs=4 --minutes=3 --workers=1

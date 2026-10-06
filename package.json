@@ -4,7 +4,7 @@
   "private": true,
   "description": "Offline Gomoku with green slime and yellow mushroom characters",
   "scripts": {
-    "learning": "node tools/learning/dashboard.cjs",
+    "learning": "node tools/learning/dashboard.cjs --open",
     "learning:run": "node tools/learning/run.cjs",
     "test:learning": "node test/neural-evaluator.cjs && node test/learning-pipeline.cjs && node test/learning-dashboard.cjs",
     "build": "node build.cjs",
