@@ -5,7 +5,7 @@ const RULES_ID='15x15-exact5-both33-v1',FEATURE_VERSION='house32-v1',BASELINE='0
 const hash=x=>crypto.createHash('sha256').update(typeof x==='string'||Buffer.isBuffer(x)?x:JSON.stringify(x)).digest('hex');
 function fileHash(file){const digest=crypto.createHash('sha256'),fd=fs.openSync(file,'r'),buffer=Buffer.alloc(65536);try{for(;;){const count=fs.readSync(fd,buffer,0,buffer.length,null);if(!count)break;digest.update(buffer.subarray(0,count));}}finally{fs.closeSync(fd);}return digest.digest('hex');}
 const files=['search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','forest-engine.js','unified-engine.js'];
-function atomic(file,value){fs.mkdirSync(path.dirname(file),{recursive:true});const tmp=file+'.tmp-'+process.pid;fs.writeFileSync(tmp,typeof value==='string'?value:JSON.stringify(value,null,2));fs.renameSync(tmp,file);}
+function atomic(file,value){fs.mkdirSync(path.dirname(file),{recursive:true});const tmp=file+'.tmp-'+process.pid;fs.writeFileSync(tmp,typeof value==='string'?value:JSON.stringify(value,null,2));for(let attempt=0;;attempt++){try{fs.renameSync(tmp,file);return;}catch(error){if(!['EPERM','EACCES','EBUSY'].includes(error.code)||attempt>=11)throw error;Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,Math.min(100,10*(attempt+1)));}}}
 function append(file,row){fs.mkdirSync(path.dirname(file),{recursive:true});fs.appendFileSync(file,JSON.stringify(row)+'\n');}
 function read(file,fallback=null){return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):fallback;}
 function resolveRun(value='outputs/learning/default'){return path.resolve(ROOT,value);}
