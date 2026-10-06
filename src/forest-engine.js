@@ -5,7 +5,10 @@
 function createForestEngine(options={}){
   const clockNow=typeof performance!=='undefined'?performance.now.bind(performance):Date.now.bind(Date);
  const N=15,D=[[1,0],[0,1],[1,1],[1,-1]],inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
- const searchMemory=options.searchMemory||null,memScope=searchMemory?OmokSearchMemory.scope('forest',N,options):'';
+ const neuralFactory=options.model?(typeof OmokNeural!=='undefined'?OmokNeural:typeof require==='function'?require('./neural-evaluator.js'):null):null;
+ if(options.model&&!neuralFactory)throw Error('Learning evaluator is required for this model');
+ const neural=options.model?neuralFactory.createEvaluator(options.model,N,options.firstPlayer):null;
+ const searchMemory=options.searchMemory||null,memScope=searchMemory?OmokSearchMemory.scope('forest',N,{...options,modelVersion:neural?.modelId||options.modelVersion}):'';
  const forcingWindows=[];
  for(let y=0;y<N;y++)for(let x=0;x<N;x++)for(const [dx,dy]of D)if(inside(x+4*dx,y+4*dy)){
   forcingWindows.push(Array.from({length:5},(_,k)=>(y+k*dy)*N+x+k*dx));
@@ -38,7 +41,7 @@ function createForestEngine(options={}){
  }
  function candidates(b){return memoPosition('candidates',b,0,()=>generateCandidates(b),true);}
  function winning(b,p){return memoPosition('winning',b,p,()=>findWinning(b,p),true);}
- function evaluate(b,p){return memoPosition('evaluation',b,p,()=>evaluateUncached(b,p)+(strategy?strategy.positionValue(b,p)*2:0));}
+ function evaluate(b,p){return memoPosition('evaluation',b,p,()=>evaluateUncached(b,p)+(strategy?strategy.positionValue(b,p)*2:0)+(neural?.evaluate(b,p)||0));}
  function getPositionCacheStats(){return {...positionCacheStats,entries:Object.values(positionCaches).reduce((n,c)=>n+c.size,0)};}
 
  const patternIndices=options.patternTable?Array.from({length:N*N},(_,i)=>D.map(([dx,dy])=>Array.from({length:11},(_,k)=>{const x=i%N+(k-5)*dx,y=(i/N|0)+(k-5)*dy;return x>=0&&y>=0&&x<N&&y<N?y*N+x:-1;}))):null;
@@ -267,7 +270,7 @@ function createForestEngine(options={}){
   if(rootGuardReserve)deadline=Math.min(deadline,totalDeadline-rootGuardReserve);
   const strategicAdjust=new Map();
   if(strategy&&!lossProven&&clockNow()<deadline){strategicSummary=strategy.probe(b,p,rootOptions,Math.min(strategy.remaining(),Math.max(0,deadline-clockNow())));for(const c of strategicSummary.checks)if(c.complete)strategicAdjust.set(c.i,Math.max(-250,Math.min(250,c.score*.04)));}
-  const staticEval=q=>strategy?memoPosition('evaluation',b,q+'|base',()=>evaluateUncached(b,q)):evaluate(b,q),rankCache=new Map();
+  const staticEval=q=>strategy?memoPosition('evaluation',b,q+'|base',()=>evaluateUncached(b,q)+(neural?.evaluate(b,q)||0)):evaluate(b,q),rankCache=new Map();
   // Quiet preparation is bounded per line by quietExtension and ply.
   // A mutable quota shared by unrelated roots changes the TT evaluation.
   // Inner candidate rules also use raw, unmetered support so earlier work

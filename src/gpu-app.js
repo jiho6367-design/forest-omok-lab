@@ -3,9 +3,9 @@ const gpuPanel=document.createElement('div');gpuPanel.className='card';gpuPanel.
 $('nextMovePanel').after(gpuPanel);
 $('computeMode').value=initialCompute;
 const gpuAnalysisMode=document.createElement('p');gpuAnalysisMode.id='gpuAnalysisMode';gpuAnalysisMode.className='muted';$('computeMode').parentElement.after(gpuAnalysisMode);syncAnalysisSettingsUI();
-versionBadge.textContent='통합 v5.15.0 · GPU';
-versionBadge.setAttribute('aria-label','통합 버전 5.15.0');
-versionBadge.title='공격 연결·선제 차단·주도권 분석 · GPU 혼합 · 정확한 5목 우선';
+versionBadge.textContent='통합 v5.16.0 · GPU';
+versionBadge.setAttribute('aria-label','통합 버전 5.16.0');
+versionBadge.title='기존 엔진 보완 학습 · GPU 혼합 · 정확한 5목 우선';
 let gpuPrepared=null,cpuPatterns=null,modeRequest=0,benchmarkWorker=null,cancelBenchmark=null;
 async function selectComputeMode(reanalyze=false){
  const request=++modeRequest,mode=$('computeMode').value;stopWorker();rec=null;currentAnalysisPolicy=null;globalThis.omokComputeReady=false;globalThis.omokAcceleration={mode:'cpu',table:null,optimized:false};

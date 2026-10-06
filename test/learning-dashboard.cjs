@@ -1,0 +1,41 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),http=require('node:http'),{EventEmitter}=require('node:events');
+const {createDashboard,configuration}=require('../tools/learning/dashboard.cjs');
+const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'omok-dashboard-test-'));
+const runsRoot=path.join(temporary,'runs'),outside=path.join(temporary,'outside');fs.mkdirSync(outside);fs.writeFileSync(path.join(outside,'secret.json'),'"private"');
+let app,port,token;const children=[],calls=[];
+function fakeSpawn(executable,args,options){const child=new EventEmitter();child.stdout=new EventEmitter();child.stderr=new EventEmitter();children.push(child);calls.push({executable,args,options});const run=args.find(a=>a.startsWith('--run=')).slice(6);fs.writeFileSync(path.join(run,'state.json'),JSON.stringify({schemaVersion:1,status:'running',phase:'generate',counters:{samples:3,completedGames:1}}));return child;}
+function request(method,route,value,extra={}){const payload=value==null?'':typeof value==='string'?value:JSON.stringify(value);return new Promise((resolve,reject)=>{const req=http.request({hostname:'127.0.0.1',port,path:route,method,headers:{...(method==='POST'?{'Content-Type':'application/json','X-Omok-Session':token}:{}),...extra}},res=>{const chunks=[];res.on('data',chunk=>chunks.push(chunk));res.on('end',()=>{const text=Buffer.concat(chunks).toString('utf8');let data;try{data=JSON.parse(text);}catch{data=text;}resolve({status:res.statusCode,headers:res.headers,data,text});});});req.on('error',reject);if(payload)req.write(payload);req.end();});}
+(async()=>{
+  app=createDashboard({runsRoot,spawnChild:fakeSpawn,python:'C:\\trusted runtime\\python.exe'});({port}=await app.listen(0));
+  const session=await request('GET','/api/session');assert.equal(session.status,200);token=session.data.token;assert.match(token,/^[a-f0-9]{64}$/);
+  const page=await request('GET','/');assert.equal(page.status,200);assert.match(page.text,/기존 엔진 보완 학습/);assert.match(page.headers['content-security-policy'],/frame-ancestors 'none'/);
+  assert.equal((await request('GET','/api/session',null,{Host:'attacker.example:'+port})).status,403);
+  assert.equal((await request('GET','/api/status',null,{Origin:'https://attacker.example'})).status,403);
+  assert.equal((await request('POST','/api/start',{record:{}},{'X-Omok-Session':'wrong'})).status,403);
+  assert.equal((await request('POST','/api/start',{record:{}},{'Content-Type':'text/plain'})).status,415);
+  assert.equal((await request('POST','/api/start',{record:'bad'})).status,400);
+  assert.equal((await request('POST','/api/start',{record:42})).status,400);
+  assert.equal((await request('POST','/api/start',{record:{},config:{python:'malicious'}})).status,400);
+  assert.equal((await request('POST','/api/start',{record:{},config:{minutes:0}})).status,400);
+  assert.equal((await request('POST','/api/start',{record:'x'.repeat(2*1024*1024)})).status,413);
+  const upload={version:1,games:[{first:2,events:[{type:'move',p:2,i:112}]}]},start=await request('POST','/api/start',{record:upload,recordName:'../../records.json',preset:'check',config:{minutes:1,games:2}});
+  assert.equal(start.status,201);const id=start.data.id,run=path.join(runsRoot,id);assert.deepEqual(JSON.parse(fs.readFileSync(path.join(run,'uploaded-records.json'),'utf8')),upload);assert.equal(JSON.parse(fs.readFileSync(path.join(run,'dashboard.json'),'utf8')).recordName,'records.json');
+  assert.equal(calls[0].options.shell,false);assert.equal(calls[0].options.windowsHide,true);assert(calls[0].args.includes('--device=cuda'));assert(calls[0].args.includes('--minutes=1'));assert(calls[0].args.includes('--min-pairs=32'));
+  assert.equal((await request('POST','/api/start',{record:upload})).status,409);
+  assert.equal((await request('POST','/api/resume',{id})).status,409);
+  children[0].stdout.emit('data',Buffer.from('stage test\n'));assert.match((await request('GET','/api/status?id='+id)).data.selected.log,/stage test/);
+  const stop=await request('POST','/api/stop',{id});assert.equal(stop.status,200);assert.equal(stop.data.stopRequested,true);assert(fs.existsSync(path.join(run,'stop.flag')));
+  children[0].emit('exit',0,null);assert.equal(app.getActive(),null);
+  assert.equal((await request('POST','/api/resume',{id})).status,200);assert(calls[1].args.includes('--resume'));assert(!calls[1].args.some(arg=>arg.startsWith('--games=')));assert(!calls[1].args.some(arg=>arg.startsWith('--input=')));
+  children[1].emit('exit',0,null);
+  fs.writeFileSync(path.join(run,'runner.lock'),JSON.stringify({pid:process.pid,startedAt:new Date().toISOString()}));assert.equal((await request('GET','/api/status')).data.activeId,id);assert.equal((await request('POST','/api/resume',{id})).status,409);assert.equal((await request('POST','/api/start',{record:upload})).status,409);fs.unlinkSync(path.join(run,'runner.lock'));
+  const builtIn=await request('POST','/api/start',{preset:'check'});assert.equal(builtIn.status,201);assert(!calls[2].args.some(arg=>arg.startsWith('--input=')));assert(!fs.existsSync(path.join(runsRoot,builtIn.data.id,'uploaded-records.json')));children[2].emit('exit',0,null);
+  assert.equal((await request('GET','/api/status?id=..')).status,400);assert.equal((await request('GET','/api/status?id=absent')).status,404);assert.equal((await request('GET','/../../package.json')).status,404);
+  assert.equal((await request('GET','/api/download?id='+id+'&kind=../../secret.json')).status,400);assert.equal((await request('GET','/api/download?id='+id)).status,404);
+  fs.writeFileSync(path.join(run,'champion.json'),JSON.stringify({kind:'forest-value-mlp',modelId:'accepted'}));const download=await request('GET','/api/download?id='+id);assert.equal(download.status,200);assert.equal(download.data.modelId,'accepted');assert.match(download.headers['content-disposition'],/attachment/);
+  const link=path.join(runsRoot,'outside-link');fs.symlinkSync(outside,link,'junction');assert.equal((await request('GET','/api/status?id=outside-link')).status,403);assert(!((await request('GET','/api/status')).data.runs.some(run=>run.id==='outside-link')));
+  fs.unlinkSync(path.join(run,'champion.json'));fs.symlinkSync(outside,path.join(run,'champion.json'),'junction');assert.equal((await request('GET','/api/download?id='+id)).status,403);
+  assert.equal(configuration({preset:'check'}).minPairs,32);assert.throws(()=>configuration({preset:'none'}));
+  console.log('learning-dashboard: localhost/CSRF/upload/path boundaries, bounded runner args, stop/resume and model download passed');
+})().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{if(app)await app.close();const absolute=path.resolve(temporary),tempRoot=path.resolve(os.tmpdir());if(path.dirname(absolute)!==tempRoot||!path.basename(absolute).startsWith('omok-dashboard-test-'))throw Error('Unsafe test cleanup target');fs.rmSync(absolute,{recursive:true,force:true});});

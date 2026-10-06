@@ -42,10 +42,10 @@ async function postmortem(){
   if(cancelled)break;let ev=events[k];bar.value=k+1;
   if(ev.p===target&&ev.type==='move'){
    let result=await new Promise(resolve=>{
-    let src=$('engineSource').textContent+'\nonmessage=e=>{try{postMessage(createEngine({...e.data.rules,firstPlayer:e.data.firstPlayer}).reviewMove(e.data.b,e.data.p,e.data.i,1300,[]))}catch(x){postMessage(null)}}';
+    let src=$('engineSource').textContent+'\nonmessage=e=>{try{postMessage(createEngine({...e.data.rules,firstPlayer:e.data.firstPlayer,model:e.data.model}).reviewMove(e.data.b,e.data.p,e.data.i,1300,[]))}catch(x){postMessage(null)}}';
     let url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));work=new Worker(url);URL.revokeObjectURL(url);
     let done=false;const finish=r=>{if(done)return;done=true;clearTimeout(timeout);work?.terminate();resolve(r);};
-    let timeout=setTimeout(()=>finish(null),4500);work.onmessage=e=>finish(e.data);work.onerror=()=>finish(null);work.postMessage({b:board.slice(),p:ev.p,i:ev.i,rules:g.rules||{},firstPlayer:g.first});
+    let timeout=setTimeout(()=>finish(null),4500);work.onmessage=e=>finish(e.data);work.onerror=()=>finish(null);work.postMessage({b:board.slice(),p:ev.p,i:ev.i,rules:g.rules||{},firstPlayer:g.first,model:E.getModel()});
    });
    if(result&&!cancelled){ev.review=result;if(result.i!==ev.i||result.actualLossProof||result.lossProven){found++;ev.annotation=result.reviewLabel;
     let item=document.createElement('div');item.className='entry';

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>숲속 오목 · 로컬 학습</title><link rel="stylesheet" href="/dashboard.css"><script src="/dashboard.js" defer></script></head>
+<body>
+<main>
+  <header><p class="eyebrow">숲속 오목 · 기존 엔진 보완 학습</p><h1>대국 경험을 다음 판단으로</h1><p class="intro">기존 기보부터 시작해 CPU가 대안과 변형 대국을 분석하고, GPU가 기존 엔진을 보완할 평가 모델을 학습합니다. 검증을 통과한 모델만 채택합니다.</p><span class="local-badge">이 컴퓨터에서 실행 · 외부 AI 호출 없음</span></header>
+  <div class="layout">
+  <section class="card" aria-labelledby="startTitle"><h2 id="startTitle">새 학습</h2>
+    <form id="startForm">
+      <label for="recordFile">기보 추가 (선택)</label><input id="recordFile" type="file" accept=".json,application/json"><p id="recordInfo" class="hint">선택하지 않으면 기존 내장 기보로 시작합니다. 개인 기록은 오목 화면에서 JSON으로 내보낸 후 추가하세요. 2 MiB 이하의 기록은 실험별로 보존됩니다.</p>
+      <details><summary>JSON 직접 붙여넣기</summary><label class="sr-only" for="recordText">기보 JSON</label><textarea id="recordText" rows="5" placeholder="기보 JSON을 붙여넣으세요"></textarea></details>
+      <label for="preset">실행 규모</label><select id="preset"><option value="check">짧은 점검 · 3분 / 최대 8대국</option><option value="standard">표준 · 60분 / 최대 128대국</option><option value="extended">확장 · 180분 / 최대 1,024대국</option></select>
+      <div class="fields"><div><label for="minutes">최대 실행 시간 (분)</label><input id="minutes" type="number" min="1" max="1440" value="3" required></div><div><label for="games">누적 생성 대국 상한</label><input id="games" type="number" min="1" max="1000000" value="8" required></div></div>
+      <details><summary>검증과 학습 설정</summary><div class="fields"><div><label for="pairs">검증 흑백 교환 쌍</label><input id="pairs" type="number" min="1" max="2048" value="4" required></div><div><label for="epochs">학습 반복 상한</label><input id="epochs" type="number" min="1" max="1000" value="3" required></div></div><p class="hint">최소 32쌍의 검증과 채택 기준을 통과해야 합니다. 짧은 점검은 전체 과정의 연결을 확인합니다.</p></details>
+      <p class="hint">실행 시간은 작업 단계 사이에서도 확인합니다. 한 번의 수읽기나 GPU 학습이 끝나는 데 추가 시간이 걸릴 수 있습니다.</p>
+      <button id="startButton" class="primary" type="submit">기존 기보를 분석하고 학습 시작</button>
+    </form>
+  </section>
+  <section class="card status-card" aria-labelledby="statusTitle"><div class="section-top"><h2 id="statusTitle">진행과 결과</h2><span id="stateBadge" class="badge">대기</span></div>
+    <label for="runs">저장된 실험</label><select id="runs"><option value="">아직 실험이 없습니다</option></select>
+    <p id="phase" class="phase">기보를 넣으면 분석부터 검증까지 이어서 실행합니다.</p><p id="message" class="hint"></p>
+    <div class="metrics"><div><strong id="completedGames">0</strong><span>완료 대국</span></div><div><strong id="samples">0</strong><span>자료 표본</span><small id="uniquePositions">고유 국면 집계 전</small></div><div><strong id="updates">0</strong><span>모델 갱신</span></div><div><strong id="elapsed">—</strong><span>경과 시간</span></div></div>
+    <div class="actions"><button id="stopButton" type="button" disabled>중단 요청</button><button id="resumeButton" type="button" disabled>저장한 지점에서 재개</button></div>
+    <p id="stopping" class="hint" hidden>현재 작업을 마치고 저장한 뒤 중단합니다. 브라우저를 닫아도 서버와 학습은 계속 실행됩니다.</p>
+    <div class="result-block"><h3>GPU 학습</h3><p id="gpu">학습 결과가 아직 없습니다.</p><p id="training" class="hint"></p></div>
+    <div class="result-block"><h3>대국 검증과 채택</h3><p id="adoption">검증 전입니다. 기존 엔진을 유지합니다.</p><p id="validation" class="hint"></p></div>
+    <div class="downloads"><a id="championDownload" hidden>채택된 모델 다운로드</a><a id="candidateDownload" hidden>후보 모델 다운로드</a><a id="arenaDownload" hidden>검증 결과 다운로드</a></div>
+    <p class="hint">채택된 모델을 오목 화면에서 불러오면 다음 수읽기에 사용합니다. 학습 오차 감소와 실제 대국 성능 향상은 별도로 확인합니다.</p>
+  </section>
+  </div>
+  <section class="card log-card"><details><summary>작업 기록</summary><pre id="log">기록이 아직 없습니다.</pre></details></section>
+  <p id="notice" role="status" aria-live="polite"></p>
+  <footer>15×15 · 양쪽 색 3-3 금수 · 정확한 5목 승리. 기보, 분석, 모델, 검증 결과는 실험 폴더에 저장합니다.</footer>
+</main>
+</body>
+</html>

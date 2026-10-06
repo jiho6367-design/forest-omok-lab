@@ -4,7 +4,7 @@ const OmokSearchMemory=(()=>{
  const VERSION=1,DEFAULT_ENTRIES=4096,DEFAULT_BYTES=6*1024*1024;
  const scope=(engine,N,o={})=>[engine,'node-v1',N,'exact5-both33',o.firstPlayer??o.context?.firstPlayer??'unknown',
   o.strategy!==false?'initiative-1':'no-strategy',o.optimized?1:0,!!o.patternTable,
-  o.vcfPrefilter!==false,!!o.counterProofDetails].join('|');
+  o.vcfPrefilter!==false,!!o.counterProofDetails,o.modelVersion||'baseline'].join('|');
  const toStored=(v,ply,mate)=>Math.abs(v)>mate-1000?v+(v>0?ply:-ply):v;
  const fromStored=(v,ply,mate)=>Math.abs(v)>mate-1000?v+(v>0?-ply:ply):v;
  function create(options={}){

@@ -14,7 +14,7 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority" disabled><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.15.0';versionBadge.title='턴 사이 탐색 기록 재사용 · 공격 연결·선제 차단';versionBadge.setAttribute('aria-label','통합 버전 5.15.0');
+versionBadge.textContent='통합 v5.16.0';versionBadge.title='기존 엔진 보완 학습 · 턴 사이 탐색 기록 재사용';versionBadge.setAttribute('aria-label','통합 버전 5.16.0');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
 wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 추천 카드의 분석 시간 설정으로 계산합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 const settingsPolicy=OmokAnalysisSettings;
@@ -91,13 +91,13 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   // Main-page session memory survives normal completion and hard cancellation.
   // Foreground and predicted-reply Workers import the same completed nodes.
   const memoryKey=[g?.id??'session',g?.first??'unknown',g?.rules?.fivePriority!==false,
-    E.strategyVersion||'initiative-1',globalThis.omokAcceleration?.mode||'cpu'].join('|');
+    E.strategyVersion||'initiative-1',globalThis.omokAcceleration?.mode||'cpu',E.getModelInfo?.().modelVersion||'baseline'].join('|');
   let session=null;
   if(typeof OmokSearchMemory!=='undefined'){
     if(spawnAnalysis.memory?.key!==memoryKey)spawnAnalysis.memory={key:memoryKey,store:OmokSearchMemory.create()};
     session=spawnAnalysis.memory;session.store.begin();
   }
-  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const memory=typeof OmokSearchMemory!=="undefined"?OmokSearchMemory.create({snapshot:e.data.searchMemory}):null;const E=createEngine({...e.data.rules,firstPlayer:e.data.firstPlayer,patternTable:e.data.patternTable,optimized:e.data.optimized,searchMemory:memory});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r,searchMemory:memory?.delta(512)}));postMessage({result:r,searchMemory:memory?.delta(4096)})}catch(x){postMessage({error:String(x)})}}';
+  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const memory=typeof OmokSearchMemory!=="undefined"?OmokSearchMemory.create({snapshot:e.data.searchMemory}):null;const E=createEngine({...e.data.rules,model:e.data.model,firstPlayer:e.data.firstPlayer,patternTable:e.data.patternTable,optimized:e.data.optimized,searchMemory:memory});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r,searchMemory:memory?.delta(512)}));postMessage({result:r,searchMemory:memory?.delta(4096)})}catch(x){postMessage({error:String(x)})}}';
   const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));let w;
   try{w=new Worker(url);}finally{URL.revokeObjectURL(url);}
   const limit=typeof budget==='object'?budget.ms:Number(budget);
@@ -156,7 +156,7 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
       if(r?.lossProven||legal&&(r?.depth>0||r?.proven))lastVerified=r;onProgress(retainEvidence(r));}
     else finish(e.data.result);};
   w.onerror=e=>finish(lastVerified,e.message||'Worker 오류');
-  w.postMessage({firstPlayer:g?.first??null,patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{},searchMemory:session?.store.snapshot()});return w;
+  w.postMessage({model:E.getModel?.()??null,firstPlayer:g?.first??null,patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{},searchMemory:session?.store.snapshot()});return w;
 }
 function acceptResult(result,partial=false){
   if(result&&E.finalizeResult)result=E.finalizeResult(b,turn,result);

@@ -1,10 +1,16 @@
 const fs=require('fs'),path=require('path');
 const read=f=>fs.readFileSync(path.join(__dirname,'src',f),'utf8');
+const modelArg=process.argv.find(a=>a.startsWith('--model='));
+const activePath=modelArg?path.resolve(__dirname,modelArg.slice(8)):path.join(__dirname,'src/active-model.json');
+const activeModel=fs.existsSync(activePath)?require('./src/neural-evaluator.js').validate(JSON.parse(fs.readFileSync(activePath,'utf8'))):null;
+if(modelArg&&!activeModel)throw Error('Requested learning model does not exist: '+activePath);
+if(!modelArg&&activeModel?.adoption?.accepted!==true&&activeModel)throw Error('Only independently adopted models may be embedded as the default.');
+const neural=read('neural-evaluator.js').replace(/if\(typeof module[^\n]+/g,'')+'\nOmokNeural.setDefaultModel('+JSON.stringify(activeModel).replace(/</g,'\\u003c')+');\n';
 const reader=read('reader-engine.js').replace('function createEngine(', 'function createReaderEngine(').replace(/if\(typeof module[^\n]+/g,'');
-const engine=read('search-memory.js').replace(/if\(typeof module[^\n]+/g,'')+'\n'+read('gpu-patterns.js')+'\n'+read('strategy-engine.js').replace(/if\(typeof module[^\n]+/g,'')+'\n'+reader+'\n'+read('forest-engine.js').replace(/if\(typeof module[^\n]+/g,'')+'\n'+read('unified-engine.js');
+const engine=neural+read('search-memory.js').replace(/if\(typeof module[^\n]+/g,'')+'\n'+read('gpu-patterns.js')+'\n'+read('strategy-engine.js').replace(/if\(typeof module[^\n]+/g,'')+'\n'+reader+'\n'+read('forest-engine.js').replace(/if\(typeof module[^\n]+/g,'')+'\n'+read('unified-engine.js');
 const studies=[29,31,33,47,48,95].map(n=>({n,coords:require('./test/reader/game'+n+'.cjs').coords,first:[31,48].includes(n)?1:2}));
 const app=read('unified-app.js').replace('/*READER_STUDIES*/[]',()=>JSON.stringify(studies));
-const html=read('template.html').replace('/*ENGINE*/',()=>engine).replace('/*APP*/',()=>read('analysis-settings.js')+'\n'+read('app.js')+'\n'+app+'\n'+read('gpu-app.js'));
+const html=read('template.html').replace('/*ENGINE*/',()=>engine).replace('/*APP*/',()=>read('analysis-settings.js')+'\n'+read('app.js')+'\n'+app+'\n'+read('gpu-app.js')+'\n'+read('neural-app.js'));
 const stage=process.argv.find(a=>a.startsWith('--out-dir='));
 if(stage){const target=path.resolve(__dirname,stage.slice(10));fs.mkdirSync(target,{recursive:true});fs.writeFileSync(path.join(target,'omok.html'),html);console.log('Built staged '+path.join(target,'omok.html'));return;}
 fs.mkdirSync(path.join(__dirname,'outputs'),{recursive:true});

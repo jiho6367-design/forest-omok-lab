@@ -1,11 +1,14 @@
 {
   "name": "forest-omok-unified",
-  "version": "5.15.0",
+  "version": "5.16.0",
   "private": true,
   "description": "Offline Gomoku with green slime and yellow mushroom characters",
   "scripts": {
+    "learning": "node tools/learning/dashboard.cjs",
+    "learning:run": "node tools/learning/run.cjs",
+    "test:learning": "node test/neural-evaluator.cjs && node test/learning-pipeline.cjs && node test/learning-dashboard.cjs",
     "build": "node build.cjs",
-    "test": "node build.cjs && npm run test:turn-memory && node test/search-budget.cjs && node test/forest-quiet-state.cjs && node test/forest-search-work-state.cjs && node test/initiative-pool.cjs && node test/initiative-guard.cjs && npm run test:initiative && node test/five-priority.cjs && node test/performance-cache.cjs && node test/recommendation-policy.cjs && node test/reader/test.cjs && node test/unified.cjs && node test/historical.cjs && node test/historical-progress.cjs && node test/proof-certificate.cjs && node test/root-screen.cjs && node test/known-refutations.cjs && node test/vcf-prefilter.cjs && npm run test:strategy && node test/worker-lifecycle.cjs && npm run test:g13-counter",
+    "test": "node build.cjs && npm run test:turn-memory && node test/search-budget.cjs && node test/forest-quiet-state.cjs && node test/forest-search-work-state.cjs && node test/initiative-pool.cjs && node test/initiative-guard.cjs && npm run test:initiative && node test/five-priority.cjs && node test/performance-cache.cjs && node test/recommendation-policy.cjs && node test/reader/test.cjs && node test/unified.cjs && node test/historical.cjs && node test/historical-progress.cjs && node test/proof-certificate.cjs && node test/root-screen.cjs && node test/known-refutations.cjs && node test/vcf-prefilter.cjs && npm run test:strategy && node test/worker-lifecycle.cjs && npm run test:g13-counter && npm run test:learning",
     "test:search-budget": "node test/search-budget.cjs",
     "test:turn-memory": "node test/turn-memory.cjs && node test/turn-memory-forest.cjs && node test/turn-memory-worker.cjs",
     "verify:opening": "node tools/verify-session.cjs reports/i7-loss-certificate.json 6",

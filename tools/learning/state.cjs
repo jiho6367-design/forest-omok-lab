@@ -1,0 +1,33 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),cp=require('node:child_process'),vm=require('node:vm');
+const ROOT=path.resolve(__dirname,'../..');
+const RULES_ID='15x15-exact5-both33-v1',FEATURE_VERSION='house32-v1',BASELINE='0c652e8';
+const hash=x=>crypto.createHash('sha256').update(typeof x==='string'||Buffer.isBuffer(x)?x:JSON.stringify(x)).digest('hex');
+function fileHash(file){const digest=crypto.createHash('sha256'),fd=fs.openSync(file,'r'),buffer=Buffer.alloc(65536);try{for(;;){const count=fs.readSync(fd,buffer,0,buffer.length,null);if(!count)break;digest.update(buffer.subarray(0,count));}}finally{fs.closeSync(fd);}return digest.digest('hex');}
+const files=['search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','forest-engine.js','unified-engine.js'];
+function atomic(file,value){fs.mkdirSync(path.dirname(file),{recursive:true});const tmp=file+'.tmp-'+process.pid;fs.writeFileSync(tmp,typeof value==='string'?value:JSON.stringify(value,null,2));fs.renameSync(tmp,file);}
+function append(file,row){fs.mkdirSync(path.dirname(file),{recursive:true});fs.appendFileSync(file,JSON.stringify(row)+'\n');}
+function read(file,fallback=null){return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):fallback;}
+function resolveRun(value='outputs/learning/default'){return path.resolve(ROOT,value);}
+function baselineFactory(ref=BASELINE){
+ const commit=cp.execFileSync('git',['rev-parse',ref+'^{commit}'],{cwd:ROOT,encoding:'utf8'}).trim();
+ const sources=files.map(f=>cp.execFileSync('git',['show',commit+':src/'+f],{cwd:ROOT,encoding:'utf8',maxBuffer:8*1024*1024}));
+ sources[3]=sources[3].replace('function createEngine(','function createReaderEngine(');
+ const context={Date,console,performance:require('node:perf_hooks').performance};vm.createContext(context);vm.runInContext(sources.join('\n'),context);
+ return {createEngine:context.createEngine,commit,sourceHash:hash(sources.join('\n'))};
+}
+function sourceIdentity(){const names=[...files,'neural-evaluator.js'];return {sourceHash:hash(names.map(f=>fs.existsSync(path.join(ROOT,'src',f))?fs.readFileSync(path.join(ROOT,'src',f),'utf8'):'').join('\n')),harnessHash:hash(['state','replay','generate','arena','run'].map(f=>fs.existsSync(path.join(__dirname,f+'.cjs'))?fs.readFileSync(path.join(__dirname,f+'.cjs'),'utf8'):'').join('\n'))};}
+function defaults(){return {baselineCommit:BASELINE,rulesId:RULES_ID,featureVersion:FEATURE_VERSION,seed:1707,moveMs:80,analysisMs:600,validationMs:1000,workers:1,games:100,pairs:32,minPairs:32,epochs:10,batchSize:4096,minutes:60,stageMinutes:5,trainSeconds:60,maxSamples:1000000,maxDiskBytes:8*1024**3,maxPlies:225,sampleEvery:4,exploration:.2,device:'cuda',python:path.resolve(ROOT,'../../../../.omok-runtime/Scripts/python.exe'),autoAdopt:true,confidence:.95};}
+function init(directory,options={}){
+ const dir=resolveRun(directory);fs.mkdirSync(dir,{recursive:true});const file=path.join(dir,'state.json');let state=read(file);
+ if(!state){const baseline=baselineFactory(options.baselineCommit||BASELINE),active=read(path.join(ROOT,'src/active-model.json'));if(active){require('../../src/neural-evaluator.js').validate(active);if(active.adoption?.accepted!==true)throw Error('Active production model lacks a verified adoption record');atomic(path.join(dir,'champion.json'),active);}state={schemaVersion:1,runId:path.basename(dir),createdAt:new Date().toISOString(),baselineCommit:baseline.commit,baselineSourceHash:baseline.sourceHash,initialIncumbentHash:active?hash(active):null,identity:sourceIdentity(),rulesId:RULES_ID,featureVersion:FEATURE_VERSION,phase:'ready',status:'created',cycle:0,counters:{generatedGames:0,completedGames:0,samples:0,analyzedPositions:0},progress:null,activeGames:{},generationIndex:0,analysisIndex:0,adoptions:[],errors:[],history:[],trial:0};atomic(file,state);atomic(path.join(dir,'settings.json'),{...defaults(),...options,baselineCommit:baseline.commit});atomic(path.join(dir,'records.json'),[]);}
+ return {dir,state,settings:{...defaults(),...read(path.join(dir,'settings.json'),{}),...options}};
+}
+function save(context){context.state.updatedAt=new Date().toISOString();atomic(path.join(context.dir,'state.json'),context.state);}
+function setPhase(context,phase,message){context.state.phase=phase;context.state.message=message;context.state.status='running';context.state.history.push({at:new Date().toISOString(),phase,message});context.state.history=context.state.history.slice(-100);save(context);console.log(JSON.stringify({phase,message,counters:context.state.counters}));}
+function stopped(dir){return fs.existsSync(path.join(dir,'stop.flag'));}
+function checkIdentity(context){const now=sourceIdentity();if(context.state.identity.sourceHash!==now.sourceHash||context.state.identity.harnessHash!==now.harnessHash)throw Error('Engine or runner changed. Create a new run; stored games and checkpoints are preserved.');if(context.state.rulesId!==RULES_ID||context.state.featureVersion!==FEATURE_VERSION)throw Error('Rule/feature version mismatch');}
+function lock(dir){fs.mkdirSync(dir,{recursive:true});const file=path.join(dir,'runner.lock');if(fs.existsSync(file)){const prior=read(file,{});let alive=false;try{if(Number.isInteger(prior.pid)&&prior.pid>0){process.kill(prior.pid,0);alive=true;}}catch{}if(alive)throw Error('This run is already executing (PID '+prior.pid+').');fs.unlinkSync(file);}const fd=fs.openSync(file,'wx');fs.writeFileSync(fd,JSON.stringify({pid:process.pid,startedAt:new Date().toISOString()}));fs.closeSync(fd);return ()=>{try{if(read(file,{}).pid===process.pid)fs.unlinkSync(file);}catch{}};}
+function diskBytes(dir){let total=0;for(const e of fs.readdirSync(dir,{withFileTypes:true})){const f=path.join(dir,e.name);total+=e.isDirectory()?diskBytes(f):fs.statSync(f).size;}return total;}
+function rng(seed){let state=(seed>>>0)||1;return {next(){state^=state<<13;state^=state>>>17;state^=state<<5;return (state>>>0)/4294967296;},get state(){return state>>>0;},set state(v){state=(v>>>0)||1;}};}
+module.exports={ROOT,RULES_ID,FEATURE_VERSION,BASELINE,hash,fileHash,atomic,append,read,resolveRun,baselineFactory,sourceIdentity,defaults,init,save,setPhase,stopped,checkIdentity,lock,diskBytes,rng};

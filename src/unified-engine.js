@@ -8,18 +8,24 @@ function createEngine(options={}) {
   const searchMemory=options.searchMemory===false?null:options.searchMemory||
     (typeof OmokSearchMemory!=='undefined'?OmokSearchMemory.create({snapshot:options.memorySnapshot}):null);
   const rules={fivePriority:true,patternTable:options.patternTable,optimized:options.optimized,
-    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy,searchMemory,memoryManaged:true};
+    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy,searchMemory,memoryManaged:true,
+    model:options.model===undefined?(typeof OmokNeural!=='undefined'?OmokNeural.getDefaultModel():null):options.model};
+  rules.modelVersion=typeof OmokNeural!=='undefined'?OmokNeural.identity(rules.model):'baseline';
   let forest=createForestEngine(rules);
   const fast=b=>createReaderEngine(15,b,rules);
   const inspect=(b,i,p)=>![1,2].includes(p)?{legal:false,reason:'돌 색 오류',threes:[],fours:[],win:[]}:forest.inspect(b,i,p);
   function configure(next={}) {
     rules.fivePriority=true;
+    if(Object.prototype.hasOwnProperty.call(next,'model')){
+      const modelVersion=typeof OmokNeural!=='undefined'?OmokNeural.identity(next.model):'baseline';
+      if(modelVersion!==rules.modelVersion){searchMemory?.clear();rules.model=next.model;rules.modelVersion=modelVersion;forest=createForestEngine(rules);}
+    }
     if(Object.prototype.hasOwnProperty.call(next,'firstPlayer')||next.context){
       const firstPlayer=normalizeFirst(next.firstPlayer??next.context?.firstPlayer);
       if(firstPlayer!==rules.firstPlayer){searchMemory?.clear();rules.firstPlayer=firstPlayer;forest=createForestEngine(rules);}
     }
   }
-  const getContext=()=>({firstPlayer:rules.firstPlayer,strategyVersion,strategyEnabled:rules.strategy!==false});
+  const getContext=()=>({firstPlayer:rules.firstPlayer,strategyVersion,strategyEnabled:rules.strategy!==false,modelVersion:rules.modelVersion});
   function validPV(board,p,pv) {
     const copy=board.slice(),out=[];
     for(const i of pv||[]){const s=inspect(copy,i,p);if(!s.legal)break;out.push(i);copy[i]=p;if(s.win.length)break;p=3-p;}
@@ -34,7 +40,7 @@ function createEngine(options={}) {
   // Scores from Reader and Forest are never mixed to rank a merged shortlist.
   function finalizeResult(board,p,result){
     if(!result)return result;
-    let r={...result},rejected=[...(r.rejected||[])];
+    let r={...result,modelVersion:rules.modelVersion,learnedEvaluation:!!rules.model},rejected=[...(r.rejected||[])];
     for(const m of forest.knownRefutations(board,p))if(!rejected.some(x=>x.i===m.i&&refutation(x)))
       rejected.push({...m,verifiedRefutation:true});
     const bad=new Set(rejected.filter(refutation).map(m=>m.i));
@@ -483,6 +489,8 @@ function createEngine(options={}) {
   // Forest methods to the current instance rather than retaining stale closures.
   const api={...forest};for(const name of Object.keys(api))if(typeof api[name]==='function')api[name]=(...args)=>forest[name](...args);
   return {...api,configure,getContext,strategyVersion,finalizeResult,inspect,urgent,analyze,suggestBudget,assessMove,reviewMove,validPV,
+    getModel:()=>rules.model,
+    getModelInfo:()=>({active:!!rules.model,modelVersion:rules.modelVersion,featureVersion:rules.model?.featureVersion||null,scale:rules.model?.scale||0}),
     getSearchMemoryStats:()=>searchMemory?.stats()||null,
     exportSearchMemory:()=>searchMemory?.snapshot()||null,
     clearSearchMemory:()=>searchMemory?.clear()};

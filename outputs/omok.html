@@ -15,13 +15,92 @@
 <div class="card"><h2>실수를 다음 실력으로</h2><p class="muted">복기에서 위험했던 수와 대안을 저장하세요. 같은 국면의 회전·대칭도 기억합니다.</p><div class="toolbar"><button id="postmortem">패배 복기 분석</button><button id="learn">현재 수를 학습 기록에</button><button id="lessons">패배 방지 기록</button></div><details><summary>규칙과 저장 안내</summary><p>열린 3은 한 수로 양끝이 빈 연속 4가 되는 세 돌입니다. 중간 한 칸이 빈 형태도 포함합니다. 서로 다른 2개 축에 동시에 만들면 양쪽 모두 3×3 금지입니다. 정확한 5목 완성은 우선 허용합니다.</p><p>40초가 지나면 돌 없이 턴이 넘어갑니다. 잘못된 착수는 시간을 초기화하지 않습니다. 설정·복기 중에는 정지하며, 무르기·다시 진행은 40초를 부여합니다. 앱을 다시 열면 일시 정지 상태로 복원합니다.</p><p>기록은 이 브라우저에 저장됩니다. 파일 이동·다른 브라우저·브라우저 데이터 삭제 시 접근하지 못할 수 있으므로 JSON으로 백업하세요. 패배 기록은 유사한 전체 판 상태의 참고 자료이며 자동으로 알고리즘 소스를 바꾸지 않습니다.</p></details></div></aside></main></div>
 <dialog id="setup"><h2>새로운 한 판</h2><p class="muted">상대 돌까지 직접 입력하며 나의 다음 수를 연구합니다.</p><label>내 캐릭터<select id="my"><option value="2">초록 슬라임</option><option value="1">노란 버섯</option></select></label><label>누가 먼저 둘까요?<select id="starter"><option value="me">내가 먼저</option><option value="other">상대가 먼저</option></select></label><p class="muted">선후공에 관계없이 두 캐릭터의 규칙은 같습니다.</p><div class="modal-actions"><button id="cancelSetup">취소</button><button id="start" class="primary">게임 시작</button></div></dialog>
 <dialog id="modal"><h2 id="modalTitle"></h2><div id="modalBody"></div><div class="modal-actions"><button id="closeModal">닫기</button></div></dialog>
-<script id="engineSource">/* Bounded, portable completed-node memory. A Worker may be killed at any time;
+<script id="engineSource">/* One feature definition for CPU search, local data generation and GPU training.
+ * This model estimates position value. It never changes legality or proves wins. */
+const OmokNeural=(()=>{
+ const RULES_ID='15x15-exact5-both33-v1',FEATURE_VERSION='house32-v1',INPUT_SIZE=32;
+ const layouts=new Map();let defaultModel=null;
+ function layout(N=15){
+  if(N!==15)throw Error('학습 모델은 현재 15×15 규칙만 지원합니다.');
+  if(layouts.has(N))return layouts.get(N);
+  const windows=[],affected=Array.from({length:N*N},()=>[]),dirs=[[1,0],[0,1],[1,1],[1,-1]];
+  const inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++)for(const [dx,dy]of dirs){
+   if(!inside(x+4*dx,y+4*dy))continue;
+   const cells=Array.from({length:5},(_,k)=>(y+k*dy)*N+x+k*dx),
+    pre=inside(x-dx,y-dy)?(y-dy)*N+x-dx:-1,
+    post=inside(x+5*dx,y+5*dy)?(y+5*dy)*N+x+5*dx:-1,id=windows.length;
+   windows.push({cells,pre,post});for(const i of [...cells,pre,post])if(i>=0)affected[i].push(id);
+  }
+  const result={windows,affected};layouts.set(N,result);return result;
+ }
+ function assertBoard(board){if(!Array.isArray(board)&&!ArrayBuffer.isView(board)||board.length!==225||Array.from(board).some(v=>![0,1,2].includes(v)))throw Error('학습 국면의 돌 배열이 잘못되었습니다.');}
+ function createAccumulator(board,N=15){
+  assertBoard(board);const b=Array.from(board),{windows,affected}=layout(N),buckets=[null,new Float64Array(12),new Float64Array(12)],
+   counts=[0,0,0],center=[0,0,0],central=[0,0,0];
+  const centerWeight=i=>14-Math.abs(i%15-7)-Math.abs((i/15|0)-7);
+  const isCentral=i=>Math.abs(i%15-7)<=2&&Math.abs((i/15|0)-7)<=2;
+  function bucket(w,p){let own=0,enemy=0;for(const i of w.cells){own+=b[i]===p;enemy+=b[i]===3-p;}
+   if(enemy||own<1||own>4||b[w.pre]===p||b[w.post]===p)return -1;
+   const open=(w.pre>=0&&b[w.pre]===0?1:0)+(w.post>=0&&b[w.post]===0?1:0);return (own-1)*3+open;
+  }
+  function adjust(id,sign){for(const p of [1,2]){const k=bucket(windows[id],p);if(k>=0)buckets[p][k]+=sign;}}
+  for(let i=0;i<b.length;i++)if(b[i]){const p=b[i];counts[p]++;center[p]+=centerWeight(i);central[p]+=isCentral(i);}
+  for(let id=0;id<windows.length;id++)adjust(id,1);
+  function set(i,p){const before=b[i];if(before===p)return;if(!Number.isInteger(i)||i<0||i>=225||![0,1,2].includes(p))throw Error('학습 특징 갱신 오류');
+   for(const id of affected[i])adjust(id,-1);
+   if(before){counts[before]--;center[before]-=centerWeight(i);central[before]-=isCentral(i);}
+   b[i]=p;if(p){counts[p]++;center[p]+=centerWeight(i);central[p]+=isCentral(i);}
+   for(const id of affected[i])adjust(id,1);
+  }
+  function features(p,firstPlayer=null,out=new Float64Array(INPUT_SIZE)){
+   if(![1,2].includes(p))throw Error('학습 국면의 현재 색이 잘못되었습니다.');
+   out.set(buckets[p],0);out.set(buckets[3-p],12);out[24]=counts[p]/225;out[25]=counts[3-p]/225;
+   out[26]=center[p]/420;out[27]=center[3-p]/420;out[28]=[1,2].includes(firstPlayer)?(firstPlayer===p?1:-1):0;
+   out[29]=(counts[1]+counts[2])/225;out[30]=central[p]/25;out[31]=central[3-p]/25;return out;
+  }
+  return {set,features};
+ }
+ const extractFeatures=(board,p,firstPlayer=null)=>Array.from(createAccumulator(board).features(p,firstPlayer));
+ function validate(model){
+  if(!model||model.schemaVersion!==1||model.kind!=='forest-value-mlp'||model.rulesId!==RULES_ID||model.featureVersion!==FEATURE_VERSION||model.inputSize!==INPUT_SIZE)throw Error('학습 모델의 형식·규칙·특징 버전이 맞지 않습니다.');
+  const H=model.hiddenSize;if(!Number.isInteger(H)||H<1||H>64||model.activation!=='relu'||model.outputActivation!=='tanh')throw Error('학습 모델의 신경망 구조가 잘못되었습니다.');
+  const vector=(x,n)=>Array.isArray(x)&&x.length===n&&x.every(v=>typeof v==='number'&&Number.isFinite(v)&&Math.abs(v)<=1e8);
+  const layers=model.layers,norm=model.normalization;
+  if(!norm||!vector(norm.mean,INPUT_SIZE)||!vector(norm.scale,INPUT_SIZE)||norm.scale.some(x=>x<=0)||!Array.isArray(layers)||layers.length!==2||
+   !Array.isArray(layers[0].weights)||layers[0].weights.length!==H||!layers[0].weights.every(row=>vector(row,INPUT_SIZE))||!vector(layers[0].bias,H)||
+   !Array.isArray(layers[1].weights)||layers[1].weights.length!==1||!vector(layers[1].weights[0],H)||!vector(layers[1].bias,1))throw Error('학습 모델의 가중치·정규화 값이 잘못되었습니다.');
+  if(typeof model.modelId!=='string'||!/^[A-Za-z0-9._-]{1,96}$/.test(model.modelId)||!Number.isFinite(model.scale)||model.scale<0||model.scale>600)throw Error('학습 모델 식별자·평가 크기가 잘못되었습니다.');
+  return model;
+ }
+ function identity(model){if(!model)return 'baseline';validate(model);const s=JSON.stringify([model.normalization,model.layers,model.scale]);let a=2166136261;
+  for(let i=0;i<s.length;i++)a=Math.imul(a^s.charCodeAt(i),16777619);return model.modelId.slice(0,64)+'-'+(a>>>0).toString(16);
+ }
+ function createEvaluator(model,N=15,firstPlayer=null){
+  if(!model)return null;layout(N);validate(model);const H=model.hiddenSize,mean=Float64Array.from(model.normalization.mean),
+   inv=Float64Array.from(model.normalization.scale,v=>1/v),weights=model.layers[0].weights.map(row=>Float64Array.from(row)),
+   biases=Float64Array.from(model.layers[0].bias),output=Float64Array.from(model.layers[1].weights[0]),outBias=model.layers[1].bias[0],scratch=new Float64Array(INPUT_SIZE);
+  function raw(features){let value=outBias;for(let k=0;k<INPUT_SIZE;k++)scratch[k]=(features[k]-mean[k])*inv[k];
+   for(let h=0;h<H;h++){let v=biases[h];const row=weights[h];for(let k=0;k<INPUT_SIZE;k++)v+=row[k]*scratch[k];if(v>0)value+=v*output[h];}return Math.tanh(value);
+  }
+  const scoreFeatures=features=>raw(features)*model.scale;
+  return {model,modelId:identity(model),raw,scoreFeatures,
+   evaluate:(board,p,first=firstPlayer)=>{const acc=createAccumulator(board,N);return (scoreFeatures(acc.features(p,first))-scoreFeatures(acc.features(3-p,first)))/2;},
+   accumulator:board=>{const acc=createAccumulator(board,N),features=new Float64Array(INPUT_SIZE);return {set:acc.set,score:p=>{const own=scoreFeatures(acc.features(p,firstPlayer,features));return (own-scoreFeatures(acc.features(3-p,firstPlayer,features)))/2;},features:acc.features};}};
+ }
+ const setDefaultModel=model=>{defaultModel=model?validate(model):null;return defaultModel;};
+ return {RULES_ID,FEATURE_VERSION,INPUT_SIZE,extractFeatures,createAccumulator,validate,identity,createEvaluator,setDefaultModel,getDefaultModel:()=>defaultModel};
+})();
+
+
+OmokNeural.setDefaultModel(null);
+/* Bounded, portable completed-node memory. A Worker may be killed at any time;
  * only records published before cancellation survive in the page session. */
 const OmokSearchMemory=(()=>{
  const VERSION=1,DEFAULT_ENTRIES=4096,DEFAULT_BYTES=6*1024*1024;
  const scope=(engine,N,o={})=>[engine,'node-v1',N,'exact5-both33',o.firstPlayer??o.context?.firstPlayer??'unknown',
   o.strategy!==false?'initiative-1':'no-strategy',o.optimized?1:0,!!o.patternTable,
-  o.vcfPrefilter!==false,!!o.counterProofDetails].join('|');
+  o.vcfPrefilter!==false,!!o.counterProofDetails,o.modelVersion||'baseline'].join('|');
  const toStored=(v,ply,mate)=>Math.abs(v)>mate-1000?v+(v>0?ply:-ply):v;
  const fromStored=(v,ply,mate)=>Math.abs(v)>mate-1000?v+(v>0?-ply:ply):v;
  function create(options={}){
@@ -352,7 +431,11 @@ function createReaderEngine(N, board, options={}) {
   const clockNow=typeof performance!=='undefined'?performance.now.bind(performance):Date.now.bind(Date);
   if(![15,19].includes(N)||board.length!==N*N||board.some(v=>![0,1,2].includes(v)))throw Error('Invalid board');
   const b=Array.from(board),dirs=[[1,0],[0,1],[1,1],[1,-1]],M=10000000;
-  const memory=options.searchMemory||null,memScope=memory?OmokSearchMemory.scope('reader',N,options):'';
+  const neuralFactory=options.model?(typeof OmokNeural!=='undefined'?OmokNeural:typeof require==='function'?require('./neural-evaluator.js'):null):null;
+  if(options.model&&!neuralFactory)throw Error('Learning evaluator is required for this model');
+  const neural=options.model?neuralFactory.createEvaluator(options.model,N,options.firstPlayer):null;
+  let neuralPosition=null;
+  const memory=options.searchMemory||null,memScope=memory?OmokSearchMemory.scope('reader',N,{...options,modelVersion:neural?.modelId||options.modelVersion}):'';
   const inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N, at=(x,y)=>inside(x,y)?b[y*N+x]:3;
   const strategyFactory=typeof createStrategyEngine==='function'?createStrategyEngine:typeof require==='function'?require('./strategy-engine.js'):null;
   const forestFactory=typeof createForestEngine==='function'?createForestEngine:typeof require==='function'?require('./forest-engine.js'):null;
@@ -383,7 +466,7 @@ function createReaderEngine(N, board, options={}) {
   windows.forEach(w=>indexWindow(w.id));
   function value(w){const n1=counts1[w.id],n2=counts2[w.id];if(n1&&n2||!n1&&!n2)return 0;let p=n1?1:2,n=n1||n2;if(b[w.pre]===p||b[w.post]===p)return 0;let v=[0,2,25,420,24000,2000000][n];return p===1?v:-v;}
   windows.forEach((w,k)=>{contributions[k]=value(w);total+=contributions[k];});
-  function set(i,p){const before=b[i];for(const id of cellAffected[i]){const old1=counts1[id],old2=counts2[id];counts1[id]+=(p===1)-(before===1);counts2[id]+=(p===2)-(before===2);indexWindow(id,old1,old2);}b[i]=p;for(let id of affected[i]){const v=value(windows[id]);total+=v-contributions[id];contributions[id]=v;}}
+  function set(i,p){const before=b[i];for(const id of cellAffected[i]){const old1=counts1[id],old2=counts2[id];counts1[id]+=(p===1)-(before===1);counts2[id]+=(p===2)-(before===2);indexWindow(id,old1,old2);}b[i]=p;neuralPosition?.set(i,p);for(let id of affected[i]){const v=value(windows[id]);total+=v-contributions[id];contributions[id]=v;}}
   function tick(){nodes++;if(clockNow()>Math.min(deadline,phaseDeadline))throw Error('timeout');}
   function run(i,p,dx,dy){let x=i%N,y=Math.floor(i/N),len=1;for(let s of [-1,1]){let k=1;while(at(x+s*k*dx,y+s*k*dy)===p){len++;k++;}}return len;}
   function exact(i,p){return dirs.some(([dx,dy])=>run(i,p,dx,dy)===5);}
@@ -502,7 +585,7 @@ function createReaderEngine(N, board, options={}) {
     // Do not replace a forcing win just beyond the horizon with a positional
     // score. A bounded proof probe is sound when found; a timeout proves nothing.
     if(depth<=1&&!danger.length){const tacticalKey=b.join('')+p;let proof=tacticalCache.get(tacticalKey);if(proof===undefined&&memory)proof=memory.get(memScope+'|vcf9',tacticalKey);if(proof===undefined){const previous=phaseDeadline;try{phaseDeadline=options.fixedWork?Infinity:Math.min(previous,deadline,clockNow()+5);proof=vcf(p,9);if(tacticalCache.size<30000)tacticalCache.set(tacticalKey,proof);memory?.put(memScope+'|vcf9',tacticalKey,proof,proof?12:1);}catch(e){if(e.message!=='timeout')throw e;proof=null;}finally{phaseDeadline=previous;}}if(proof)return {score:M-ply-proof.length,pv:proof};}
-    const staticScore=()=> (p===1?total:-total);
+    const staticScore=()=> {if(neural&&!neuralPosition)neuralPosition=neural.accumulator(b);return (p===1?total:-total)+(neuralPosition?.score(p)||0);};
     let quietMoves=null;
     // Quiet extensions are branch-local. A global work cap used to change
     // the value of the same leaf after earlier candidates consumed it.
@@ -680,7 +763,10 @@ function autoStable(rounds,depth,elapsed,checks,moves){
 function createForestEngine(options={}){
   const clockNow=typeof performance!=='undefined'?performance.now.bind(performance):Date.now.bind(Date);
  const N=15,D=[[1,0],[0,1],[1,1],[1,-1]],inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
- const searchMemory=options.searchMemory||null,memScope=searchMemory?OmokSearchMemory.scope('forest',N,options):'';
+ const neuralFactory=options.model?(typeof OmokNeural!=='undefined'?OmokNeural:typeof require==='function'?require('./neural-evaluator.js'):null):null;
+ if(options.model&&!neuralFactory)throw Error('Learning evaluator is required for this model');
+ const neural=options.model?neuralFactory.createEvaluator(options.model,N,options.firstPlayer):null;
+ const searchMemory=options.searchMemory||null,memScope=searchMemory?OmokSearchMemory.scope('forest',N,{...options,modelVersion:neural?.modelId||options.modelVersion}):'';
  const forcingWindows=[];
  for(let y=0;y<N;y++)for(let x=0;x<N;x++)for(const [dx,dy]of D)if(inside(x+4*dx,y+4*dy)){
   forcingWindows.push(Array.from({length:5},(_,k)=>(y+k*dy)*N+x+k*dx));
@@ -713,7 +799,7 @@ function createForestEngine(options={}){
  }
  function candidates(b){return memoPosition('candidates',b,0,()=>generateCandidates(b),true);}
  function winning(b,p){return memoPosition('winning',b,p,()=>findWinning(b,p),true);}
- function evaluate(b,p){return memoPosition('evaluation',b,p,()=>evaluateUncached(b,p)+(strategy?strategy.positionValue(b,p)*2:0));}
+ function evaluate(b,p){return memoPosition('evaluation',b,p,()=>evaluateUncached(b,p)+(strategy?strategy.positionValue(b,p)*2:0)+(neural?.evaluate(b,p)||0));}
  function getPositionCacheStats(){return {...positionCacheStats,entries:Object.values(positionCaches).reduce((n,c)=>n+c.size,0)};}
 
  const patternIndices=options.patternTable?Array.from({length:N*N},(_,i)=>D.map(([dx,dy])=>Array.from({length:11},(_,k)=>{const x=i%N+(k-5)*dx,y=(i/N|0)+(k-5)*dy;return x>=0&&y>=0&&x<N&&y<N?y*N+x:-1;}))):null;
@@ -942,7 +1028,7 @@ function createForestEngine(options={}){
   if(rootGuardReserve)deadline=Math.min(deadline,totalDeadline-rootGuardReserve);
   const strategicAdjust=new Map();
   if(strategy&&!lossProven&&clockNow()<deadline){strategicSummary=strategy.probe(b,p,rootOptions,Math.min(strategy.remaining(),Math.max(0,deadline-clockNow())));for(const c of strategicSummary.checks)if(c.complete)strategicAdjust.set(c.i,Math.max(-250,Math.min(250,c.score*.04)));}
-  const staticEval=q=>strategy?memoPosition('evaluation',b,q+'|base',()=>evaluateUncached(b,q)):evaluate(b,q),rankCache=new Map();
+  const staticEval=q=>strategy?memoPosition('evaluation',b,q+'|base',()=>evaluateUncached(b,q)+(neural?.evaluate(b,q)||0)):evaluate(b,q),rankCache=new Map();
   // Quiet preparation is bounded per line by quietExtension and ply.
   // A mutable quota shared by unrelated roots changes the TT evaluation.
   // Inner candidate rules also use raw, unmetered support so earlier work
@@ -1044,18 +1130,24 @@ function createEngine(options={}) {
   const searchMemory=options.searchMemory===false?null:options.searchMemory||
     (typeof OmokSearchMemory!=='undefined'?OmokSearchMemory.create({snapshot:options.memorySnapshot}):null);
   const rules={fivePriority:true,patternTable:options.patternTable,optimized:options.optimized,
-    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy,searchMemory,memoryManaged:true};
+    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy,searchMemory,memoryManaged:true,
+    model:options.model===undefined?(typeof OmokNeural!=='undefined'?OmokNeural.getDefaultModel():null):options.model};
+  rules.modelVersion=typeof OmokNeural!=='undefined'?OmokNeural.identity(rules.model):'baseline';
   let forest=createForestEngine(rules);
   const fast=b=>createReaderEngine(15,b,rules);
   const inspect=(b,i,p)=>![1,2].includes(p)?{legal:false,reason:'돌 색 오류',threes:[],fours:[],win:[]}:forest.inspect(b,i,p);
   function configure(next={}) {
     rules.fivePriority=true;
+    if(Object.prototype.hasOwnProperty.call(next,'model')){
+      const modelVersion=typeof OmokNeural!=='undefined'?OmokNeural.identity(next.model):'baseline';
+      if(modelVersion!==rules.modelVersion){searchMemory?.clear();rules.model=next.model;rules.modelVersion=modelVersion;forest=createForestEngine(rules);}
+    }
     if(Object.prototype.hasOwnProperty.call(next,'firstPlayer')||next.context){
       const firstPlayer=normalizeFirst(next.firstPlayer??next.context?.firstPlayer);
       if(firstPlayer!==rules.firstPlayer){searchMemory?.clear();rules.firstPlayer=firstPlayer;forest=createForestEngine(rules);}
     }
   }
-  const getContext=()=>({firstPlayer:rules.firstPlayer,strategyVersion,strategyEnabled:rules.strategy!==false});
+  const getContext=()=>({firstPlayer:rules.firstPlayer,strategyVersion,strategyEnabled:rules.strategy!==false,modelVersion:rules.modelVersion});
   function validPV(board,p,pv) {
     const copy=board.slice(),out=[];
     for(const i of pv||[]){const s=inspect(copy,i,p);if(!s.legal)break;out.push(i);copy[i]=p;if(s.win.length)break;p=3-p;}
@@ -1070,7 +1162,7 @@ function createEngine(options={}) {
   // Scores from Reader and Forest are never mixed to rank a merged shortlist.
   function finalizeResult(board,p,result){
     if(!result)return result;
-    let r={...result},rejected=[...(r.rejected||[])];
+    let r={...result,modelVersion:rules.modelVersion,learnedEvaluation:!!rules.model},rejected=[...(r.rejected||[])];
     for(const m of forest.knownRefutations(board,p))if(!rejected.some(x=>x.i===m.i&&refutation(x)))
       rejected.push({...m,verifiedRefutation:true});
     const bad=new Set(rejected.filter(refutation).map(m=>m.i));
@@ -1519,6 +1611,8 @@ function createEngine(options={}) {
   // Forest methods to the current instance rather than retaining stale closures.
   const api={...forest};for(const name of Object.keys(api))if(typeof api[name]==='function')api[name]=(...args)=>forest[name](...args);
   return {...api,configure,getContext,strategyVersion,finalizeResult,inspect,urgent,analyze,suggestBudget,assessMove,reviewMove,validPV,
+    getModel:()=>rules.model,
+    getModelInfo:()=>({active:!!rules.model,modelVersion:rules.modelVersion,featureVersion:rules.model?.featureVersion||null,scale:rules.model?.scale||0}),
     getSearchMemoryStats:()=>searchMemory?.stats()||null,
     exportSearchMemory:()=>searchMemory?.snapshot()||null,
     clearSearchMemory:()=>searchMemory?.clear()};
@@ -1605,10 +1699,10 @@ async function postmortem(){
   if(cancelled)break;let ev=events[k];bar.value=k+1;
   if(ev.p===target&&ev.type==='move'){
    let result=await new Promise(resolve=>{
-    let src=$('engineSource').textContent+'\nonmessage=e=>{try{postMessage(createEngine({...e.data.rules,firstPlayer:e.data.firstPlayer}).reviewMove(e.data.b,e.data.p,e.data.i,1300,[]))}catch(x){postMessage(null)}}';
+    let src=$('engineSource').textContent+'\nonmessage=e=>{try{postMessage(createEngine({...e.data.rules,firstPlayer:e.data.firstPlayer,model:e.data.model}).reviewMove(e.data.b,e.data.p,e.data.i,1300,[]))}catch(x){postMessage(null)}}';
     let url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));work=new Worker(url);URL.revokeObjectURL(url);
     let done=false;const finish=r=>{if(done)return;done=true;clearTimeout(timeout);work?.terminate();resolve(r);};
-    let timeout=setTimeout(()=>finish(null),4500);work.onmessage=e=>finish(e.data);work.onerror=()=>finish(null);work.postMessage({b:board.slice(),p:ev.p,i:ev.i,rules:g.rules||{},firstPlayer:g.first});
+    let timeout=setTimeout(()=>finish(null),4500);work.onmessage=e=>finish(e.data);work.onerror=()=>finish(null);work.postMessage({b:board.slice(),p:ev.p,i:ev.i,rules:g.rules||{},firstPlayer:g.first,model:E.getModel()});
    });
    if(result&&!cancelled){ev.review=result;if(result.i!==ev.i||result.actualLossProof||result.lossProven){found++;ev.annotation=result.reviewLabel;
     let item=document.createElement('div');item.className='entry';
@@ -1768,7 +1862,7 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority" disabled><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.15.0';versionBadge.title='턴 사이 탐색 기록 재사용 · 공격 연결·선제 차단';versionBadge.setAttribute('aria-label','통합 버전 5.15.0');
+versionBadge.textContent='통합 v5.16.0';versionBadge.title='기존 엔진 보완 학습 · 턴 사이 탐색 기록 재사용';versionBadge.setAttribute('aria-label','통합 버전 5.16.0');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
 wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 추천 카드의 분석 시간 설정으로 계산합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 const settingsPolicy=OmokAnalysisSettings;
@@ -1845,13 +1939,13 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   // Main-page session memory survives normal completion and hard cancellation.
   // Foreground and predicted-reply Workers import the same completed nodes.
   const memoryKey=[g?.id??'session',g?.first??'unknown',g?.rules?.fivePriority!==false,
-    E.strategyVersion||'initiative-1',globalThis.omokAcceleration?.mode||'cpu'].join('|');
+    E.strategyVersion||'initiative-1',globalThis.omokAcceleration?.mode||'cpu',E.getModelInfo?.().modelVersion||'baseline'].join('|');
   let session=null;
   if(typeof OmokSearchMemory!=='undefined'){
     if(spawnAnalysis.memory?.key!==memoryKey)spawnAnalysis.memory={key:memoryKey,store:OmokSearchMemory.create()};
     session=spawnAnalysis.memory;session.store.begin();
   }
-  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const memory=typeof OmokSearchMemory!=="undefined"?OmokSearchMemory.create({snapshot:e.data.searchMemory}):null;const E=createEngine({...e.data.rules,firstPlayer:e.data.firstPlayer,patternTable:e.data.patternTable,optimized:e.data.optimized,searchMemory:memory});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r,searchMemory:memory?.delta(512)}));postMessage({result:r,searchMemory:memory?.delta(4096)})}catch(x){postMessage({error:String(x)})}}';
+  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const memory=typeof OmokSearchMemory!=="undefined"?OmokSearchMemory.create({snapshot:e.data.searchMemory}):null;const E=createEngine({...e.data.rules,model:e.data.model,firstPlayer:e.data.firstPlayer,patternTable:e.data.patternTable,optimized:e.data.optimized,searchMemory:memory});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r,searchMemory:memory?.delta(512)}));postMessage({result:r,searchMemory:memory?.delta(4096)})}catch(x){postMessage({error:String(x)})}}';
   const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));let w;
   try{w=new Worker(url);}finally{URL.revokeObjectURL(url);}
   const limit=typeof budget==='object'?budget.ms:Number(budget);
@@ -1910,7 +2004,7 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
       if(r?.lossProven||legal&&(r?.depth>0||r?.proven))lastVerified=r;onProgress(retainEvidence(r));}
     else finish(e.data.result);};
   w.onerror=e=>finish(lastVerified,e.message||'Worker 오류');
-  w.postMessage({firstPlayer:g?.first??null,patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{},searchMemory:session?.store.snapshot()});return w;
+  w.postMessage({model:E.getModel?.()??null,firstPlayer:g?.first??null,patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{},searchMemory:session?.store.snapshot()});return w;
 }
 function acceptResult(result,partial=false){
   if(result&&E.finalizeResult)result=E.finalizeResult(b,turn,result);
@@ -2120,9 +2214,9 @@ const gpuPanel=document.createElement('div');gpuPanel.className='card';gpuPanel.
 $('nextMovePanel').after(gpuPanel);
 $('computeMode').value=initialCompute;
 const gpuAnalysisMode=document.createElement('p');gpuAnalysisMode.id='gpuAnalysisMode';gpuAnalysisMode.className='muted';$('computeMode').parentElement.after(gpuAnalysisMode);syncAnalysisSettingsUI();
-versionBadge.textContent='통합 v5.15.0 · GPU';
-versionBadge.setAttribute('aria-label','통합 버전 5.15.0');
-versionBadge.title='공격 연결·선제 차단·주도권 분석 · GPU 혼합 · 정확한 5목 우선';
+versionBadge.textContent='통합 v5.16.0 · GPU';
+versionBadge.setAttribute('aria-label','통합 버전 5.16.0');
+versionBadge.title='기존 엔진 보완 학습 · GPU 혼합 · 정확한 5목 우선';
 let gpuPrepared=null,cpuPatterns=null,modeRequest=0,benchmarkWorker=null,cancelBenchmark=null;
 async function selectComputeMode(reanalyze=false){
  const request=++modeRequest,mode=$('computeMode').value;stopWorker();rec=null;currentAnalysisPolicy=null;globalThis.omokComputeReady=false;globalThis.omokAcceleration={mode:'cpu',table:null,optimized:false};
@@ -2169,4 +2263,29 @@ async function benchmarkGPU(){
 $('gpuBenchmark').onclick=benchmarkGPU;
 $('gpuCancel').onclick=()=>cancelBenchmark?.();
 selectComputeMode(true).then(()=>{if(location.search.includes('diagnostics')){$('setup').close();benchmarkGPU();}});
+
+// User-selected weights are data, not executable code. Each change starts a new
+// search context; foreground and opponent/reply Workers receive the same model.
+(()=>{
+ const KEY='forest-omok-learning-model-v1',embedded=OmokNeural.getDefaultModel();
+ const panel=document.createElement('div');panel.className='card';
+ panel.innerHTML='<h2>기존 엔진 보완 학습</h2><p id="learningModelStatus" role="status"></p><p class="muted">GPU로 학습한 작은 모델을 CPU 수읽기의 국면 평가에 사용합니다. 규칙과 전술 검증은 기존 엔진이 맡습니다.</p><div class="toolbar"><button id="loadLearningModel">채택된 모델 가져오기</button><button id="defaultLearningModel">검증된 기본 모델</button><button id="disableLearningModel">기존 평가만 사용</button></div><input id="learningModelFile" type="file" accept=".json,application/json" hidden><p class="muted"><a id="openLearningDashboard" href="http://127.0.0.1:8766" target="_blank" rel="noopener">로컬 학습 도구 열기</a> · 먼저 프로젝트의 학습 도구를 실행하세요. 저장된 기보는 기록 내보내기로 전달할 수 있습니다.</p>';
+ gpuPanel.after(panel);
+ function describe(){const info=E.getModelInfo();$('learningModelStatus').textContent=info.active?'CPU 학습 평가 사용 중 · '+E.getModel().modelId.slice(0,16):'기존 패턴 평가 사용 중';}
+ function apply(model,persist=true,rethink=true){
+  if(model){OmokNeural.validate(model);if(model.adoption?.accepted!==true)throw Error('채택되지 않은 후보 모델은 실제 대국에 적용할 수 없습니다.');}stopWorker();cancelPonder();E.configure({model});spawnAnalysis.memory?.store.clear();rec=null;lastProgress=null;
+  if(persist)try{localStorage.setItem(KEY,JSON.stringify({model}));}catch{}
+  describe();if(rethink&&g&&!g.result&&!reviewing&&globalThis.omokComputeReady)analyze();
+ }
+ try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved&&Object.prototype.hasOwnProperty.call(saved,'model'))apply(saved.model,false,false);}catch{describe();}
+ describe();
+ $('loadLearningModel').onclick=()=>$('learningModelFile').click();
+ $('learningModelFile').onchange=async event=>{const file=event.target.files?.[0];if(!file)return;try{
+  if(file.size>1024*1024)throw Error('모델 파일은 1MiB 이하이어야 합니다.');const model=JSON.parse(await file.text());OmokNeural.validate(model);
+  if(model.adoption?.accepted!==true)throw Error('독립 대국 검증을 통과해 채택된 모델만 사용할 수 있습니다. 로컬 학습 도구의 채택 모델을 선택하세요.');
+  apply(model);msg('채택된 학습 모델을 CPU 수읽기에 연결했습니다.');
+ }catch(error){msg('학습 모델을 읽지 못했습니다: '+error.message);}finally{event.target.value='';}};
+ $('defaultLearningModel').onclick=()=>{try{localStorage.removeItem(KEY);}catch{}apply(embedded,false);msg(embedded?'검증된 기본 모델을 사용합니다.':'아직 채택된 기본 모델이 없어 기존 평가를 사용합니다.');};
+ $('disableLearningModel').onclick=()=>{apply(null);msg('기존 패턴 평가를 사용합니다.');};
+})();
 </script></html>

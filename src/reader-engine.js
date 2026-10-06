@@ -2,7 +2,11 @@ function createEngine(N, board, options={}) {
   const clockNow=typeof performance!=='undefined'?performance.now.bind(performance):Date.now.bind(Date);
   if(![15,19].includes(N)||board.length!==N*N||board.some(v=>![0,1,2].includes(v)))throw Error('Invalid board');
   const b=Array.from(board),dirs=[[1,0],[0,1],[1,1],[1,-1]],M=10000000;
-  const memory=options.searchMemory||null,memScope=memory?OmokSearchMemory.scope('reader',N,options):'';
+  const neuralFactory=options.model?(typeof OmokNeural!=='undefined'?OmokNeural:typeof require==='function'?require('./neural-evaluator.js'):null):null;
+  if(options.model&&!neuralFactory)throw Error('Learning evaluator is required for this model');
+  const neural=options.model?neuralFactory.createEvaluator(options.model,N,options.firstPlayer):null;
+  let neuralPosition=null;
+  const memory=options.searchMemory||null,memScope=memory?OmokSearchMemory.scope('reader',N,{...options,modelVersion:neural?.modelId||options.modelVersion}):'';
   const inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N, at=(x,y)=>inside(x,y)?b[y*N+x]:3;
   const strategyFactory=typeof createStrategyEngine==='function'?createStrategyEngine:typeof require==='function'?require('./strategy-engine.js'):null;
   const forestFactory=typeof createForestEngine==='function'?createForestEngine:typeof require==='function'?require('./forest-engine.js'):null;
@@ -33,7 +37,7 @@ function createEngine(N, board, options={}) {
   windows.forEach(w=>indexWindow(w.id));
   function value(w){const n1=counts1[w.id],n2=counts2[w.id];if(n1&&n2||!n1&&!n2)return 0;let p=n1?1:2,n=n1||n2;if(b[w.pre]===p||b[w.post]===p)return 0;let v=[0,2,25,420,24000,2000000][n];return p===1?v:-v;}
   windows.forEach((w,k)=>{contributions[k]=value(w);total+=contributions[k];});
-  function set(i,p){const before=b[i];for(const id of cellAffected[i]){const old1=counts1[id],old2=counts2[id];counts1[id]+=(p===1)-(before===1);counts2[id]+=(p===2)-(before===2);indexWindow(id,old1,old2);}b[i]=p;for(let id of affected[i]){const v=value(windows[id]);total+=v-contributions[id];contributions[id]=v;}}
+  function set(i,p){const before=b[i];for(const id of cellAffected[i]){const old1=counts1[id],old2=counts2[id];counts1[id]+=(p===1)-(before===1);counts2[id]+=(p===2)-(before===2);indexWindow(id,old1,old2);}b[i]=p;neuralPosition?.set(i,p);for(let id of affected[i]){const v=value(windows[id]);total+=v-contributions[id];contributions[id]=v;}}
   function tick(){nodes++;if(clockNow()>Math.min(deadline,phaseDeadline))throw Error('timeout');}
   function run(i,p,dx,dy){let x=i%N,y=Math.floor(i/N),len=1;for(let s of [-1,1]){let k=1;while(at(x+s*k*dx,y+s*k*dy)===p){len++;k++;}}return len;}
   function exact(i,p){return dirs.some(([dx,dy])=>run(i,p,dx,dy)===5);}
@@ -152,7 +156,7 @@ function createEngine(N, board, options={}) {
     // Do not replace a forcing win just beyond the horizon with a positional
     // score. A bounded proof probe is sound when found; a timeout proves nothing.
     if(depth<=1&&!danger.length){const tacticalKey=b.join('')+p;let proof=tacticalCache.get(tacticalKey);if(proof===undefined&&memory)proof=memory.get(memScope+'|vcf9',tacticalKey);if(proof===undefined){const previous=phaseDeadline;try{phaseDeadline=options.fixedWork?Infinity:Math.min(previous,deadline,clockNow()+5);proof=vcf(p,9);if(tacticalCache.size<30000)tacticalCache.set(tacticalKey,proof);memory?.put(memScope+'|vcf9',tacticalKey,proof,proof?12:1);}catch(e){if(e.message!=='timeout')throw e;proof=null;}finally{phaseDeadline=previous;}}if(proof)return {score:M-ply-proof.length,pv:proof};}
-    const staticScore=()=> (p===1?total:-total);
+    const staticScore=()=> {if(neural&&!neuralPosition)neuralPosition=neural.accumulator(b);return (p===1?total:-total)+(neuralPosition?.score(p)||0);};
     let quietMoves=null;
     // Quiet extensions are branch-local. A global work cap used to change
     // the value of the same leaf after earlier candidates consumed it.
