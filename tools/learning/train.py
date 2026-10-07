@@ -152,6 +152,8 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
     database = sqlite3.connect(folder / "preparation.sqlite")
     database.execute("PRAGMA journal_mode=WAL")
     database.execute("PRAGMA synchronous=FULL")
+    # Allow an approximately 64 MiB page cache; keep transaction durability unchanged.
+    database.execute("PRAGMA cache_size=-65536")
     database.execute("CREATE TABLE IF NOT EXISTS samples (id TEXT PRIMARY KEY)")
     database.execute("CREATE TABLE IF NOT EXISTS families (id TEXT PRIMARY KEY, split TEXT NOT NULL)")
     database.execute("CREATE TABLE IF NOT EXISTS positions (id TEXT PRIMARY KEY, split TEXT NOT NULL)")
@@ -630,6 +632,32 @@ def train_command(args) -> dict:
     min_epochs = getattr(args, "min_epochs", 1)
     diagnostic_samples = getattr(args, "diagnostic_samples", 512)
     stop = StopController(args.max_seconds, Path(args.stop_file) if args.stop_file else None)
+    timing_started = time.perf_counter()
+    timings = {name: 0.0 for name in (
+        "runtimeInit", "prepareData", "mappedDataAndCudaLoad", "modelInitOrResume",
+        "baselineValidation", "baselineDiagnostics", "trainAndControl", "epochValidation",
+        "checkpoint", "finalSynchronization", "diagnosticsExportParity")}
+
+    def measured(name, operation, *arguments):
+        started = time.perf_counter()
+        failure = None
+        try:
+            return operation(*arguments)
+        except Exception as error:
+            failure = error
+            raise
+        finally:
+            timings[name] += (time.perf_counter() - started) * 1000
+            if failure is not None:
+                failure.performance = timing_report()
+
+    def timing_report():
+        return {"schemaVersion": 1, "wallMs": (time.perf_counter() - timing_started) * 1000,
+                "stagesMs": dict(timings),
+                "scope": "Host wall time for this invocation, including existing CUDA waits; not device kernel time. "
+                         "Train/control excludes separately measured validation and checkpoint calls. "
+                         "No per-batch timers or additional CUDA synchronization; final report publication is excluded."}
+
     torch = torch_runtime()
     device = device_info(torch, args.device)
     torch.set_num_threads(2)
@@ -638,9 +666,11 @@ def train_command(args) -> dict:
     if args.device == "cuda":
         torch.cuda.manual_seed_all(args.seed)
         torch.cuda.reset_peak_memory_stats()
+    timings["runtimeInit"] = (time.perf_counter() - timing_started) * 1000
     output, checkpoint = Path(args.output), Path(args.checkpoint)
     output.parent.mkdir(parents=True, exist_ok=True)
-    manifest = prepare_data(Path(args.data), output.parent / ".train-cache", stop)
+    manifest = measured("prepareData", prepare_data, Path(args.data), output.parent / ".train-cache", stop)
+    loading_started = time.perf_counter()
     train_rows, validation_rows = (mapped_rows(torch, manifest, split) for split in ("train", "validation"))
     train_family, validation_family = (mapped_family_weights(torch, manifest, split) for split in ("train", "validation"))
     execution_rows, execution_families, storage = resident_training_data(
@@ -648,6 +678,8 @@ def train_command(args) -> dict:
     execution_train, execution_validation = execution_rows
     execution_train_family, execution_validation_family = execution_families
     device["dataStorage"] = storage
+    timings["mappedDataAndCudaLoad"] = (time.perf_counter() - loading_started) * 1000
+    model_started = time.perf_counter()
     model = network(torch, args.hidden_size).to(args.device)
     warm_start, warm_start_scale = None, None
     if args.init_model and not args.resume:
@@ -695,24 +727,29 @@ def train_command(args) -> dict:
         previous_elapsed, warm_start = saved["elapsedSeconds"], saved.get("warmStartModelId")
         warm_start_scale = saved["initEvaluationScale"]
     mean, scale = (torch.tensor(manifest["normalization"][key], device=args.device) for key in ("mean", "scale"))
+    timings["modelInitOrResume"] = (time.perf_counter() - model_started) * 1000
+    training_timing_started = time.perf_counter()
     training_start, current_loss, run_updates = time.monotonic(), None, 0
     last_loss, execution_permutation = None, None
     before_training = model[0].weight.detach().cpu().clone()
     initial_samples_seen = samples_seen
     reason = None
     if not args.resume:
-        baseline_validation = validate(torch, model, execution_validation, mean, scale, args.batch_size, args.device, stop,
+        baseline_validation = measured("baselineValidation", validate, torch, model, execution_validation,
+                                       mean, scale, args.batch_size, args.device, stop,
                                        execution_validation_family, family_balance)
         if baseline_validation:
             best_metric = patience_metric = baseline_validation["all"]
             best_epoch = 0
             best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
+        diagnostics_started = time.perf_counter()
         for split, rows in (("train", train_rows), ("validation", validation_rows)):
             indices = diagnostic_indices(torch, len(rows), diagnostic_samples)
             baseline_diagnostics[split] = {"indices": indices.tolist(),
                 "values": diagnostic_values(torch, model, rows, indices, mean, scale, args.device)}
+        timings["baselineDiagnostics"] += (time.perf_counter() - diagnostics_started) * 1000
 
-    def save_checkpoint(status):
+    def write_checkpoint(status):
         nonlocal current_loss
         if last_loss is not None:
             current_loss = last_loss.item()
@@ -735,6 +772,9 @@ def train_command(args) -> dict:
         with temporary.open("r+b") as flushable:
             os.fsync(flushable.fileno())
         replace_saved_file(temporary, checkpoint)
+
+    def save_checkpoint(status):
+        return measured("checkpoint", write_checkpoint, status)
 
     model.train()
     try:
@@ -781,7 +821,8 @@ def train_command(args) -> dict:
                     emit({"event": "checkpoint", "epoch": epoch, "cursor": cursor, "updates": updates, "loss": current_loss})
             if reason:
                 break
-            metrics = validate(torch, model, execution_validation, mean, scale, args.batch_size, args.device, stop,
+            metrics = measured("epochValidation", validate, torch, model, execution_validation,
+                               mean, scale, args.batch_size, args.device, stop,
                                execution_validation_family, family_balance)
             if stop.reason():
                 reason = stop.reason()
@@ -812,14 +853,18 @@ def train_command(args) -> dict:
         save_checkpoint("error")
         raise
     if args.device == "cuda":
-        torch.cuda.synchronize()
+        measured("finalSynchronization", torch.cuda.synchronize)
     elapsed = time.monotonic() - training_start
+    training_timing_ms = (time.perf_counter() - training_timing_started) * 1000
+    timings["trainAndControl"] = max(0.0, training_timing_ms - sum(timings[name] for name in (
+        "baselineValidation", "baselineDiagnostics", "epochValidation", "checkpoint", "finalSynchronization")))
     if not updates:
         report = {"status": "interrupted", "stopReason": reason, "updates": 0, "checkpoint": str(checkpoint),
                   "modelExported": False, "datasetHash": manifest["datasetHash"], "device": device,
-                  "note": "No training updates completed; no candidate model was exported"}
+                  "note": "No training updates completed; no candidate model was exported", "performance": timing_report()}
         atomic_json(Path(str(output) + ".training.json"), report)
         return report
+    export_started = time.perf_counter()
     changed = bool(torch.any(model[0].weight.detach().cpu() != before_training).item())
     if best_state:
         model.load_state_dict(best_state)
@@ -862,6 +907,8 @@ def train_command(args) -> dict:
               "evaluationBoundary": "No final-test metrics or automatic adoption; engine arena must decide candidate adoption"}
     atomic_json(output, exported)
     atomic_json(Path(str(output) + ".parity.json"), parity)
+    timings["diagnosticsExportParity"] = (time.perf_counter() - export_started) * 1000
+    report["performance"] = timing_report()
     atomic_json(Path(str(output) + ".training.json"), report)
     return report
 
@@ -944,12 +991,16 @@ def main() -> int:
         return 0
     except InterruptedError as error:
         result = {"status": "interrupted", "modelExported": False, "error": str(error)}
+        if hasattr(error, "performance"):
+            result["performance"] = error.performance
         if args.command == "train":
             atomic_json(Path(str(args.output) + ".training.json"), result)
         emit(result)
         return 0
     except Exception as error:
         result = {"status": "error", "type": type(error).__name__, "error": str(error), "command": args.command}
+        if hasattr(error, "performance"):
+            result["performance"] = error.performance
         if args.command == "check" and args.out:
             atomic_json(Path(args.out), result)
         elif args.command == "train":

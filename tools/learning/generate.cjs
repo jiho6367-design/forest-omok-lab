@@ -3,20 +3,21 @@ const fs=require('node:fs'),path=require('node:path');
 const {Worker,isMainThread,parentPort,workerData}=require('node:worker_threads');
 const {ROOT,RULES_ID,FEATURE_VERSION,hash,append,read,rng,save,stopped,baselineFactory,atomic}=require('./state.cjs');
 const {replay,legalMoves,opening,splitFor,coord,positionKey,familyFor}=require('./replay.cjs');
+const M=require('./metrics.cjs');
 const currentFactory=options=>require('../../src/node-engine.cjs')(options);
 function neural(){return require('../../src/neural-evaluator.js');}
 function features(board,p,first){return Array.from(neural().extractFeatures(board,p,first));}
 function modelFor(context){const adopted=path.join(context.dir,'champion.json');return fs.existsSync(adopted)?read(adopted):null;}
 function lessonsFor(context){return (read(path.join(context.dir,'lessons.json'),{lessons:[]}).lessons||[]).filter(l=>l.active!==false);}
 function sample(context,{id,familyId,split,board,p,firstPlayer,target,weight=1,labelType='terminal',source}){
- return {schemaVersion:1,sampleId:id,rulesId:RULES_ID,featureVersion:FEATURE_VERSION,familyId,split,positionKey:positionKey(board,p,firstPlayer),features:features(board,p,firstPlayer),target,weight,labelType,position:{board,p,firstPlayer},source};
+ return {schemaVersion:1,sampleId:id,rulesId:RULES_ID,featureVersion:FEATURE_VERSION,familyId,split,positionKey:M.measure(context,'samples.position_key_ms',()=>positionKey(board,p,firstPlayer)),features:M.measure(context,'samples.features_ms',()=>features(board,p,firstPlayer)),target,weight,labelType,position:{board,p,firstPlayer},source};
 }
 function rowsForGame(context,game){
- if(!game.completed)return [];const checked=verifyGame(game);return (game.samples||[]).map(item=>{const pos=checked.positions[item.ply];if(!pos||pos.p!==item.p||!Array.isArray(item.board)||item.board.length!==225||pos.board.some((stone,i)=>stone!==item.board[i]))throw Error('Stored sample does not match played position in '+game.id+' ply '+item.ply);return sample(context,{id:game.id+':'+item.ply,familyId:game.familyId,split:game.split,board:item.board,p:item.p,firstPlayer:game.firstPlayer,target:game.winner===0?0:game.winner===item.p?1:-1,source:{gameId:game.id,ply:item.ply,branch:game.branch,seed:game.seed,modelVersion:game.modelVersion,lessonHash:game.lessonHash,kind:'actual-played-terminal'}});});
+ if(!game.completed)return [];const checked=M.measure(context,'completion.rows_replay_ms',()=>verifyGame(game));return M.measure(context,'completion.rows_materialize_ms',()=>(game.samples||[]).map(item=>{const pos=checked.positions[item.ply];if(!pos||pos.p!==item.p||!Array.isArray(item.board)||item.board.length!==225||pos.board.some((stone,i)=>stone!==item.board[i]))throw Error('Stored sample does not match played position in '+game.id+' ply '+item.ply);return sample(context,{id:game.id+':'+item.ply,familyId:game.familyId,split:game.split,board:item.board,p:item.p,firstPlayer:game.firstPlayer,target:game.winner===0?0:game.winner===item.p?1:-1,source:{gameId:game.id,ply:item.ply,branch:game.branch,seed:game.seed,modelVersion:game.modelVersion,lessonHash:game.lessonHash,kind:'actual-played-terminal'}});}));
 }
 function sampleGame(context,game){const rows=rowsForGame(context,game);for(const row of rows)append(path.join(context.dir,'dataset.jsonl'),row);return rows.length;}
 function importedSamples(context,records){
- const journal=require('./journal.cjs'),seen=new Set(context.state.importedSampleGames||[]);for(const record of records){if(seen.has(record.id))continue;const r=replay(record),rows=[];if(r.completed){for(const pos of r.positions){if(pos.type!=='move')continue;rows.push(sample(context,{id:'record:'+record.id+':'+pos.ply,familyId:record.familyId,split:record.split,board:pos.board,p:pos.p,firstPlayer:record.first,target:r.draw?0:r.winner===pos.p?1:-1,source:{gameId:record.id,ply:pos.ply,kind:'record-terminal',labelMeaning:'position outcome; does not classify the played move as bad'}}));}}journal.appendRows(context.dir,'dataset.jsonl',rows,'sampleId');seen.add(record.id);context.state.importedSampleGames=[...seen];journal.counters(context);save(context);}journal.counters(context);
+ const journal=require('./journal.cjs'),seen=new Set(context.state.importedSampleGames||[]);for(const record of records){if(seen.has(record.id))continue;const r=replay(record),rows=[];if(r.completed){for(const pos of r.positions){if(pos.type!=='move')continue;rows.push(sample(context,{id:'record:'+record.id+':'+pos.ply,familyId:record.familyId,split:record.split,board:pos.board,p:pos.p,firstPlayer:record.first,target:r.draw?0:r.winner===pos.p?1:-1,source:{gameId:record.id,ply:pos.ply,kind:'record-terminal',labelMeaning:'position outcome; does not classify the played move as bad'}}));}}const appended=journal.appendRows(context.dir,'dataset.jsonl',rows,'sampleId');M.count(context,'generation.imported_rows',appended);seen.add(record.id);context.state.importedSampleGames=[...seen];journal.counters(context);save(context);}journal.counters(context);
 }
 function finishAnalysis(context,intent){
  if(intent.baselineCommit!==context.state.baselineCommit||intent.runId!==context.state.runId||intent.row.rulesId!==RULES_ID||intent.sample&&intent.sample.featureVersion!==FEATURE_VERSION)throw Error('Analysis intent has incompatible run/rules/features');const journal=require('./journal.cjs');journal.appendRows(context.dir,'analysis.jsonl',[intent.row],'id');if(intent.sample)journal.appendRows(context.dir,'dataset.jsonl',[intent.sample],'sampleId');
@@ -64,54 +65,73 @@ function verifyGame(game){
 function cancelled(cancelBuffer){return !!cancelBuffer&&Atomics.load(new Int32Array(cancelBuffer),0)!==0;}
 async function play(context,game,{deadline=Infinity,onMove=()=>{},cancelBuffer}={}){
  const model=game.model??null,E=currentFactory({firstPlayer:game.firstPlayer,optimized:true,model}),random=rng(game.rng);if((model?.modelId||'untrained-current')!==game.modelVersion)throw Error('Cannot resume a partial game with a different model');
- const checked=verifyGame(game);let empty=game.board.filter(x=>!x).length;if(checked.completed){game.completed=true;game.winner=checked.draw?0:checked.winner;game.reason=checked.draw?'full-board':'played-exact-five';}
+ const checked=M.measure(context,'play.start_replay_ms',()=>verifyGame(game));let empty=game.board.filter(x=>!x).length;if(checked.completed){game.completed=true;game.winner=checked.draw?0:checked.winner;game.reason=checked.draw?'full-board':'played-exact-five';}
  while(!game.completed){
   if(stopped(context.dir)||Date.now()>=deadline){game.reason=stopped(context.dir)?'user-stop':'time-limit';break;}
   if(cancelled(cancelBuffer)){game.reason='pipeline-yield';break;}
   if(game.events.length>=context.settings.maxPlies){game.reason='ply-limit';break;}
-  const choice=choose(E,game,context.settings,random);game.elapsedMs+=choice.ms;if(choice.i==null){game.reason=choice.reason;break;}
+  const choice=M.measure(context,'play.choose_ms',()=>choose(E,game,context.settings,random));game.elapsedMs+=choice.ms;M.add(context,'play.nodes',choice.r?.nodes||0);M.add(context,'play.depth',choice.r?.depth||0);if(choice.i==null){game.reason=choice.reason;break;}
   if(game.events.length%context.settings.sampleEvery===0||game.events.length<3)game.samples.push({board:game.board.slice(),p:game.p,ply:game.opening.length+game.events.length});
   const shape=choice.shape;game.events.push({type:'move',p:game.p,i:choice.i,depth:choice.r.depth,nodes:choice.r.nodes,elapsedMs:choice.ms});game.board[choice.i]=game.p;game.p=3-game.p;game.rng=random.state;empty--;
   if(shape.win.length){game.completed=true;game.winner=3-game.p;game.reason='played-exact-five';}else if(!empty){game.completed=true;game.winner=0;game.reason='full-board';}
-  await onMove(game);await new Promise(resolve=>setImmediate(resolve));
+  await M.measureAsync(context,'play.progress_wait_ms',()=>onMove(game));await new Promise(resolve=>setImmediate(resolve));
  }
- if(game.completed)verifyGame(game);return game;
+ if(game.completed)M.measure(context,'play.terminal_replay_ms',()=>verifyGame(game));return game;
 }
 function generationQueue(context,records,target,deadline,cancelBuffer){
  const queue=Object.values(context.state.activeGames).sort((a,b)=>a.index-b.index);context.state.generationIndex=Math.max(context.state.generationIndex,...queue.map(g=>g.index+1),0);
  return ()=>{if(cancelled(cancelBuffer)||stopped(context.dir)||Date.now()>=deadline||context.state.counters.samples>=context.settings.maxSamples)return null;if(queue.length)return queue.shift();if(context.state.counters.generatedGames+Object.keys(context.state.activeGames).length>=target)return null;const game=makeGame(context,context.state.generationIndex++,records);context.state.activeGames[game.id]=game;save(context);return game;};
 }
 function progress(context,game,target){context.state.activeGames[game.id]=game;context.state.progress={gameId:game.id,ply:game.opening.length+game.events.length,workers:context.settings.workers,target};const storage=require('./state.cjs');(storage.saveProgress||save)(context,game);}
-function commit(context,game){verifyGame(game);require('./journal.cjs').commitGame(context,game,rowsForGame(context,game));}
+function commit(context,game){return M.measure(context,'completion.total_ms',()=>{M.measure(context,'completion.initial_replay_ms',()=>verifyGame(game));require('./journal.cjs').commitGame(context,game,rowsForGame(context,game));});}
+function startGenerationMetrics(context){const owned=!M.current(context);if(owned)M.start(context,'generation',{eventLoop:true});return {owned,before:{...context.state.counters}};}
+function finishGenerationMetrics(context,scope){if(!scope.owned)return;const after=context.state.counters,metrics=M.current(context)?.metrics||{},importedSampleRows=metrics['generation.imported_rows']?.total||0,recoveredSampleRows=metrics['journal.recovered_sample_rows']?.total||0,delta={generatedGames:(after.generatedGames||0)-(scope.before.generatedGames||0),completedGames:(after.completedGames||0)-(scope.before.completedGames||0),samples:(after.samples||0)-(scope.before.samples||0),uniquePositions:(after.uniquePositions||0)-(scope.before.uniquePositions||0)};M.finish(context,{workers:context.settings.workers,delta,generatedSampleRows:delta.samples-importedSampleRows-recoveredSampleRows,importedSampleRows,recoveredSampleRows,workerReportsComplete:!(metrics['main.worker_failures']?.total),scope:'Worker durations overlap across lanes; nested main timings overlap. Samples delta includes imports/recovery, which generatedSampleRows excludes. Unique positions is corpus index growth, not post-snapshot selectable count. A failed worker has no final timing report.'});}
 async function generate(context,{deadline=Infinity,target=context.settings.games,cancelBuffer}={}){
+ const metricsScope=startGenerationMetrics(context);try{
  require('./journal.cjs').recoverGames(context);
- if(context.settings.workers>1)return generateParallel(context,{deadline,target,cancelBuffer,recovered:true});
+ if(context.settings.workers>1)return await generateParallel(context,{deadline,target,cancelBuffer,recovered:true});
  const records=read(path.join(context.dir,'records.json'),[]);importedSamples(context,records);const next=generationQueue(context,records,target,deadline,cancelBuffer);
  for(;;){const game=next();if(!game)return context.state.counters.generatedGames>=target;
   await play(context,game,{deadline,cancelBuffer,onMove:g=>progress(context,g,target)});
   if(!game.completed&&['user-stop','time-limit','pipeline-yield'].includes(game.reason)){save(context);return false;}
   commit(context,game);
  }
+ }finally{finishGenerationMetrics(context,metricsScope);}
 }
-function createWorkerPool(size){
+function createWorkerPool(size,{metricsContext=null}={}){
  if(!Number.isInteger(size)||size<1||size>16)throw Error('Game worker pool size must be between 1 and 16');
- const lanes=Array.from({length:size},()=>{
-  const worker=new Worker(__filename,{workerData:{learningPool:true}});let pending=null,failure=null,closing=false;
-  const fail=error=>{failure=error;const task=pending;pending=null;if(task)task.reject(error);};
+ let active=0;const lanes=Array.from({length:size},()=>{
+  const worker=new Worker(__filename,{workerData:{learningPool:true}});let pending=null,failure=null,closing=false,idleSince=M.now();
+  const fail=error=>{if(!failure)M.count(metricsContext,'main.worker_failures');failure=error;const task=pending;pending=null;if(task)task.reject(error);};
   worker.on('error',fail);worker.on('exit',code=>{if(!closing)fail(Error('Game worker exited unexpectedly ('+code+')'));});
-  worker.on('message',message=>{if(closing)return;if(!pending||message.taskId!==pending.id){fail(Error('Unexpected worker task identity'));return;}const task=pending;try{if(message.progress){const persisted=task.onProgress(message.game),ack=()=>worker.postMessage({ack:task.id,ply:message.game.events.length});if(persisted?.then)Promise.resolve(persisted).then(ack).catch(fail);else ack();}else if(message.result){pending=null;task.resolve(message.result);}else if(message.error)fail(Error(message.error));else fail(Error('Unknown worker message'));}catch(error){fail(error);}});
-  return {run(task,onProgress=()=>{}){if(failure)return Promise.reject(failure);if(closing)return Promise.reject(Error('Game worker pool is closed'));if(pending)return Promise.reject(Error('Game worker lane is already busy'));return new Promise((resolve,reject)=>{pending={id:task.game.id,resolve,reject,onProgress};try{worker.postMessage({task});}catch(error){fail(error);}});},async close(){closing=true;if(pending)fail(Error('Game worker pool closed during a task'));await worker.terminate();},get threadId(){return worker.threadId;}};
+  worker.on('message',message=>{if(closing)return;if(!pending||message.taskId!==pending.id){fail(Error('Unexpected worker task identity'));return;}const task=pending;try{if(message.progress){M.count(metricsContext,'main.progress_messages');if(typeof message.sentAtNs==='bigint')M.add(metricsContext,'main.worker_to_main_ms',Number(process.hrtime.bigint()-message.sentAtNs)/1e6);const persisted=M.measure(metricsContext,'main.progress_callback_ms',()=>task.onProgress(message.game)),ack=()=>M.measure(metricsContext,'main.ack_post_ms',()=>worker.postMessage({ack:task.id,ply:message.game.events.length}));if(persisted?.then)Promise.resolve(persisted).then(ack).catch(fail);else ack();}else if(message.result){M.merge(metricsContext,message.metrics,'worker.');pending=null;active--;M.add(metricsContext,'main.active_lanes_at_event',active);M.add(metricsContext,'main.task_roundtrip_ms',M.now()-task.started);idleSince=M.now();task.resolve(message.result);}else if(message.error)fail(Error(message.error));else fail(Error('Unknown worker message'));}catch(error){fail(error);}});
+  return {run(task,onProgress=()=>{}){if(failure)return Promise.reject(failure);if(closing)return Promise.reject(Error('Game worker pool is closed'));if(pending)return Promise.reject(Error('Game worker lane is already busy'));return new Promise((resolve,reject)=>{M.add(metricsContext,'main.lane_idle_ms',M.now()-idleSince);active++;M.add(metricsContext,'main.active_lanes_at_event',active);pending={id:task.game.id,resolve,reject,onProgress,started:M.now()};try{M.measure(metricsContext,'main.task_post_ms',()=>worker.postMessage({task:{...task,profile:!!M.current(metricsContext)}}));}catch(error){fail(error);}});},async close(){closing=true;if(pending)fail(Error('Game worker pool closed during a task'));await worker.terminate();},get threadId(){return worker.threadId;}};
  });
  return {lanes,async close(){await Promise.allSettled(lanes.map(lane=>lane.close()));}};
 }
 async function generateParallel(context,{deadline=Infinity,target=context.settings.games,recovered=false,cancelBuffer}={}){
+ const metricsScope=startGenerationMetrics(context);try{
  if(!recovered)require('./journal.cjs').recoverGames(context);
- const records=read(path.join(context.dir,'records.json'),[]);importedSamples(context,records);const next=generationQueue(context,records,target,deadline,cancelBuffer),pool=createWorkerPool(context.settings.workers);let incomplete=false;
- const work=async lane=>{for(;;){const game=next();if(!game)return;const result=await lane.run({dir:context.dir,settings:context.settings,game,deadline,cancelBuffer},g=>progress(context,g,target));context.state.activeGames[game.id]=result;
+ const records=read(path.join(context.dir,'records.json'),[]);importedSamples(context,records);const next=generationQueue(context,records,target,deadline,cancelBuffer),pool=createWorkerPool(context.settings.workers,{metricsContext:context});let incomplete=false;
+ const work=async lane=>{for(;;){const game=M.measure(context,'main.assignment_ms',()=>next());if(!game)return;const result=await lane.run({dir:context.dir,settings:context.settings,game,deadline,cancelBuffer},g=>progress(context,g,target));context.state.activeGames[game.id]=result;
   if(!result.completed&&['time-limit','user-stop','pipeline-yield'].includes(result.reason)){incomplete=true;save(context);return;}
   commit(context,result);
  }};
  try{const results=await Promise.allSettled(pool.lanes.map(async lane=>{try{return await work(lane);}catch(error){fs.writeFileSync(path.join(context.dir,'stop.flag'),'worker failure');throw error;}}));const failure=results.find(x=>x.status==='rejected');if(failure)throw failure.reason;return !incomplete&&context.state.counters.generatedGames>=target;}finally{await pool.close();}
+ }finally{finishGenerationMetrics(context,metricsScope);}
 }
-if(!isMainThread&&workerData?.learningPool){let busy=false,acknowledgement=null;parentPort.on('message',message=>{if(message.ack){if(acknowledgement?.taskId===message.ack&&acknowledgement.ply===message.ply){const pending=acknowledgement;acknowledgement=null;pending.resolve();}return;}const task=message.task,taskId=task?.game?.id;if(busy||!task){parentPort.postMessage({taskId,error:'Worker received an invalid or overlapping task'});return;}busy=true;play({dir:task.dir,settings:task.settings},task.game,{deadline:task.deadline,cancelBuffer:task.cancelBuffer,onMove:game=>new Promise(resolve=>{acknowledgement={taskId,ply:game.events.length,resolve};parentPort.postMessage({taskId,progress:true,game});})}).then(game=>{busy=false;parentPort.postMessage({taskId,result:game});}).catch(error=>{busy=false;acknowledgement=null;parentPort.postMessage({taskId,error:error.stack||error.message});});});}
+if(!isMainThread&&workerData?.learningPool){
+ let busy=false,acknowledgement=null,idleSince=M.now();
+ parentPort.on('message',message=>{
+  if(message.ack){if(acknowledgement?.taskId===message.ack&&acknowledgement.ply===message.ply){const pending=acknowledgement;acknowledgement=null;M.add(pending.context,'ack_wait_ms',M.now()-pending.started);pending.resolve();}return;}
+  const task=message.task,taskId=task?.game?.id;if(busy||!task){parentPort.postMessage({taskId,error:'Worker received an invalid or overlapping task'});return;}busy=true;
+  const context={dir:task.dir,settings:task.settings};if(task.profile){M.start(context,'worker');M.add(context,'idle_assignment_ms',M.now()-idleSince);}
+  play(context,task.game,{deadline:task.deadline,cancelBuffer:task.cancelBuffer,onMove:game=>new Promise(resolve=>{
+   // Probe only one message in sixteen; JSON size is an estimate, not the
+   // structured-clone wire representation. Record probe cost separately.
+   if(task.profile&&(game.events.length===1||game.events.length%16===0)){const bucket=game.events.length<=16?'001_016':game.events.length<=64?'017_064':'065_plus';M.add(context,'message_bytes.ply_'+bucket,M.measure(context,'message_size_probe_ms',()=>Buffer.byteLength(JSON.stringify({taskId,progress:true,game}))));}
+   M.count(context,'progress_messages');acknowledgement={taskId,ply:game.events.length,resolve,context,started:M.now()};const sentAtNs=task.profile?process.hrtime.bigint():undefined;M.measure(context,'post_message_ms',()=>parentPort.postMessage({taskId,progress:true,game,sentAtNs}));
+  })}).then(game=>{busy=false;idleSince=M.now();const metrics=M.finish(context,{}, {persist:false});parentPort.postMessage({taskId,result:game,metrics});}).catch(error=>{busy=false;acknowledgement=null;M.finish(context,{}, {persist:false});parentPort.postMessage({taskId,error:error.stack||error.message});});
+ });
+}
 module.exports={features,modelFor,lessonsFor,sample,rowsForGame,sampleGame,importedSamples,finishAnalysis,analyzeRecords,makeGame,choose,verifyGame,play,createWorkerPool,generate,generateParallel};

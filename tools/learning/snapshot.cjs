@@ -3,7 +3,8 @@
 // are derived artifacts; final-test features/targets are never inspected here.
 const fs=require('node:fs'),path=require('node:path');
 const {DatabaseSync}=require('node:sqlite');
-const S=require('./state.cjs'),R=require('./replay.cjs');
+const S=require('./state.cjs'),R=require('./replay.cjs'),M=require('./metrics.cjs');
+const {performance}=require('node:perf_hooks');
 const splits=['train','validation','test'],priority={train:0,validation:1,test:2};
 function resolveAlias(id,lookup){
  const seen=new Set();let current=id;
@@ -42,8 +43,17 @@ function quotas(counts,maximum){
 function rename(temporary,file){for(let attempt=0;;attempt++){try{fs.renameSync(temporary,file);return;}catch(e){if(!['EPERM','EACCES','EBUSY'].includes(e.code)||attempt>=11)throw e;Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,Math.min(100,10*(attempt+1)));}}}
 function useManifest(context,file,manifest){if(manifest.rulesId!==S.RULES_ID||manifest.featureVersion!==S.FEATURE_VERSION||S.fileHash(file)!==manifest.sha256)throw Error('Fixed training snapshot changed');if(manifest.familyManifest){const family=path.join(path.dirname(file),manifest.familyManifest.file);if(path.basename(family)!==manifest.familyManifest.file||S.fileHash(family)!==manifest.familyManifest.sha256)throw Error('Fixed family manifest changed');}context.state.dataset=manifest;context.state.counters.snapshotUniquePositions=manifest.uniquePositions;S.save(context);return manifest;}
 async function snapshotData(context,file){
+ // A separate collector keeps the snapshot wall time independent of any
+ // caller's generation/training collector. Timings never enter the manifest.
+ const metrics={dir:context.dir,state:context.state};M.start(metrics,'snapshot');
+ let stage='setup_ms',started=performance.now(),complete=false;
+ const mark=next=>{if(stage)M.add(metrics,stage,performance.now()-started);stage=next;started=performance.now();};
+ try{const result=await buildSnapshot(context,file,metrics,mark);complete=true;return result;}
+ finally{mark(null);M.finish(metrics,{complete});}
+}
+async function buildSnapshot(context,file,metrics,mark){
  file=path.resolve(file||path.join(context.dir,'datasets','cycle-'+(context.state.cycle||1)+'.jsonl'));const manifestFile=file+'.manifest.json',old=S.read(manifestFile);
- if(old){if(!fs.existsSync(file))throw Error('Fixed training snapshot is missing');return useManifest(context,file,old);}
+ if(old){mark('reuse_verify_ms');if(!fs.existsSync(file))throw Error('Fixed training snapshot is missing');return useManifest(context,file,old);}
  if(fs.existsSync(file))throw Error('Snapshot exists without an immutable manifest; preserve it and choose a new cycle');
  const source=path.join(context.dir,'dataset.jsonl');if(!fs.existsSync(source))throw Error('No training samples yet');
  const maximum=context.settings.maxTrainingSamples??100000;if(!Number.isSafeInteger(maximum)||maximum<1)throw Error('maxTrainingSamples must be a positive integer');
@@ -51,8 +61,11 @@ async function snapshotData(context,file){
  const index=file+'.index-'+process.pid+'.sqlite',temporary=file+'.tmp-'+process.pid,familyFile=file+'.families.jsonl',familyTemporary=familyFile+'.tmp-'+process.pid;
  let database,transaction=false,published=false,dataPublished=false,familyPublished=false,dataHash=null,familyHash=null;
  try{
+  mark('index_setup_ms');
   if(fs.existsSync(index))fs.unlinkSync(index);
-  database=new DatabaseSync(index);database.exec('PRAGMA cache_size=-8192; PRAGMA temp_store=FILE; PRAGMA synchronous=FULL; CREATE TABLE families(id TEXT PRIMARY KEY,split TEXT NOT NULL); CREATE TABLE positions(id TEXT PRIMARY KEY,priority INTEGER NOT NULL); CREATE TABLE aliases(id TEXT PRIMARY KEY,family TEXT NOT NULL); CREATE TABLE assignments(id TEXT PRIMARY KEY,split TEXT NOT NULL); CREATE TABLE rows(seq INTEGER PRIMARY KEY,id TEXT UNIQUE NOT NULL,family TEXT NOT NULL,split TEXT NOT NULL,position TEXT,rank TEXT NOT NULL,label TEXT,offset INTEGER NOT NULL,length INTEGER NOT NULL,eligible INTEGER NOT NULL DEFAULT 0,selected INTEGER NOT NULL DEFAULT 0);');
+  // Target about 64 MiB of SQLite pages for this temporary index; durable
+  // transactions and file-backed temporary storage remain unchanged.
+  database=new DatabaseSync(index);database.exec('PRAGMA cache_size=-65536; PRAGMA temp_store=FILE; PRAGMA synchronous=FULL; CREATE TABLE families(id TEXT PRIMARY KEY,split TEXT NOT NULL); CREATE TABLE positions(id TEXT PRIMARY KEY,priority INTEGER NOT NULL); CREATE TABLE aliases(id TEXT PRIMARY KEY,family TEXT NOT NULL); CREATE TABLE assignments(id TEXT PRIMARY KEY,split TEXT NOT NULL); CREATE TABLE rows(seq INTEGER PRIMARY KEY,id TEXT UNIQUE NOT NULL,family TEXT NOT NULL,split TEXT NOT NULL,position TEXT,rank TEXT NOT NULL,label TEXT,offset INTEGER NOT NULL,length INTEGER NOT NULL,eligible INTEGER NOT NULL DEFAULT 0,selected INTEGER NOT NULL DEFAULT 0);');
   const groupingFile=path.join(context.dir,'family-groups.json'),grouping=S.read(groupingFile,{aliases:{},groups:[]});
   const putAlias=database.prepare('INSERT OR REPLACE INTO aliases VALUES (?,?)'),putAssignment=database.prepare('INSERT OR REPLACE INTO assignments VALUES (?,?)'),getAssignment=database.prepare('SELECT split FROM assignments WHERE id=?');
   database.exec('BEGIN');transaction=true;
@@ -64,7 +77,9 @@ async function snapshotData(context,file){
   for(const g of grouping.groups||[])assign(g.familyId,g.split);
   for(const [family,split] of Object.entries(context.state.familySplits||{}))assign(family,split);
   database.exec('COMMIT');transaction=false;
+  mark('source_hash_before_ms');
   const sourceHash=S.fileHash(source),groupingHash=fs.existsSync(groupingFile)?S.fileHash(groupingFile):null;
+  mark('scan_index_ms');
   const alias=database.prepare('SELECT family FROM aliases WHERE id=?'),assignment=database.prepare('SELECT split FROM assignments WHERE id=?'),priorFamily=database.prepare('SELECT split FROM families WHERE id=?'),putFamily=database.prepare('INSERT INTO families VALUES (?,?)');
   const putPosition=database.prepare('INSERT INTO positions VALUES (?,?) ON CONFLICT(id) DO UPDATE SET priority=MAX(priority,excluded.priority)'),putRow=database.prepare('INSERT OR IGNORE INTO rows(seq,id,family,split,position,rank,label,offset,length) VALUES (?,?,?,?,?,?,?,?,?)');
   const rawCounts={train:0,validation:0,test:0},counts={train:0,validation:0,test:0,deduplicated:0,overlapExcluded:0};let lines=0;
@@ -81,8 +96,11 @@ async function snapshotData(context,file){
    if(lines%1024===0){database.exec('COMMIT; BEGIN');if(S.stopped(context.dir))throw Error('Snapshot stopped before publication; raw experience is preserved');}
   }
   database.exec('COMMIT');transaction=false;
+  M.count(metrics,'source_rows',Object.values(rawCounts).reduce((a,b)=>a+b,0));M.count(metrics,'source_lines',lines);
+  mark('eligibility_index_ms');
   database.exec('UPDATE rows SET eligible=1 WHERE position IS NULL OR NOT EXISTS(SELECT 1 FROM positions WHERE positions.id=rows.position AND positions.priority>CASE rows.split WHEN \'train\' THEN 0 WHEN \'validation\' THEN 1 ELSE 2 END); CREATE INDEX selection ON rows(eligible,split,selected,rank); CREATE INDEX chronology ON rows(eligible,split,seq);');
   counts.overlapExcluded=database.prepare('SELECT COUNT(*) n FROM rows WHERE eligible=0').get().n;
+  mark('selection_ms');
   const eligible=Object.fromEntries(splits.map(s=>[s,database.prepare('SELECT COUNT(*) n FROM rows WHERE eligible=1 AND split=?').get(s).n])),allocation=quotas(eligible,maximum),mix={};
   const choose=(split,condition,limit)=>{const used=database.prepare('SELECT COUNT(*) n FROM rows WHERE selected=1 AND split=?').get(split).n;limit=Math.min(limit,allocation[split]-used);if(limit<=0)return;database.prepare('UPDATE rows SET selected=1 WHERE seq IN (SELECT seq FROM rows WHERE eligible=1 AND selected=0 AND split=? AND '+condition+' ORDER BY rank,seq LIMIT ?)').run(split,limit);};
   for(const split of splits){
@@ -92,21 +110,27 @@ async function snapshotData(context,file){
    choose(split,'seq>='+boundary,Math.ceil(quota/2)-chosenRecent());choose(split,'seq<'+boundary,Math.floor(quota/2)-chosenHistory());
    choose(split,'1',quota-chosenRecent()-chosenHistory());counts[split]=chosenRecent()+chosenHistory();mix[split]={recent:chosenRecent(),history:chosenHistory(),recentPoolRows:eligible[split]?pool:0,recentBoundarySourceLine:boundary};
   }
+  M.count(metrics,'selected_rows',counts.train+counts.validation+counts.test);mark('data_output_ms');
   const fd=fs.openSync(temporary,'wx'),sourceFd=fs.openSync(source,'r');try{for(const stored of database.prepare('SELECT family,split,offset,length FROM rows WHERE selected=1 ORDER BY seq').iterate()){
    const bytes=Buffer.alloc(stored.length);let received=0;while(received<bytes.length){const n=fs.readSync(sourceFd,bytes,received,bytes.length-received,stored.offset+received);if(!n)throw Error('Source dataset changed during indexed read');received+=n;}
    const row=JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,''));row.familyId=stored.family;row.split=stored.split;fs.writeSync(fd,JSON.stringify(row)+'\n');
   }fs.fsyncSync(fd);}finally{fs.closeSync(sourceFd);fs.closeSync(fd);}
+  mark('family_output_ms');
   const familyFd=fs.openSync(familyTemporary,'wx');try{for(const row of database.prepare('SELECT family familyId,split,COUNT(*) samples,SUM(CASE WHEN label=\'terminal\' THEN 1 ELSE 0 END) terminal,SUM(CASE WHEN label=\'teacher\' THEN 1 ELSE 0 END) teacher FROM rows WHERE selected=1 GROUP BY family,split ORDER BY family').iterate())fs.writeSync(familyFd,JSON.stringify(row)+'\n');fs.fsyncSync(familyFd);}finally{fs.closeSync(familyFd);}
+  mark('source_recheck_ms');
   if(S.fileHash(source)!==sourceHash||(fs.existsSync(groupingFile)?S.fileHash(groupingFile):null)!==groupingHash)throw Error('Experience or family assignment changed while freezing snapshot; retry a fresh cycle');
+  mark('output_hash_summary_ms');
   const uniquePositions=database.prepare('SELECT COUNT(DISTINCT position) n FROM rows WHERE selected=1').get().n,families=database.prepare('SELECT COUNT(*) n FROM families').get().n,selectedFamilies=Object.fromEntries(splits.map(split=>[split,database.prepare('SELECT COUNT(DISTINCT family) n FROM rows WHERE selected=1 AND split=?').get(split).n]));
   dataHash=S.fileHash(temporary);familyHash=S.fileHash(familyTemporary);
   const manifest={schemaVersion:1,file:path.basename(file),sha256:dataHash,rulesId:S.RULES_ID,featureVersion:S.FEATURE_VERSION,counts,uniquePositions,families,createdAt:new Date().toISOString(),selectedFamilies,
    selection:{version:1,maximumSamples:maximum,selectedSamples:counts.train+counts.validation+counts.test,sourceRows:Object.values(rawCounts).reduce((a,b)=>a+b,0),sourceLines:lines,sourceCounts:rawCounts,eligibleCounts:eligible,omittedEligibleSamples:splits.reduce((n,s)=>n+eligible[s]-counts[s],0),mix,method:'Disk-indexed deterministic half-recent/half-history per split; reserve independent families and quarantine whole-source heldout overlap before selection',seed:context.settings.seed??1707},
    source:{file:path.basename(source),sha256:sourceHash,familyGroupsSha256:groupingHash,familySplitRegistrySha256:S.hash(context.state.familySplits||{}),rawExperiencePreserved:true},
    familyManifest:{file:path.basename(familyFile),sha256:familyHash},scope:'Family splits are immutable; exact D4/color-equivalent overlap is excluded with test > validation > train priority. Final-test features and labels are reserved and are not used to select, normalize or tune training.'};
+  mark('publish_verify_ms');
   if(fs.existsSync(file)||fs.existsSync(manifestFile))throw Error('Another snapshot already owns this immutable cycle');
   rename(familyTemporary,familyFile);familyPublished=true;rename(temporary,file);dataPublished=true;S.atomic(manifestFile,manifest);published=true;return useManifest(context,file,manifest);
  }finally{
+  mark('cleanup_ms');
   try{if(database){if(transaction)try{database.exec('ROLLBACK');}catch{}database.close();}}finally{release();}
   // A publication failure rolls back only the new, hash-matched derived
   // artifacts. A committed immutable snapshot and all raw data stay intact.
