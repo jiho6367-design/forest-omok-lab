@@ -8,7 +8,7 @@ const REPO=path.resolve(__dirname,'../..');
 const MAX_UPLOAD=2*1024*1024;
 const MAX_LOG=256*1024;
 const PRESETS={
-  continuous:{continuous:true,concurrentTraining:true,minutes:60,games:256,gamesPerCycle:512,minNewSamples:5000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:8,epochs:80},
+  continuous:{continuous:true,concurrentTraining:true,minutes:60,games:256,gamesPerCycle:512,minNewSamples:10000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:10,epochs:20},
   check:{minutes:3,games:8,pairs:4,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:3},
   standard:{minutes:60,games:128,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:10},
   extended:{minutes:180,games:1024,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:20}

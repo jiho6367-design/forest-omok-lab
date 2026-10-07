@@ -21,7 +21,7 @@ function validateSettings(x){
 }
 function continuousProfile(options){
  if(!options.continuous)return options;
- return {workers:8,priority:'below-normal',concurrentTraining:true,gamesPerCycle:512,minNewSamples:5000,maxTrainingSamples:100000,pairs:32,epochs:80,batchSize:256,familyBalance:1,earlyStopPatience:10,earlyStopMinDelta:.0001,minEpochs:Math.min(10,options.epochs||80),recordBranchFraction:.25,maxSamples:Number.MAX_SAFE_INTEGER,...options};
+ return {workers:10,priority:'below-normal',concurrentTraining:true,gamesPerCycle:512,minNewSamples:10000,maxTrainingSamples:100000,pairs:64,epochs:20,batchSize:256,familyBalance:1,earlyStopPatience:10,earlyStopMinDelta:.0001,minEpochs:Math.min(10,options.epochs||20),recordBranchFraction:.25,maxSamples:Number.MAX_SAFE_INTEGER,...options};
 }
 function normalizeLesson(l,source){if(!l||typeof l.key!=='string'||!/^[012]{225}$/.test(l.key)||!Number.isInteger(l.bad)||l.bad<0||l.bad>=225||!Number.isInteger(l.good)||l.good<0||l.good>=225||l.bad===l.good||l.key[l.bad]!=='0'||l.key[l.good]!=='0')throw Error('Invalid existing lesson in '+source);return {...l,active:l.rules?.fivePriority!==false&&(!l.rulesId||l.rulesId===S.RULES_ID),labelRole:'existing heuristic only; never ground-truth training label',provenance:[...(l.provenance||[]),source]};}
 function importLessons(context,payload,records,source){

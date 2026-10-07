@@ -1,4 +1,4 @@
-"""Meaningful trainer contract checks; GPU jobs are intentionally separate."""
+"""Trainer contract checks, including real CUDA resume when CUDA is available."""
 import importlib.util
 import json
 from pathlib import Path
@@ -168,6 +168,14 @@ class NetworkContract(unittest.TestCase):
             raise unittest.SkipTest("PyTorch runtime is not installed")
 
     def test_cpu_mid_epoch_resume_preserves_optimizer_rng_and_result(self):
+        self.assert_mid_epoch_resume("cpu")
+
+    def test_cuda_resident_mid_epoch_resume_matches_mapped_execution(self):
+        if not self.torch.cuda.is_available():
+            self.skipTest("CUDA runtime is unavailable")
+        self.assert_mid_epoch_resume("cuda")
+
+    def assert_mid_epoch_resume(self, device):
         with tempfile.TemporaryDirectory() as temporary:
             folder = Path(temporary)
             rows = []
@@ -187,7 +195,7 @@ class NetworkContract(unittest.TestCase):
             def settings(name, resume=False):
                 target = folder / name
                 return SimpleNamespace(data=str(data), output=str(target / "model.json"),
-                    checkpoint=str(target / "checkpoint.pt"), device="cpu", epochs=3, batch_size=16,
+                    checkpoint=str(target / "checkpoint.pt"), device=device, epochs=3, batch_size=16,
                     hidden_size=16, learning_rate=0.005, weight_decay=0.0001, scale=600, seed=42,
                     max_seconds=30, checkpoint_every=100, stop_file=str(folder / "stop"),
                     resume=resume, init_model=None, family_balance=1.0, early_stop_patience=10,
@@ -217,11 +225,51 @@ class NetworkContract(unittest.TestCase):
             self.assertEqual(a["layers"], b["layers"])
             self.assertEqual(a["modelId"], b["modelId"])
             self.assertLessEqual(resumed["parity"]["maxAbsoluteError"], 1e-5)
-            self.assertFalse(resumed["device"]["trainedOnCuda"])
+            self.assertEqual(resumed["device"]["trainedOnCuda"], device == "cuda")
             self.assertEqual(baseline["diagnostics"], resumed["diagnostics"])
             self.assertEqual(baseline["training"]["bestEpoch"], resumed["training"]["bestEpoch"])
             self.assertEqual(resumed["diagnostics"]["train"]["samples"], 12)
             self.assertEqual(resumed["training"]["excludedTestSamples"], 1)
+            if device == "cuda":
+                self.assertEqual(resumed["device"]["dataStorage"]["mode"], "resident-cuda")
+                with mock.patch.object(trainer, "resident_training_data", side_effect=lambda torch, rows, families, device:
+                                       (rows, families, {"mode": "mapped-cpu", "residentBytes": 0})):
+                    mapped = trainer.train_command(settings("mapped"))
+                c = json.loads(Path(mapped["model"]).read_text(encoding="utf-8"))
+                self.assertEqual(a["layers"], c["layers"])
+                self.assertEqual(a["modelId"], c["modelId"])
+                self.assertEqual(baseline["history"], mapped["history"])
+
+    def test_residency_respects_free_memory_before_allocating(self):
+        torch = self.torch
+        rows, families = (torch.zeros((5, trainer.ROW_SIZE)),), (torch.ones(5),)
+        with mock.patch.object(torch.cuda, "mem_get_info", return_value=(0, 1024)):
+            actual_rows, actual_families, storage = trainer.resident_training_data(torch, rows, families, "cuda")
+        self.assertIs(actual_rows, rows)
+        self.assertIs(actual_families, families)
+        self.assertEqual(storage["reason"], "memory-budget")
+
+    def test_nonfinite_gradient_never_reaches_optimizer_update(self):
+        torch = self.torch
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            data = folder / "synthetic.jsonl"
+            rows = [sample(str(i), "family-" + str(i), "train" if i < 4 else "validation", i / 10)
+                    for i in range(6)]
+            data.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+            args = SimpleNamespace(data=str(data), output=str(folder / "model.json"),
+                checkpoint=str(folder / "checkpoint.pt"), device="cpu", epochs=1, batch_size=4,
+                hidden_size=16, learning_rate=0.005, weight_decay=0.0001, scale=600, seed=42,
+                max_seconds=30, checkpoint_every=100, stop_file=None, resume=False, init_model=None)
+            with mock.patch.object(torch.nn.utils, "clip_grad_norm_", return_value=torch.tensor(float("nan"))), \
+                 mock.patch.object(torch.optim.AdamW, "step") as update:
+                with self.assertRaisesRegex(RuntimeError, "non-finite gradient"):
+                    trainer.train_command(args)
+            update.assert_not_called()
+            saved = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
+            self.assertEqual(saved["updates"], 0)
+            self.assertEqual(saved["status"], "error")
+            self.assertFalse(Path(args.output).exists())
 
     def test_warm_start_adjusts_changed_normalization_without_changing_function(self):
         torch = self.torch
@@ -245,10 +293,13 @@ class NetworkContract(unittest.TestCase):
         features = torch.randn(6, 32)
         other = torch.tensor([trainer.opposite_features(row) for row in features.tolist()])
         mean, scale = torch.randn(32), torch.rand(32) + 0.3
+        before = features.clone()
         with torch.no_grad():
             a = trainer.effective_prediction(torch, model, features, mean, scale)
             b = trainer.effective_prediction(torch, model, other, mean, scale)
         self.assertTrue(torch.allclose(a, -b, atol=1e-7, rtol=0))
+        self.assertTrue(torch.equal(features, before))
+        self.assertNotIn("_forest_perspective_order", model.state_dict())
 
     def test_warm_start_expansion_preserves_function_with_changed_normalization(self):
         torch = self.torch
@@ -289,6 +340,30 @@ class NetworkContract(unittest.TestCase):
             # exactly zero antisymmetric value independently of model weights.
             self.assertAlmostEqual(metrics["all"], 0.5)
             self.assertAlmostEqual(metrics["unbalancedAll"], 2 / 3)
+
+    def test_validation_multibatch_kind_and_confidence_metrics_match_weighted_mse(self):
+        torch = self.torch
+        rows = torch.tensor([[0.0] * 32 + [target, weight, teacher] for target, weight, teacher in
+                             ((1.0, 1.0, 0), (-0.4, 0.15, 1), (0.7, 0.75, 0),
+                              (-0.2, 0.1, 1), (0.5, 2.0, 0))])
+        families = torch.tensor([0.5, 0.5, 2.0, 2.0, 1.0])
+        model = trainer.network(torch, 16)
+        for balance in (0.0, 0.5, 1.0):
+            metrics = trainer.validate(torch, model, rows, torch.zeros(32), torch.ones(32),
+                                       2, "cpu", trainer.StopController(20, None), families, balance)
+            raw = rows.tolist()
+            for name, kind in (("all", None), ("terminal", 0), ("teacher", 1), ("unbalancedAll", None)):
+                # Zero features have exactly zero antisymmetric prediction.
+                included = [i for i, row in enumerate(raw) if kind is None or row[34] == kind]
+                weights = [raw[i][33] * (float(families[i]) ** balance if name != "unbalancedAll" else 1)
+                           for i in included]
+                expected = sum(raw[i][32] ** 2 * weight for i, weight in zip(included, weights)) / sum(weights)
+                self.assertAlmostEqual(metrics[name], expected, places=7)
+        incomplete = trainer.StopController(20, None)
+        with mock.patch.object(incomplete, "reason", side_effect=[None, "stop-file"]):
+            self.assertIsNone(trainer.validate(torch, model, rows, torch.zeros(32), torch.ones(32),
+                                              2, "cpu", incomplete, families, 1.0))
+        self.assertTrue(model.training)
 
     def test_warm_start_validation_baseline_is_kept_and_patience_resumes(self):
         torch = self.torch

@@ -34,14 +34,21 @@ async function continueFrom(context,source){
  const join=(id,split)=>{if(typeof id!=='string'||!id||!['train','validation','test'].includes(split))throw Error('Invalid source family/split');const before=getSplit.get(id)?.split;putSplit.run(id,before==='train'||split==='train'?'train':before==='validation'||split==='validation'?'validation':'test');};
  const interrupted=()=>S.stopped(context.dir);
  const convertGame=game=>{const f=getGame.get(game.id).family;return {...game,id:prefix+game.id,familyId:f,split:getSplit.get(f).split,provenance:{sourceRun:checked.state.runId,sourceId,originalGameId:game.id}};};
- let batch=[],nextGenerationIndex=checked.state.generationIndex||0;
+ let batch=[],nextGenerationIndex=checked.state.generationIndex||0,transaction=false;
+ // These indexes are derived and safely rebuilt on resume. Bound each durable
+ // transaction instead of forcing a SQLite commit/fsync for every played ply
+ // and every family assignment. No JSONL is published before validation ends.
+ const begin=()=>{db.exec('BEGIN');transaction=true;},commit=()=>{db.exec('COMMIT');transaction=false;},checkpoint=()=>{commit();begin();};
+ let indexed=0;
  try{
-  for(const record of grouped.records){putAlias.run(record.familyId,record.familyId);join(record.familyId,record.split);indexPositions(record.id,R.replay(record),record.first);}
+  begin();
+  for(const record of grouped.records){putAlias.run(record.familyId,record.familyId);join(record.familyId,record.split);indexPositions(record.id,R.replay(record),record.first);if(++indexed%128===0)checkpoint();}
+  indexed=0;
   let ok=await eachLine(path.join(source,'games.jsonl'),game=>{
    if(interrupted())return false;if(typeof game.id!=='string'||!game.id)throw Error('Source game ID is missing');if(Number.isSafeInteger(game.index)&&game.index>=0)nextGenerationIndex=Math.max(nextGenerationIndex,game.index+1);indexPositions(game.id,J.verify(game),game.firstPlayer);
    const f=game.branch?.sourceGame?recordMap.get(game.branch.sourceGame)?.familyId:'family-'+S.hash(R.familyFor((game.opening||[]).slice(0,4),game.firstPlayer)).slice(0,24);if(!f)throw Error('Missing source record family');
-   const alias=getAlias.get(game.familyId);if(alias&&alias.family!==f)throw Error('Source family aliases conflict');putAlias.run(game.familyId,f);join(f,game.split);putGame.run(game.id,f,game.completed?1:0,game.winner,game.firstPlayer);
-  });if(!ok)return manifest;
+   const alias=getAlias.get(game.familyId);if(alias&&alias.family!==f)throw Error('Source family aliases conflict');putAlias.run(game.familyId,f);join(f,game.split);putGame.run(game.id,f,game.completed?1:0,game.winner,game.firstPlayer);if(++indexed%128===0)checkpoint();
+  });commit();if(!ok)return manifest;
   const validateRow=row=>{
    const p=row.position;if(row.rulesId!==S.RULES_ID||row.featureVersion!==S.FEATURE_VERSION||!p||!Array.isArray(p.board)||p.board.length!==225||!p.board.every(v=>v===0||v===1||v===2)||![1,2].includes(p.p)||![1,2].includes(p.firstPlayer)||!Array.isArray(row.features)||row.features.length!==32||!row.features.every(Number.isFinite)||!Number.isFinite(row.target)||Math.abs(row.target)>1||!Number.isFinite(row.weight)||row.weight<=0||typeof row.sampleId!=='string')throw Error('Invalid source learning row');
    if(row.positionKey!==R.positionKey(p.board,p.p,p.firstPlayer))throw Error('Source position identity differs from board');
@@ -52,7 +59,7 @@ async function continueFrom(context,source){
    }else if(row.labelType!=='teacher')throw Error('Unknown source label type');
    return family(row.familyId);
   };
-  ok=await eachLine(path.join(source,'dataset.jsonl'),row=>{if(interrupted())return false;const f=validateRow(row);join(f,row.split);});if(!ok)return manifest;
+  indexed=0;begin();ok=await eachLine(path.join(source,'dataset.jsonl'),row=>{if(interrupted())return false;const f=validateRow(row);join(f,row.split);if(++indexed%2048===0)checkpoint();});commit();if(!ok)return manifest;
   for(const record of grouped.records)record.split=getSplit.get(record.familyId).split;
   grouped.groups.forEach(g=>{g.split=getSplit.get(g.familyId).split;g.finalTestEligible=g.split==='test';});
   S.atomic(path.join(context.dir,'records.json'),grouped.records);S.atomic(path.join(context.dir,'family-groups.json'),{schemaVersion:1,aliases:grouped.aliases,groups:grouped.groups});
@@ -64,6 +71,6 @@ async function continueFrom(context,source){
   context.state.sourceFamilyIndex=true;context.state.familySplits=Object.fromEntries(grouped.records.map(r=>[r.familyId,r.split]));context.state.importedSampleGames=checked.state.importedSampleGames||[];context.state.analysisDone=checked.state.analysisDone||[];context.state.counters.analyzedPositions=checked.state.counters?.analyzedPositions||0;
   context.state.counters.importedRecords=grouped.records.length;J.counters(context);context.state.lastTrainingSampleCount=Number.isSafeInteger(checked.state.lastTrainingSampleCount)?Math.min(context.state.counters.samples,checked.state.lastTrainingSampleCount):context.state.counters.samples;context.state.counters.trainingUpdates=checked.state.counters?.trainingUpdates??checked.state.training?.training?.updates??0;context.state.trial=Math.max(context.state.trial||0,checked.state.trial||0);context.state.continuation={sourceId,sourceRun:checked.state.runId,importedGames:context.state.counters.generatedGames,importedSamples:context.state.counters.samples};context.state.generationIndex=nextGenerationIndex;
   manifest.complete=true;manifest.importedGames=context.state.counters.generatedGames;manifest.importedSamples=context.state.counters.samples;manifest.completedAt=new Date().toISOString();S.save(context);S.atomic(marker,manifest);return manifest;
- }finally{db.close();}
+ }finally{if(transaction)try{db.exec('ROLLBACK');}catch{}db.close();}
 }
 module.exports={inside,checkedSource,eachLine,continueFrom,familySplit,close};

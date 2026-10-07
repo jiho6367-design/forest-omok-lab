@@ -354,6 +354,33 @@ def mapped_family_weights(torch, manifest: dict, split: str):
                            size=count, dtype=torch.float32)
 
 
+def resident_training_data(torch, rows, families, device: str):
+    """Keep bounded datasets on CUDA instead of copying every tiny batch.
+
+    The mapped CPU copies remain the authoritative source for diagnostics and
+    exports. Large datasets, or devices with little free memory, use the prior
+    mapped path. Residency is execution state, never checkpoint identity/state.
+    """
+    needed = sum(value.numel() * value.element_size() for value in (*rows, *families))
+    if device != "cuda":
+        return rows, families, {"mode": "mapped-cpu", "residentBytes": 0}
+    free, _ = torch.cuda.mem_get_info()
+    # Current 100k-row cycles need about 14 MiB; leave most GPU memory available
+    # to the model, optimizer, desktop, and any concurrent inference workload.
+    if needed > min(256 * 1024 * 1024, free // 4):
+        return rows, families, {"mode": "mapped-cpu", "residentBytes": 0, "reason": "memory-budget"}
+    copied_rows, copied_families = [], []
+    try:
+        copied_rows = [value.to(device) for value in rows]
+        copied_families = [value.to(device) for value in families]
+    except torch.cuda.OutOfMemoryError:
+        # Free only these optional allocations; keep the original mapped path.
+        copied_rows.clear()
+        copied_families.clear()
+        return rows, families, {"mode": "mapped-cpu", "residentBytes": 0, "reason": "allocation-failed"}
+    return copied_rows, copied_families, {"mode": "resident-cuda", "residentBytes": needed}
+
+
 def read_model(path: Path) -> dict:
     model = json.loads(path.read_text(encoding="utf-8"))
     if model.get("schemaVersion") != 1 or model.get("kind") != "forest-value-mlp" or model.get("rulesId") != RULES_ID or model.get("featureVersion") != FEATURE_VERSION:
@@ -409,8 +436,14 @@ def opposite_features(features: list[float]) -> list[float]:
 
 
 def effective_prediction(torch, model, features, mean, scale):
-    order = list(range(12, 24)) + list(range(12)) + [25, 24, 27, 26, 28, 29, 31, 30]
-    other = features[:, order].clone()
+    order = getattr(model, "_forest_perspective_order", None)
+    if order is None or order.device != features.device:
+        order = torch.tensor(list(range(12, 24)) + list(range(12)) + [25, 24, 27, 26, 28, 29, 31, 30],
+                             dtype=torch.int64, device=features.device)
+        # Plain execution cache, deliberately not a state_dict buffer. Creating
+        # a CUDA index from a Python list for every batch is a blocking copy.
+        model._forest_perspective_order = order
+    other = features.index_select(1, order)
     other[:, 28] *= -1
     combined = torch.cat((features, other), dim=0)
     values = model((combined - mean) / scale).flatten()
@@ -481,7 +514,10 @@ def validate(torch, model, rows, mean, scale, batch: int, device: str, stop: Sto
              family_weights=None, family_balance: float = 0.0):
     if not len(rows):
         return None
-    totals = {"all": [0.0, 0.0], "terminal": [0.0, 0.0], "teacher": [0.0, 0.0], "unbalancedAll": [0.0, 0.0]}
+    names = ("all", "terminal", "teacher", "unbalancedAll")
+    # Float64 accumulation retains the old Python-double sum of float32 batch
+    # reductions while avoiding eight device synchronizations per batch.
+    totals = torch.zeros((len(names), 2), dtype=torch.float64, device=device)
     model.eval()
     with torch.no_grad():
         for start in range(0, len(rows), batch):
@@ -491,18 +527,20 @@ def validate(torch, model, rows, mean, scale, batch: int, device: str, stop: Sto
             raw = rows[start:start + batch].to(device)
             predicted = effective_prediction(torch, model, raw[:, :INPUT_SIZE], mean, scale)
             squared, weights = (predicted - raw[:, INPUT_SIZE]) ** 2, raw[:, INPUT_SIZE + 1]
-            totals["unbalancedAll"][0] += (squared * weights).sum().item()
-            totals["unbalancedAll"][1] += weights.sum().item()
+            unbalanced = torch.stack(((squared * weights).sum(), weights.sum()))
             if family_balance:
                 weights = weights * family_weights[start:start + batch].to(device).pow(family_balance)
-            totals["all"][0] += (squared * weights).sum().item()
-            totals["all"][1] += weights.sum().item()
+            balanced = torch.stack(((squared * weights).sum(), weights.sum()))
+            by_kind = []
             for name, kind in (("terminal", 0), ("teacher", 1)):
                 mask = raw[:, INPUT_SIZE + 2] == kind
-                totals[name][0] += (squared[mask] * weights[mask]).sum().item()
-                totals[name][1] += weights[mask].sum().item()
+                # Fixed-size masked reductions avoid CUDA nonzero/indexing
+                # synchronization and still report None for an absent kind.
+                kind_weights = weights * mask
+                by_kind.append(torch.stack(((squared * kind_weights).sum(), kind_weights.sum())))
+            totals.add_(torch.stack((balanced, *by_kind, unbalanced)))
     model.train()
-    return {name: total / weight if weight else None for name, (total, weight) in totals.items()}
+    return {name: total / weight if weight else None for name, (total, weight) in zip(names, totals.cpu().tolist())}
 
 
 def diagnostic_indices(torch, count: int, maximum: int):
@@ -605,6 +643,11 @@ def train_command(args) -> dict:
     manifest = prepare_data(Path(args.data), output.parent / ".train-cache", stop)
     train_rows, validation_rows = (mapped_rows(torch, manifest, split) for split in ("train", "validation"))
     train_family, validation_family = (mapped_family_weights(torch, manifest, split) for split in ("train", "validation"))
+    execution_rows, execution_families, storage = resident_training_data(
+        torch, (train_rows, validation_rows), (train_family, validation_family), args.device)
+    execution_train, execution_validation = execution_rows
+    execution_train_family, execution_validation_family = execution_families
+    device["dataStorage"] = storage
     model = network(torch, args.hidden_size).to(args.device)
     warm_start, warm_start_scale = None, None
     if args.init_model and not args.resume:
@@ -653,12 +696,13 @@ def train_command(args) -> dict:
         warm_start_scale = saved["initEvaluationScale"]
     mean, scale = (torch.tensor(manifest["normalization"][key], device=args.device) for key in ("mean", "scale"))
     training_start, current_loss, run_updates = time.monotonic(), None, 0
+    last_loss, execution_permutation = None, None
     before_training = model[0].weight.detach().cpu().clone()
     initial_samples_seen = samples_seen
     reason = None
     if not args.resume:
-        baseline_validation = validate(torch, model, validation_rows, mean, scale, args.batch_size, args.device, stop,
-                                       validation_family, family_balance)
+        baseline_validation = validate(torch, model, execution_validation, mean, scale, args.batch_size, args.device, stop,
+                                       execution_validation_family, family_balance)
         if baseline_validation:
             best_metric = patience_metric = baseline_validation["all"]
             best_epoch = 0
@@ -669,6 +713,9 @@ def train_command(args) -> dict:
                 "values": diagnostic_values(torch, model, rows, indices, mean, scale, args.device)}
 
     def save_checkpoint(status):
+        nonlocal current_loss
+        if last_loss is not None:
+            current_loss = last_loss.item()
         checkpoint.parent.mkdir(parents=True, exist_ok=True)
         temporary = checkpoint.with_name(checkpoint.name + ".tmp-" + str(os.getpid()))
         saved = {"schemaVersion": 1, "identity": identity, "modelState": model.state_dict(),
@@ -698,24 +745,33 @@ def train_command(args) -> dict:
             if permutation is None:
                 permutation = torch.randperm(len(train_rows), generator=generator)
                 cursor = 0
+            if execution_permutation is None:
+                # Preserve the CPU generator/permutation in checkpoints. Only
+                # its execution copy follows the resident training matrix.
+                execution_permutation = permutation.to(execution_train.device)
             while cursor < len(train_rows):
                 reason = stop.reason()
                 if reason:
                     break
                 selected = permutation[cursor:cursor + args.batch_size]
-                raw = train_rows.index_select(0, selected).to(args.device)
+                execution_selected = execution_permutation[cursor:cursor + args.batch_size]
+                raw = execution_train.index_select(0, execution_selected).to(args.device)
                 optimizer.zero_grad(set_to_none=True)
                 predicted = effective_prediction(torch, model, raw[:, :INPUT_SIZE], mean, scale)
                 weights, targets = raw[:, INPUT_SIZE + 1], raw[:, INPUT_SIZE]
                 if family_balance:
-                    weights = weights * train_family.index_select(0, selected).to(args.device).pow(family_balance)
+                    weights = weights * execution_train_family.index_select(0, execution_selected).to(args.device).pow(family_balance)
                 loss = ((predicted - targets) ** 2 * weights).sum() / weights.sum()
-                if not torch.isfinite(loss).item():
-                    raise RuntimeError("Training produced non-finite loss")
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0, error_if_nonfinite=True)
+                grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0, error_if_nonfinite=False)
+                # Check loss and gradient norm together before any optimizer
+                # update, retaining both rejection conditions with one sync.
+                if not (torch.isfinite(loss.detach()) & torch.isfinite(grad_norm)).item():
+                    if not torch.isfinite(loss.detach()).item():
+                        raise RuntimeError("Training produced non-finite loss")
+                    raise RuntimeError("Training produced non-finite gradient norm")
                 optimizer.step()
-                current_loss = loss.item()
+                last_loss = loss.detach()
                 cursor += len(selected)
                 samples_seen += len(selected)
                 updates += 1
@@ -725,8 +781,8 @@ def train_command(args) -> dict:
                     emit({"event": "checkpoint", "epoch": epoch, "cursor": cursor, "updates": updates, "loss": current_loss})
             if reason:
                 break
-            metrics = validate(torch, model, validation_rows, mean, scale, args.batch_size, args.device, stop,
-                               validation_family, family_balance)
+            metrics = validate(torch, model, execution_validation, mean, scale, args.batch_size, args.device, stop,
+                               execution_validation_family, family_balance)
             if stop.reason():
                 reason = stop.reason()
                 break
@@ -739,10 +795,12 @@ def train_command(args) -> dict:
                     patience_metric, stale_epochs = metrics["all"], 0
                 else:
                     stale_epochs += 1
+            current_loss = last_loss.item() if last_loss is not None else current_loss
             history.append({"epoch": epoch + 1, "updates": updates, "lastBatchLoss": current_loss,
                             "validation": metrics})
             epoch += 1
             cursor, permutation = 0, None
+            execution_permutation = None
             early_stopped = bool(metrics and early_stop_patience and epoch >= min_epochs and stale_epochs >= early_stop_patience)
             save_checkpoint("running")
             emit({"event": "epoch", **history[-1]})
