@@ -12,5 +12,5 @@ const after=board.slice();after[ix('G10')]=2;for(const p of [1,2])for(const dept
 for(const value of shared.values())assert(value===null||Array.isArray(value.pv),'only complete forcing subproblems, no aggregate timeout/trap entry');
 function fromPV(pv,k=0){const tree={move:E.coord(pv[k])};if(k+2<pv.length)tree.replies={[E.coord(pv[k+1])]:fromPV(pv,k+2)};return tree;}
 function fromTrap(proof){return {move:E.coord(proof.block),replies:Object.fromEntries(proof.branches.map(b=>[E.coord(b.i),b.proof?fromPV(b.proof.pv):fromTrap(b.quietProof)]))};}
-const specification={moves:coords,firstPlayer:2,attacker:2,certificate:fromTrap(warm.proof)},file='outputs/initiative-improvement-work/runs/20261005-reader-initiative/logs/actual17-H6-G10-certificate.json';fs.writeFileSync(file,JSON.stringify(specification));const checked=verify(specification,25000);assert(checked.verified,JSON.stringify(checked));
+const specification={moves:coords,firstPlayer:2,attacker:2,certificate:fromTrap(warm.proof)},checked=verify(specification,25000);assert(checked.verified,JSON.stringify(checked));
 console.log('PASS partial trap is unresolved; same-request complete child cache resumes without changing proof, budget, side/depth or board');console.log(JSON.stringify({warmWork,freshWork,partialSize,retainedEntries,independentVerification:checked}));
