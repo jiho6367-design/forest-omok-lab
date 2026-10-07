@@ -9,6 +9,7 @@ if(process.argv[2]==='--crash'){
  fs.unlinkSync=target=>{const result=unlink(target);if(boundary==='commit'&&target===destination+'.publish-intent.json')process.exit(73);return result;};
  snapshot.snapshotData(c,destination).then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});
 }else{
+fs.mkdirSync(path.join(S.ROOT,'work'),{recursive:true});
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'omok-snapshot-'));let passed=0;
 function context(name,maximum=100000){const dir=path.join(root,name);fs.mkdirSync(dir,{recursive:true});return {dir,settings:{seed:71,maxTrainingSamples:maximum},state:{schemaVersion:1,runId:name,counters:{samples:0},history:[]}};}
 function row(id,family,split,key=id){return {schemaVersion:1,rulesId:S.RULES_ID,featureVersion:S.FEATURE_VERSION,sampleId:id,familyId:family,split,positionKey:key,features:Array(32).fill(0),target:1,weight:1,labelType:'terminal',source:{gameId:id,ply:17},provenance:{origin:'synthetic-contract-fixture'}};}

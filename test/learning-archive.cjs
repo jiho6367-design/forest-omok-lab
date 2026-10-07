@@ -4,6 +4,7 @@ archive.assertDeliverySource({identity:S.sourceIdentity()});
 assert.throws(()=>archive.assertDeliverySource({identity:{sourceHash:'0'.repeat(64)}}),/production engine changed/);
 const path=require('node:path'),fs=require('node:fs'),baseline=path.join(S.ROOT,'work/continuous-runtime-baseline.json');
 if(fs.existsSync(baseline)){const original=S.read(baseline);if(original.files['src/node-engine.cjs']&&original.files['build.cjs']&&original.files['src/neural-app.js'])assert.deepEqual(archive.frozenRuntime().load('tools/learning/state.cjs').sourceIdentity(),original.identity);else assert.throws(()=>archive.frozenRuntime(),/Archived repository dependency missing/);}
+fs.mkdirSync(path.join(S.ROOT,'work'),{recursive:true});
 const dir=fs.mkdtempSync(path.join(S.ROOT,'work/archive-contract-')),identity=S.sourceIdentity(),files=Object.fromEntries([...identity.sourceManifest,...identity.harnessManifest].map(row=>[row.path,fs.readFileSync(path.join(S.ROOT,row.path),'utf8')])),snapshot={schemaVersion:2,identity,files,externalDependencies:[]};
 const write=(name,value)=>{const file=path.join(dir,name+'.json');S.atomic(file,value);return file;};
 for(const dependency of ['src/node-engine.cjs','build.cjs','src/neural-app.js'])assert(identity.sourceManifest.some(row=>row.path===dependency));

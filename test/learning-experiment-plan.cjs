@@ -4,6 +4,7 @@ const {DatabaseSync}=require('node:sqlite');
 const S=require('../tools/learning/state.cjs'),P=require('../tools/learning/experiment-plan.cjs');
 const checks=[];
 function check(name,fn){fn();checks.push(name);console.log('PASS '+name);}
+fs.mkdirSync(path.join(S.ROOT,'work'),{recursive:true});
 const root=fs.mkdtempSync(path.join(S.ROOT,'work/experiment-plan-contract-'));
 function ledger(file,highwater){const db=new DatabaseSync(file);try{db.exec('CREATE TABLE metadata(key TEXT PRIMARY KEY,value INTEGER NOT NULL); CREATE TABLE trials(reservation TEXT PRIMARY KEY,trial INTEGER UNIQUE NOT NULL,arena TEXT NOT NULL); CREATE TABLE families(id TEXT PRIMARY KEY,reservation TEXT NOT NULL); CREATE TABLE legacy_arenas(id TEXT PRIMARY KEY,trial INTEGER NOT NULL);');db.prepare('INSERT INTO metadata VALUES(?,?)').run('highwater',highwater);db.prepare('INSERT INTO trials VALUES(?,?,?)').run('old',highwater,'{}');db.prepare('INSERT INTO families VALUES(?,?)').run('prior-family','old');}finally{db.close();}}
 const file=path.join(root,'shared.sqlite');ledger(file,31);

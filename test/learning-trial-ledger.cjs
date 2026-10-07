@@ -6,6 +6,7 @@ function context(dir,ledger,trial=0){fs.mkdirSync(dir,{recursive:true});const st
 if(process.argv[2]==='--crash'){const c=context(process.argv[3],process.argv[4]),arena=A.plan(c,model);if(process.argv[5]==='after-arena')S.atomic(path.join(c.dir,'arena-cycle-1.json'),arena);process.exit(74);}
 if(process.argv[2]==='--allocate'){const arena=A.plan(context(process.argv[3],process.argv[4]),model);console.log(JSON.stringify({trial:arena.trial,families:[...new Set(arena.games.map(g=>g.familyId))]}));process.exit(0);}
 function check(name,fn){fn();checks.push(name);console.log('PASS '+name);}
+fs.mkdirSync(path.join(S.ROOT,'work'),{recursive:true});
 const root=fs.mkdtempSync(path.join(S.ROOT,'work/trial-ledger-contract-')),ledger=path.join(root,'shared.sqlite');
 check('arena publication followed by abrupt exit reconciles the stale state trial and never reuses its budget',()=>{
  const c=context(path.join(root,'published'),ledger,30);S.save(c);const result=cp.spawnSync(process.execPath,[__filename,'--crash',c.dir,ledger,'after-arena'],{encoding:'utf8',windowsHide:true});assert.equal(result.status,74,result.stderr);assert.equal(S.read(path.join(c.dir,'state.json')).trial,30);const arena=S.read(path.join(c.dir,'arena-cycle-1.json'));assert.equal(arena.trial,31);

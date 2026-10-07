@@ -1,5 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+fs.mkdirSync(path.resolve(__dirname,'../work'),{recursive:true});
 const source=fs.readFileSync(path.join(__dirname,'../tools/learning/state.cjs'),'utf8'),dir=fs.mkdtempSync(path.join(__dirname,'../work/atomic-save-')),file=path.join(dir,'state.json');
 function withRename(renameSync){const context={require:id=>id==='node:fs'?{...fs,renameSync}:require(id),__dirname:path.join(__dirname,'../tools/learning'),module:{exports:{}},process,Atomics,SharedArrayBuffer,Int32Array,console};vm.runInNewContext(source,context);return context.module.exports;}
 fs.writeFileSync(file,JSON.stringify({checkpoint:'old'}));let attempts=0;

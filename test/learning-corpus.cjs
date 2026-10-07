@@ -3,6 +3,7 @@
 // and injected crashes. Fixtures never train or adopt a production model.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process');
 const S=require('../tools/learning/state.cjs'),R=require('../tools/learning/replay.cjs'),J=require('../tools/learning/journal.cjs'),C=require('../tools/learning/corpus.cjs'),N=require('../src/neural-evaluator.js');
+fs.mkdirSync(path.join(S.ROOT,'work'),{recursive:true});
 const temporary=fs.mkdtempSync(path.join(S.ROOT,'work','learning-corpus-test-')),outside=fs.mkdtempSync(path.join(os.tmpdir(),'omok-corpus-outside-')),contexts=[],passed=[];
 const copy=value=>JSON.parse(JSON.stringify(value));
 function context(name){const dir=path.join(temporary,name);fs.mkdirSync(dir);const state={schemaVersion:1,runId:name,rulesId:S.RULES_ID,featureVersion:S.FEATURE_VERSION,identity:S.sourceIdentity(),status:'stopped',phase:'generate',cycle:1,counters:{samples:0,generatedGames:0,completedGames:0,analyzedPositions:0},activeGames:{},generationIndex:0,history:[],adoptions:[],errors:[]},ctx={dir,state,settings:S.defaults()};S.atomic(path.join(dir,'settings.json'),ctx.settings);S.atomic(path.join(dir,'records.json'),[]);S.save(ctx);contexts.push(ctx);return ctx;}
