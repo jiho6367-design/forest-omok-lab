@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "version": "5.17.0",
+  "createdAt": "2026-10-07T00:05:13.913Z",
+  "identity": {
+    "sourceHash": "c3d02fd0f3951be4b80c563827f5b67e387d17863f3011671bc04fe565f870f7",
+    "harnessHash": "ee1d1379482d8546eb70add3ac67c438e466d553cc0c678257d8d98612df3910"
+  },
+  "rulesId": "15x15-exact5-both33-v1",
+  "featureVersion": "house32-v1",
+  "scope": "Existing pattern/search engine preserved; continuous local experience, persistence, bounded snapshots and training quality improvements",
+  "runtimeWithoutExternalAI": true,
+  "defaults": {
+    "continuous": true,
+    "totalGameCap": null,
+    "sessionMinutes": 60,
+    "diskGiB": 8,
+    "gamesPerCycle": 256,
+    "minNewSamples": 1000,
+    "maxTrainingSamples": 100000,
+    "epochsMax": 80,
+    "batchSize": 256,
+    "familyBalance": 1,
+    "earlyStopPatience": 10
+  },
+  "pilot": {
+    "scope": "Short integration/strength trial; 8-game cycles and 10-new-sample threshold differ from continuous defaults",
+    "source": {
+      "games": 128,
+      "samples": 3159,
+      "uniquePositions": 2346
+    },
+    "preservedAfterTrial": {
+      "generatedGames": 143,
+      "completedGames": 143,
+      "samples": 3296,
+      "analyzedPositions": 992,
+      "importedRecords": 31,
+      "families": 66,
+      "uniquePositions": 2466,
+      "trainingUpdates": 250,
+      "existingLessons": 1,
+      "snapshotUniquePositions": 2410
+    },
+    "generation": {
+      "workers": 2,
+      "moveMs": 80,
+      "firstNewGames": 8,
+      "firstBatchMs": 10688
+    },
+    "training": {
+      "device": "NVIDIA GeForce RTX 5070 Laptop GPU",
+      "torchVersion": "2.12.1+cu130",
+      "epochsCompleted": 20,
+      "bestEpoch": 10,
+      "updates": 240,
+      "cudaForwardBackward": true,
+      "elapsedSeconds": 6.792656400008127,
+      "totalChildSeconds": 12.16898499999661,
+      "peakAllocatedBytes": 67673088,
+      "peakReservedBytes": 69206016,
+      "baselineValidationMse": 0.9266355331629923,
+      "selectedValidationMse": 0.7954466310265946,
+      "datasetSha256": "f75fdc8999dd032ecbe13076fdfc1210424c43486333e46913188a62117ee3b4",
+      "modelId": "mlp-2e7d8bc4389cd430f89c9c25367bcc06d2af7622ad6474299c213d94a687467a",
+      "parityMaxError": 4.528564762074083e-8
+    },
+    "arena": {
+      "moveMs": 100,
+      "trial": 3,
+      "complete": true,
+      "passed": false,
+      "stats": {
+        "baseline": {
+          "wins": 26,
+          "draws": 0,
+          "losses": 38,
+          "unfinished": 0,
+          "completedGames": 64,
+          "completedPairs": 32,
+          "independentFamilies": 32,
+          "meanScore": 0.40625,
+          "lowerConfidenceBound": 0.11361544432138809,
+          "alpha": 0.00416666666666667,
+          "minPairs": 32,
+          "passed": false,
+          "method": "one-sided Hoeffding bound on family-averaged paired scores with alpha spending",
+          "scope": "Improvement only against the recorded opponent, openings and move budget; not a universal strength claim"
+        }
+      },
+      "decision": "keep incumbent; candidate not adopted"
+    },
+    "resume": {
+      "stoppedCompletedGames": 36,
+      "stoppedPartialPly": 12,
+      "resumedCompletedGames": 64,
+      "candidateUnchanged": true,
+      "datasetUnchanged": true,
+      "trialUnchanged": true
+    }
+  },
+  "speed": {
+    "ordinary12PlyMedianMs": {
+      "old": 1052.11,
+      "new": 1040.53,
+      "interpretation": "No material whole-game speedup established"
+    },
+    "startupDominated8Games2WorkersMs": {
+      "old": 432.43,
+      "new": 192
+    },
+    "arena12MovePersistence": {
+      "oldBytes": 10007127,
+      "newBytes": 5101,
+      "oldMedianMs": 47.753,
+      "newMedianMs": 13.815,
+      "scope": "Persistence only; excludes search and full game-boundary snapshots"
+    }
+  },
+  "verification": {
+    "fullNpmTestPassed": true,
+    "trainerContracts": 18,
+    "generationContracts": 12,
+    "arenaContracts": 9,
+    "corpusContracts": 14,
+    "snapshotContracts": 9,
+    "snapshotCapAllocations": 20,
+    "continuousContracts": 6,
+    "pipelineContracts": 23,
+    "dashboardBrowserFlows": 12,
+    "finalHtmlModelFlows": 13,
+    "archivedIdentityAndDeploymentGuard": true,
+    "originalStateUnchanged": true,
+    "originalFilesUnchanged": true,
+    "fiveHtmlArtifactsIdentical": true
+  },
+  "userResumeRun": "outputs/learning/runs/run-20261007-continuous",
+  "limitations": [
+    "Playing-strength improvement not established. Candidate scored26/64 at100ms and was rejected.",
+    "Prior29/64 at1000ms is not a comparable head-to-head candidate result.",
+    "More diverse data, target quality, aggregate32-feature representation and train-vs-play search budget can all matter; GPU utilization or game count alone cannot diagnose strength.",
+    "Full CPU-process peak RAM was not measured. No 5000-game or 30-million-position experiment completed.",
+    "Final test data excluded from training/model selection; no final-test strength claim.",
+    "Original corpus, private experiments and checkpoints remain local and are excluded from GitHub."
+  ]
+}

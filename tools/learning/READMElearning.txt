@@ -15,7 +15,16 @@
 
 입력 없이 시작하면 기존 앱 내장 기보, Reader 기보와 reports/*-loss-certificate.json의 기존 국면을 현재 규칙으로 복원하여 시작 자료로 사용합니다. 브라우저 localStorage 기보는 프로그램이 직접 읽을 수 없으므로 오목의 JSON 내보내기 후 가져옵니다. 백 선공, PASS, 흑백/내 돌 역할을 보존합니다. 숫자 위치는 앱의 A1=0 인덱스이며 화면의 좌표 방향을 뒤집어 해석하지 않습니다. 색을 쓰지 않은 텍스트 기보는 --first=1 또는 --first=2가 필요합니다.
 
-대량 목표 예시:
+연속 경험 누적 예시 (총 대국 수를 고정하지 않음):
+  node tools/learning/run.cjs cycle --run=outputs/learning/my-continuous --continuous --workers=2 --minutes=60
+  node tools/learning/run.cjs cycle --run=outputs/learning/my-continuous --resume --minutes=60
+완료된 예전 경험을 이어받아 새 실험으로 시작:
+  node tools/learning/run.cjs cycle --run=outputs/learning/my-continuous --continuous --from-run=outputs/learning/runs/OLD-RUN --workers=2 --minutes=60
+OLD-RUN에는 실제 실험 폴더 이름을 넣습니다. 원본을 변경하지 않고 대국·자료·기존 평가 패턴을 보존합니다. 미채택 모델은 다음 학습 초기값으로만 사용할 수 있습니다. 새 실험에서 실제 대국은 검증된 채택판 또는 기존 엔진을 사용합니다.
+연속 모드는 256대국마다 자료를 점검하며, 마지막 학습 이후 새 표본1,000개가 쌓이면 다시 학습합니다. --games-per-cycle / --min-new-samples로 조정합니다. 과거 자료는 새 자료로 중복 계산하지 않습니다. 기본1회 학습자료는 최대100,000표본이며 --max-training-samples로 조정합니다. 전체 기록은 지우지 않고 최근/과거 자료를 나눠 선택합니다. family 편중 완화, 초기 모델과 비교한 독립 검증 오차, 조기 종료와 제한된 변화 진단을 기록합니다. 검증된 기본판이 아닌 후보도 학습 초기값으로 계속 이어받을 수 있지만 대국 채택은 별도 기준을 통과해야 합니다.
+자동 부팅/무한 백그라운드 실행은 설정하지 않습니다. 이번 실행 시간이 끝나면 같은 실험을 재개합니다. 디스크8GiB 기본한도는 --max-disk-gb로 조정합니다. 자원 한도는 총 대국 목표와 다릅니다. 브라우저만 닫으면 서버/학습은 계속될 수 있으므로 중단 요청을 사용하세요. 강제 종료 후에는 마지막 저장 지점부터 복구합니다.
+
+대국 수를 지정하는 기존 방식 예시:
   node tools/learning/run.cjs cycle --run=outputs/learning/long-run --games=100000 --games-per-cycle=100 --workers=2 --move-ms=80 --validation-ms=1000 --pairs=64 --minutes=60
 같은 명령에 --resume를 더하면 부분 대국/학습/평가를 계속합니다. 60분은 한 번 실행의 예산이며 수십만 판의 실제 완료 시간을 약속하지 않습니다. 먼저 짧은 실행의 게임/초·학습 samples/초·RAM/VRAM 실측을 확인합니다. 생성과 학습은 서로 다른 병목이므로 GPU 사용률만으로 대국 처리량을 판단하지 않습니다. --max-samples/--max-disk-gb로 자료·디스크 예산을 제한할 수 있습니다. 전용 Python 기본 경로는 C:/Users/jiho/Documents/Codex/.omok-runtime/Scripts/python.exe이며 --python으로 지정할 수 있습니다. GPU 미지원은 실패 이유로 표시하고, --device=cpu를 명시한 경우에만 CPU 학습을 선택합니다.
 
@@ -43,4 +52,9 @@
   candidate.json / .training.json / .parity.json : 후보와 GPU/학습/일치 측정
   arena-cycle-N.json / arena.json : 합법 실제 수순, 시간과 독립 비교
   adoption.json / champion.json / models/ : 기존 유지 또는 검증된 채택 근거
+  continuation.json / warm-start.json : 원본 경험 경로·hash·가져온 규모 및 미채택 학습 초기값
+  progress.json / partials/ / arena-partials-cycle-N/ : 작은 진행 상태와 매 수 복구 기록
+  journal.sqlite / continuation.sqlite / arena-exclusions.sqlite : 재생성 가능한 디스크 ID·국면·자료 계열 색인
+  adoptions.jsonl / timing.jsonl / errors.jsonl : 장기 실행의 채택 판단·단계 시간·오류 기록
+원본 JSONL이 휴대 가능한 실제 자료입니다. SQLite 파일은 수행 중 삭제하지 마세요. 코드/자료의 의미가 달라지면 이전 결과의 버전을 바꿔 쓰지 않습니다. 알려진 v5.16 실행은 work/continuous-runtime-baseline.json에 보존한 원래 실행 코드로 재개하거나, 화면에서 새 누적 실험으로 경험을 이어받습니다. 새 버전의 변경 이후에는 저장된 경험을 새 실험으로 연결합니다.
 수읽기 캐시는 게임별로 유지하지만 프로세스 재시작 때 양쪽 모두 새 캐시를 시작합니다. 자료·모델·실험 상태는 계속 남습니다. 실제 채택은 모델만 갱신하고 src/active-model.json 및 기존 HTML 실행본 다섯 곳을 동일하게 교체합니다. GitHub push/외부 배포는 실행하지 않습니다.

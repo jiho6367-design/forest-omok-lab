@@ -20,7 +20,7 @@ function groupFamilies(records,prior=[]){
  for(let a=0;a<records.length;a++)for(let b=a+1;b<records.length;b++)if(stems[a]===stems[b]||records[a].id===records[b].id||prefix(records[a],records[b]))join(a,b);
  const groups=new Map();records.forEach((r,i)=>{const k=find(i),rows=groups.get(k)||[];rows.push(r);groups.set(k,rows);});const aliases={},manifest=[];
  for(const rows of groups.values()){
-  const priorRows=prior.filter(p=>rows.some(r=>r.id===p.id||r.contentId===p.contentId||r.familyId===p.familyId)),anchors=rows.map(r=>familyFor(r.events.slice(0,4),r.first)).sort(),familyId='family-'+hash(anchors[0]).slice(0,24),wasTrain=priorRows.some(r=>r.split==='train'),priorSplit=priorRows[0]?.split,split=wasTrain?'train':priorSplit||rows[0].split,conflicts=[...new Set(priorRows.map(r=>r.split))];
+  const priorRows=prior.filter(p=>rows.some(r=>r.id===p.id||r.contentId===p.contentId||r.familyId===p.familyId)),anchors=rows.map(r=>familyFor(r.events.slice(0,4),r.first)).sort(),familyId='family-'+hash(anchors[0]).slice(0,24),wasTrain=priorRows.some(r=>r.split==='train'),priorSplit=priorRows.some(r=>r.split==='validation')?'validation':priorRows[0]?.split,split=wasTrain?'train':priorSplit||rows[0].split,conflicts=[...new Set(priorRows.map(r=>r.split))];
   for(const r of rows){aliases[r.familyId]=familyId;r.familyId=familyId;r.split=split;}
   manifest.push({familyId,split,records:rows.map(r=>({id:r.id,contentId:r.contentId,source:r.source,turns:r.events.length})),priorSplitConflicts:conflicts.length>1?conflicts:[],finalTestEligible:split==='test'&&!wasTrain,reason:wasTrain?'Linked to an existing training family':'Conservative canonical first-four/prefix/source grouping'});
  }

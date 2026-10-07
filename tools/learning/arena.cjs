@@ -1,8 +1,9 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path');
 const readline=require('node:readline');
+const {DatabaseSync}=require('node:sqlite');
 const {ROOT,hash,read,atomic,baselineFactory,save,stopped,sourceIdentity}=require('./state.cjs');
-const {blank,index,coord,replay,opening,outcome,legalMoves,positionKey,familyFor}=require('./replay.cjs');
+const {blank,index,coord,replay,opening,legalMoves,positionKey,familyFor}=require('./replay.cjs');
 const neural=()=>require('../../src/neural-evaluator.js');
 const current=options=>require('../../src/node-engine.cjs')(options);
 function parity(model,report){
@@ -29,6 +30,11 @@ function pairedStats(games,{minPairs=32,confidence=.95,trial=1}={}){
  return {wins,draws,losses,unfinished,completedGames:wins+draws+losses,completedPairs:[...groups.values()].filter(a=>a.length===2&&new Set(a.map(x=>x.game.candidateFirst)).size===2).length,independentFamilies:n,meanScore:mean,lowerConfidenceBound:lower,alpha,minPairs,passed:n>=minPairs&&lower>.5,method:'one-sided Hoeffding bound on family-averaged paired scores with alpha spending',scope:'Improvement only against the recorded opponent, openings and move budget; not a universal strength claim'};
 }
 const openingFamily=start=>'family-'+hash(familyFor(start.events.slice(0,4),start.firstPlayer)).slice(0,24);
+function familyExclusions(context){
+ const db=new DatabaseSync(path.join(context.dir,'arena-exclusions.sqlite'));db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS families(id TEXT PRIMARY KEY NOT NULL); DELETE FROM families;');
+ const add=db.prepare('INSERT OR IGNORE INTO families(id) VALUES(?)'),has=db.prepare('SELECT 1 FROM families WHERE id=?'),count=db.prepare('SELECT COUNT(*) AS n FROM families');
+ return {add(id){if(typeof id!=='string'||!id)throw Error('Missing trained source family');add.run(id);},has:id=>!!has.get(id),get size(){return Number(count.get().n);},db,close:()=>db.close()};
+}
 function plan(context,model,trained=new Set(),trainedFamilies=new Set()){
  const prior=read(path.join(context.dir,'champion.json')),seen=new Set(),positions=[];let serial=0;
  while(positions.length<context.settings.pairs){let start;
@@ -38,26 +44,62 @@ function plan(context,model,trained=new Set(),trainedFamilies=new Set()){
  const opponents=prior?['baseline','incumbent']:['baseline'],games=[];for(const opponent of opponents)positions.forEach((pos,k)=>{for(const candidateFirst of [true,false])games.push({id:opponent+'-'+k+'-'+(candidateFirst?'first':'second'),pairId:opponent+'-'+k,familyId:pos.familyId,source:pos.source,opponent,candidateFirst,candidateColor:candidateFirst?pos.firstPlayer:3-pos.firstPlayer,firstPlayer:pos.firstPlayer,board:pos.board.slice(),p:pos.p,opening:pos.events,events:[],completed:false,winner:null,elapsedMs:0});});
  return {schemaVersion:1,candidateHash:hash(model),candidateModelId:model.modelId,baselineCommit:context.state.baselineCommit,incumbentHash:prior?hash(prior):null,incumbent:prior,identity:sourceIdentity(),rulesId:context.state.rulesId,lessons:require('./generate.cjs').lessonsFor(context),lessonHash:hash(require('./generate.cjs').lessonsFor(context)),datasetSha256:context.state.dataset?.sha256,settingsHash:hash({validationMs:context.settings.validationMs,pairs:context.settings.pairs,minPairs:context.settings.minPairs,confidence:context.settings.confidence}),moveMs:context.settings.validationMs,pairs:context.settings.pairs,trial:++context.state.trial,games,startedAt:new Date().toISOString()};
 }
+function verifyArenaGame(game){
+ const checked=replay({id:game.id,first:game.firstPlayer,events:[...game.opening,...game.events]},{engine:current({firstPlayer:game.firstPlayer,strategy:false,model:null})});
+ if(checked.p!==game.p||!Array.isArray(game.board)||game.board.length!==225||checked.board.some((stone,i)=>stone!==game.board[i]))throw Error('arena-board-replay-mismatch');
+ if(game.completed&&(!checked.completed||(checked.draw?0:checked.winner)!==game.winner))throw Error('terminal-replay-mismatch');return checked;
+}
+function selectArenaMove(E,game,state){
+ const started=performance.now(),r=E.analyze(game.board,game.p,state.moveMs,state.lessons||[]),elapsed=performance.now()-started;
+ const shape=Number.isInteger(r.i)&&r.i>=0&&r.i<225&&!game.board[r.i]?E.inspect(game.board,r.i,game.p):null;
+ if(!shape?.legal){if(!legalMoves(E,game.board,game.p).length)return {reason:'no-legal-move',r,elapsed};return {reason:'illegal-or-missing-recommendation',invalid:'illegal-or-missing-recommendation',r,elapsed};}
+ return {r,shape,elapsed};
+}
+const arenaProgressTimes=new WeakMap();
+const arenaJournalFile=(context,game)=>path.join(context.dir,'arena-partials-cycle-'+context.state.cycle,hash(game.id).slice(0,24)+'.jsonl');
+const arenaJournalIdentity=state=>hash([state.candidateHash,state.incumbentHash,state.baselineCommit,state.rulesId,state.lessonHash,state.moveMs,state.settingsHash]);
+function appendArenaMove(context,state,game){
+ const file=arenaJournalFile(context,game),row={identity:arenaJournalIdentity(state),gameId:game.id,ply:game.events.length,event:game.events.at(-1),elapsedMs:game.elapsedMs,completed:game.completed,winner:game.winner,reason:game.reason};fs.mkdirSync(path.dirname(file),{recursive:true});const fd=fs.openSync(file,'a');try{fs.writeFileSync(fd,JSON.stringify(row)+'\n');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}
+ context.state.progress={gameId:game.id,ply:game.events.length,completed:state.games.filter(x=>x.completed).length,total:state.games.length};const last=arenaProgressTimes.get(context)||0;if(Date.now()-last>=250){const storage=require('./state.cjs');(storage.saveProgress||save)(context);arenaProgressTimes.set(context,Date.now());}
+}
+function restoreArenaMoves(context,state,game){
+ const file=arenaJournalFile(context,game);if(!fs.existsSync(file))return;const bytes=fs.readFileSync(file),end=bytes.lastIndexOf(10);if(end<bytes.length-1){const fd=fs.openSync(file,'r+');try{fs.ftruncateSync(fd,end+1);fs.fsyncSync(fd);}finally{fs.closeSync(fd);}}
+ const identity=arenaJournalIdentity(state);for(const line of bytes.subarray(0,end+1).toString('utf8').split('\n')){if(!line)continue;const row=JSON.parse(line);if(row.identity!==identity||row.gameId!==game.id)throw Error('Arena journal candidate/game context mismatch');if(!Number.isInteger(row.ply)||row.ply<1)throw Error('Invalid durable arena ply');
+  if(row.ply<=game.events.length){if(hash(game.events[row.ply-1])!==hash(row.event))throw Error('Conflicting durable arena move');continue;}
+  if(row.ply!==game.events.length+1||row.event.type!=='move'||row.event.p!==game.p||!Number.isInteger(row.event.i)||row.event.i<0||row.event.i>=225||game.board[row.event.i])throw Error('Missing or invalid durable arena move');
+  game.board[row.event.i]=game.p;game.p=3-game.p;game.events.push(row.event);Object.assign(game,{elapsedMs:row.elapsedMs,completed:row.completed,winner:row.winner,reason:row.reason});
+ }verifyArenaGame(game);
+}
+async function playArenaGame(context,state,game,{deadline=Infinity,challenger,opponent,onMove=g=>appendArenaMove(context,state,g)}={}){
+ const checked=verifyArenaGame(game);let empty=game.board.filter(x=>!x).length;if(checked.completed){game.completed=true;game.winner=checked.draw?0:checked.winner;game.reason=checked.draw?'full-board':'played-exact-five';}
+ while(!game.completed){if(stopped(context.dir)||Date.now()+state.moveMs>=deadline){game.reason=stopped(context.dir)?'user-stop':'time-limit';break;}if(game.events.length>=225){game.reason='ply-limit';break;}
+  const E=game.p===game.candidateColor?challenger:opponent,choice=selectArenaMove(E,game,state);if(choice.reason){game.reason=choice.reason;if(choice.invalid)game.invalid=choice.invalid;break;}
+  const {r,shape,elapsed}=choice;game.events.push({type:'move',p:game.p,i:r.i,coord:coord(r.i),engine:game.p===game.candidateColor?'candidate':game.opponent,elapsedMs:elapsed,depth:r.depth,nodes:r.nodes,proofStatus:r.proofStatus});game.elapsedMs+=elapsed;game.board[r.i]=game.p;game.p=3-game.p;empty--;
+  if(shape.win.length){game.completed=true;game.winner=3-game.p;game.reason='played-exact-five';}else if(!empty){game.completed=true;game.winner=0;game.reason='full-board';}
+  await onMove(game);await new Promise(resolve=>setImmediate(resolve));
+ }verifyArenaGame(game);return game;
+}
 async function validate(context,{deadline=Infinity,modelPath=path.join(context.dir,'candidate.json')}={}){
  const model=read(modelPath);if(!model)throw Error('No candidate model; run training first');neural().validate(model);const file=path.join(context.dir,'arena-cycle-'+context.state.cycle+'.json');let state=read(file);
  if(state){if(state.candidateHash!==hash(model)||state.moveMs!==context.settings.validationMs||state.pairs!==context.settings.pairs)throw Error('Candidate or evaluation settings changed; use a new cycle/run');}
- else{const trained=new Set(),trainedFamilies=new Set(),data=path.join(context.dir,'datasets/cycle-'+(context.state.cycle||1)+'.jsonl');if(fs.existsSync(data)){const input=readline.createInterface({input:fs.createReadStream(data),crlfDelay:Infinity});for await(const line of input)if(line.trim()){const row=JSON.parse(line);if(row.split==='train'){trainedFamilies.add(row.familyId);if(row.positionKey)trained.add(row.positionKey);}}}const gameFile=path.join(context.dir,'games.jsonl');if(fs.existsSync(gameFile)){const input=readline.createInterface({input:fs.createReadStream(gameFile),crlfDelay:Infinity});for await(const line of input)if(line.trim()){const game=JSON.parse(line);if(game.split==='train'&&game.opening?.length>=4)trainedFamilies.add(openingFamily({events:game.opening,firstPlayer:game.firstPlayer}));}}state=plan(context,model,trained,trainedFamilies);state.trainingPositionCount=trained.size;state.trainingFamilyCount=trainedFamilies.size;state.startPositionsDisjointFromTraining=true;atomic(file,state);save(context);}
+ else{const trained=new Set(),trainedFamilies=familyExclusions(context),data=path.join(context.dir,'datasets/cycle-'+(context.state.cycle||1)+'.jsonl');trainedFamilies.db.exec('BEGIN');try{
+  if(fs.existsSync(data)){const input=readline.createInterface({input:fs.createReadStream(data),crlfDelay:Infinity});for await(const line of input)if(line.trim()){const row=JSON.parse(line);if(row.split==='train'){trainedFamilies.add(row.familyId);if(row.positionKey)trained.add(row.positionKey);}}}
+  const gameFile=path.join(context.dir,'games.jsonl');if(fs.existsSync(gameFile)){const input=readline.createInterface({input:fs.createReadStream(gameFile),crlfDelay:Infinity});for await(const line of input)if(line.trim()){const game=JSON.parse(line);if(game.split==='train'){if(game.familyId)trainedFamilies.add(game.familyId);if(game.opening?.length>=4)trainedFamilies.add(openingFamily({events:game.opening,firstPlayer:game.firstPlayer}));}}}
+  trainedFamilies.db.exec('COMMIT');state=plan(context,model,trained,trainedFamilies);state.trainingPositionCount=trained.size;state.trainingFamilyCount=trainedFamilies.size;state.startPositionsDisjointFromTraining=true;atomic(file,state);save(context);
+ }catch(error){try{trainedFamilies.db.exec('ROLLBACK');}catch{}throw error;}finally{trainedFamilies.close();}}
  const baseline=baselineFactory(context.state.baselineCommit);state.rules=rulesAudit(model,baseline.createEngine);state.parity=parity(model,read(modelPath+'.parity.json'));
+ for(const game of state.games){restoreArenaMoves(context,state,game);try{verifyArenaGame(game);}catch(error){game.invalid=error.message;game.exhausted=true;}}atomic(file,state);
+ for(const game of state.games)if(game.completed||game.exhausted){const partial=arenaJournalFile(context,game);if(fs.existsSync(partial))fs.unlinkSync(partial);}
  for(const game of state.games){if(game.completed||game.exhausted)continue;if(stopped(context.dir)||Date.now()>=deadline)break;
   const challenger=current({firstPlayer:game.firstPlayer,optimized:true,model}),opponent=game.opponent==='baseline'?baseline.createEngine({firstPlayer:game.firstPlayer,optimized:true}):current({firstPlayer:game.firstPlayer,optimized:true,model:state.incumbent});
-  while(!game.completed){const ending=outcome(challenger,game.board);if(ending){Object.assign(game,ending);break;}if(stopped(context.dir)||Date.now()+state.moveMs>=deadline){game.reason=stopped(context.dir)?'user-stop':'time-limit';break;}if(game.events.length>=225){game.reason='ply-limit';break;}
-   const E=game.p===game.candidateColor?challenger:opponent,legal=legalMoves(E,game.board,game.p);if(!legal.length){game.reason='no-legal-move';break;}
-   const started=performance.now(),r=E.analyze(game.board,game.p,state.moveMs,state.lessons||[]),elapsed=performance.now()-started;if(r.i==null||!E.inspect(game.board,r.i,game.p).legal){game.invalid='illegal-or-missing-recommendation';game.reason=game.invalid;break;}
-   const shape=E.inspect(game.board,r.i,game.p);game.events.push({type:'move',p:game.p,i:r.i,coord:coord(r.i),engine:game.p===game.candidateColor?'candidate':game.opponent,elapsedMs:elapsed,depth:r.depth,nodes:r.nodes,proofStatus:r.proofStatus});game.elapsedMs+=elapsed;game.board[r.i]=game.p;game.p=3-game.p;if(shape.win.length){game.completed=true;game.winner=3-game.p;game.reason='played-exact-five';}
-   context.state.progress={gameId:game.id,ply:game.events.length,completed:state.games.filter(x=>x.completed).length,total:state.games.length};atomic(file,state);save(context);await new Promise(resolve=>setImmediate(resolve));
-  }
+  await playArenaGame(context,state,game,{deadline,challenger,opponent});
   // Independently replay all actually played turns; proof flags never adjudicate.
-  try{const checked=replay({id:game.id,first:game.firstPlayer,events:[...game.opening,...game.events]});if(game.completed&&(!checked.completed||(checked.draw?0:checked.winner)!==game.winner))game.invalid='terminal-replay-mismatch';}catch(e){game.invalid=e.message;}
+  try{verifyArenaGame(game);}catch(e){game.invalid=e.message;}
   if(['no-legal-move','ply-limit','illegal-or-missing-recommendation'].includes(game.reason)||game.invalid)game.exhausted=true;
-  atomic(file,state);
+  atomic(file,state);save(context);if(game.completed||game.exhausted){const partial=arenaJournalFile(context,game);if(fs.existsSync(partial))fs.unlinkSync(partial);}
  }
  const stats={};for(const opponent of [...new Set(state.games.map(g=>g.opponent))])stats[opponent]=pairedStats(state.games.filter(g=>g.opponent===opponent),{minPairs:context.settings.minPairs,confidence:context.settings.confidence,trial:state.trial});
  const training=read(modelPath+'.training.json'),trainingCheck=trainingEvidence(model,training,state.datasetSha256),invalid=state.games.filter(g=>g.invalid),complete=state.games.every(g=>g.completed||g.exhausted),passed=complete&&state.games.every(g=>g.completed)&&!invalid.length&&state.rules.passed&&state.parity.passed&&trainingCheck.passed&&Object.values(stats).every(x=>x.passed);
  Object.assign(state,{stats,summary:stats.baseline,complete,passed,invalidGames:invalid.map(g=>({id:g.id,error:g.invalid})),trainingEvidence:training,trainingCheck,finishedAt:complete?new Date().toISOString():null,rejectionReasons:[...(!state.games.every(g=>g.completed)?['evaluation games unfinished']:[]),...(!state.rules.passed?['rule/tactical audit failed']:[]),...(!state.parity.passed?['JS/Python model parity missing or failed']:[]),...trainingCheck.errors,...(invalid.length?['invalid played game']:[]),...Object.entries(stats).filter(([,s])=>!s.passed).map(([name])=>'conservative strength threshold not met against '+name)]});atomic(file,state);atomic(path.join(context.dir,'arena.json'),state);context.state.validation={cycle:context.state.cycle,candidateHash:state.candidateHash,passed,complete,stats,rejectionReasons:state.rejectionReasons};save(context);return state;
 }
-module.exports={parity,trainingEvidence,rulesAudit,pairedStats,openingFamily,plan,validate};
+module.exports={parity,trainingEvidence,rulesAudit,pairedStats,openingFamily,familyExclusions,plan,verifyArenaGame,selectArenaMove,arenaJournalFile,appendArenaMove,restoreArenaMoves,playArenaGame,validate};

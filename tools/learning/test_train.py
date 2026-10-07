@@ -96,12 +96,67 @@ class DataContract(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "checksum mismatch"):
                 self.prepare(rows, temporary)
 
+    def test_family_balancing_preserves_confidence_and_equalizes_family_totals(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            rows = [sample("a1", "many", "train", 1), sample("a2", "many", "train", 2),
+                    sample("at", "many", "train", 3, weight=0.15, kind="teacher"),
+                    sample("b", "one", "train", 4)]
+            manifest = self.prepare(rows, temporary)
+            import array
+            factors = array.array("f")
+            factors.frombytes((Path(manifest["folder"]) / "train.family.f32").read_bytes())
+            self.assertAlmostEqual(sum(factors[i] * rows[i]["weight"] for i in range(3)), factors[3], places=6)
+            self.assertAlmostEqual(factors[2] * 0.15 / factors[0], 0.15, places=7)
+            self.assertEqual(manifest["familyWeights"]["train"]["families"], 2)
+
+    def test_corrupt_family_weights_are_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            rows = [sample("a", "loss", "train", 1)]
+            manifest = self.prepare(rows, temporary)
+            binary = Path(manifest["folder"]) / "train.family.f32"
+            content = bytearray(binary.read_bytes())
+            content[0] ^= 1
+            binary.write_bytes(content)
+            with self.assertRaisesRegex(ValueError, "family weights checksum mismatch"):
+                self.prepare(rows, temporary)
+
     def test_perspective_swap_is_involution(self):
         features = list(range(32))
         other = trainer.opposite_features(features)
         self.assertEqual(trainer.opposite_features(other), features)
         self.assertEqual(other[28], -features[28])
         self.assertEqual(other[29], features[29])
+
+    def test_atomic_save_retries_transient_reader_locks_without_removing_old_file(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "state.json"
+            destination.write_text('{"old":true}', encoding="utf-8")
+            real_replace, calls = trainer.os.replace, 0
+
+            def locked(source, target):
+                nonlocal calls
+                calls += 1
+                if calls <= 2:
+                    self.assertEqual(json.loads(destination.read_text()), {"old": True})
+                    raise PermissionError(trainer.errno.EACCES, "simulated Windows reader lock")
+                return real_replace(source, target)
+
+            with mock.patch.object(trainer.os, "replace", side_effect=locked), mock.patch.object(trainer.time, "sleep"):
+                trainer.atomic_json(destination, {"new": True})
+            self.assertEqual(calls, 3)
+            self.assertEqual(json.loads(destination.read_text()), {"new": True})
+
+    def test_atomic_save_permanent_lock_preserves_old_and_pending_files(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "state.json"
+            destination.write_text('{"old":true}', encoding="utf-8")
+            with mock.patch.object(trainer.os, "replace", side_effect=PermissionError(trainer.errno.EACCES, "persistent lock")), mock.patch.object(trainer.time, "sleep"):
+                with self.assertRaises(PermissionError):
+                    trainer.atomic_json(destination, {"new": True})
+            self.assertEqual(json.loads(destination.read_text()), {"old": True})
+            pending = list(destination.parent.glob("state.json.tmp-*"))
+            self.assertEqual(len(pending), 1)
+            self.assertEqual(json.loads(pending[0].read_text()), {"new": True})
 
 
 class NetworkContract(unittest.TestCase):
@@ -119,9 +174,13 @@ class NetworkContract(unittest.TestCase):
             for i in range(80):
                 split = "train" if i < 64 else "validation"
                 features = [((i * 17 + j * 11) % 101) / 101 for j in range(32)]
-                row = sample(str(i), "synthetic-family-" + str(i), split, 0)
+                row = sample(str(i), split + "-synthetic-family-" + str(i % 5), split, 0,
+                             weight=0.15 if i % 7 == 0 else 1, kind="teacher" if i % 7 == 0 else "terminal")
                 row["features"], row["target"] = features, features[0] - features[12]
                 rows.append(row)
+            final_test = sample("final-test", "unopened-final-family", "test", 0)
+            final_test["features"] = final_test["target"] = "final-test must never be read by trainer"
+            rows.append(final_test)
             data = folder / "synthetic.jsonl"
             data.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
 
@@ -131,7 +190,8 @@ class NetworkContract(unittest.TestCase):
                     checkpoint=str(target / "checkpoint.pt"), device="cpu", epochs=3, batch_size=16,
                     hidden_size=16, learning_rate=0.005, weight_decay=0.0001, scale=600, seed=42,
                     max_seconds=30, checkpoint_every=100, stop_file=str(folder / "stop"),
-                    resume=resume, init_model=None)
+                    resume=resume, init_model=None, family_balance=1.0, early_stop_patience=10,
+                    early_stop_min_delta=0.00001, min_epochs=2, diagnostic_samples=12)
 
             baseline = trainer.train_command(settings("baseline"))
             original_step = self.torch.optim.AdamW.step
@@ -158,6 +218,10 @@ class NetworkContract(unittest.TestCase):
             self.assertEqual(a["modelId"], b["modelId"])
             self.assertLessEqual(resumed["parity"]["maxAbsoluteError"], 1e-5)
             self.assertFalse(resumed["device"]["trainedOnCuda"])
+            self.assertEqual(baseline["diagnostics"], resumed["diagnostics"])
+            self.assertEqual(baseline["training"]["bestEpoch"], resumed["training"]["bestEpoch"])
+            self.assertEqual(resumed["diagnostics"]["train"]["samples"], 12)
+            self.assertEqual(resumed["training"]["excludedTestSamples"], 1)
 
     def test_warm_start_adjusts_changed_normalization_without_changing_function(self):
         torch = self.torch
@@ -185,6 +249,97 @@ class NetworkContract(unittest.TestCase):
             a = trainer.effective_prediction(torch, model, features, mean, scale)
             b = trainer.effective_prediction(torch, model, other, mean, scale)
         self.assertTrue(torch.allclose(a, -b, atol=1e-7, rtol=0))
+
+    def test_warm_start_expansion_preserves_function_with_changed_normalization(self):
+        torch = self.torch
+        torch.manual_seed(79)
+        original = trainer.network(torch, 16)
+        old = {"normalization": {"mean": [0.0] * 32, "scale": [1.0] * 32}}
+        exported = trainer.export_model(original, old, 16, 600, {})
+        changed = {"mean": [j / 10 for j in range(32)], "scale": [0.5 + j / 40 for j in range(32)]}
+        expanded = trainer.network(torch, 32)
+        trainer.load_export(torch, expanded, exported, changed)
+        features = torch.randn(20, 32)
+        with torch.no_grad():
+            a = original(features)
+            b = expanded((features - torch.tensor(changed["mean"])) / torch.tensor(changed["scale"]))
+        self.assertLess((a - b).abs().max().item(), 1e-6)
+        self.assertEqual(expanded[2].weight[:, 16:].abs().sum().item(), 0)
+        with self.assertRaisesRegex(ValueError, "cannot shrink"):
+            trainer.load_export(torch, trainer.network(torch, 8), exported)
+
+    def test_validation_reports_balanced_and_original_confidence_objectives(self):
+        torch = self.torch
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            rows = [sample("train", "train", "train", 0),
+                    sample("v1", "many", "validation", 0, target=1),
+                    sample("v2", "many", "validation", 0, target=1),
+                    sample("v3", "one", "validation", 0, target=0)]
+            data = folder / "synthetic.jsonl"
+            data.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+            stop = trainer.StopController(20, None)
+            manifest = trainer.prepare_data(data, folder / "cache", stop)
+            mapped = trainer.mapped_rows(torch, manifest, "validation")
+            families = trainer.mapped_family_weights(torch, manifest, "validation")
+            model = trainer.network(torch, 16)
+            mean, scale = (torch.tensor(manifest["normalization"][key]) for key in ("mean", "scale"))
+            metrics = trainer.validate(torch, model, mapped, mean, scale, 16, "cpu", stop, families, 1.0)
+            # Identical zero features equal their perspective swap, forcing
+            # exactly zero antisymmetric value independently of model weights.
+            self.assertAlmostEqual(metrics["all"], 0.5)
+            self.assertAlmostEqual(metrics["unbalancedAll"], 2 / 3)
+
+    def test_warm_start_validation_baseline_is_kept_and_patience_resumes(self):
+        torch = self.torch
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            rows = [sample(str(i), "family-" + str(i), "train" if i < 12 else "validation", i / 10) for i in range(16)]
+            data = folder / "synthetic.jsonl"
+            data.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+            torch.manual_seed(26)
+            original = trainer.network(torch, 16)
+            initial = trainer.export_model(original, {"normalization": {"mean": [0.0] * 32, "scale": [1.0] * 32}}, 16, 400, {})
+            initial_file = folder / "initial.json"
+            initial_file.write_text(json.dumps(initial), encoding="utf-8")
+
+            def settings(name, resume=False):
+                target = folder / name
+                return SimpleNamespace(data=str(data), output=str(target / "model.json"),
+                    checkpoint=str(target / "checkpoint.pt"), device="cpu", epochs=8, batch_size=12,
+                    hidden_size=16, learning_rate=0.01, weight_decay=0.0001, scale=600, seed=42,
+                    max_seconds=30, checkpoint_every=100, stop_file=str(folder / "stop"),
+                    resume=resume, init_model=str(initial_file), family_balance=1.0,
+                    early_stop_patience=2, early_stop_min_delta=0.001, min_epochs=3, diagnostic_samples=4)
+
+            baseline_metrics = {"all": 0.1, "terminal": 0.1, "teacher": None, "unbalancedAll": 0.1}
+            worse_metrics = {**baseline_metrics, "all": 0.2}
+            with mock.patch.object(trainer, "validate", side_effect=[baseline_metrics] + [worse_metrics] * 3):
+                uninterrupted = trainer.train_command(settings("baseline"))
+            self.assertEqual(uninterrupted["status"], "completed")
+            self.assertEqual(uninterrupted["stopReason"], "validation-early-stop")
+            self.assertEqual(uninterrupted["training"]["epochsCompleted"], 3)
+            self.assertTrue(uninterrupted["training"]["selectedBaseline"])
+            self.assertEqual(uninterrupted["training"]["initEvaluationScale"], 400)
+            self.assertEqual(uninterrupted["diagnostics"]["validation"]["maximumAbsoluteScoreChange"], 0)
+            original_step = torch.optim.AdamW.step
+
+            def stop_after_update(optimizer, *args, **kwargs):
+                value = original_step(optimizer, *args, **kwargs)
+                (folder / "stop").write_text("test interruption", encoding="utf-8")
+                return value
+
+            with mock.patch.object(trainer, "validate", return_value=baseline_metrics), mock.patch.object(torch.optim.AdamW, "step", stop_after_update):
+                interrupted = trainer.train_command(settings("resumed"))
+            self.assertEqual(interrupted["status"], "interrupted")
+            (folder / "stop").unlink()
+            with mock.patch.object(trainer, "validate", return_value=worse_metrics):
+                resumed = trainer.train_command(settings("resumed", resume=True))
+            self.assertEqual(resumed["training"], uninterrupted["training"])
+            self.assertEqual(resumed["modelId"], uninterrupted["modelId"])
+            exported = json.loads(Path(resumed["model"]).read_text(encoding="utf-8"))
+            for features in ([0.0] * 32, [i / 5 for i in range(32)]):
+                self.assertAlmostEqual(trainer.json_inference(initial, features), trainer.json_inference(exported, features), places=6)
 
 
 if __name__ == "__main__":

@@ -8,11 +8,12 @@ const REPO=path.resolve(__dirname,'../..');
 const MAX_UPLOAD=2*1024*1024;
 const MAX_LOG=256*1024;
 const PRESETS={
+  continuous:{continuous:true,minutes:60,games:256,gamesPerCycle:256,minNewSamples:1000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:80},
   check:{minutes:3,games:8,pairs:4,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:3},
   standard:{minutes:60,games:128,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:10},
   extended:{minutes:180,games:1024,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:20}
 };
-const LIMITS={minutes:[1,1440],games:[1,1000000],pairs:[1,2048],minPairs:[32,2048],moveMs:[20,10000],analysisMs:[50,30000],validationMs:[50,30000],workers:[1,16],epochs:[1,1000]};
+const LIMITS={minutes:[1,1440],games:[1,1000000],gamesPerCycle:[1,10000],minNewSamples:[1,1000000],maxTrainingSamples:[100,1000000],pairs:[1,2048],minPairs:[32,2048],moveMs:[30,10000],analysisMs:[50,30000],validationMs:[50,30000],workers:[1,8],epochs:[1,1000]};
 function inside(root,target){const relative=path.relative(root,target);return relative===''||(!relative.startsWith('..'+path.sep)&&relative!=='..'&&!path.isAbsolute(relative));}
 function fail(status,message){const error=new Error(message);error.status=status;return error;}
 function configuration(body){
@@ -20,6 +21,8 @@ function configuration(body){
   const config={...PRESETS[preset]};
   if(body.config!=null){if(typeof body.config!=='object'||Array.isArray(body.config))throw fail(400,'설정은 객체여야 합니다.');
     for(const [key,value] of Object.entries(body.config)){
+      if(key==='continuous'){if(typeof value!=='boolean')throw fail(400,'continuous는 true 또는 false여야 합니다.');config[key]=value;continue;}
+      if(key==='recordBranchFraction'){if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>1)throw fail(400,'기존 기보 변형 비율은 0~1이어야 합니다.');config[key]=value;continue;}
       if(!Object.hasOwn(LIMITS,key))throw fail(400,'지원하지 않는 설정: '+key);
       const [min,max]=LIMITS[key];if(!Number.isInteger(value)||value<min||value>max)throw fail(400,`${key}는 ${min}~${max}의 정수여야 합니다.`);config[key]=value;
     }
@@ -48,23 +51,35 @@ function createDashboard(options={}){
   function readJSON(run,name){try{const file=checkedFile(run,name);if(!file)return null;if(fs.statSync(file).size>MAX_UPLOAD) return {unavailable:'파일이 커서 요약을 읽지 못했습니다.'};return JSON.parse(fs.readFileSync(file,'utf8'));}catch(error){if(error.status)throw error;return null;}}
   function runnerAlive(run){const lock=readJSON(run,'runner.lock');if(!Number.isSafeInteger(lock?.pid)||lock.pid<1)return false;try{process.kill(lock.pid,0);return true;}catch{return false;}}
   function describe(id,withDetails=true){
-    const run=resolveRun(id),state=readJSON(run,'state.json'),summary={id,state,active:active?.id===id||runnerAlive(run),stopRequested:!!checkedFile(run,'stop.flag')};
-    if(withDetails){const model=readJSON(run,'candidate.json'),champion=readJSON(run,'champion.json');summary.settings=readJSON(run,'settings.json');summary.training=readJSON(run,'candidate.json.training.json');summary.parity=readJSON(run,'candidate.json.parity.json');summary.arena=readJSON(run,'arena.json');summary.adoption=readJSON(run,'adoption.json');summary.candidate=model?{modelId:model.modelId,kind:model.kind,training:model.training}:null;summary.champion=champion?{modelId:champion.modelId,kind:champion.kind,training:champion.training}:null;
+    const run=resolveRun(id),fullState=readJSON(run,'state.json'),state=fullState?.unavailable?readJSON(run,'progress.json')||fullState:fullState,summary={id,state,active:active?.id===id||runnerAlive(run),stopRequested:!!checkedFile(run,'stop.flag')};
+    summary.settings=readJSON(run,'settings.json');
+    if(withDetails){const model=readJSON(run,'candidate.json'),champion=readJSON(run,'champion.json');summary.continuation=readJSON(run,'continuation.json');summary.training=readJSON(run,'candidate.json.training.json');summary.parity=readJSON(run,'candidate.json.parity.json');summary.arena=readJSON(run,'arena.json');summary.adoption=readJSON(run,'adoption.json');summary.candidate=model?{modelId:model.modelId,kind:model.kind,training:model.training}:null;summary.champion=champion?{modelId:champion.modelId,kind:champion.kind,training:champion.training}:null;
       const logFile=checkedFile(run,'dashboard.log');if(logFile){const size=fs.statSync(logFile).size,fd=fs.openSync(logFile,'r');try{const buffer=Buffer.alloc(Math.min(size,MAX_LOG));fs.readSync(fd,buffer,0,buffer.length,Math.max(0,size-buffer.length));summary.log=buffer.toString('utf8');}finally{fs.closeSync(fd);}}
     }return summary;
   }
   function listRuns(){return fs.readdirSync(realRoot,{withFileTypes:true}).filter(entry=>entry.isDirectory()&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/.test(entry.name)).map(entry=>{try{const run=resolveRun(entry.name);return checkedFile(run,'state.json')||checkedFile(run,'dashboard.json')?describe(entry.name,false):null;}catch{return null;}}).filter(Boolean).sort((a,b)=>Number(b.active)-Number(a.active)||b.id.localeCompare(a.id)).slice(0,100);}
   function activeId(){return active?.id||listRuns().find(run=>run.active)?.id||null;}
   function log(run,text){const target=path.join(run,'dashboard.log');if(fs.existsSync(target))checkedFile(run,'dashboard.log');fs.appendFileSync(target,String(text));}
-  function launch(id,config,resume){
+  function accumulationSource(id){
+    const source=resolveRun(id);if(runnerAlive(source)||active?.id===id)throw fail(409,'진행 중인 실험은 먼저 중단한 후 이어받아 주세요.');
+    const stateFile=checkedFile(source,'state.json'),settingsFile=checkedFile(source,'settings.json');if(!stateFile||!settingsFile)throw fail(400,'이어받을 실험의 상태와 설정이 없습니다.');
+    let state;try{state=JSON.parse(fs.readFileSync(stateFile,'utf8'));JSON.parse(fs.readFileSync(settingsFile,'utf8'));}catch{throw fail(400,'이어받을 실험의 저장 상태를 읽을 수 없습니다.');}
+    if(state.schemaVersion!==1||state.rulesId!=='15x15-exact5-both33-v1'||!state.identity?.sourceHash||!state.identity?.harnessHash)throw fail(400,'이어받을 실험의 규칙·버전 기록이 올바르지 않습니다.');
+    if(!['complete','completed','stopped','failed','created'].includes(state.status))throw fail(409,'실험이 저장 후 중단된 상태인지 확인해 주세요.');
+    for(const name of ['records.json','games.jsonl','dataset.jsonl','family-groups.json','lessons.json','candidate.json','champion.json','continuation.json'])checkedFile(source,name);
+    return source;
+  }
+  function launch(id,config,resume,fromRun=null){
     if(activeId())throw fail(409,'진행 중인 실험을 중단한 후 시작해 주세요.');
-    const run=resolveRun(id),args=[runner,'cycle','--run='+run,'--python='+python,'--device=cuda'];
+    const run=resolveRun(id);let selected={runner,argsPrefix:[],cwd:repo};if(resume&&!options.runner){try{selected=require('./archive.cjs').selectResumeRunner(run,{repo});}catch(error){throw fail(400,error.message);}}
+    const args=[selected.runner,...(selected.argsPrefix||[]),'cycle','--run='+run,'--python='+python,'--device=cuda'];
     if(resume)args.push('--resume');else{
       if(checkedFile(run,'uploaded-records.json'))args.push('--input='+path.join(run,'uploaded-records.json'));
-      const keys={minutes:'minutes',games:'games',pairs:'pairs',minPairs:'min-pairs',moveMs:'move-ms',analysisMs:'analysis-ms',validationMs:'validation-ms',workers:'workers',epochs:'epochs'};
-      for(const [key,flag] of Object.entries(keys))args.push('--'+flag+'='+config[key]);
+      const keys={minutes:'minutes',games:'games',gamesPerCycle:'games-per-cycle',minNewSamples:'min-new-samples',recordBranchFraction:'record-branch-fraction',maxTrainingSamples:'max-training-samples',pairs:'pairs',minPairs:'min-pairs',moveMs:'move-ms',analysisMs:'analysis-ms',validationMs:'validation-ms',workers:'workers',epochs:'epochs'};
+      for(const [key,flag] of Object.entries(keys))if(config[key]!=null)args.push('--'+flag+'='+config[key]);
+      if(config.continuous)args.push('--continuous');if(fromRun)args.push('--from-run='+fromRun);
     }
-    const child=spawnChild(process.execPath,args,{cwd:repo,stdio:['ignore','pipe','pipe'],windowsHide:true,shell:false});
+    const child=spawnChild(process.execPath,args,{cwd:selected.cwd||repo,stdio:['ignore','pipe','pipe'],windowsHide:true,shell:false});
     active={id,child,startedAt:new Date().toISOString()};log(run,JSON.stringify({dashboard:'start',resume,at:active.startedAt})+'\n');
     child.stdout?.on('data',data=>log(run,data));child.stderr?.on('data',data=>log(run,data));
     child.once('error',error=>{log(run,JSON.stringify({dashboard:'launch-error',message:error.message})+'\n');if(active?.child===child)active=null;});
@@ -85,15 +100,15 @@ function createDashboard(options={}){
         const data=await body(req);
         if(url.pathname==='/api/start'){
           if(activeId())throw fail(409,'진행 중인 실험을 중단한 후 시작해 주세요.');
-          const config=configuration(data);let records=null;
+          const config=configuration(data);const source=data.fromRun==null||data.fromRun===''?null:accumulationSource(data.fromRun);let records=null;
           if(typeof data.record==='string'){if(Buffer.byteLength(data.record)>MAX_UPLOAD)throw fail(413,'기보 파일이 너무 큽니다.');try{records=JSON.parse(data.record);}catch{throw fail(400,'기보 JSON을 읽을 수 없습니다.');}}
           else if(data.record&&typeof data.record==='object')records=data.record;
           else if(data.record!=null)throw fail(400,'기보는 JSON 객체 또는 배열이어야 합니다.');
           if(records!==null&&(!records||typeof records!=='object'))throw fail(400,'기보는 JSON 객체 또는 배열이어야 합니다.');
           const id='run-'+new Date().toISOString().replace(/[-:.TZ]/g,'')+'-'+crypto.randomBytes(3).toString('hex');
           const run=path.join(realRoot,id);fs.mkdirSync(run);if(records!==null)fs.writeFileSync(path.join(run,'uploaded-records.json'),JSON.stringify(records,null,2)+'\n');
-          fs.writeFileSync(path.join(run,'dashboard.json'),JSON.stringify({createdAt:new Date().toISOString(),preset:data.preset||'check',config,recordName:records===null?'기존 내장 기보':path.basename(String(data.recordName||'records.json'))},null,2)+'\n');
-          return respond(201,launch(id,config,false));
+          fs.writeFileSync(path.join(run,'dashboard.json'),JSON.stringify({createdAt:new Date().toISOString(),preset:data.preset||'check',config,fromRun:source?path.basename(source):null,recordName:records===null?'기존 내장 기보':path.basename(String(data.recordName||'records.json'))},null,2)+'\n');
+          return respond(201,launch(id,config,false,source));
         }
         if(url.pathname==='/api/stop')return respond(200,stop(data.id));
         if(url.pathname==='/api/resume')return respond(200,launch(data.id,null,true));
@@ -115,7 +130,7 @@ function createDashboard(options={}){
       throw fail(404,'요청을 찾을 수 없습니다.');
     }catch(error){respond(error.status||500,{error:error.status?error.message:'요청 처리 중 오류가 발생했습니다.'});}
   });
-  return {server,runsRoot:realRoot,listen:async(requestedPort=8766)=>{await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(requestedPort,'127.0.0.1',()=>{server.removeListener('error',reject);port=server.address().port;resolve();});});return {port,url:'http://127.0.0.1:'+port};},close:async()=>{for(const run of listRuns())if(run.active)stop(run.id);await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));},getActive:()=>active?{id:active.id,startedAt:active.startedAt}:null};
+  return {server,runsRoot:realRoot,listen:async(requestedPort=8766)=>{await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(requestedPort,'127.0.0.1',()=>{server.removeListener('error',reject);port=server.address().port;resolve();});});return {port,url:'http://127.0.0.1:'+port};},close:async({stopRuns=true}={})=>{if(stopRuns)for(const run of listRuns())if(run.active)stop(run.id);await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));},getActive:()=>active?{id:active.id,startedAt:active.startedAt}:null};
 }
 if(require.main===module){
   const opts={};let requestedPort=8766,openBrowser=false;for(const arg of process.argv.slice(2)){if(arg==='--open'){openBrowser=true;continue;}const match=/^--(port|runs-root|python)=(.+)$/.exec(arg);if(!match)throw Error('지원하지 않는 옵션: '+arg);if(match[1]==='port'){requestedPort=Number(match[2]);if(!Number.isInteger(requestedPort)||requestedPort<1||requestedPort>65535)throw Error('port는 1~65535 정수여야 합니다.');}else if(match[1]==='runs-root')opts.runsRoot=match[2];else opts.python=match[2];}

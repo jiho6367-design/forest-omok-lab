@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import array
+import errno
 import hashlib
 import json
 import math
@@ -44,7 +45,20 @@ def atomic_json(path: Path, value) -> None:
         dest.write("\n")
         dest.flush()
         os.fsync(dest.fileno())
-    os.replace(temporary, path)
+    replace_saved_file(temporary, path)
+
+
+def replace_saved_file(temporary: Path, destination: Path) -> None:
+    """Keep the prior durable file when Windows briefly locks a reader."""
+    for attempt in range(12):
+        try:
+            os.replace(temporary, destination)
+            return
+        except OSError as error:
+            transient = error.errno in (errno.EACCES, errno.EPERM, errno.EBUSY) or getattr(error, "winerror", None) in (5, 32, 33)
+            if not transient or attempt == 11:
+                raise
+            time.sleep(min(0.01 * (attempt + 1), 0.1))
 
 
 def emit(value) -> None:
@@ -117,7 +131,7 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
     data_hash = digest_file(path)
     # Keep nested Windows experiment paths below common path limits. The full
     # hash remains checked in both the partial and completed manifests.
-    folder = cache_dir / (data_hash[:24] + "-p2")
+    folder = cache_dir / (data_hash[:24] + "-p3")
     manifest_path = folder / "manifest.json"
     if manifest_path.exists():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -129,6 +143,9 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
                 raise ValueError("Prepared data size mismatch: " + split)
             if digest_file(binary) != manifest["binaryHashes"][split]:
                 raise ValueError("Prepared data checksum mismatch: " + split)
+            family = folder / (split + ".family.f32")
+            if family.stat().st_size != manifest["counts"][split] * 4 or digest_file(family) != manifest["binaryHashes"][split + "Family"]:
+                raise ValueError("Prepared family weights checksum mismatch: " + split)
         manifest["folder"] = str(folder)
         return manifest
     folder.mkdir(parents=True, exist_ok=True)
@@ -139,6 +156,8 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
     database.execute("CREATE TABLE IF NOT EXISTS families (id TEXT PRIMARY KEY, split TEXT NOT NULL)")
     database.execute("CREATE TABLE IF NOT EXISTS positions (id TEXT PRIMARY KEY, split TEXT NOT NULL)")
     database.execute("CREATE TABLE IF NOT EXISTS metadata (id INTEGER PRIMARY KEY, value TEXT NOT NULL)")
+    database.execute("CREATE TABLE IF NOT EXISTS family_rows (split TEXT NOT NULL, row_index INTEGER NOT NULL, family TEXT NOT NULL, weight REAL NOT NULL, PRIMARY KEY(split,row_index))")
+    database.execute("CREATE TABLE IF NOT EXISTS family_totals (family TEXT PRIMARY KEY, split TEXT NOT NULL, weight REAL NOT NULL)")
     stored = database.execute("SELECT value FROM metadata WHERE id=1").fetchone()
     state = json.loads(stored[0]) if stored else {
         "datasetHash": data_hash, "offset": 0, "lines": 0, "counts": {"train": 0, "validation": 0, "test": 0},
@@ -248,6 +267,8 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
                         raise ValueError("labelType must be terminal or teacher")
                     kinds[split][kind] += 1
                     buffers[split].extend(features + [target, weight, float(kind == "teacher")])
+                    database.execute("INSERT INTO family_rows VALUES (?,?,?,?)", (split, counts[split] - 1, family, weight))
+                    database.execute("INSERT INTO family_totals VALUES (?,?,?) ON CONFLICT(family) DO UPDATE SET weight=weight+excluded.weight", (family, split, weight))
                     if split == "train":
                         for j, value in enumerate(features):
                             sums[j] += value
@@ -258,6 +279,34 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
                     raise ValueError(f"Invalid data at line {state['lines']}: {error}") from error
         commit_progress()
         family_counts = dict(database.execute("SELECT split, COUNT(*) FROM families GROUP BY split"))
+        family_summary = {}
+        for split in files:
+            totals = database.execute("SELECT COUNT(*), SUM(weight), MIN(weight), MAX(weight) FROM family_totals WHERE split=?", (split,)).fetchone()
+            count, total, minimum, maximum = totals
+            average = total / count if count else 1.0
+            family_summary[split] = {"families": count, "totalConfidenceWeight": total or 0.0,
+                                     "minimumFamilyWeight": minimum, "maximumFamilyWeight": maximum}
+            # One mmap float per row keeps family balancing independent of GPU
+            # memory size. Confidence ratios within a family are unchanged.
+            temporary = folder / (split + ".family.f32.tmp")
+            with temporary.open("wb") as dest:
+                query = database.execute("SELECT r.row_index,t.weight FROM family_rows r JOIN family_totals t ON t.family=r.family WHERE r.split=? ORDER BY r.row_index", (split,))
+                written = 0
+                while True:
+                    if stop.reason():
+                        raise InterruptedError("Family preparation stopped: " + str(stop.reason()))
+                    chunk = query.fetchmany(4096)
+                    if not chunk:
+                        break
+                    if any(index != written + offset for offset, (index, _) in enumerate(chunk)):
+                        raise ValueError("Prepared family row order differs")
+                    array.array("f", [average / weight for _, weight in chunk]).tofile(dest)
+                    written += len(chunk)
+                if written != counts[split]:
+                    raise ValueError("Prepared family row count differs")
+                dest.flush()
+                os.fsync(dest.fileno())
+            replace_saved_file(temporary, folder / (split + ".family.f32"))
     finally:
         database.close()
         for dest in files.values():
@@ -275,12 +324,14 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
     for split in files:
         final = folder / (split + ".f32")
         if current_paths[split] != final:
-            os.replace(current_paths[split], final)
+            replace_saved_file(current_paths[split], final)
         hashes[split] = digest_file(final)
-    manifest = {"schemaVersion": SCHEMA_VERSION, "preparationVersion": 2, "datasetHash": data_hash, "rulesId": RULES_ID,
+        hashes[split + "Family"] = digest_file(folder / (split + ".family.f32"))
+    manifest = {"schemaVersion": SCHEMA_VERSION, "preparationVersion": 3, "datasetHash": data_hash, "rulesId": RULES_ID,
                 "featureVersion": FEATURE_VERSION, "inputSize": INPUT_SIZE, "rowSize": ROW_SIZE,
                 "counts": counts, "labelTypes": kinds, "duplicatesIgnored": state["duplicatesIgnored"],
                 "families": {split: family_counts.get(split, 0) for split in counts},
+                "familyWeights": family_summary,
                 "normalization": {"mean": mean, "scale": scale}, "binaryHashes": hashes}
     atomic_json(manifest_path, manifest)
     manifest["folder"] = str(folder)
@@ -293,6 +344,14 @@ def mapped_rows(torch, manifest: dict, split: str):
         return torch.empty((0, ROW_SIZE), dtype=torch.float32)
     return torch.from_file(str(Path(manifest["folder"]) / (split + ".f32")), shared=False,
                            size=count * ROW_SIZE, dtype=torch.float32).view(count, ROW_SIZE)
+
+
+def mapped_family_weights(torch, manifest: dict, split: str):
+    count = manifest["counts"][split]
+    if not count:
+        return torch.empty(0, dtype=torch.float32)
+    return torch.from_file(str(Path(manifest["folder"]) / (split + ".family.f32")), shared=False,
+                           size=count, dtype=torch.float32)
 
 
 def read_model(path: Path) -> dict:
@@ -359,12 +418,18 @@ def effective_prediction(torch, model, features, mean, scale):
 
 
 def load_export(torch, model, exported: dict, normalization: dict | None = None) -> None:
-    if model[0].out_features != exported["hiddenSize"]:
-        raise ValueError("Warm-start hidden size differs")
+    previous_hidden = exported["hiddenSize"]
+    if model[0].out_features < previous_hidden:
+        raise ValueError("Warm-start cannot shrink hidden size; explicitly start a new candidate")
     with torch.no_grad():
-        for layer, data in zip((model[0], model[2]), exported["layers"]):
-            layer.weight.copy_(torch.tensor(data["weights"], device=layer.weight.device))
-            layer.bias.copy_(torch.tensor(data["bias"], device=layer.bias.device))
+        first, output = exported["layers"]
+        model[0].weight[:previous_hidden].copy_(torch.tensor(first["weights"], device=model[0].weight.device))
+        model[0].bias[:previous_hidden].copy_(torch.tensor(first["bias"], device=model[0].bias.device))
+        # Added units retain initialized feature weights but contribute zero
+        # until training learns them. Expansion preserves the old function.
+        model[2].weight.zero_()
+        model[2].weight[:, :previous_hidden].copy_(torch.tensor(output["weights"], device=model[2].weight.device))
+        model[2].bias.copy_(torch.tensor(output["bias"], device=model[2].bias.device))
         if normalization:
             # Keep the prior function unchanged when the new train-only
             # normalization changes. Subsequent updates learn new experience.
@@ -412,18 +477,24 @@ def parity_report(torch, exported: dict, raw_features: list[list[float]]) -> dic
             "scope": "JSON double inference vs PyTorch CPU; JS engine must check these same raw-feature fixtures separately"}
 
 
-def validate(torch, model, rows, mean, scale, batch: int, device: str, stop: StopController):
+def validate(torch, model, rows, mean, scale, batch: int, device: str, stop: StopController,
+             family_weights=None, family_balance: float = 0.0):
     if not len(rows):
         return None
-    totals = {"all": [0.0, 0.0], "terminal": [0.0, 0.0], "teacher": [0.0, 0.0]}
+    totals = {"all": [0.0, 0.0], "terminal": [0.0, 0.0], "teacher": [0.0, 0.0], "unbalancedAll": [0.0, 0.0]}
     model.eval()
     with torch.no_grad():
         for start in range(0, len(rows), batch):
             if stop.reason():
+                model.train()
                 return None  # An incomplete validation is not a selection result.
             raw = rows[start:start + batch].to(device)
             predicted = effective_prediction(torch, model, raw[:, :INPUT_SIZE], mean, scale)
             squared, weights = (predicted - raw[:, INPUT_SIZE]) ** 2, raw[:, INPUT_SIZE + 1]
+            totals["unbalancedAll"][0] += (squared * weights).sum().item()
+            totals["unbalancedAll"][1] += weights.sum().item()
+            if family_balance:
+                weights = weights * family_weights[start:start + batch].to(device).pow(family_balance)
             totals["all"][0] += (squared * weights).sum().item()
             totals["all"][1] += weights.sum().item()
             for name, kind in (("terminal", 0), ("teacher", 1)):
@@ -432,6 +503,45 @@ def validate(torch, model, rows, mean, scale, batch: int, device: str, stop: Sto
                 totals[name][1] += weights[mask].sum().item()
     model.train()
     return {name: total / weight if weight else None for name, (total, weight) in totals.items()}
+
+
+def diagnostic_indices(torch, count: int, maximum: int):
+    used = min(count, maximum)
+    if not used:
+        return torch.empty(0, dtype=torch.int64)
+    return torch.tensor([i * (count - 1) // max(1, used - 1) for i in range(used)], dtype=torch.int64)
+
+
+def diagnostic_values(torch, model, rows, indices, mean, scale, device: str):
+    if not len(indices):
+        return []
+    with torch.no_grad():
+        raw = rows.index_select(0, indices).to(device)
+        return effective_prediction(torch, model, raw[:, :INPUT_SIZE], mean, scale).cpu().tolist()
+
+
+def diagnostic_report(torch, model, rows, before: dict, mean, scale, device: str, evaluation_scale: float):
+    indices = torch.tensor(before["indices"], dtype=torch.int64)
+    after = diagnostic_values(torch, model, rows, indices, mean, scale, device)
+    if not after:
+        return {"samples": 0}
+    values = torch.tensor(after, dtype=torch.float64)
+    original = torch.tensor(before["values"], dtype=torch.float64)
+    delta = (values - original).abs()
+    raw = rows.index_select(0, indices)
+    terminal = raw[:, INPUT_SIZE + 2] == 0
+    result = {"samples": len(after), "meanValue": values.mean().item(), "stdValue": values.std(unbiased=False).item(),
+              "minimumValue": values.min().item(), "maximumValue": values.max().item(),
+              "meanAbsoluteScore": values.abs().mean().item() * evaluation_scale,
+              "meanAbsoluteScoreChange": delta.mean().item() * evaluation_scale,
+              "maximumAbsoluteScoreChange": delta.max().item() * evaluation_scale,
+              "saturatedFraction": (values.abs() >= 0.98).double().mean().item(),
+              "terminalSamples": int(terminal.sum().item())}
+    if terminal.any():
+        outcomes = raw[terminal, INPUT_SIZE].double()
+        nonzero = outcomes != 0
+        result["terminalSignAccuracy"] = (values[terminal][nonzero].sign() == outcomes[nonzero].sign()).double().mean().item() if nonzero.any() else None
+    return result
 
 
 def check_command(args) -> dict:
@@ -476,6 +586,11 @@ def check_command(args) -> dict:
 
 
 def train_command(args) -> dict:
+    family_balance = getattr(args, "family_balance", 0.0)
+    early_stop_patience = getattr(args, "early_stop_patience", 0)
+    early_stop_min_delta = getattr(args, "early_stop_min_delta", 0.0)
+    min_epochs = getattr(args, "min_epochs", 1)
+    diagnostic_samples = getattr(args, "diagnostic_samples", 512)
     stop = StopController(args.max_seconds, Path(args.stop_file) if args.stop_file else None)
     torch = torch_runtime()
     device = device_info(torch, args.device)
@@ -489,22 +604,29 @@ def train_command(args) -> dict:
     output.parent.mkdir(parents=True, exist_ok=True)
     manifest = prepare_data(Path(args.data), output.parent / ".train-cache", stop)
     train_rows, validation_rows = (mapped_rows(torch, manifest, split) for split in ("train", "validation"))
+    train_family, validation_family = (mapped_family_weights(torch, manifest, split) for split in ("train", "validation"))
     model = network(torch, args.hidden_size).to(args.device)
-    warm_start = None
+    warm_start, warm_start_scale = None, None
     if args.init_model and not args.resume:
         prior = read_model(Path(args.init_model))
         load_export(torch, model, prior, manifest["normalization"])
         warm_start = prior["modelId"]
+        warm_start_scale = prior["scale"]
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     generator = torch.Generator().manual_seed(args.seed)
     identity = {"datasetHash": manifest["datasetHash"], "rulesId": RULES_ID, "featureVersion": FEATURE_VERSION,
                 "inputSize": INPUT_SIZE, "hiddenSize": args.hidden_size, "batchSize": args.batch_size,
                 "seed": args.seed, "learningRate": args.learning_rate, "weightDecay": args.weight_decay,
                 "scale": args.scale, "normalization": manifest["normalization"],
-                "objective": "antisymmetric-weighted-mse-v1", "trainerHash": digest_file(Path(__file__)),
+                "familyBalance": family_balance, "earlyStopPatience": early_stop_patience,
+                "earlyStopMinDelta": early_stop_min_delta, "minEpochs": min_epochs,
+                "diagnosticSamples": diagnostic_samples,
+                "objective": "antisymmetric-confidence-family-mse-v2", "trainerHash": digest_file(Path(__file__)),
                 "runtime": {"torchVersion": str(torch.__version__), "device": args.device, "cudaVersion": torch.version.cuda}}
     epoch, cursor, updates, samples_seen = 0, 0, 0, 0
     permutation, best_state, best_metric, history = None, None, None, []
+    baseline_validation, best_epoch, patience_metric, stale_epochs = None, None, None, 0
+    early_stopped, baseline_diagnostics = False, {}
     previous_elapsed = 0.0
     if args.resume:
         saved = torch.load(checkpoint, map_location="cpu", weights_only=True)
@@ -524,12 +646,27 @@ def train_command(args) -> dict:
         if args.device == "cuda" and saved.get("cudaRngState"):
             torch.cuda.set_rng_state_all(saved["cudaRngState"])
         best_state, best_metric, history = saved["bestState"], saved["bestMetric"], saved["history"]
+        baseline_validation, best_epoch = saved["baselineValidation"], saved["bestEpoch"]
+        patience_metric, stale_epochs = saved["patienceMetric"], saved["staleEpochs"]
+        early_stopped, baseline_diagnostics = saved["earlyStopped"], saved["baselineDiagnostics"]
         previous_elapsed, warm_start = saved["elapsedSeconds"], saved.get("warmStartModelId")
+        warm_start_scale = saved["initEvaluationScale"]
     mean, scale = (torch.tensor(manifest["normalization"][key], device=args.device) for key in ("mean", "scale"))
     training_start, current_loss, run_updates = time.monotonic(), None, 0
     before_training = model[0].weight.detach().cpu().clone()
     initial_samples_seen = samples_seen
     reason = None
+    if not args.resume:
+        baseline_validation = validate(torch, model, validation_rows, mean, scale, args.batch_size, args.device, stop,
+                                       validation_family, family_balance)
+        if baseline_validation:
+            best_metric = patience_metric = baseline_validation["all"]
+            best_epoch = 0
+            best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
+        for split, rows in (("train", train_rows), ("validation", validation_rows)):
+            indices = diagnostic_indices(torch, len(rows), diagnostic_samples)
+            baseline_diagnostics[split] = {"indices": indices.tolist(),
+                "values": diagnostic_values(torch, model, rows, indices, mean, scale, args.device)}
 
     def save_checkpoint(status):
         checkpoint.parent.mkdir(parents=True, exist_ok=True)
@@ -541,16 +678,20 @@ def train_command(args) -> dict:
                  "pythonRngState": random.getstate(),
                  "cudaRngState": torch.cuda.get_rng_state_all() if args.device == "cuda" else None,
                  "bestState": best_state, "bestMetric": best_metric, "history": history,
+                 "baselineValidation": baseline_validation, "bestEpoch": best_epoch,
+                 "patienceMetric": patience_metric, "staleEpochs": stale_epochs,
+                 "earlyStopped": early_stopped, "baselineDiagnostics": baseline_diagnostics,
                  "elapsedSeconds": previous_elapsed + time.monotonic() - training_start,
                  "warmStartModelId": warm_start, "status": status}
+        saved["initEvaluationScale"] = warm_start_scale
         torch.save(saved, temporary)
         with temporary.open("r+b") as flushable:
             os.fsync(flushable.fileno())
-        os.replace(temporary, checkpoint)
+        replace_saved_file(temporary, checkpoint)
 
     model.train()
     try:
-        while epoch < args.epochs:
+        while epoch < args.epochs and not early_stopped:
             reason = stop.reason()
             if reason:
                 break
@@ -566,6 +707,8 @@ def train_command(args) -> dict:
                 optimizer.zero_grad(set_to_none=True)
                 predicted = effective_prediction(torch, model, raw[:, :INPUT_SIZE], mean, scale)
                 weights, targets = raw[:, INPUT_SIZE + 1], raw[:, INPUT_SIZE]
+                if family_balance:
+                    weights = weights * train_family.index_select(0, selected).to(args.device).pow(family_balance)
                 loss = ((predicted - targets) ** 2 * weights).sum() / weights.sum()
                 if not torch.isfinite(loss).item():
                     raise RuntimeError("Training produced non-finite loss")
@@ -582,20 +725,30 @@ def train_command(args) -> dict:
                     emit({"event": "checkpoint", "epoch": epoch, "cursor": cursor, "updates": updates, "loss": current_loss})
             if reason:
                 break
-            metrics = validate(torch, model, validation_rows, mean, scale, args.batch_size, args.device, stop)
+            metrics = validate(torch, model, validation_rows, mean, scale, args.batch_size, args.device, stop,
+                               validation_family, family_balance)
             if stop.reason():
                 reason = stop.reason()
                 break
             if metrics and (best_metric is None or metrics["all"] < best_metric):
                 best_metric = metrics["all"]
+                best_epoch = epoch + 1
                 best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
+            if metrics:
+                if patience_metric is None or metrics["all"] < patience_metric - early_stop_min_delta:
+                    patience_metric, stale_epochs = metrics["all"], 0
+                else:
+                    stale_epochs += 1
             history.append({"epoch": epoch + 1, "updates": updates, "lastBatchLoss": current_loss,
                             "validation": metrics})
             epoch += 1
             cursor, permutation = 0, None
+            early_stopped = bool(metrics and early_stop_patience and epoch >= min_epochs and stale_epochs >= early_stop_patience)
             save_checkpoint("running")
             emit({"event": "epoch", **history[-1]})
-        status = "completed" if epoch >= args.epochs else "interrupted"
+        if early_stopped:
+            reason = "validation-early-stop"
+        status = "completed" if epoch >= args.epochs or early_stopped else "interrupted"
         save_checkpoint(status)
     except BaseException:
         save_checkpoint("error")
@@ -612,12 +765,23 @@ def train_command(args) -> dict:
     changed = bool(torch.any(model[0].weight.detach().cpu() != before_training).item())
     if best_state:
         model.load_state_dict(best_state)
+    diagnostics = {split: diagnostic_report(torch, model, rows, baseline_diagnostics[split], mean, scale,
+                                             args.device, args.scale)
+                   for split, rows in (("train", train_rows), ("validation", validation_rows))}
+    diagnostics["scope"] = "Bounded deterministic train/validation value samples; score changes do not prove different search decisions or playing strength. Final-test data were not opened."
     training = {"datasetHash": manifest["datasetHash"], "trainerHash": identity["trainerHash"],
                 "updates": updates, "epochsCompleted": epoch,
                 "status": status, "stopReason": reason, "trainSamples": manifest["counts"]["train"],
                 "validationSamples": manifest["counts"]["validation"], "excludedTestSamples": manifest["counts"]["test"],
                 "validationMse": best_metric, "selection": "best-completed-validation" if best_state else "latest-no-completed-validation",
+                "baselineValidation": baseline_validation, "bestEpoch": best_epoch, "selectedBaseline": best_epoch == 0,
+                "baselineKind": "warm-start-model" if warm_start else "seeded-initial-network",
+                "exportUsesTrainedEpoch": best_epoch is None or best_epoch > 0,
+                "familyBalance": family_balance, "earlyStopPatience": early_stop_patience,
+                "earlyStopMinDelta": early_stop_min_delta, "minEpochs": min_epochs,
+                "earlyStopped": early_stopped,
                 "warmStartModelId": warm_start, "initModelId": warm_start, "device": args.device,
+                "initEvaluationScale": warm_start_scale,
                 "trainedOnCuda": args.device == "cuda" and updates > 0,
                 "scope": "Learned value candidate; regression loss does not establish playing-strength improvement"}
     exported = export_model(model, manifest, args.hidden_size, args.scale, training)
@@ -635,6 +799,7 @@ def train_command(args) -> dict:
               "modelId": exported["modelId"], "checkpoint": str(checkpoint), "dataset": str(Path(args.data)),
               "datasetHash": manifest["datasetHash"], "counts": manifest["counts"], "families": manifest["families"],
               "labelTypes": manifest["labelTypes"], "duplicatesIgnored": manifest["duplicatesIgnored"],
+              "familyWeights": manifest["familyWeights"], "diagnostics": diagnostics,
               "training": training, "history": history, "device": device, "parity": {"passed": True, "maxAbsoluteError": parity["maxAbsoluteError"]},
               "evaluationBoundary": "No final-test metrics or automatic adoption; engine arena must decide candidate adoption"}
     atomic_json(output, exported)
@@ -684,6 +849,11 @@ def parse_args():
     train.add_argument("--stop-file")
     train.add_argument("--resume", action="store_true")
     train.add_argument("--init-model")
+    train.add_argument("--family-balance", type=float, default=0.0, help="0 preserves sample confidence weights; 1 equalizes total confidence across train/validation families")
+    train.add_argument("--early-stop-patience", type=int, default=0, help="Completed validation epochs without meaningful improvement; 0 disables")
+    train.add_argument("--early-stop-min-delta", type=float, default=0.0)
+    train.add_argument("--min-epochs", type=int, default=1)
+    train.add_argument("--diagnostic-samples", type=int, default=512, help="Bounded value-change samples per train/validation split; never final-test")
     verify = commands.add_parser("verify-export", help="Check JSON inference against PyTorch CPU")
     verify.add_argument("--model", required=True)
     verify.add_argument("--fixtures")
@@ -699,6 +869,12 @@ def parse_args():
             parser.error("hidden size or evaluation scale outside supported bounds")
         if not math.isfinite(args.learning_rate) or not 0 < args.learning_rate <= 1 or not math.isfinite(args.weight_decay) or not 0 <= args.weight_decay <= 1:
             parser.error("Invalid optimizer settings")
+        if not math.isfinite(args.family_balance) or not 0 <= args.family_balance <= 1:
+            parser.error("--family-balance must be finite and in [0,1]")
+        if not 0 <= args.early_stop_patience <= 1000 or not math.isfinite(args.early_stop_min_delta) or not 0 <= args.early_stop_min_delta <= 1:
+            parser.error("Invalid validation early-stop settings")
+        if not 1 <= args.min_epochs <= args.epochs or not 1 <= args.diagnostic_samples <= 4096:
+            parser.error("Invalid minimum epochs or diagnostic sample bound")
     return args
 
 
