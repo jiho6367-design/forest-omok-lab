@@ -94,7 +94,7 @@ async function generate(context,{deadline=Infinity,target=context.settings.games
  }
 }
 function createWorkerPool(size){
- if(!Number.isInteger(size)||size<1||size>8)throw Error('Game worker pool size must be between 1 and 8');
+ if(!Number.isInteger(size)||size<1||size>16)throw Error('Game worker pool size must be between 1 and 16');
  const lanes=Array.from({length:size},()=>{
   const worker=new Worker(__filename,{workerData:{learningPool:true}});let pending=null,failure=null,closing=false;
   const fail=error=>{failure=error;const task=pending;pending=null;if(task)task.reject(error);};

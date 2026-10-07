@@ -8,12 +8,12 @@ const REPO=path.resolve(__dirname,'../..');
 const MAX_UPLOAD=2*1024*1024;
 const MAX_LOG=256*1024;
 const PRESETS={
-  continuous:{continuous:true,concurrentTraining:true,minutes:60,games:256,gamesPerCycle:256,minNewSamples:1000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:2,epochs:80},
+  continuous:{continuous:true,concurrentTraining:true,minutes:60,games:256,gamesPerCycle:512,minNewSamples:5000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:8,epochs:80},
   check:{minutes:3,games:8,pairs:4,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:3},
   standard:{minutes:60,games:128,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:10},
   extended:{minutes:180,games:1024,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:20}
 };
-const LIMITS={minutes:[1,1440],games:[1,1000000],gamesPerCycle:[1,10000],minNewSamples:[1,1000000],maxTrainingSamples:[100,1000000],pairs:[1,2048],minPairs:[32,2048],moveMs:[30,10000],analysisMs:[50,30000],validationMs:[50,30000],workers:[1,8],epochs:[1,1000]};
+const LIMITS={minutes:[1,1440],games:[1,1000000],gamesPerCycle:[1,10000],minNewSamples:[1,1000000],maxTrainingSamples:[100,1000000],pairs:[1,2048],minPairs:[32,2048],moveMs:[30,10000],analysisMs:[50,30000],validationMs:[50,30000],workers:[1,16],epochs:[1,1000]};
 function inside(root,target){const relative=path.relative(root,target);return relative===''||(!relative.startsWith('..'+path.sep)&&relative!=='..'&&!path.isAbsolute(relative));}
 function fail(status,message){const error=new Error(message);error.status=status;return error;}
 function configuration(body){

@@ -14,14 +14,14 @@ function validateSettings(x){
  if(!['normal','below-normal'].includes(x.priority)||typeof x.concurrentTraining!=='boolean')throw Error('Invalid resource scheduling settings');
  for(const k of ['games','pairs','minPairs','workers','epochs','batchSize','sampleEvery','maxSamples','maxPlies','gamesPerCycle','minNewSamples','maxTrainingSamples','hiddenSize','minEpochs','diagnosticSamples'])if(!Number.isSafeInteger(x[k])||x[k]<1)throw Error(k+' must be a positive integer');
  if(!Number.isSafeInteger(x.earlyStopPatience)||x.earlyStopPatience<0||x.minEpochs>x.epochs)throw Error('Invalid epoch/early-stop settings');
- if(x.workers>8)throw Error('At most 8 game workers are supported');
+ if(x.workers>16)throw Error('At most 16 game workers are supported');
  if(x.moveMs<30||x.analysisMs<30||x.validationMs<30)throw Error('Search budgets must be at least 30ms');
  if(x.confidence<.9||x.confidence>=1||x.minPairs<32)throw Error('Promotion requires confidence >=90% and at least 32 independent paired families');
  if(x.exploration<0||x.exploration>1||x.minutes<=0||x.stageMinutes<=0||x.trainSeconds<=0||!Number.isFinite(x.maxDiskBytes)||x.maxDiskBytes<=0||x.familyBalance<0||x.familyBalance>1||x.earlyStopMinDelta<0||x.learningRate<=0||x.scale<=0||x.scale>600||x.hiddenSize>64||x.diagnosticSamples>4096||x.recordBranchFraction!=null&&(x.recordBranchFraction<0||x.recordBranchFraction>1))throw Error('Invalid resource/learning settings');
 }
 function continuousProfile(options){
  if(!options.continuous)return options;
- return {workers:2,priority:'below-normal',concurrentTraining:true,epochs:80,batchSize:256,familyBalance:1,earlyStopPatience:10,earlyStopMinDelta:.0001,minEpochs:Math.min(10,options.epochs||80),recordBranchFraction:.25,maxSamples:Number.MAX_SAFE_INTEGER,...options};
+ return {workers:8,priority:'below-normal',concurrentTraining:true,gamesPerCycle:512,minNewSamples:5000,maxTrainingSamples:100000,pairs:32,epochs:80,batchSize:256,familyBalance:1,earlyStopPatience:10,earlyStopMinDelta:.0001,minEpochs:Math.min(10,options.epochs||80),recordBranchFraction:.25,maxSamples:Number.MAX_SAFE_INTEGER,...options};
 }
 function normalizeLesson(l,source){if(!l||typeof l.key!=='string'||!/^[012]{225}$/.test(l.key)||!Number.isInteger(l.bad)||l.bad<0||l.bad>=225||!Number.isInteger(l.good)||l.good<0||l.good>=225||l.bad===l.good||l.key[l.bad]!=='0'||l.key[l.good]!=='0')throw Error('Invalid existing lesson in '+source);return {...l,active:l.rules?.fivePriority!==false&&(!l.rulesId||l.rulesId===S.RULES_ID),labelRole:'existing heuristic only; never ground-truth training label',provenance:[...(l.provenance||[]),source]};}
 function importLessons(context,payload,records,source){
