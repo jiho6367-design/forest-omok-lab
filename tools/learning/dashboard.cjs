@@ -8,7 +8,7 @@ const REPO=path.resolve(__dirname,'../..');
 const MAX_UPLOAD=2*1024*1024;
 const MAX_LOG=256*1024;
 const PRESETS={
-  continuous:{continuous:true,minutes:60,games:256,gamesPerCycle:256,minNewSamples:1000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:80},
+  continuous:{continuous:true,concurrentTraining:true,minutes:60,games:256,gamesPerCycle:256,minNewSamples:1000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:2,epochs:80},
   check:{minutes:3,games:8,pairs:4,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:3},
   standard:{minutes:60,games:128,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:10},
   extended:{minutes:180,games:1024,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:20}
@@ -21,7 +21,7 @@ function configuration(body){
   const config={...PRESETS[preset]};
   if(body.config!=null){if(typeof body.config!=='object'||Array.isArray(body.config))throw fail(400,'설정은 객체여야 합니다.');
     for(const [key,value] of Object.entries(body.config)){
-      if(key==='continuous'){if(typeof value!=='boolean')throw fail(400,'continuous는 true 또는 false여야 합니다.');config[key]=value;continue;}
+      if(key==='continuous'||key==='concurrentTraining'){if(typeof value!=='boolean')throw fail(400,key+'는 true 또는 false여야 합니다.');config[key]=value;continue;}
       if(key==='recordBranchFraction'){if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>1)throw fail(400,'기존 기보 변형 비율은 0~1이어야 합니다.');config[key]=value;continue;}
       if(!Object.hasOwn(LIMITS,key))throw fail(400,'지원하지 않는 설정: '+key);
       const [min,max]=LIMITS[key];if(!Number.isInteger(value)||value<min||value>max)throw fail(400,`${key}는 ${min}~${max}의 정수여야 합니다.`);config[key]=value;
@@ -78,6 +78,7 @@ function createDashboard(options={}){
       const keys={minutes:'minutes',games:'games',gamesPerCycle:'games-per-cycle',minNewSamples:'min-new-samples',recordBranchFraction:'record-branch-fraction',maxTrainingSamples:'max-training-samples',pairs:'pairs',minPairs:'min-pairs',moveMs:'move-ms',analysisMs:'analysis-ms',validationMs:'validation-ms',workers:'workers',epochs:'epochs'};
       for(const [key,flag] of Object.entries(keys))if(config[key]!=null)args.push('--'+flag+'='+config[key]);
       if(config.continuous)args.push('--continuous');if(fromRun)args.push('--from-run='+fromRun);
+      if(config.concurrentTraining!=null)args.push('--concurrent-training='+config.concurrentTraining);
     }
     const child=spawnChild(process.execPath,args,{cwd:selected.cwd||repo,stdio:['ignore','pipe','pipe'],windowsHide:true,shell:false});
     active={id,child,startedAt:new Date().toISOString()};log(run,JSON.stringify({dashboard:'start',resume,at:active.startedAt})+'\n');

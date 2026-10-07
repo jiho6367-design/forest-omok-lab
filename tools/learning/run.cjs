@@ -5,11 +5,13 @@ function parse(args){const out={command:args[0]||'status'};for(let n=1;n<args.le
 function options(args){
  const map={'move-ms':'moveMs','analysis-ms':'analysisMs','validation-ms':'validationMs','min-pairs':'minPairs','batch-size':'batchSize','train-seconds':'trainSeconds','max-plies':'maxPlies','sample-every':'sampleEvery','max-samples':'maxSamples','stage-minutes':'stageMinutes','games-per-cycle':'gamesPerCycle','min-new-samples':'minNewSamples','max-training-samples':'maxTrainingSamples','record-branch-fraction':'recordBranchFraction','hidden-size':'hiddenSize','scale':'scale','learning-rate':'learningRate','family-balance':'familyBalance','early-stop-patience':'earlyStopPatience','early-stop-min-delta':'earlyStopMinDelta','min-epochs':'minEpochs','diagnostic-samples':'diagnosticSamples'},out={};
  for(const key of ['seed','games','pairs','workers','epochs','minutes','exploration','confidence',...Object.keys(map)])if(args[key]!==undefined){const n=Number(args[key]);if(!Number.isFinite(n))throw Error('Invalid number for --'+key);out[map[key]||key]=n;}
- for(const key of ['python','device'])if(args[key])out[key]=String(args[key]);
+ for(const key of ['python','device','priority'])if(args[key])out[key]=String(args[key]);
  if(args.continuous!==undefined){if(![true,false,'true','false'].includes(args.continuous))throw Error('--continuous must be true or false');out.continuous=args.continuous===true||args.continuous==='true';}
+ if(args['concurrent-training']!==undefined){const v=args['concurrent-training'];if(![true,false,'true','false'].includes(v))throw Error('--concurrent-training must be true or false');out.concurrentTraining=v===true||v==='true';}
  if(args['no-adopt'])out.autoAdopt=false;if(args['max-disk-gb'])out.maxDiskBytes=Number(args['max-disk-gb'])*1024**3;return out;
 }
 function validateSettings(x){
+ if(!['normal','below-normal'].includes(x.priority)||typeof x.concurrentTraining!=='boolean')throw Error('Invalid resource scheduling settings');
  for(const k of ['games','pairs','minPairs','workers','epochs','batchSize','sampleEvery','maxSamples','maxPlies','gamesPerCycle','minNewSamples','maxTrainingSamples','hiddenSize','minEpochs','diagnosticSamples'])if(!Number.isSafeInteger(x[k])||x[k]<1)throw Error(k+' must be a positive integer');
  if(!Number.isSafeInteger(x.earlyStopPatience)||x.earlyStopPatience<0||x.minEpochs>x.epochs)throw Error('Invalid epoch/early-stop settings');
  if(x.workers>8)throw Error('At most 8 game workers are supported');
@@ -19,7 +21,7 @@ function validateSettings(x){
 }
 function continuousProfile(options){
  if(!options.continuous)return options;
- return {epochs:80,batchSize:256,familyBalance:1,earlyStopPatience:10,earlyStopMinDelta:.0001,minEpochs:Math.min(10,options.epochs||80),recordBranchFraction:.25,maxSamples:Number.MAX_SAFE_INTEGER,...options};
+ return {workers:2,priority:'below-normal',concurrentTraining:true,epochs:80,batchSize:256,familyBalance:1,earlyStopPatience:10,earlyStopMinDelta:.0001,minEpochs:Math.min(10,options.epochs||80),recordBranchFraction:.25,maxSamples:Number.MAX_SAFE_INTEGER,...options};
 }
 function normalizeLesson(l,source){if(!l||typeof l.key!=='string'||!/^[012]{225}$/.test(l.key)||!Number.isInteger(l.bad)||l.bad<0||l.bad>=225||!Number.isInteger(l.good)||l.good<0||l.good>=225||l.bad===l.good||l.key[l.bad]!=='0'||l.key[l.good]!=='0')throw Error('Invalid existing lesson in '+source);return {...l,active:l.rules?.fivePriority!==false&&(!l.rulesId||l.rulesId===S.RULES_ID),labelRole:'existing heuristic only; never ground-truth training label',provenance:[...(l.provenance||[]),source]};}
 function importLessons(context,payload,records,source){
@@ -40,16 +42,17 @@ function importRecords(context,input,args={}){
  importLessons(context,payload,all,input?path.basename(input):'existing app source bootstrap');S.atomic(path.join(context.dir,'records.json'),all);S.atomic(path.join(context.dir,'bootstrap.json'),{...built,records:undefined,importedCount:incoming.length,totalRecords:all.length,splitCounts:Object.fromEntries(['train','validation','test'].map(s=>[s,all.filter(r=>r.split===s).length]))});context.state.counters.importedRecords=all.length;context.state.progress={records:all.length,added:all.length-existing.length,bootstrapErrors:built.errors.length};S.save(context);return all;
 }
 async function snapshotData(context,file){return require('./snapshot.cjs').snapshotData(context,file);}
-async function train(context,{deadline=Infinity,execute}={}){
+async function train(context,{deadline=Infinity,execute,trainedThroughSamples}={}){
  const cycle=context.state.cycle||1,data=path.join(context.dir,'datasets/cycle-'+cycle+'.jsonl'),output=path.join(context.dir,'candidate.json'),checkpoint=path.join(context.dir,'checkpoints/cycle-'+cycle+'.pt');
  if(!fs.existsSync(data))await snapshotData(context,data);const manifest=S.read(data+'.manifest.json');if(!manifest?.counts.train||!manifest?.counts.validation)throw Error('Training requires independent train and validation families. Generate more seeded games or import additional records.');if(S.fileHash(data)!==manifest.sha256)throw Error('Fixed training snapshot changed');
+ const sampleCutoff=trainedThroughSamples??context.state.pipeline?.trainingSampleCount??manifest.selection?.sourceRows??context.state.counters.samples;
  if(!fs.existsSync(context.settings.python))throw Error('Local Python runtime is missing: '+context.settings.python);
  const maximum=Math.max(1,Math.min(context.settings.trainSeconds,(deadline-Date.now())/1000));const args=[path.join(__dirname,'train.py'),'train','--data',data,'--output',output,'--checkpoint',checkpoint,'--device',context.settings.device,'--epochs',String(context.settings.epochs),'--batch-size',String(context.settings.batchSize),'--max-seconds',String(maximum),'--stop-file',path.join(context.dir,'stop.flag')];for(const [flag,key] of [['hidden-size','hiddenSize'],['scale','scale'],['learning-rate','learningRate'],['family-balance','familyBalance'],['early-stop-patience','earlyStopPatience'],['early-stop-min-delta','earlyStopMinDelta'],['min-epochs','minEpochs'],['diagnostic-samples','diagnosticSamples']])args.push('--'+flag,String(context.settings[key]));if(fs.existsSync(checkpoint))args.push('--resume');const champion=path.join(context.dir,'champion.json');if(!fs.existsSync(checkpoint)){let priorCandidate=null;try{const prior=S.read(output);if(prior?.training?.updates>0)priorCandidate=require('../../src/neural-evaluator.js').validate(prior);}catch{}if(priorCandidate)args.push('--init-model',output);else if(fs.existsSync(champion))args.push('--init-model',champion);else if(fs.existsSync(path.join(context.dir,'warm-start.json')))args.push('--init-model',path.join(context.dir,'warm-start.json'));}
- const start=Date.now();const result=execute?await execute({python:context.settings.python,args,output,data,checkpoint}):await new Promise((resolve,reject)=>{const child=cp.spawn(context.settings.python,args,{cwd:S.ROOT,windowsHide:true,stdio:['ignore','pipe','pipe']});let last='',stdout='',stderr='';child.stdout.on('data',d=>{const s=d.toString();stdout+=s;last=(last+s).split('\n').slice(-1)[0];fs.appendFileSync(path.join(context.dir,'train.stdout.log'),s);process.stdout.write(s);});child.stderr.on('data',d=>{stderr=(stderr+d.toString()).slice(-12000);fs.appendFileSync(path.join(context.dir,'train.stderr.log'),d);});child.once('error',reject);child.once('exit',code=>resolve({code,stdout:stdout.slice(-20000),stderr,elapsedMs:Date.now()-start}));});
+ const start=Date.now();const result=execute?await execute({python:context.settings.python,args,output,data,checkpoint}):await new Promise((resolve,reject)=>{const child=cp.spawn(context.settings.python,args,{cwd:S.ROOT,windowsHide:true,stdio:['ignore','pipe','pipe']});let last='',stdout='',stderr='';try{require('node:os').setPriority(child.pid,context.settings.priority==='below-normal'?10:0);context.state.trainingProcess={pid:child.pid,priority:context.settings.priority};S.save(context);}catch(error){context.state.trainingProcess={pid:child.pid,priorityError:error.message};}child.stdout.on('data',d=>{const s=d.toString();stdout+=s;last=(last+s).split('\n').slice(-1)[0];fs.appendFileSync(path.join(context.dir,'train.stdout.log'),s);process.stdout.write(s);});child.stderr.on('data',d=>{stderr=(stderr+d.toString()).slice(-12000);fs.appendFileSync(path.join(context.dir,'train.stderr.log'),d);});child.once('error',reject);child.once('exit',code=>resolve({code,stdout:stdout.slice(-20000),stderr,elapsedMs:Date.now()-start}));});
  context.state.training=S.read(output+'.training.json',{status:'unverified',process:result});context.state.training.process={exitCode:result.code,elapsedMs:result.elapsedMs};
  const reported=context.state.training.training?.updates||context.state.training.updates||0,key=cycle+':'+manifest.sha256,prior=context.state.trainingUpdateCursor;
  if(context.state.training.datasetHash===manifest.sha256&&Number.isSafeInteger(reported)&&reported>=0){const before=prior?.key===key?prior.updates:0;context.state.counters.trainingUpdates=(context.state.counters.trainingUpdates||0)+Math.max(0,reported-before);context.state.trainingUpdateCursor={key,updates:reported};}
- S.save(context);if(result.code!==0)throw Error('Training failed: '+(result.stderr||'').slice(-1000));const model=S.read(output),evidence=A.trainingEvidence(model,context.state.training,manifest.sha256);context.state.training.verification=evidence;S.save(context);if(!evidence.passed){context.state.message='현재 데이터의 새 학습 모델이 검증되지 않아 이전 후보를 새 결과로 사용하지 않습니다.';S.save(context);return false;}require('../../src/neural-evaluator.js').validate(model);context.state.lastTrainingSampleCount=context.state.counters.samples;S.save(context);return true;
+ S.save(context);if(result.code!==0)throw Error('Training failed: '+(result.stderr||'').slice(-1000));const model=S.read(output),evidence=A.trainingEvidence(model,context.state.training,manifest.sha256);context.state.training.verification=evidence;context.state.training.trainedThroughSamples=sampleCutoff;S.save(context);if(!evidence.passed){context.state.message='현재 데이터의 새 학습 모델이 검증되지 않아 이전 후보를 새 결과로 사용하지 않습니다.';S.save(context);return false;}require('../../src/neural-evaluator.js').validate(model);context.state.lastTrainingSampleCount=sampleCutoff;S.save(context);return true;
 }
 function deployModel(accepted,{root=S.ROOT,stageId,incumbentHash=null,build,onPublish=()=>{}}={}){
  require('../../src/neural-evaluator.js').validate(accepted);if(accepted.adoption?.accepted!==true)throw Error('Only accepted models may enter the deployment transaction');
@@ -72,6 +75,15 @@ function adopt(context){
  context.state.adoptions.push(entry);context.state.adoptions=context.state.adoptions.slice(-100);S.append(path.join(context.dir,'adoptions.jsonl'),entry);S.save(context);S.atomic(path.join(context.dir,'adoption.json'),entry);return entry;
 }
 async function timed(context,phase,fn){const start=Date.now();S.setPhase(context,phase,phase+' in local CPU/GPU pipeline');try{return await fn();}finally{context.state.timing=context.state.timing||[];const row={phase,cycle:context.state.cycle,elapsedMs:Date.now()-start,at:new Date().toISOString()};S.append(path.join(context.dir,'timing.jsonl'),row);context.state.timing.push(row);context.state.timing=context.state.timing.slice(-100);S.save(context);}}
+async function trainWithGeneration(context,{deadline,trainStage=train,generate=G.generate}={}){
+ const cancelBuffer=new SharedArrayBuffer(4),started=Date.now(),cutoff=context.state.pipeline.trainingSampleCount;
+ const target=context.state.counters.generatedGames+context.settings.gamesPerCycle;
+ context.state.concurrency={training:true,generation:true,workers:context.settings.workers,target,trainedThroughSamples:cutoff};S.save(context);
+ const training=Promise.resolve().then(()=>trainStage(context,{deadline,trainedThroughSamples:cutoff})).finally(()=>Atomics.store(new Int32Array(cancelBuffer),0,1));
+ const generating=Promise.resolve().then(()=>generate(context,{deadline,target,cancelBuffer})).catch(error=>{S.atomic(path.join(context.dir,'stop.flag'),'Background generation failed: '+error.message);throw error;});
+ try{const results=await Promise.allSettled([training,generating]);const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;return results[0].value;}
+ finally{context.state.concurrency={...context.state.concurrency,training:false,generation:false,elapsedMs:Date.now()-started};S.append(path.join(context.dir,'timing.jsonl'),{phase:'generate-during-train',cycle:context.state.cycle,elapsedMs:Date.now()-started,at:new Date().toISOString()});S.save(context);}
+}
 async function cycle(context,args,deadline,hooks={}){
  const analyze=hooks.analyze||G.analyzeRecords,generate=hooks.generate||G.generate,trainStage=hooks.train||train,validate=hooks.validate||A.validate,adoptStage=hooks.adopt||adopt;
  importRecords(context,args.input,args);const continuous=context.settings.continuous,total=continuous?Infinity:context.settings.games;
@@ -86,6 +98,8 @@ async function cycle(context,args,deadline,hooks={}){
    // A bounded analysis pass may continue later; self-play is still useful.
    pipeline.analysisComplete=!!done;pipeline.stage='generate';S.save(context);
   }else if(pipeline.stage==='generate'){
+   const waitingSamples=Math.max(0,context.state.counters.samples-(context.state.lastTrainingSampleCount||0));
+   if(continuous&&context.settings.concurrentTraining&&waitingSamples>=context.settings.minNewSamples){context.state.trainingGate={newSamples:waitingSamples,minNewSamples:context.settings.minNewSamples,ready:true};pipeline.stage='train';S.save(context);continue;}
    const done=await timed(context,'generate',()=>generate(context,{target:pipeline.target,deadline:Math.min(deadline,Date.now()+Math.min(context.settings.stageMinutes*60000,remaining*.6))}));
    if(S.stopped(context.dir))return false;
    if(!done){S.save(context);if(context.state.counters.samples>=context.settings.maxSamples||Date.now()>=deadline)return false;continue;}
@@ -96,7 +110,10 @@ async function cycle(context,args,deadline,hooks={}){
   }else if(pipeline.stage==='train'){
    if(deadline-Date.now()<2000)return false;
    if(continuous&&trainStage===train){const file=path.join(context.dir,'datasets/cycle-'+context.state.cycle+'.jsonl'),manifest=await snapshotData(context,file);if(!manifest.counts.train||!manifest.counts.validation){context.state.training={status:'waiting-data',modelExported:false,reason:'학습과 검증을 나눌 독립 자료가 더 필요합니다.'};context.state.cycle++;context.state.pipeline={stage:'generate',target:nextTarget()};S.save(context);continue;}}
-   const ok=await timed(context,'train',()=>trainStage(context,{deadline:Math.min(deadline,Date.now()+context.settings.trainSeconds*1000)}));
+   pipeline.trainingSampleCount??=context.state.dataset?.selection?.sourceRows??context.state.counters.samples;S.save(context);
+   const trainDeadline=Math.min(deadline,Date.now()+context.settings.trainSeconds*1000);
+   const overlap=continuous&&context.settings.concurrentTraining&&(trainStage===train||hooks.overlap===true);
+   const ok=await timed(context,'train',()=>overlap?trainWithGeneration(context,{deadline:trainDeadline,trainStage,generate}):trainStage(context,{deadline:trainDeadline,trainedThroughSamples:pipeline.trainingSampleCount}));
    if(S.stopped(context.dir)||!ok)return false;
    const t=context.state.training;
    const unchanged=continuous&&t?.training?.selectedBaseline&&t?.training?.warmStartModelId&&t.training.initEvaluationScale===S.read(path.join(context.dir,'candidate.json'))?.scale&&['train','validation'].every(k=>Number.isFinite(t.diagnostics?.[k]?.maximumAbsoluteScoreChange)&&t.diagnostics[k].maximumAbsoluteScoreChange<.0001);
@@ -122,6 +139,7 @@ async function main(argv=process.argv.slice(2)){
  if(command==='stop'){fs.mkdirSync(dir,{recursive:true});S.atomic(path.join(dir,'stop.flag'),'requested '+new Date().toISOString());console.log(JSON.stringify({status:'stop-requested',run:dir}));return;}
  if(command==='status'){console.log(JSON.stringify({run:dir,state:S.read(path.join(dir,'state.json')),settings:S.read(path.join(dir,'settings.json'))}));return;}
  const fresh=!fs.existsSync(path.join(dir,'state.json')),given=options(args),context=S.init(dir,fresh?continuousProfile(given):given);validateSettings(context.settings);S.checkIdentity(context);const release=S.lock(dir);if(args.resume&&fs.existsSync(path.join(dir,'stop.flag')))fs.unlinkSync(path.join(dir,'stop.flag'));S.atomic(path.join(dir,'settings.json'),context.settings);
+ const os=require('node:os');try{os.setPriority(0,context.settings.priority==='below-normal'?os.constants.priority.PRIORITY_BELOW_NORMAL:os.constants.priority.PRIORITY_NORMAL);context.state.resources={priority:context.settings.priority,applied:true,workers:context.settings.workers,concurrentTraining:context.settings.concurrentTraining};}catch(error){context.state.resources={priority:context.settings.priority,applied:false,error:error.message};}S.save(context);
  const started=Date.now(),deadline=started+context.settings.minutes*60000;let complete=false;
  try{if(S.stopped(dir)){context.state.status='stopped';context.state.message='Stop requested; use --resume to continue';S.save(context);return;}
   const pending=S.read(path.join(dir,'continuation.json'));if(args['from-run']||pending&&!pending.complete){const continued=await timed(context,'import',()=>C.continueFrom(context,args['from-run']||pending.source));if(!continued.complete){context.state.status='stopped';context.state.message='경험 가져오기를 중단했습니다. 같은 실행을 재개하면 이어집니다.';S.save(context);return;}}
@@ -138,4 +156,4 @@ async function main(argv=process.argv.slice(2)){
  }catch(e){context.state.status='failed';context.state.message=e.message;context.state.errors.push({at:new Date().toISOString(),phase:context.state.phase,error:e.message});context.state.errors=context.state.errors.slice(-100);S.append(path.join(dir,'errors.jsonl'),context.state.errors.at(-1));S.save(context);throw e;}finally{C.close(dir);J.close(dir);release();}
 }
 if(require.main===module)main().catch(e=>{console.error(e.stack||e);process.exitCode=1;});
-module.exports={parse,options,continuousProfile,validateSettings,normalizeLesson,importLessons,importRecords,snapshotData,train,deployModel,adopt,cycle,main};
+module.exports={parse,options,continuousProfile,validateSettings,normalizeLesson,importLessons,importRecords,snapshotData,train,trainWithGeneration,deployModel,adopt,cycle,main};

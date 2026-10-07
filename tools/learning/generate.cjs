@@ -61,11 +61,13 @@ function verifyGame(game){
  if(game.completed&&(!checked.completed||(checked.draw?0:checked.winner)!==game.winner))throw Error('Stored terminal result does not match independent replay in '+game.id);
  return checked;
 }
-async function play(context,game,{deadline=Infinity,onMove=()=>{}}={}){
+function cancelled(cancelBuffer){return !!cancelBuffer&&Atomics.load(new Int32Array(cancelBuffer),0)!==0;}
+async function play(context,game,{deadline=Infinity,onMove=()=>{},cancelBuffer}={}){
  const model=game.model??null,E=currentFactory({firstPlayer:game.firstPlayer,optimized:true,model}),random=rng(game.rng);if((model?.modelId||'untrained-current')!==game.modelVersion)throw Error('Cannot resume a partial game with a different model');
  const checked=verifyGame(game);let empty=game.board.filter(x=>!x).length;if(checked.completed){game.completed=true;game.winner=checked.draw?0:checked.winner;game.reason=checked.draw?'full-board':'played-exact-five';}
  while(!game.completed){
   if(stopped(context.dir)||Date.now()>=deadline){game.reason=stopped(context.dir)?'user-stop':'time-limit';break;}
+  if(cancelled(cancelBuffer)){game.reason='pipeline-yield';break;}
   if(game.events.length>=context.settings.maxPlies){game.reason='ply-limit';break;}
   const choice=choose(E,game,context.settings,random);game.elapsedMs+=choice.ms;if(choice.i==null){game.reason=choice.reason;break;}
   if(game.events.length%context.settings.sampleEvery===0||game.events.length<3)game.samples.push({board:game.board.slice(),p:game.p,ply:game.opening.length+game.events.length});
@@ -75,19 +77,19 @@ async function play(context,game,{deadline=Infinity,onMove=()=>{}}={}){
  }
  if(game.completed)verifyGame(game);return game;
 }
-function generationQueue(context,records,target,deadline){
+function generationQueue(context,records,target,deadline,cancelBuffer){
  const queue=Object.values(context.state.activeGames).sort((a,b)=>a.index-b.index);context.state.generationIndex=Math.max(context.state.generationIndex,...queue.map(g=>g.index+1),0);
- return ()=>{if(stopped(context.dir)||Date.now()>=deadline||context.state.counters.samples>=context.settings.maxSamples)return null;if(queue.length)return queue.shift();if(context.state.counters.generatedGames+Object.keys(context.state.activeGames).length>=target)return null;const game=makeGame(context,context.state.generationIndex++,records);context.state.activeGames[game.id]=game;save(context);return game;};
+ return ()=>{if(cancelled(cancelBuffer)||stopped(context.dir)||Date.now()>=deadline||context.state.counters.samples>=context.settings.maxSamples)return null;if(queue.length)return queue.shift();if(context.state.counters.generatedGames+Object.keys(context.state.activeGames).length>=target)return null;const game=makeGame(context,context.state.generationIndex++,records);context.state.activeGames[game.id]=game;save(context);return game;};
 }
 function progress(context,game,target){context.state.activeGames[game.id]=game;context.state.progress={gameId:game.id,ply:game.opening.length+game.events.length,workers:context.settings.workers,target};const storage=require('./state.cjs');(storage.saveProgress||save)(context,game);}
 function commit(context,game){verifyGame(game);require('./journal.cjs').commitGame(context,game,rowsForGame(context,game));}
-async function generate(context,{deadline=Infinity,target=context.settings.games}={}){
+async function generate(context,{deadline=Infinity,target=context.settings.games,cancelBuffer}={}){
  require('./journal.cjs').recoverGames(context);
- if(context.settings.workers>1)return generateParallel(context,{deadline,target,recovered:true});
- const records=read(path.join(context.dir,'records.json'),[]);importedSamples(context,records);const next=generationQueue(context,records,target,deadline);
+ if(context.settings.workers>1)return generateParallel(context,{deadline,target,cancelBuffer,recovered:true});
+ const records=read(path.join(context.dir,'records.json'),[]);importedSamples(context,records);const next=generationQueue(context,records,target,deadline,cancelBuffer);
  for(;;){const game=next();if(!game)return context.state.counters.generatedGames>=target;
-  await play(context,game,{deadline,onMove:g=>progress(context,g,target)});
-  if(!game.completed&&['user-stop','time-limit'].includes(game.reason)){save(context);return false;}
+  await play(context,game,{deadline,cancelBuffer,onMove:g=>progress(context,g,target)});
+  if(!game.completed&&['user-stop','time-limit','pipeline-yield'].includes(game.reason)){save(context);return false;}
   commit(context,game);
  }
 }
@@ -102,14 +104,14 @@ function createWorkerPool(size){
  });
  return {lanes,async close(){await Promise.allSettled(lanes.map(lane=>lane.close()));}};
 }
-async function generateParallel(context,{deadline=Infinity,target=context.settings.games,recovered=false}={}){
+async function generateParallel(context,{deadline=Infinity,target=context.settings.games,recovered=false,cancelBuffer}={}){
  if(!recovered)require('./journal.cjs').recoverGames(context);
- const records=read(path.join(context.dir,'records.json'),[]);importedSamples(context,records);const next=generationQueue(context,records,target,deadline),pool=createWorkerPool(context.settings.workers);let incomplete=false;
- const work=async lane=>{for(;;){const game=next();if(!game)return;const result=await lane.run({dir:context.dir,settings:context.settings,game,deadline},g=>progress(context,g,target));context.state.activeGames[game.id]=result;
-  if(!result.completed&&['time-limit','user-stop'].includes(result.reason)){incomplete=true;save(context);return;}
+ const records=read(path.join(context.dir,'records.json'),[]);importedSamples(context,records);const next=generationQueue(context,records,target,deadline,cancelBuffer),pool=createWorkerPool(context.settings.workers);let incomplete=false;
+ const work=async lane=>{for(;;){const game=next();if(!game)return;const result=await lane.run({dir:context.dir,settings:context.settings,game,deadline,cancelBuffer},g=>progress(context,g,target));context.state.activeGames[game.id]=result;
+  if(!result.completed&&['time-limit','user-stop','pipeline-yield'].includes(result.reason)){incomplete=true;save(context);return;}
   commit(context,result);
  }};
  try{const results=await Promise.allSettled(pool.lanes.map(async lane=>{try{return await work(lane);}catch(error){fs.writeFileSync(path.join(context.dir,'stop.flag'),'worker failure');throw error;}}));const failure=results.find(x=>x.status==='rejected');if(failure)throw failure.reason;return !incomplete&&context.state.counters.generatedGames>=target;}finally{await pool.close();}
 }
-if(!isMainThread&&workerData?.learningPool){let busy=false,acknowledgement=null;parentPort.on('message',message=>{if(message.ack){if(acknowledgement?.taskId===message.ack&&acknowledgement.ply===message.ply){const pending=acknowledgement;acknowledgement=null;pending.resolve();}return;}const task=message.task,taskId=task?.game?.id;if(busy||!task){parentPort.postMessage({taskId,error:'Worker received an invalid or overlapping task'});return;}busy=true;play({dir:task.dir,settings:task.settings},task.game,{deadline:task.deadline,onMove:game=>new Promise(resolve=>{acknowledgement={taskId,ply:game.events.length,resolve};parentPort.postMessage({taskId,progress:true,game});})}).then(game=>{busy=false;parentPort.postMessage({taskId,result:game});}).catch(error=>{busy=false;acknowledgement=null;parentPort.postMessage({taskId,error:error.stack||error.message});});});}
+if(!isMainThread&&workerData?.learningPool){let busy=false,acknowledgement=null;parentPort.on('message',message=>{if(message.ack){if(acknowledgement?.taskId===message.ack&&acknowledgement.ply===message.ply){const pending=acknowledgement;acknowledgement=null;pending.resolve();}return;}const task=message.task,taskId=task?.game?.id;if(busy||!task){parentPort.postMessage({taskId,error:'Worker received an invalid or overlapping task'});return;}busy=true;play({dir:task.dir,settings:task.settings},task.game,{deadline:task.deadline,cancelBuffer:task.cancelBuffer,onMove:game=>new Promise(resolve=>{acknowledgement={taskId,ply:game.events.length,resolve};parentPort.postMessage({taskId,progress:true,game});})}).then(game=>{busy=false;parentPort.postMessage({taskId,result:game});}).catch(error=>{busy=false;acknowledgement=null;parentPort.postMessage({taskId,error:error.stack||error.message});});});}
 module.exports={features,modelFor,lessonsFor,sample,rowsForGame,sampleGame,importedSamples,finishAnalysis,analyzeRecords,makeGame,choose,verifyGame,play,createWorkerPool,generate,generateParallel};
