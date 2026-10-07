@@ -61,3 +61,31 @@ OLD-RUN에는 실제 실험 폴더 이름을 넣습니다. 원본을 변경하�
   adoptions.jsonl / timing.jsonl / errors.jsonl : 장기 실행의 채택 판단·단계 시간·오류 기록
 원본 JSONL이 휴대 가능한 실제 자료입니다. SQLite 파일은 수행 중 삭제하지 마세요. 코드/자료의 의미가 달라지면 이전 결과의 버전을 바꿔 쓰지 않습니다. 알려진 v5.16 실행은 work/continuous-runtime-baseline.json에 보존한 원래 실행 코드로 재개하거나, 화면에서 새 누적 실험으로 경험을 이어받습니다. 추가 보존 실행기는 work/runtime-archives/<harnessHash>.json에서 원래 버전을 읽습니다. 새 버전의 변경 이후에는 저장된 경험을 새 실험으로 연결합니다.
 수읽기 캐시는 게임별로 유지하지만 프로세스 재시작 때 양쪽 모두 새 캐시를 시작합니다. 자료·모델·실험 상태는 계속 남습니다. 실제 채택은 모델만 갱신하고 src/active-model.json 및 기존 HTML 실행본 다섯 곳을 동일하게 교체합니다. GitHub push/외부 배포는 실행하지 않습니다.
+
+2026-10-08 프리모텀 복구 수정
+- 동일 기보 ID의 다른 수열은 수입 전 거부합니다. 같은 내용 재수입은 멱등입니다.
+- snapshot publish intent에는 자료/가족 manifest hash가 있습니다. process crash 뒤 같은 cycle을 검증해 완성하며, intent 없는 오래된 고아 파생 파일은 격리 보존 후 재생성합니다.
+- 정상 checkpoint를 오류 상태로 덮지 않습니다. 의심 상태는 .error.pt로 남고 정상 재개에서 거부합니다.
+- 배포 intent는 활성 모델, HTML 5개, run champion/models/채택/state/journal와 승인 모델의 노출 원장을 함께 게시합니다. 다음 실행에서 완성하거나 identity 변경 시 복구 정책에 따라 되돌립니다.
+- canonical source/harness manifest와 Node/V8/SQLite/platform/arch identity를 검증합니다. 보관본 누락·추가 repository module과 외부 npm fallback은 거부합니다. 신규 run은 완전한 실행 코드를 자동 보관합니다.
+- trial과 평가 opening family는 outputs/learning/evaluation-ledger.sqlite 한 원장에서 원자 예약합니다. 분기·저장 전 종료도 이미 소비한 번호를 재사용하지 않습니다. 과거 조정되지 않은 시행에 전역 오류 보장을 소급하지 않습니다.
+- 첫 채택은 historical baseline과 같은 현재 소스의 explicit model:null을 모두 넘겨야 합니다. champion이 있으면 baseline+incumbent 비교를 유지합니다.
+- temporal-exposures 원장은 이전 공개 snapshot의 위치/가족 split을 보존합니다. continuation과 새 champion 계보가 이 이력을 상속하고 미래 다른 split 노출은 격리합니다. 과거 고정 snapshot을 바꾸지는 않습니다.
+- 새 연속 실험은 sample-policy=paired-v1, selection-min-delta=0.0001, loss-weight-normalization=global-mean을 사용합니다. 기존 partial과 누락 설정은 legacy입니다. 변경된 objective/설정은 새 실험에서 비교합니다.
+- 공간 검사는 큰 쓰기 전 예상 bytes와 trainer의 남은 예약을 반영합니다. 예상량은 파일 시스템의 모든 최대 사용량을 보증하지 않습니다. 원본/모델/평가와 승인 snapshot은 유지하며, 노출 원장이 완성된 run의 최근 파생 snapshot과 preparation cache만 제한적으로 보관합니다. 공간 중단 이유는 시간 종료로 덮지 않습니다.
+- 모든 착수 ACK 전에는 anchor/state와 intent의 파일 fsync를 수행합니다. Windows directory fsync는 지원되지 않을 수 있어 process crash 복구를 보장 범위로 삼습니다. 실제 전원 장애 내구성은 인증하지 않았습니다.
+- 작은 arena summary에는 cycle/trial/candidate/source/상대/점수/독립가족/통과 문턱을 표시합니다. 큰 원본 arena는 별도 다운로드로 유지합니다.
+
+검증 명령
+  npm test                        제품/학습 Node 회귀 전체
+  npm run test:learning:cpu        numpy+PyTorch가 있는 Python CPU/CUDA 회귀
+  npm run test:learning:ui         Playwright Chromium 또는 OMOK_BROWSER의 실제 HTML/worker/UI
+  node tools/learning/diagnose.cjs --run-dir=outputs/learning/runs/<run> --out=work/diagnose.json
+  node tools/learning/diagnose.cjs --candidate=<model.json> --leaf-profile --out=work/leaf-diagnostics.json
+  npm run learning:plan -- --run-dir=<run> --candidate=<model.json> --out=<new-plan.json>
+  node tools/learning/experiment-plan.cjs --verify-plan=<saved-plan.json>
+GitHub 기본 CI는 CPU PyTorch와 Chromium을 설치하여 세 경로를 실행합니다. CUDA는 수동 workflow_dispatch의 GPU runner에서 별도 실행합니다. 실제 GPU artifact dashboard는 환경에 파일이 있을 때 test/learning-dashboard-artifact.cjs로 읽기 검증합니다.
+
+leaf-profile은 별도의 고정 깊이 Reader 실행에서 실제 static leaf 및 accumulator.score 호출을 측정합니다. timer 자체의 비용이 있으므로 시간제 비교에 섞지 않습니다. 실험 계획은 최소 개선폭과 통계 gate의 조건부 검정력, 두 대조군, 모든 artifact hash, shared trial, 가족 수와 자원 상한을 결과 전에 고정합니다. 계획 파일은 읽기 전용 원장 조회이며 trial 예약이나 기력 결과가 아닙니다. 원장이나 소스가 바뀌면 계획을 거부합니다. bounded-family 독립성과 실제 효과에 관한 가정 아래의 보수적 계산은 합법성/완료 등 다른 gate의 통과 확률이나 실제 기력을 보장하지 않습니다.
+
+학습 loss 개선은 기력 증거가 아닙니다. diagnose의 fixed-work는 Reader의 동일 depth/정적 규칙 비교이며 동일 node 수가 아닙니다. spatial-rel-v1은 별칭을 구별하는 진단용 prototype이고 production trainer/model 형식이 아닙니다. 실제 새로운 representation/수집 actor/최적화 대안의 다중 seed 결과와 사전 고정된 독립 arena 비교가 남아 있습니다. 현재까지 이 수정으로 기력이 개선됐다고 주장하지 않습니다.

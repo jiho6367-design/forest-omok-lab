@@ -1,5 +1,6 @@
 const fs=require('fs'),path=require('path');
 const read=f=>fs.readFileSync(path.join(__dirname,'src',f),'utf8');
+require('./tools/learning/deployment.cjs').recoverDeployment();
 const modelArg=process.argv.find(a=>a.startsWith('--model='));
 const activePath=modelArg?path.resolve(__dirname,modelArg.slice(8)):path.join(__dirname,'src/active-model.json');
 const activeModel=fs.existsSync(activePath)?require('./src/neural-evaluator.js').validate(JSON.parse(fs.readFileSync(activePath,'utf8'))):null;

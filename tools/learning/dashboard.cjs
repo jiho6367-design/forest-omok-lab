@@ -53,7 +53,7 @@ function createDashboard(options={}){
   function describe(id,withDetails=true){
     const run=resolveRun(id),fullState=readJSON(run,'state.json'),progress=readJSON(run,'progress.json'),state=fullState?.unavailable?progress||fullState:progress&&(!fullState||progress.updatedAt>fullState.updatedAt)?{...fullState,...progress}:fullState,summary={id,state,active:active?.id===id||runnerAlive(run),stopRequested:!!checkedFile(run,'stop.flag')};
     summary.settings=readJSON(run,'settings.json');
-    if(withDetails){const model=readJSON(run,'candidate.json'),champion=readJSON(run,'champion.json');summary.continuation=readJSON(run,'continuation.json');summary.training=readJSON(run,'candidate.json.training.json');summary.parity=readJSON(run,'candidate.json.parity.json');summary.arena=readJSON(run,'arena.json');summary.adoption=readJSON(run,'adoption.json');summary.candidate=model?{modelId:model.modelId,kind:model.kind,training:model.training}:null;summary.champion=champion?{modelId:champion.modelId,kind:champion.kind,training:champion.training}:null;
+    if(withDetails){const model=readJSON(run,'candidate.json'),champion=readJSON(run,'champion.json');summary.continuation=readJSON(run,'continuation.json');summary.training=readJSON(run,'candidate.json.training.json');summary.parity=readJSON(run,'candidate.json.parity.json');summary.arena=readJSON(run,'arena.summary.json')||readJSON(run,'arena.json');summary.adoption=readJSON(run,'adoption.json');summary.candidate=model?{modelId:model.modelId,hash:crypto.createHash('sha256').update(JSON.stringify(model)).digest('hex'),kind:model.kind,training:model.training}:null;summary.champion=champion?{modelId:champion.modelId,kind:champion.kind,training:champion.training}:null;
       const logFile=checkedFile(run,'dashboard.log');if(logFile){const size=fs.statSync(logFile).size,fd=fs.openSync(logFile,'r');try{const buffer=Buffer.alloc(Math.min(size,MAX_LOG));fs.readSync(fd,buffer,0,buffer.length,Math.max(0,size-buffer.length));summary.log=buffer.toString('utf8');}finally{fs.closeSync(fd);}}
     }return summary;
   }
@@ -71,7 +71,7 @@ function createDashboard(options={}){
   }
   function launch(id,config,resume,fromRun=null){
     if(activeId())throw fail(409,'진행 중인 실험을 중단한 후 시작해 주세요.');
-    const run=resolveRun(id);let selected={runner,argsPrefix:[],cwd:repo};if(resume&&!options.runner){try{selected=require('./archive.cjs').selectResumeRunner(run,{repo});}catch(error){throw fail(400,error.message);}}
+    require('./deployment.cjs').recoverDeployment({root:repo});const run=resolveRun(id);let selected={runner,argsPrefix:[],cwd:repo};if(resume&&!options.runner){try{selected=require('./archive.cjs').selectResumeRunner(run,{repo});}catch(error){throw fail(400,error.message);}}
     const args=[selected.runner,...(selected.argsPrefix||[]),'cycle','--run='+run,'--python='+python,'--device=cuda'];
     if(resume)args.push('--resume');else{
       if(checkedFile(run,'uploaded-records.json'))args.push('--input='+path.join(run,'uploaded-records.json'));

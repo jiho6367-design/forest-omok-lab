@@ -1,0 +1,53 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),S=require('./state.cjs');
+const reservations=new WeakMap();
+function watchedBytes(context){let total=0;for(const name of ['.train-cache','checkpoints']){const file=path.join(context.dir,name);if(fs.existsSync(file))total+=S.diskBytes(file);}for(const name of fs.readdirSync(context.dir))if(name.startsWith('candidate.json')||name.startsWith('train.')){const file=path.join(context.dir,name);if(fs.statSync(file).isFile())total+=fs.statSync(file).size;}return total;}
+function remainingReservations(context){return (reservations.get(context)||[]).reduce((sum,row)=>sum+Math.max(0,row.bytes-Math.max(0,watchedBytes(context)-row.baseline)),0);}
+function reserveTraining(context,bytes){requireBudget(context,bytes,'trainer-reservation');const row={stage:'trainer',bytes,baseline:watchedBytes(context)},rows=reservations.get(context)||[];rows.push(row);reservations.set(context,rows);context.state.storageReservations=rows.map(({stage,bytes})=>({stage,bytes}));S.save(context);return ()=>{reservations.set(context,rows.filter(value=>value!==row));context.state.storageReservations=(reservations.get(context)||[]).map(({stage,bytes})=>({stage,bytes}));S.save(context);};}
+function checkBudget(context,reserveBytes=0,stage='write'){
+ if(!Number.isFinite(reserveBytes)||reserveBytes<0)throw Error('Invalid storage reservation');
+ const used=S.diskBytes(context.dir),limit=context.settings.maxDiskBytes??Infinity;let available=Infinity;try{const v=fs.statfsSync(context.dir);available=v.bavail*v.bsize;}catch(error){if(error.code!=='ENOSYS')throw error;}
+ const heldBytes=remainingReservations(context);
+ context.state.disk={usedBytes:used,reservedBytes:Math.ceil(reserveBytes),heldBytes,limitBytes:limit,availableBytes:available,stage,checkedAt:new Date().toISOString()};
+ if(used+heldBytes+reserveBytes>limit||heldBytes+reserveBytes>available){const message='저장 공간 예산으로 중단했습니다 ('+stage+'). 사용 '+used+' bytes, 병렬 작업 예약 '+heldBytes+' bytes, 다음 저장 예약 '+Math.ceil(reserveBytes)+' bytes, 한도 '+limit+' bytes. 원본 자료를 보존했습니다.';context.state.stopReason={kind:'disk-budget',stage,message,...context.state.disk};context.state.message=message;S.save(context);return false;}return true;
+}
+function requireBudget(context,reserveBytes,stage){if(!checkBudget(context,reserveBytes,stage))throw Object.assign(Error(context.state.stopReason.message),{code:'DISK_BUDGET'});}
+function verifyExposureSeal(context){
+ const marker=S.read(path.join(context.dir,'temporal-exposures-ready.json'));if(!marker)return false;const registry=path.join(context.dir,'temporal-exposures.jsonl'),actual=fs.existsSync(registry)?S.fileHash(registry):null;
+ if(marker.schemaVersion!==1||marker.rulesId!==S.RULES_ID||marker.featureVersion!==S.FEATURE_VERSION||marker.sha256!==actual)throw Error('Retention requires a valid immutable temporal exposure registry seal; source derivatives preserved');return actual!==null;
+}
+function cacheNames(context,sha256){const dir=path.join(context.dir,'.train-cache');return fs.existsSync(dir)?fs.readdirSync(dir).filter(name=>/^[a-f0-9]{24}-p\d+$/.test(name)&&name.startsWith(sha256.slice(0,24)+'-p')):[];}
+function checkedCache(context,name){if(!/^[a-f0-9]{24}-p\d+$/.test(name))throw Error('Invalid retained cache name');const root=path.join(context.dir,'.train-cache'),file=path.resolve(root,name);if(path.dirname(file)!==root)throw Error('Retention cache left run storage');if(fs.existsSync(file)){const rel=path.relative(fs.realpathSync(root),fs.realpathSync(file));if(rel===''||rel==='..'||rel.startsWith('..'+path.sep)||path.isAbsolute(rel))throw Error('Prepared cache left run');}return file;}
+function manifestIdentity(manifest,dataName){if(!manifest||manifest.rulesId!==S.RULES_ID||manifest.featureVersion!==S.FEATURE_VERSION||!/^[a-f0-9]{64}$/.test(manifest.sha256||'')||manifest.file!==dataName)throw Error('Retention snapshot manifest identity changed; preserve derivatives');}
+function prepareRetention(context,file,prior=null){
+ const manifestName=path.basename(file),match=/^cycle-(\d+)\.jsonl\.manifest\.json$/.exec(manifestName);if(!match)throw Error('Invalid retention manifest name');const dataName=manifestName.slice(0,-14),manifest=prior?.manifest||S.read(file);manifestIdentity(manifest,dataName);
+ if(fs.existsSync(file)&&S.hash(S.read(file))!==S.hash(manifest))throw Error('Retained snapshot manifest changed');
+ const data=path.join(path.dirname(file),dataName),family=data+'.families.jsonl';if(fs.existsSync(data)&&S.fileHash(data)!==manifest.sha256)throw Error('Retention snapshot data changed; preserve derivatives');
+ if(fs.existsSync(family)&&(!manifest.familyManifest||manifest.familyManifest.file!==path.basename(family)||S.fileHash(family)!==manifest.familyManifest.sha256))throw Error('Retention family manifest changed or has no immutable hash; preserve derivatives');
+ const artifacts=[{name:dataName,sha256:manifest.sha256,bytes:fs.existsSync(data)?fs.statSync(data).size:0},{name:path.basename(family),sha256:manifest.familyManifest?.sha256||null,bytes:fs.existsSync(family)?fs.statSync(family).size:0},{name:manifestName,sha256:fs.existsSync(file)?S.fileHash(file):null,bytes:fs.existsSync(file)?fs.statSync(file).size:0}],caches=cacheNames(context,manifest.sha256);for(const name of caches)checkedCache(context,name);
+ return {...prior,schemaVersion:2,status:'prepared',transactionId:S.hash([manifestName,manifest.sha256]),cycle:Number(match[1]),manifest,artifacts,caches,prunedAt:prior?.prunedAt||new Date().toISOString(),reason:'bounded derived retention; raw source and immutable manifest preserved'};
+}
+function completeRetention(context,retainedFile,intent,onPrune,protectedCacheHashes){
+ const dir=path.join(context.dir,'datasets'),expected='cycle-'+intent.cycle+'.jsonl';manifestIdentity(intent.manifest,expected);
+ if(intent.schemaVersion!==2||intent.status!=='prepared'||path.basename(retainedFile)!==expected+'.manifest.json.retained.json'||intent.transactionId!==S.hash([expected+'.manifest.json',intent.manifest.sha256])||!Array.isArray(intent.artifacts)||intent.artifacts.length!==3||!Array.isArray(intent.caches))throw Error('Invalid retained snapshot cleanup intent');
+ const expectedNames=[expected,expected+'.families.jsonl',expected+'.manifest.json'];
+ for(const [n,row] of intent.artifacts.entries()){if(row.name!==expectedNames[n]||row.sha256!==null&&!/^[a-f0-9]{64}$/.test(row.sha256||''))throw Error('Invalid retained snapshot artifact identity');const file=path.resolve(dir,row.name);if(path.dirname(file)!==dir)throw Error('Retention target left datasets');if(fs.existsSync(file)&&(!row.sha256||S.fileHash(file)!==row.sha256))throw Error('Retained snapshot artifact changed; preserve it for investigation');}
+ for(const name of intent.caches){if(!name.startsWith(intent.manifest.sha256.slice(0,24)+'-p'))throw Error('Retained cache belongs to another dataset');checkedCache(context,name);}
+ const removed=[];
+ for(const [n,row] of intent.artifacts.entries()){const file=path.join(dir,row.name);if(fs.existsSync(file)){removed.push({file:row.name,bytes:fs.statSync(file).size});fs.unlinkSync(file);S.syncDirectory(dir);}onPrune(['data','families','manifest'][n],intent.cycle,n);}
+ intent.retainedCaches=[];for(const [n,name] of intent.caches.entries()){const file=checkedCache(context,name);if(protectedCacheHashes.has(intent.manifest.sha256))intent.retainedCaches.push(name);else if(fs.existsSync(file)){removed.push({file:'.train-cache/'+name,bytes:S.diskBytes(file)});fs.rmSync(file,{recursive:true});S.syncDirectory(path.dirname(file));}onPrune('cache',intent.cycle,n);}
+ intent.status='completed';intent.completedAt=new Date().toISOString();S.atomic(retainedFile,intent);onPrune('completed',intent.cycle,0);S.append(path.join(context.dir,'retention.jsonl'),{at:intent.completedAt,transactionId:intent.transactionId,cycle:intent.cycle,artifacts:intent.artifacts,caches:intent.caches,scope:'Idempotent cleanup; bytes already removed before a crash are represented by immutable retained metadata'});return removed;
+}
+function pruneDerived(context,{onPrune=()=>{}}={}){
+ if(!verifyExposureSeal(context))return [];const keep=context.settings.maxDerivedCycles??3,dir=path.join(context.dir,'datasets');if(!fs.existsSync(dir))return [];
+ const protectedCycles=new Set([context.state.cycle]);for(const adoption of context.state.adoptions||[])if(adoption.adopted)protectedCycles.add(adoption.cycle);const champion=S.read(path.join(context.dir,'champion.json')),modelDatasets=new Set([champion?.training?.datasetHash]),models=path.join(context.dir,'models');if(fs.existsSync(models))for(const name of fs.readdirSync(models).filter(n=>n.endsWith('.json'))){const model=S.read(path.join(models,name));if(model?.adoption?.accepted)modelDatasets.add(model.training?.datasetHash);}
+ const manifests=fs.readdirSync(dir).filter(name=>/^cycle-\d+\.jsonl\.manifest\.json$/.test(name)).map(name=>({file:path.join(dir,name),cycle:Number(name.match(/cycle-(\d+)/)[1])})).sort((a,b)=>b.cycle-a.cycle);for(const row of manifests.slice(0,keep))protectedCycles.add(row.cycle);
+ const protectedCacheHashes=new Set(modelDatasets);for(const row of manifests)if(protectedCycles.has(row.cycle))protectedCacheHashes.add(S.read(row.file).sha256);
+ const removed=[];for(const name of fs.readdirSync(dir).filter(name=>/^cycle-\d+\.jsonl\.manifest\.json\.retained\.json$/.test(name))){
+  const retainedFile=path.join(dir,name),prior=S.read(retainedFile);if(prior.schemaVersion===2&&prior.status==='completed')continue;const cycle=Number(name.match(/cycle-(\d+)/)[1]);if(protectedCycles.has(cycle)||modelDatasets.has(prior.manifest?.sha256))throw Error('Pending retention cleanup became protected; preserve it for investigation');
+  const intent=prior.schemaVersion===2?prior:prepareRetention(context,retainedFile.slice(0,-14),prior);if(prior.schemaVersion!==2)S.atomic(retainedFile,intent);removed.push(...completeRetention(context,retainedFile,intent,onPrune,protectedCacheHashes));
+ }
+ for(const row of manifests){if(protectedCycles.has(row.cycle)||!fs.existsSync(row.file))continue;const manifest=S.read(row.file);if(modelDatasets.has(manifest.sha256))continue;const retainedFile=row.file+'.retained.json';if(fs.existsSync(retainedFile))continue;const intent=prepareRetention(context,row.file);S.atomic(retainedFile,intent);onPrune('prepared',row.cycle,0);removed.push(...completeRetention(context,retainedFile,intent,onPrune,protectedCacheHashes));}
+ return removed;
+}
+module.exports={checkBudget,requireBudget,reserveTraining,remainingReservations,pruneDerived};

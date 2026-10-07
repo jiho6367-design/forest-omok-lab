@@ -14,7 +14,12 @@ function eventsFromText(text,firstPlayer){
 function familyFor(events,first){const E=positionEngine||(positionEngine=createEngine({strategy:false,model:null}));let best=null;for(let t=0;t<8;t++){const encoded=events.map(e=>(e.p===first?1:2)+':'+(e.type==='timeout'?'PASS':E.transformed(e.i,t))).join(',');if(best===null||encoded<best)best=encoded;}return 'record-'+hash(best).slice(0,24);}
 let positionEngine;
 function positionKey(board,p,firstPlayer){const E=positionEngine||(positionEngine=createEngine({strategy:false,model:null}));return hash(RULES_ID+'|'+E.canonical(board,p).key+'|'+(firstPlayer==null?'unknown':firstPlayer===p?'first':'second'));}
+function recordDigest(record){return hash({rulesId:record.rulesId||RULES_ID,first:record.first,events:record.events.map(e=>({type:e.type,p:e.p,i:e.i}))});}
+function assertRecordIds(records){
+ const ids=new Map();for(const record of records){if(typeof record.id!=='string'||!record.id)throw Error('Record ID must be a nonempty string');const digest=recordDigest(record),known=ids.get(record.id);if(known&&known!==digest)throw Error('Conflicting record ID '+record.id+': different played events; use a distinct ID');ids.set(record.id,digest);}return records;
+}
 function groupFamilies(records,prior=[]){
+ assertRecordIds([...prior,...records]);
  const roots=records.map((_,i)=>i),find=i=>roots[i]===i?i:(roots[i]=find(roots[i])),join=(a,b)=>{a=find(a);b=find(b);if(a!==b)roots[b]=a;};
  const stems=records.map(r=>familyFor(r.events.slice(0,4),r.first)),prefix=(a,b)=>{if(a.events.length>b.events.length)[a,b]=[b,a];return a.events.length>=4&&familyFor(a.events,a.first)===familyFor(b.events.slice(0,a.events.length),b.first);};
  for(let a=0;a<records.length;a++)for(let b=a+1;b<records.length;b++)if(stems[a]===stems[b]||records[a].id===records[b].id||prefix(records[a],records[b]))join(a,b);
@@ -31,14 +36,14 @@ function normalizeRecords(payload,options={}){
  if(typeof payload==='string'){const trim=payload.trim();if(trim[0]==='{'||trim[0]==='['){try{return normalizeRecords(JSON.parse(trim),options);}catch(e){if(e instanceof SyntaxError)throw Error('Invalid JSON record: '+e.message);throw e;}}payload={...eventsFromText(payload,options.firstPlayer),source:options.source||'text import'};}
  if(payload?.version===1&&Array.isArray(payload.games))payload=payload.games;
  if(!Array.isArray(payload))payload=[payload];
- return payload.map((game,n)=>{
+ return assertRecordIds(payload.map((game,n)=>{
   if(typeof game==='string'||Array.isArray(game))game=typeof game==='string'?eventsFromText(game,options.firstPlayer):{first:options.firstPlayer,events:game.map(c=>({coord:c}))};
   if(!game||typeof game!=='object')throw Error('Invalid game '+(n+1));
   const raw=game.events||game.moves;if(!Array.isArray(raw)||!raw.length)throw Error('Game '+(n+1)+' has no moves');if(raw.length>3000)throw Error('Game record exceeds 3000 turns');
   const first=game.first??game.firstPlayer??options.firstPlayer??raw[0]?.p;if(![1,2].includes(first))throw Error('Game '+(n+1)+': first player (1 or 2) required');
   let p=first;const events=raw.map((v,k)=>{if(typeof v==='string')v=/^PASS/i.test(v)?{type:'timeout'}:{coord:v};const q=v.p??p;if(q!==p)throw Error('Game '+(n+1)+' move '+(k+1)+': wrong player');const pass=v.type==='timeout'||v.type==='pass'||v.coord==='PASS';const out={type:pass?'timeout':'move',p:q,i:pass?null:index(v.i??v.coord)};p=3-p;return out;});
   const contentId=familyFor(events,first),familyId='family-'+hash(familyFor(events.slice(0,4),first)).slice(0,24),record={schemaVersion:1,rulesId:RULES_ID,id:game.id||'import-'+hash(events).slice(0,20),contentId,first,me:[1,2].includes(game.me)?game.me:null,source:game.source||options.source||'import',events,familyId,reportedResult:game.result||null};record.split=game.split||splitFor(record.familyId,options.seed);if(!['train','validation','test'].includes(record.split))throw Error('Invalid data split');replay(record);return record;
- });
+ }));
 }
 function replay(record,options={}){
  const E=options.engine||createEngine({firstPlayer:record.first,strategy:false}),board=blank(),positions=[];let p=record.first,winner=null,full=false;
@@ -63,4 +68,4 @@ function bootstrap(options={}){
  for(const name of fs.readdirSync(path.join(ROOT,'reports')).filter(x=>x.endsWith('-loss-certificate.json'))){const file=path.join(ROOT,'reports',name),r=JSON.parse(fs.readFileSync(file,'utf8'));if(typeof r.prefix==='string')add({id:'certificate-prefix-'+name,first:r.firstPlayer||1,moves:r.prefix.split(' ')},'reports/'+name+' legacy black-first prefix; certificate remains unverified teacher evidence');}
  const grouped=groupFamilies(records);return {records:grouped.records,familyGroups:grouped.groups,evidence,errors,scope:'Existing source records and report prefixes replayed with the authoritative current house rules. Claims in annotations/certificates never become ground truth.'};
 }
-module.exports={blank,coord,index,eventsFromText,familyFor,positionKey,groupFamilies,splitFor,normalizeRecords,replay,outcome,legalMoves,opening,bootstrap};
+module.exports={blank,coord,index,eventsFromText,familyFor,positionKey,recordDigest,assertRecordIds,groupFamilies,splitFor,normalizeRecords,replay,outcome,legalMoves,opening,bootstrap};

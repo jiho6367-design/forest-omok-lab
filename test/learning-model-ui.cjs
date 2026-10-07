@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto'),{pathToFileURL}=require('node:url');
-const {chromium}=require(process.env.OMOK_PLAYWRIGHT||'C:/Users/jiho/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.env.OMOK_MODEL_UI_HTML||path.join(root,'work/local-learning-20261007/staged/omok.html'));
+const {chromium}=require(process.env.OMOK_PLAYWRIGHT||(process.platform==='win32'?'C:/Users/jiho/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright':'playwright'));
+const root=path.resolve(__dirname,'..'),html=path.resolve(process.env.OMOK_MODEL_UI_HTML||path.join(root,'outputs/omok.html'));
 const out=path.resolve(process.env.OMOK_MODEL_UI_OUT||path.join(root,'work/local-learning-20261007')),temporary=fs.mkdtempSync(path.join(os.tmpdir(),'omok-model-ui-')),report={kind:'actual-html-native-workers-synthetic-model-only',html,htmlHash:crypto.createHash('sha256').update(fs.readFileSync(html)).digest('hex'),steps:[],status:'running'};
 fs.mkdirSync(out,{recursive:true});let browser,page;
 const fixtureModel=id=>({schemaVersion:1,kind:'forest-value-mlp',rulesId:'15x15-exact5-both33-v1',featureVersion:'house32-v1',inputSize:32,hiddenSize:2,activation:'relu',outputActivation:'tanh',modelId:id,scale:80,normalization:{mean:Array(32).fill(0),scale:Array(32).fill(1)},layers:[{weights:[Array.from({length:32},(_,i)=>i===0?.003:i===1?.01:0),Array.from({length:32},(_,i)=>i===12?.002:i===13?.006:0)],bias:[0,0]},{weights:[[.5,-.25]],bias:[0]}],adoption:{accepted:true,kind:'synthetic-ui-test-certificate',validationHash:'synthetic-fixture-no-strength-evidence',sourceHash:'synthetic-ui-test-only'}});
@@ -12,7 +12,7 @@ function save(){fs.writeFileSync(path.join(out,'model-ui.json'),JSON.stringify(r
 async function finished(expected){await page.waitForFunction(version=>rec?.modelVersion===version&&!worker,expected,{timeout:20000});return page.evaluate(()=>({model:E.getModelInfo(),result:rec,cache:spawnAnalysis.memory?{key:spawnAnalysis.memory.key,...spawnAnalysis.memory.store.stats()}:null,inputs:__modelWorkerTrace.filter(t=>t.type==='input'),outputs:__modelWorkerTrace.filter(t=>t.type==='output')}));}
 async function importModel(file,expectedId){await page.locator('#learningModelFile').setInputFiles(file);await page.waitForFunction(id=>E.getModel()?.modelId===id,expectedId);const version=await page.evaluate(()=>E.getModelInfo().modelVersion);return finished(version);}
 (async()=>{
-  browser=await chromium.launch({executablePath:process.env.OMOK_BROWSER||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});page=await browser.newPage({viewport:{width:1280,height:980}});page.setDefaultTimeout(20000);const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  browser=await chromium.launch({executablePath:process.env.OMOK_BROWSER||(process.platform==='win32'?'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe':undefined),headless:true});page=await browser.newPage({viewport:{width:1280,height:980}});page.setDefaultTimeout(20000);const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>{
     localStorage.setItem('omok-compute-mode','optimized');localStorage.setItem('omok-analysis-settings',JSON.stringify({version:1,mode:'fast',manualMs:1000}));
     globalThis.__modelWorkerTrace=[];const originalPost=Worker.prototype.postMessage;

@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path');
 const {Worker,isMainThread,parentPort,workerData}=require('node:worker_threads');
 const {ROOT,RULES_ID,FEATURE_VERSION,hash,append,read,rng,save,stopped,baselineFactory,atomic}=require('./state.cjs');
-const {replay,legalMoves,opening,splitFor,coord,positionKey,familyFor}=require('./replay.cjs');
+const {replay,legalMoves,opening,splitFor,coord,positionKey,familyFor,assertRecordIds,recordDigest}=require('./replay.cjs');
 const M=require('./metrics.cjs');
 const currentFactory=options=>require('../../src/node-engine.cjs')(options);
 function neural(){return require('../../src/neural-evaluator.js');}
@@ -13,19 +13,21 @@ function sample(context,{id,familyId,split,board,p,firstPlayer,target,weight=1,l
  return {schemaVersion:1,sampleId:id,rulesId:RULES_ID,featureVersion:FEATURE_VERSION,familyId,split,positionKey:M.measure(context,'samples.position_key_ms',()=>positionKey(board,p,firstPlayer)),features:M.measure(context,'samples.features_ms',()=>features(board,p,firstPlayer)),target,weight,labelType,position:{board,p,firstPlayer},source};
 }
 function rowsForGame(context,game){
- if(!game.completed)return [];const checked=M.measure(context,'completion.rows_replay_ms',()=>verifyGame(game));return M.measure(context,'completion.rows_materialize_ms',()=>(game.samples||[]).map(item=>{const pos=checked.positions[item.ply];if(!pos||pos.p!==item.p||!Array.isArray(item.board)||item.board.length!==225||pos.board.some((stone,i)=>stone!==item.board[i]))throw Error('Stored sample does not match played position in '+game.id+' ply '+item.ply);return sample(context,{id:game.id+':'+item.ply,familyId:game.familyId,split:game.split,board:item.board,p:item.p,firstPlayer:game.firstPlayer,target:game.winner===0?0:game.winner===item.p?1:-1,source:{gameId:game.id,ply:item.ply,branch:game.branch,seed:game.seed,modelVersion:game.modelVersion,lessonHash:game.lessonHash,kind:'actual-played-terminal'}});}));
+ if(!game.completed)return [];const checked=M.measure(context,'completion.rows_replay_ms',()=>verifyGame(game));return M.measure(context,'completion.rows_materialize_ms',()=>(game.samples||[]).map(item=>{const pos=checked.positions[item.ply];if(!pos||pos.p!==item.p||!Array.isArray(item.board)||item.board.length!==225||pos.board.some((stone,i)=>stone!==item.board[i]))throw Error('Stored sample does not match played position in '+game.id+' ply '+item.ply);return sample(context,{id:game.id+':'+item.ply,familyId:game.familyId,split:game.split,board:item.board,p:item.p,firstPlayer:game.firstPlayer,target:game.winner===0?0:game.winner===item.p?1:-1,source:{gameId:game.id,ply:item.ply,branch:game.branch,seed:game.seed,modelVersion:game.modelVersion,lessonHash:game.lessonHash,samplingPolicy:game.samplePolicy||'legacy',sampleEvery:game.sampleEvery??context.settings.sampleEvery,kind:'actual-played-terminal'}});}));
 }
 function sampleGame(context,game){const rows=rowsForGame(context,game);for(const row of rows)append(path.join(context.dir,'dataset.jsonl'),row);return rows.length;}
 function importedSamples(context,records){
- const journal=require('./journal.cjs'),seen=new Set(context.state.importedSampleGames||[]);for(const record of records){if(seen.has(record.id))continue;const r=replay(record),rows=[];if(r.completed){for(const pos of r.positions){if(pos.type!=='move')continue;rows.push(sample(context,{id:'record:'+record.id+':'+pos.ply,familyId:record.familyId,split:record.split,board:pos.board,p:pos.p,firstPlayer:record.first,target:r.draw?0:r.winner===pos.p?1:-1,source:{gameId:record.id,ply:pos.ply,kind:'record-terminal',labelMeaning:'position outcome; does not classify the played move as bad'}}));}}const appended=journal.appendRows(context.dir,'dataset.jsonl',rows,'sampleId');M.count(context,'generation.imported_rows',appended);seen.add(record.id);context.state.importedSampleGames=[...seen];journal.counters(context);save(context);}journal.counters(context);
+ const existing=read(path.join(context.dir,'records.json'),[]);assertRecordIds([...existing,...records]);const digests={...(context.state.importedRecordDigests||{})},seenIds=new Set(context.state.importedSampleGames||[]);for(const record of [...existing,...records]){const digest=recordDigest(record);if(digests[record.id]&&digests[record.id]!==digest)throw Error('Conflicting record ID '+record.id+': imported content changed');if(seenIds.has(record.id)||records.includes(record))digests[record.id]=digest;}context.state.importedRecordDigests=digests;
+ const journal=require('./journal.cjs'),seen=new Set(context.state.importedSampleGames||[]);for(const record of records){if(seen.has(record.id))continue;const r=replay(record),rows=[];if(r.completed){for(const pos of r.positions){if(pos.type!=='move')continue;rows.push(sample(context,{id:'record:'+record.id+':'+pos.ply,familyId:record.familyId,split:record.split,board:pos.board,p:pos.p,firstPlayer:record.first,target:r.draw?0:r.winner===pos.p?1:-1,source:{gameId:record.id,ply:pos.ply,kind:'record-terminal',labelMeaning:'position outcome; does not classify the played move as bad'}}));}}const appended=journal.appendRows(context.dir,'dataset.jsonl',rows,'sampleId',context);M.count(context,'generation.imported_rows',appended);seen.add(record.id);context.state.importedSampleGames=[...seen];journal.counters(context);save(context);}journal.counters(context);
 }
 function finishAnalysis(context,intent){
- if(intent.baselineCommit!==context.state.baselineCommit||intent.runId!==context.state.runId||intent.row.rulesId!==RULES_ID||intent.sample&&intent.sample.featureVersion!==FEATURE_VERSION)throw Error('Analysis intent has incompatible run/rules/features');const journal=require('./journal.cjs');journal.appendRows(context.dir,'analysis.jsonl',[intent.row],'id');if(intent.sample)journal.appendRows(context.dir,'dataset.jsonl',[intent.sample],'sampleId');
+ if(intent.baselineCommit!==context.state.baselineCommit||intent.runId!==context.state.runId||intent.row.rulesId!==RULES_ID||intent.sample&&intent.sample.featureVersion!==FEATURE_VERSION)throw Error('Analysis intent has incompatible run/rules/features');const journal=require('./journal.cjs');journal.appendRows(context.dir,'analysis.jsonl',[intent.row],'id',context);if(intent.sample)journal.appendRows(context.dir,'dataset.jsonl',[intent.sample],'sampleId',context);
  const done=new Set(context.state.analysisDone||[]);done.add(intent.id);context.state.analysisDone=[...done];context.state.counters.analyzedPositions=done.size;context.state.progress=intent.progress;journal.counters(context);save(context);
  const file=path.join(context.dir,'analysis-intent.json');if(fs.existsSync(file))fs.unlinkSync(file);
 }
 async function analyzeRecords(context,{deadline=Infinity}={}){
  const pending=read(path.join(context.dir,'analysis-intent.json'));if(pending)finishAnalysis(context,pending);
+ if(!require('./storage.cjs').checkBudget(context,65536,'analyze-records'))return false;
  const records=read(path.join(context.dir,'records.json'),[]),base=baselineFactory(context.state.baselineCommit),jobs=[];
  for(const record of records){const r=replay(record);for(const pos of r.positions)if(pos.type==='move')jobs.push({record,...pos});}
  importedSamples(context,records);
@@ -45,7 +47,7 @@ function makeGame(context,index,records){
  const fraction=context.settings.recordBranchFraction;if(fraction!=null&&(!Number.isFinite(fraction)||fraction<0||fraction>1))throw Error('recordBranchFraction must be between 0 and 1');
  if(train.length&&(fraction==null?index%3!==2:random.next()<fraction)){const record=train[Math.floor(random.next()*train.length)],r=replay(record),available=r.positions.filter(pos=>pos.type==='move'&&pos.ply<record.events.length-2),pos=available[Math.floor(random.next()*available.length)]||r.positions[0];start={board:pos.board.slice(),p:pos.p,firstPlayer:record.first,events:record.events.slice(0,pos.ply),familyId:record.familyId,split:'train'};branch={sourceGame:record.id,prefix:pos.ply,actual:pos.actual};}
  else{start=opening(seed,4+index%3,seed%2?1:2);start.familyId='family-'+hash(familyFor(start.events.slice(0,4),start.firstPlayer)).slice(0,24);start.split=context.state.familySplits?.[start.familyId]||(context.state.sourceFamilyIndex?require('./corpus.cjs').familySplit(context,start.familyId):null)||splitFor(start.familyId,context.settings.seed);branch={sourceGame:null,prefix:start.events.length};}
- const model=modelFor(context),lessons=lessonsFor(context);return {id:'game-'+index,index,seed,rng:random.state,board:start.board,p:start.p,firstPlayer:start.firstPlayer,opening:start.events,events:[],familyId:start.familyId,split:start.split,branch,model,modelVersion:model?.modelId||'untrained-current',lessons,lessonHash:hash(lessons),rulesId:RULES_ID,samples:[],completed:false,winner:null,elapsedMs:0};
+ const model=modelFor(context),lessons=lessonsFor(context);return {id:'game-'+index,index,seed,rng:random.state,board:start.board,p:start.p,firstPlayer:start.firstPlayer,opening:start.events,events:[],familyId:start.familyId,split:start.split,branch,model,modelVersion:model?.modelId||'untrained-current',lessons,lessonHash:hash(lessons),rulesId:RULES_ID,samplePolicy:context.settings.samplePolicy||'legacy',sampleEvery:context.settings.sampleEvery,samples:[],completed:false,winner:null,elapsedMs:0};
 }
 function choose(E,game,settings,random){
  const before=performance.now(),r=E.analyze(game.board,game.p,settings.moveMs,game.lessons||[]),shapes=new Map();
@@ -63,6 +65,15 @@ function verifyGame(game){
  return checked;
 }
 function cancelled(cancelBuffer){return !!cancelBuffer&&Atomics.load(new Int32Array(cancelBuffer),0)!==0;}
+function shouldSample(game,settings){
+ const ply=game.events.length,policy=game.samplePolicy||'legacy',every=game.sampleEvery??settings.sampleEvery;
+ if(policy==='legacy')return ply%every===0||ply<3;
+ if(policy!=='paired-v1')throw Error('Unknown samplePolicy '+policy);
+ // A contiguous pair per even-sized block covers both turns without consuming
+ // gameplay RNG. A saved game's policy stays fixed across stop/resume.
+ const width=2*every,block=Math.floor(ply/width),pairs=width/2,offset=(parseInt(hash([game.seed,block,'paired-v1']).slice(0,8),16)%pairs)*2;
+ return ply<3||ply%width===offset||ply%width===offset+1;
+}
 async function play(context,game,{deadline=Infinity,onMove=()=>{},cancelBuffer}={}){
  const model=game.model??null,E=currentFactory({firstPlayer:game.firstPlayer,optimized:true,model}),random=rng(game.rng);if((model?.modelId||'untrained-current')!==game.modelVersion)throw Error('Cannot resume a partial game with a different model');
  const checked=M.measure(context,'play.start_replay_ms',()=>verifyGame(game));let empty=game.board.filter(x=>!x).length;if(checked.completed){game.completed=true;game.winner=checked.draw?0:checked.winner;game.reason=checked.draw?'full-board':'played-exact-five';}
@@ -71,7 +82,7 @@ async function play(context,game,{deadline=Infinity,onMove=()=>{},cancelBuffer}=
   if(cancelled(cancelBuffer)){game.reason='pipeline-yield';break;}
   if(game.events.length>=context.settings.maxPlies){game.reason='ply-limit';break;}
   const choice=M.measure(context,'play.choose_ms',()=>choose(E,game,context.settings,random));game.elapsedMs+=choice.ms;M.add(context,'play.nodes',choice.r?.nodes||0);M.add(context,'play.depth',choice.r?.depth||0);if(choice.i==null){game.reason=choice.reason;break;}
-  if(game.events.length%context.settings.sampleEvery===0||game.events.length<3)game.samples.push({board:game.board.slice(),p:game.p,ply:game.opening.length+game.events.length});
+  if(shouldSample(game,context.settings))game.samples.push({board:game.board.slice(),p:game.p,ply:game.opening.length+game.events.length});
   const shape=choice.shape;game.events.push({type:'move',p:game.p,i:choice.i,depth:choice.r.depth,nodes:choice.r.nodes,elapsedMs:choice.ms});game.board[choice.i]=game.p;game.p=3-game.p;game.rng=random.state;empty--;
   if(shape.win.length){game.completed=true;game.winner=3-game.p;game.reason='played-exact-five';}else if(!empty){game.completed=true;game.winner=0;game.reason='full-board';}
   await M.measureAsync(context,'play.progress_wait_ms',()=>onMove(game));await new Promise(resolve=>setImmediate(resolve));
@@ -89,6 +100,7 @@ function finishGenerationMetrics(context,scope){if(!scope.owned)return;const aft
 async function generate(context,{deadline=Infinity,target=context.settings.games,cancelBuffer}={}){
  const metricsScope=startGenerationMetrics(context);try{
  require('./journal.cjs').recoverGames(context);
+ if(!require('./storage.cjs').checkBudget(context,65536,'generate'))return false;
  if(context.settings.workers>1)return await generateParallel(context,{deadline,target,cancelBuffer,recovered:true});
  const records=read(path.join(context.dir,'records.json'),[]);importedSamples(context,records);const next=generationQueue(context,records,target,deadline,cancelBuffer);
  for(;;){const game=next();if(!game)return context.state.counters.generatedGames>=target;
@@ -112,6 +124,7 @@ function createWorkerPool(size,{metricsContext=null}={}){
 async function generateParallel(context,{deadline=Infinity,target=context.settings.games,recovered=false,cancelBuffer}={}){
  const metricsScope=startGenerationMetrics(context);try{
  if(!recovered)require('./journal.cjs').recoverGames(context);
+ if(!require('./storage.cjs').checkBudget(context,65536,'generate-parallel'))return false;
  const records=read(path.join(context.dir,'records.json'),[]);importedSamples(context,records);const next=generationQueue(context,records,target,deadline,cancelBuffer),pool=createWorkerPool(context.settings.workers,{metricsContext:context});let incomplete=false;
  const work=async lane=>{for(;;){const game=M.measure(context,'main.assignment_ms',()=>next());if(!game)return;const result=await lane.run({dir:context.dir,settings:context.settings,game,deadline,cancelBuffer},g=>progress(context,g,target));context.state.activeGames[game.id]=result;
   if(!result.completed&&['time-limit','user-stop','pipeline-yield'].includes(result.reason)){incomplete=true;save(context);return;}
@@ -134,4 +147,4 @@ if(!isMainThread&&workerData?.learningPool){
   })}).then(game=>{busy=false;idleSince=M.now();const metrics=M.finish(context,{}, {persist:false});parentPort.postMessage({taskId,result:game,metrics});}).catch(error=>{busy=false;acknowledgement=null;M.finish(context,{}, {persist:false});parentPort.postMessage({taskId,error:error.stack||error.message});});
  });
 }
-module.exports={features,modelFor,lessonsFor,sample,rowsForGame,sampleGame,importedSamples,finishAnalysis,analyzeRecords,makeGame,choose,verifyGame,play,createWorkerPool,generate,generateParallel};
+module.exports={features,modelFor,lessonsFor,sample,rowsForGame,sampleGame,importedSamples,finishAnalysis,analyzeRecords,makeGame,choose,verifyGame,shouldSample,play,createWorkerPool,generate,generateParallel};

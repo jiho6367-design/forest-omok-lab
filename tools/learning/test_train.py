@@ -1,5 +1,6 @@
 """Trainer contract checks, including real CUDA resume when CUDA is available."""
 import importlib.util
+import itertools
 import json
 from pathlib import Path
 import tempfile
@@ -77,6 +78,41 @@ class DataContract(unittest.TestCase):
             self.assertEqual(manifest["counts"]["train"], 1)
             self.assertEqual(manifest["duplicatesIgnored"], 1)
             self.assertEqual(manifest["labelTypes"]["train"]["teacher"], 1)
+
+    def test_duplicate_id_checks_schema_split_and_semantic_contents(self):
+        original = sample("same", "train-family", "train", 1)
+        changes = ({"featureVersion": "wrong"}, {"schemaVersion": 2}, {"rulesId": "wrong"},
+                   {"split": "validation", "familyId": "validation-family"},
+                   {"target": -1}, {"features": [2] * 32}, {"weight": 0.15},
+                   {"labelType": "teacher"}, {"positionKey": "different-position"},
+                   {"familyId": "different-train-family"}, {"features": "invalid"})
+        for change in changes:
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as temporary:
+                with self.assertRaises(ValueError):
+                    self.prepare([original, {**original, **change}], temporary)
+
+    def test_duplicate_identity_ignores_provenance_and_normalizes_numeric_defaults(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            original = sample("same", "family", "train", 1)
+            repeat = {**original, "features": [1.0] * 32, "target": 1.0, "source": {"note": "reimport"}}
+            repeat.pop("weight")
+            repeat.pop("labelType")
+            manifest = self.prepare([original, repeat], temporary)
+            self.assertEqual(manifest["counts"]["train"], 1)
+            self.assertEqual(manifest["duplicatesIgnored"], 1)
+
+    def test_test_duplicate_hashes_opaque_contents_without_mapping_them(self):
+        final = sample("opaque-test", "test-family", "test", 1)
+        final["features"], final["target"] = "never interpreted", {"opaque": "never trained"}
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest = self.prepare([sample("train", "train", "train", 1), final, final], temporary)
+            self.assertEqual(manifest["counts"]["test"], 1)
+            self.assertEqual(manifest["duplicatesIgnored"], 1)
+            self.assertFalse((Path(manifest["folder"]) / "test.f32").exists())
+        with tempfile.TemporaryDirectory() as temporary:
+            with self.assertRaisesRegex(ValueError, "Conflicting content for sampleId"):
+                self.prepare([sample("train", "train", "train", 1), final,
+                              {**final, "target": "a different unopened payload"}], temporary)
 
     def test_rules_mismatch_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -170,12 +206,15 @@ class NetworkContract(unittest.TestCase):
     def test_cpu_mid_epoch_resume_preserves_optimizer_rng_and_result(self):
         self.assert_mid_epoch_resume("cpu")
 
+    def test_global_mean_objective_and_selection_tolerance_resume_exactly_on_cpu(self):
+        self.assert_mid_epoch_resume("cpu", "global-mean", 0.0001)
+
     def test_cuda_resident_mid_epoch_resume_matches_mapped_execution(self):
         if not self.torch.cuda.is_available():
             self.skipTest("CUDA runtime is unavailable")
         self.assert_mid_epoch_resume("cuda")
 
-    def assert_mid_epoch_resume(self, device):
+    def assert_mid_epoch_resume(self, device, normalization="batch", selection_min_delta=0.0):
         with tempfile.TemporaryDirectory() as temporary:
             folder = Path(temporary)
             rows = []
@@ -199,7 +238,8 @@ class NetworkContract(unittest.TestCase):
                     hidden_size=16, learning_rate=0.005, weight_decay=0.0001, scale=600, seed=42,
                     max_seconds=30, checkpoint_every=100, stop_file=str(folder / "stop"),
                     resume=resume, init_model=None, family_balance=1.0, early_stop_patience=10,
-                    early_stop_min_delta=0.00001, min_epochs=2, diagnostic_samples=12)
+                    early_stop_min_delta=0.00001, min_epochs=2, diagnostic_samples=12,
+                    loss_weight_normalization=normalization, selection_min_delta=selection_min_delta)
 
             baseline = trainer.train_command(settings("baseline"))
             original_step = self.torch.optim.AdamW.step
@@ -230,6 +270,8 @@ class NetworkContract(unittest.TestCase):
             self.assertEqual(baseline["training"]["bestEpoch"], resumed["training"]["bestEpoch"])
             self.assertEqual(resumed["diagnostics"]["train"]["samples"], 12)
             self.assertEqual(resumed["training"]["excludedTestSamples"], 1)
+            self.assertEqual(resumed["training"]["lossWeightNormalization"], normalization)
+            self.assertEqual(resumed["training"]["selectionMinDelta"], selection_min_delta)
             if device == "cuda":
                 self.assertEqual(resumed["device"]["dataStorage"]["mode"], "resident-cuda")
                 with mock.patch.object(trainer, "resident_training_data", side_effect=lambda torch, rows, families, device:
@@ -268,8 +310,91 @@ class NetworkContract(unittest.TestCase):
             update.assert_not_called()
             saved = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
             self.assertEqual(saved["updates"], 0)
-            self.assertEqual(saved["status"], "error")
+            self.assertEqual(saved["status"], "running")
+            suspect = torch.load(args.checkpoint + ".error.pt", map_location="cpu", weights_only=True)
+            self.assertEqual(suspect["status"], "error")
             self.assertFalse(Path(args.output).exists())
+
+    def test_partial_optimizer_failure_preserves_good_boundary_and_error_cannot_resume(self):
+        torch = self.torch
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            rows = [sample(str(i), "family-" + str(i), "train" if i < 8 else "validation", i / 10,
+                           target=0.4 if i % 2 else -0.4) for i in range(12)]
+            data = folder / "synthetic.jsonl"
+            data.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+
+            def settings(name, resume=False):
+                target = folder / name
+                return SimpleNamespace(data=str(data), output=str(target / "model.json"),
+                    checkpoint=str(target / "checkpoint.pt"), device="cpu", epochs=2, batch_size=4,
+                    hidden_size=4, learning_rate=0.005, weight_decay=0.0001, scale=600, seed=42,
+                    max_seconds=30, checkpoint_every=1, stop_file=None, resume=resume, init_model=None)
+
+            original_step = torch.optim.AdamW.step
+            captured_good, calls = None, 0
+
+            def partial_error(optimizer, *arguments, **keywords):
+                nonlocal captured_good, calls
+                calls += 1
+                if calls == 2:
+                    captured_good = Path(settings("failed").checkpoint).read_bytes()
+                    with torch.no_grad():
+                        parameter = optimizer.param_groups[0]["params"][0]
+                        parameter.add_(0.125)
+                        optimizer.state[parameter]["exp_avg"].add_(0.25)
+                    raise RuntimeError("injected partial optimizer mutation")
+                return original_step(optimizer, *arguments, **keywords)
+
+            with mock.patch.object(torch.optim.AdamW, "step", partial_error):
+                with self.assertRaisesRegex(RuntimeError, "partial optimizer"):
+                    trainer.train_command(settings("failed"))
+            good_file = Path(settings("failed").checkpoint)
+            self.assertEqual(good_file.read_bytes(), captured_good)
+            good = torch.load(good_file, map_location="cpu", weights_only=True)
+            suspect_file = Path(str(good_file) + ".error.pt")
+            suspect = torch.load(suspect_file, map_location="cpu", weights_only=True)
+            self.assertEqual((good["updates"], good["cursor"], good["status"]), (1, 4, "running"))
+            self.assertEqual(suspect["status"], "error")
+            self.assertGreater((suspect["modelState"]["0.weight"] - good["modelState"]["0.weight"]).abs().max().item(), 0.12)
+            self.assertFalse(Path(settings("failed").output).exists())
+            error_args = settings("failed", resume=True)
+            error_args.checkpoint = str(suspect_file)
+            with self.assertRaisesRegex(ValueError, "error checkpoints cannot resume"):
+                trainer.train_command(error_args)
+            baseline = trainer.train_command(settings("baseline"))
+            resumed = trainer.train_command(settings("failed", resume=True))
+            self.assertEqual(baseline["modelId"], resumed["modelId"])
+            final = torch.load(good_file, map_location="cpu", weights_only=True)
+            clean = torch.load(settings("baseline").checkpoint, map_location="cpu", weights_only=True)
+            for key in final["modelState"]:
+                self.assertTrue(torch.equal(final["modelState"][key], clean["modelState"][key]))
+            self.assertEqual(final["history"], clean["history"])
+
+    def test_global_weight_normalization_has_unbiased_uniform_minibatch_gradient(self):
+        torch = self.torch
+        targets = torch.tensor([1.0, 1.0, -1.0], dtype=torch.float64)
+        weights = torch.tensor([0.75, 0.75, 1.5], dtype=torch.float64)
+
+        def gradient(indices, normalization):
+            predicted = torch.tensor(0.0, dtype=torch.float64, requires_grad=True)
+            chosen = list(indices)
+            loss = trainer.weighted_training_loss((predicted - targets[chosen]).square(), weights[chosen],
+                                                 normalization, weights.mean().item())
+            return torch.autograd.grad(loss, predicted)[0].item()
+
+        global_gradient = gradient(range(3), "batch")
+        self.assertEqual(global_gradient, 0)
+        for size in (1, 2, 3):
+            batches = list(itertools.combinations(range(3), size))
+            estimated = sum(gradient(batch, "global-mean") for batch in batches) / len(batches)
+            self.assertAlmostEqual(estimated, global_gradient, places=14)
+        self.assertAlmostEqual(sum(gradient(batch, "batch") for batch in itertools.combinations(range(3), 2)) / 3,
+                               -2 / 9, places=14)
+        rows = torch.zeros((3, trainer.ROW_SIZE), dtype=torch.float32)
+        rows[:, 33] = torch.tensor([1, 1, 0.5])
+        family = torch.tensor([0.75, 0.75, 3.0])
+        self.assertAlmostEqual(trainer.effective_weight_mean(torch, rows, family, 1), 1.0)
 
     def test_warm_start_adjusts_changed_normalization_without_changing_function(self):
         torch = self.torch
@@ -364,6 +489,51 @@ class NetworkContract(unittest.TestCase):
             self.assertIsNone(trainer.validate(torch, model, rows, torch.zeros(32), torch.ones(32),
                                               2, "cpu", incomplete, families, 1.0))
         self.assertTrue(model.training)
+
+    def test_selection_tolerance_keeps_anchor_for_tiny_mse_improvements(self):
+        torch = self.torch
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            rows = [sample(str(i), "family-" + str(i), "train" if i < 8 else "validation", i / 10,
+                           target=0.5 if i % 2 else -0.5) for i in range(12)]
+            data = folder / "synthetic.jsonl"
+            data.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+            torch.manual_seed(26)
+            initial = trainer.export_model(trainer.network(torch, 4),
+                {"normalization": {"mean": [0.0] * 32, "scale": [1.0] * 32}}, 4, 600, {})
+            initial_file = folder / "initial.json"
+            initial_file.write_text(json.dumps(initial), encoding="utf-8")
+
+            def settings(name, delta=0.0, epochs=2):
+                target = folder / name
+                return SimpleNamespace(data=str(data), output=str(target / "model.json"),
+                    checkpoint=str(target / "checkpoint.pt"), device="cpu", epochs=epochs, batch_size=4,
+                    hidden_size=4, learning_rate=0.03, weight_decay=0.0001, scale=600, seed=42,
+                    max_seconds=30, checkpoint_every=100, stop_file=None, resume=False,
+                    init_model=str(initial_file), selection_min_delta=delta)
+
+            def metrics(value):
+                return {"all": value, "terminal": value, "teacher": None, "unbalancedAll": value}
+
+            # These controlled selection fixtures do not assert real MSE or
+            # playing-strength improvements; optimizer updates remain real.
+            values = [metrics(0.1), metrics(0.099966), metrics(0.09995)]
+            with mock.patch.object(trainer, "validate", side_effect=values):
+                stable = trainer.train_command(settings("stable", 0.0001))
+            self.assertTrue(stable["training"]["selectedBaseline"])
+            self.assertEqual(stable["training"]["warmStartModelId"], initial["modelId"])
+            self.assertEqual(stable["diagnostics"]["validation"]["maximumAbsoluteScoreChange"], 0)
+            self.assertEqual([row["selectionAccepted"] for row in stable["history"]], [False, False])
+            checkpoint = torch.load(settings("stable").checkpoint, map_location="cpu", weights_only=True)
+            self.assertGreater((checkpoint["modelState"]["0.weight"] - checkpoint["bestState"]["0.weight"]).abs().max().item(), 0.001)
+            with mock.patch.object(trainer, "validate", side_effect=values):
+                legacy = trainer.train_command(settings("legacy"))
+            self.assertEqual(legacy["training"]["bestEpoch"], 2)
+            self.assertFalse(legacy["training"]["selectedBaseline"])
+            with mock.patch.object(trainer, "validate", side_effect=[metrics(0.1), metrics(0.0998), metrics(0.09977)]):
+                meaningful = trainer.train_command(settings("meaningful", 0.0001))
+            self.assertEqual(meaningful["training"]["bestEpoch"], 1)
+            self.assertEqual([row["selectionAccepted"] for row in meaningful["history"]], [True, False])
 
     def test_warm_start_validation_baseline_is_kept_and_patience_resumes(self):
         torch = self.torch

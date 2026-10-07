@@ -36,12 +36,12 @@ function syncFile(dir,name,key){
  }catch(error){api.db.exec('ROLLBACK');throw error;}finally{fs.closeSync(fd);}
  });
 }
-function appendRows(dir,name,rows,key){
+function appendRows(dir,name,rows,key,context=null){
  return M.measure(dir,'journal.append_'+name+'_ms',()=>{
  const cursor=syncFile(dir,name,key),api=session(dir),fresh=[];const local=new Map();
  for(const row of rows){const id=row[key],digest=S.hash(row);if(typeof id!=='string'||!id)throw Error('Invalid corpus row ID');const known=api.find.get(name,id)?.digest||local.get(id);if(known&&known!==digest)throw Error('Conflicting corpus row '+id);if(!known){fresh.push(row);local.set(id,digest);}}
  if(!fresh.length)return 0;
- const file=path.join(dir,name),text=M.measure(dir,'journal.serialize_rows_ms',()=>fresh.map(row=>JSON.stringify(row)+'\n').join('')),fd=fs.openSync(file,'a');M.add(dir,'journal.append_bytes',Buffer.byteLength(text));try{M.measure(dir,'journal.append_write_ms',()=>fs.writeFileSync(fd,text));M.measure(dir,'journal.append_fsync_ms',()=>fs.fsyncSync(fd));}finally{fs.closeSync(fd);}
+ const file=path.join(dir,name),text=M.measure(dir,'journal.serialize_rows_ms',()=>fresh.map(row=>JSON.stringify(row)+'\n').join(''));if(context)require('./storage.cjs').requireBudget(context,Buffer.byteLength(text)+16384,'journal-'+name);const fd=fs.openSync(file,'a');M.add(dir,'journal.append_bytes',Buffer.byteLength(text));try{M.measure(dir,'journal.append_write_ms',()=>fs.writeFileSync(fd,text));M.measure(dir,'journal.append_fsync_ms',()=>fs.fsyncSync(fd));}finally{fs.closeSync(fd);}
  // A crash before indexing is recovered by scanning only this appended tail.
  syncFile(dir,name,key);return fresh.length;
  });
@@ -60,11 +60,12 @@ function verify(game){
 }
 function finish(context,intent){
  const {game,rows}=intent;M.measure(context,'completion.journal_replay_ms',()=>verify(game));if(!game.completed&&rows.length)throw Error('Incomplete game cannot produce terminal labels');
- appendRows(context.dir,'dataset.jsonl',rows,'sampleId');appendRows(context.dir,'games.jsonl',[{...game,samples:undefined,model:undefined}],'id');
+ appendRows(context.dir,'dataset.jsonl',rows,'sampleId',context);appendRows(context.dir,'games.jsonl',[{...game,samples:undefined,model:undefined}],'id',context);
  delete context.state.activeGames[game.id];context.state.generationIndex=Math.max(context.state.generationIndex||0,(game.index??-1)+1);counters(context);S.save(context);
  const partial=path.join(context.dir,'partials',S.hash(game.id).slice(0,24)+'.jsonl');if(fs.existsSync(partial))fs.unlinkSync(partial);
 }
 function commitGame(context,game,rows){
+ require('./storage.cjs').requireBudget(context,Buffer.byteLength(JSON.stringify({game,rows}))+16384,'generation-intent');
  const file=path.join(context.dir,'generation-intent.json');M.measure(context,'journal.intent_write_ms',()=>S.atomic(file,{schemaVersion:1,game,rows}));finish(context,{game,rows});fs.unlinkSync(file);
 }
 function saveMove(context,game){

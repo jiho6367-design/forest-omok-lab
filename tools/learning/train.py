@@ -131,7 +131,9 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
     data_hash = digest_file(path)
     # Keep nested Windows experiment paths below common path limits. The full
     # hash remains checked in both the partial and completed manifests.
-    folder = cache_dir / (data_hash[:24] + "-p3")
+    # p4 validates sample identity before deduplication and stores content hashes.
+    # Earlier caches remain untouched; they cannot attest this stronger contract.
+    folder = cache_dir / (data_hash[:24] + "-p4")
     manifest_path = folder / "manifest.json"
     if manifest_path.exists():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -154,7 +156,7 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
     database.execute("PRAGMA synchronous=FULL")
     # Allow an approximately 64 MiB page cache; keep transaction durability unchanged.
     database.execute("PRAGMA cache_size=-65536")
-    database.execute("CREATE TABLE IF NOT EXISTS samples (id TEXT PRIMARY KEY)")
+    database.execute("CREATE TABLE IF NOT EXISTS samples (id TEXT PRIMARY KEY, digest TEXT NOT NULL)")
     database.execute("CREATE TABLE IF NOT EXISTS families (id TEXT PRIMARY KEY, split TEXT NOT NULL)")
     database.execute("CREATE TABLE IF NOT EXISTS positions (id TEXT PRIMARY KEY, split TEXT NOT NULL)")
     database.execute("CREATE TABLE IF NOT EXISTS metadata (id INTEGER PRIMARY KEY, value TEXT NOT NULL)")
@@ -223,10 +225,6 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
                     if sample_id is not None:
                         if not isinstance(sample_id, str) or not sample_id or len(sample_id) > 256:
                             raise ValueError("Invalid sampleId")
-                        if database.execute("SELECT 1 FROM samples WHERE id=?", (sample_id,)).fetchone():
-                            state["duplicatesIgnored"] += 1
-                            continue
-                        database.execute("INSERT INTO samples VALUES (?)", (sample_id,))
                     if row.get("schemaVersion") != SCHEMA_VERSION or row.get("rulesId") != RULES_ID or row.get("featureVersion") != FEATURE_VERSION:
                         raise ValueError("Unsupported schema, rule set or feature version")
                     split, family = row.get("split"), row.get("familyId")
@@ -248,25 +246,46 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
                             raise ValueError("Position leaks across splits: " + position_key)
                         if not prior_position:
                             database.execute("INSERT INTO positions VALUES (?,?)", (position_key, split))
+                    if split == "test":
+                        # Hash the opaque row to detect conflicting IDs, without
+                        # interpreting, validating, normalizing or mapping its
+                        # features/labels. This is an integrity check, like the
+                        # dataset hash, and never a training/selection input.
+                        semantic = {key: value for key, value in row.items() if key != "source"}
+                    else:
+                        features = row.get("features")
+                        if not isinstance(features, list) or len(features) != INPUT_SIZE:
+                            raise ValueError("features must contain exactly 32 numbers")
+                        features = [finite_number(x, "feature") for x in features]
+                        if any(abs(x) > 1e6 for x in features):
+                            raise ValueError("Feature exceeds supported finite range")
+                        target = finite_number(row.get("target"), "target")
+                        weight = finite_number(row.get("weight", 1), "weight")
+                        kind = row.get("labelType", "terminal")
+                        if not -1 <= target <= 1 or not 0 < weight <= 100:
+                            raise ValueError("target must be in [-1,1] and weight in (0,100]")
+                        if kind not in ("terminal", "teacher"):
+                            raise ValueError("labelType must be terminal or teacher")
+                        semantic = {"schemaVersion": SCHEMA_VERSION, "rulesId": RULES_ID,
+                                    "featureVersion": FEATURE_VERSION, "split": split,
+                                    "familyId": family, "positionKey": position_key,
+                                    "position": row.get("position"), "features": features,
+                                    "target": target, "weight": weight, "labelType": kind}
+                    if sample_id is not None:
+                        content_hash = hashlib.sha256(json.dumps(semantic, sort_keys=True, allow_nan=False,
+                            separators=(",", ":")).encode("utf-8")).hexdigest()
+                        previous = database.execute("SELECT digest FROM samples WHERE id=?", (sample_id,)).fetchone()
+                        if previous:
+                            if previous[0] != content_hash:
+                                raise ValueError("Conflicting content for sampleId: " + sample_id)
+                            state["duplicatesIgnored"] += 1
+                            continue
+                        database.execute("INSERT INTO samples VALUES (?,?)", (sample_id, content_hash))
                     counts[split] += 1
                     if split == "test":
-                        # Intentionally do not inspect its features or target.
                         if state["lines"] % 4096 == 0:
                             commit_progress()
                         continue
-                    features = row.get("features")
-                    if not isinstance(features, list) or len(features) != INPUT_SIZE:
-                        raise ValueError("features must contain exactly 32 numbers")
-                    features = [finite_number(x, "feature") for x in features]
-                    if any(abs(x) > 1e6 for x in features):
-                        raise ValueError("Feature exceeds supported finite range")
-                    target = finite_number(row.get("target"), "target")
-                    weight = finite_number(row.get("weight", 1), "weight")
-                    kind = row.get("labelType", "terminal")
-                    if not -1 <= target <= 1 or not 0 < weight <= 100:
-                        raise ValueError("target must be in [-1,1] and weight in (0,100]")
-                    if kind not in ("terminal", "teacher"):
-                        raise ValueError("labelType must be terminal or teacher")
                     kinds[split][kind] += 1
                     buffers[split].extend(features + [target, weight, float(kind == "teacher")])
                     database.execute("INSERT INTO family_rows VALUES (?,?,?,?)", (split, counts[split] - 1, family, weight))
@@ -329,7 +348,7 @@ def prepare_data(path: Path, cache_dir: Path, stop: StopController) -> dict:
             replace_saved_file(current_paths[split], final)
         hashes[split] = digest_file(final)
         hashes[split + "Family"] = digest_file(folder / (split + ".family.f32"))
-    manifest = {"schemaVersion": SCHEMA_VERSION, "preparationVersion": 3, "datasetHash": data_hash, "rulesId": RULES_ID,
+    manifest = {"schemaVersion": SCHEMA_VERSION, "preparationVersion": 4, "datasetHash": data_hash, "rulesId": RULES_ID,
                 "featureVersion": FEATURE_VERSION, "inputSize": INPUT_SIZE, "rowSize": ROW_SIZE,
                 "counts": counts, "labelTypes": kinds, "duplicatesIgnored": state["duplicatesIgnored"],
                 "families": {split: family_counts.get(split, 0) for split in counts},
@@ -545,6 +564,35 @@ def validate(torch, model, rows, mean, scale, batch: int, device: str, stop: Sto
     return {name: total / weight if weight else None for name, (total, weight) in zip(names, totals.cpu().tolist())}
 
 
+def effective_weight_mean(torch, rows, family_weights, family_balance: float) -> float:
+    """Fixed train-only denominator for a uniformly sampled row minibatch.
+
+    E[sum(batch weighted losses)/(batch rows * global mean weight)] is the
+    global weighted MSE. A batch-local sum of weights generally is biased.
+    Use each actual batch size, including the final short batch.
+    """
+    total = 0.0
+    for start in range(0, len(rows), 65536):
+        weights = rows[start:start + 65536, INPUT_SIZE + 1]
+        if family_balance:
+            weights = weights * family_weights[start:start + 65536].pow(family_balance)
+        total += weights.double().sum().item()
+    average = total / len(rows)
+    if not math.isfinite(average) or average <= 0:
+        raise ValueError("Global effective training weight must be finite and positive")
+    return average
+
+
+def weighted_training_loss(squared, weights, normalization: str, global_weight_mean: float | None = None):
+    if normalization == "batch":
+        return (squared * weights).sum() / weights.sum()
+    if normalization == "global-mean":
+        if global_weight_mean is None or not math.isfinite(global_weight_mean) or global_weight_mean <= 0:
+            raise ValueError("Global effective training weight must be finite and positive")
+        return (squared * weights).sum() / (len(weights) * global_weight_mean)
+    raise ValueError("Unsupported loss weight normalization")
+
+
 def diagnostic_indices(torch, count: int, maximum: int):
     used = min(count, maximum)
     if not used:
@@ -631,6 +679,12 @@ def train_command(args) -> dict:
     early_stop_min_delta = getattr(args, "early_stop_min_delta", 0.0)
     min_epochs = getattr(args, "min_epochs", 1)
     diagnostic_samples = getattr(args, "diagnostic_samples", 512)
+    selection_min_delta = getattr(args, "selection_min_delta", 0.0)
+    loss_weight_normalization = getattr(args, "loss_weight_normalization", "batch")
+    if not math.isfinite(selection_min_delta) or not 0 <= selection_min_delta <= 1:
+        raise ValueError("selection_min_delta must be finite and in [0,1]")
+    if loss_weight_normalization not in ("batch", "global-mean"):
+        raise ValueError("Unsupported loss weight normalization")
     stop = StopController(args.max_seconds, Path(args.stop_file) if args.stop_file else None)
     timing_started = time.perf_counter()
     timings = {name: 0.0 for name in (
@@ -673,6 +727,7 @@ def train_command(args) -> dict:
     loading_started = time.perf_counter()
     train_rows, validation_rows = (mapped_rows(torch, manifest, split) for split in ("train", "validation"))
     train_family, validation_family = (mapped_family_weights(torch, manifest, split) for split in ("train", "validation"))
+    global_weight_mean = effective_weight_mean(torch, train_rows, train_family, family_balance) if loss_weight_normalization == "global-mean" else None
     execution_rows, execution_families, storage = resident_training_data(
         torch, (train_rows, validation_rows), (train_family, validation_family), args.device)
     execution_train, execution_validation = execution_rows
@@ -696,7 +751,9 @@ def train_command(args) -> dict:
                 "familyBalance": family_balance, "earlyStopPatience": early_stop_patience,
                 "earlyStopMinDelta": early_stop_min_delta, "minEpochs": min_epochs,
                 "diagnosticSamples": diagnostic_samples,
-                "objective": "antisymmetric-confidence-family-mse-v2", "trainerHash": digest_file(Path(__file__)),
+                "selectionMinDelta": selection_min_delta, "lossWeightNormalization": loss_weight_normalization,
+                "objective": "antisymmetric-confidence-family-mse-v2" if loss_weight_normalization == "batch" else "antisymmetric-confidence-family-global-mse-v3",
+                "trainerHash": digest_file(Path(__file__)),
                 "runtime": {"torchVersion": str(torch.__version__), "device": args.device, "cudaVersion": torch.version.cuda}}
     epoch, cursor, updates, samples_seen = 0, 0, 0, 0
     permutation, best_state, best_metric, history = None, None, None, []
@@ -705,6 +762,8 @@ def train_command(args) -> dict:
     previous_elapsed = 0.0
     if args.resume:
         saved = torch.load(checkpoint, map_location="cpu", weights_only=True)
+        if saved.get("status") not in ("running", "interrupted", "completed"):
+            raise ValueError("Checkpoint is not a verified successful batch boundary; error checkpoints cannot resume")
         if saved.get("schemaVersion") != 1 or saved.get("identity") != identity:
             raise ValueError("Checkpoint data/model/config identity differs; start a new candidate")
         model.load_state_dict(saved["modelState"])
@@ -749,12 +808,13 @@ def train_command(args) -> dict:
                 "values": diagnostic_values(torch, model, rows, indices, mean, scale, args.device)}
         timings["baselineDiagnostics"] += (time.perf_counter() - diagnostics_started) * 1000
 
-    def write_checkpoint(status):
+    def write_checkpoint(status, destination=None):
         nonlocal current_loss
+        destination = destination or checkpoint
         if last_loss is not None:
             current_loss = last_loss.item()
-        checkpoint.parent.mkdir(parents=True, exist_ok=True)
-        temporary = checkpoint.with_name(checkpoint.name + ".tmp-" + str(os.getpid()))
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        temporary = destination.with_name(destination.name + ".tmp-" + str(os.getpid()))
         saved = {"schemaVersion": 1, "identity": identity, "modelState": model.state_dict(),
                  "optimizerState": optimizer.state_dict(), "epoch": epoch, "cursor": cursor,
                  "updates": updates, "samplesSeen": samples_seen, "permutation": permutation,
@@ -771,12 +831,16 @@ def train_command(args) -> dict:
         torch.save(saved, temporary)
         with temporary.open("r+b") as flushable:
             os.fsync(flushable.fileno())
-        replace_saved_file(temporary, checkpoint)
+        replace_saved_file(temporary, destination)
 
     def save_checkpoint(status):
         return measured("checkpoint", write_checkpoint, status)
 
     model.train()
+    # Establish a rollback boundary before the first optimizer update. Resume
+    # retains its prior good checkpoint, and errors never overwrite this file.
+    if not args.resume:
+        save_checkpoint("running")
     try:
         while epoch < args.epochs and not early_stopped:
             reason = stop.reason()
@@ -801,7 +865,8 @@ def train_command(args) -> dict:
                 weights, targets = raw[:, INPUT_SIZE + 1], raw[:, INPUT_SIZE]
                 if family_balance:
                     weights = weights * execution_train_family.index_select(0, execution_selected).to(args.device).pow(family_balance)
-                loss = ((predicted - targets) ** 2 * weights).sum() / weights.sum()
+                loss = weighted_training_loss((predicted - targets) ** 2, weights,
+                                              loss_weight_normalization, global_weight_mean)
                 loss.backward()
                 grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0, error_if_nonfinite=False)
                 # Check loss and gradient norm together before any optimizer
@@ -827,7 +892,8 @@ def train_command(args) -> dict:
             if stop.reason():
                 reason = stop.reason()
                 break
-            if metrics and (best_metric is None or metrics["all"] < best_metric):
+            selection_accepted = bool(metrics and (best_metric is None or metrics["all"] < best_metric - selection_min_delta))
+            if selection_accepted:
                 best_metric = metrics["all"]
                 best_epoch = epoch + 1
                 best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
@@ -838,7 +904,7 @@ def train_command(args) -> dict:
                     stale_epochs += 1
             current_loss = last_loss.item() if last_loss is not None else current_loss
             history.append({"epoch": epoch + 1, "updates": updates, "lastBatchLoss": current_loss,
-                            "validation": metrics})
+                            "validation": metrics, "selectionAccepted": selection_accepted})
             epoch += 1
             cursor, permutation = 0, None
             execution_permutation = None
@@ -849,8 +915,15 @@ def train_command(args) -> dict:
             reason = "validation-early-stop"
         status = "completed" if epoch >= args.epochs or early_stopped else "interrupted"
         save_checkpoint(status)
-    except BaseException:
-        save_checkpoint("error")
+    except BaseException as error:
+        # An optimizer can throw after changing only some parameters/state.
+        # Save those suspect bytes for diagnosis, preserving the durable good
+        # boundary and the original exception even if diagnosis cannot be saved.
+        try:
+            measured("checkpoint", write_checkpoint, "error", Path(str(checkpoint) + ".error.pt"))
+        except BaseException as diagnostic_error:
+            if hasattr(error, "add_note"):
+                error.add_note("Error checkpoint could not be saved: " + str(diagnostic_error))
         raise
     if args.device == "cuda":
         measured("finalSynchronization", torch.cuda.synchronize)
@@ -882,6 +955,8 @@ def train_command(args) -> dict:
                 "exportUsesTrainedEpoch": best_epoch is None or best_epoch > 0,
                 "familyBalance": family_balance, "earlyStopPatience": early_stop_patience,
                 "earlyStopMinDelta": early_stop_min_delta, "minEpochs": min_epochs,
+                "selectionMinDelta": selection_min_delta, "lossWeightNormalization": loss_weight_normalization,
+                "globalEffectiveWeightMean": global_weight_mean,
                 "earlyStopped": early_stopped,
                 "warmStartModelId": warm_start, "initModelId": warm_start, "device": args.device,
                 "initEvaluationScale": warm_start_scale,
@@ -955,6 +1030,10 @@ def parse_args():
     train.add_argument("--resume", action="store_true")
     train.add_argument("--init-model")
     train.add_argument("--family-balance", type=float, default=0.0, help="0 preserves sample confidence weights; 1 equalizes total confidence across train/validation families")
+    train.add_argument("--loss-weight-normalization", choices=("batch", "global-mean"), default="batch",
+                       help="batch preserves the prior objective; global-mean estimates global weighted MSE in a new experiment")
+    train.add_argument("--selection-min-delta", type=float, default=0.0,
+                       help="Best-model selection requires this absolute completed validation MSE improvement; choose before a new experiment")
     train.add_argument("--early-stop-patience", type=int, default=0, help="Completed validation epochs without meaningful improvement; 0 disables")
     train.add_argument("--early-stop-min-delta", type=float, default=0.0)
     train.add_argument("--min-epochs", type=int, default=1)
@@ -976,6 +1055,8 @@ def parse_args():
             parser.error("Invalid optimizer settings")
         if not math.isfinite(args.family_balance) or not 0 <= args.family_balance <= 1:
             parser.error("--family-balance must be finite and in [0,1]")
+        if not math.isfinite(args.selection_min_delta) or not 0 <= args.selection_min_delta <= 1:
+            parser.error("--selection-min-delta must be finite and in [0,1]")
         if not 0 <= args.early_stop_patience <= 1000 or not math.isfinite(args.early_stop_min_delta) or not 0 <= args.early_stop_min_delta <= 1:
             parser.error("Invalid validation early-stop settings")
         if not 1 <= args.min_epochs <= args.epochs or not 1 <= args.diagnostic_samples <= 4096:
