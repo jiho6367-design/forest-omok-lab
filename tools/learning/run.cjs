@@ -9,6 +9,7 @@ function options(args){
  for(const key of ['python','device','priority','sample-policy','loss-weight-normalization'])if(args[key])out[{'sample-policy':'samplePolicy','loss-weight-normalization':'lossWeightNormalization'}[key]||key]=String(args[key]);
  if(args.continuous!==undefined){if(![true,false,'true','false'].includes(args.continuous))throw Error('--continuous must be true or false');out.continuous=args.continuous===true||args.continuous==='true';}
  if(args['concurrent-training']!==undefined){const v=args['concurrent-training'];if(![true,false,'true','false'].includes(v))throw Error('--concurrent-training must be true or false');out.concurrentTraining=v===true||v==='true';}
+ if(args['fresh-model']!==undefined){const v=args['fresh-model'];if(![true,false,'true','false'].includes(v))throw Error('--fresh-model must be true or false');out.freshModel=v===true||v==='true';}
  if(args['no-adopt'])out.autoAdopt=false;if(args['max-disk-gb'])out.maxDiskBytes=Number(args['max-disk-gb'])*1024**3;return out;
 }
 function validateSettings(x){
@@ -109,7 +110,8 @@ async function cycle(context,args,deadline,hooks={}){
    pipeline.analysisComplete=!!done;pipeline.stage='generate';S.save(context);
   }else if(pipeline.stage==='generate'){
    const waitingSamples=Math.max(0,context.state.counters.samples-(context.state.lastTrainingSampleCount||0));
-   if(continuous&&context.settings.concurrentTraining&&waitingSamples>=context.settings.minNewSamples){context.state.trainingGate={newSamples:waitingSamples,minNewSamples:context.settings.minNewSamples,ready:true};pipeline.stage='train';S.save(context);continue;}
+   const needsFreshHoldouts=context.state.training?.status==='waiting-data'||context.state.continuation?.mode==='raw-reset'&&context.state.counters.generatedGames<=context.state.continuation.importedGames;
+   if(continuous&&context.settings.concurrentTraining&&!needsFreshHoldouts&&waitingSamples>=context.settings.minNewSamples){context.state.trainingGate={newSamples:waitingSamples,minNewSamples:context.settings.minNewSamples,ready:true};pipeline.stage='train';S.save(context);continue;}
    const done=await timed(context,'generate',()=>generate(context,{target:pipeline.target,deadline:Math.min(deadline,Date.now()+Math.min(context.settings.stageMinutes*60000,remaining*.6))}));
    if(S.stopped(context.dir))return false;
    if(!done){S.save(context);if(context.state.counters.samples>=context.settings.maxSamples||Date.now()>=deadline)return false;continue;}
@@ -149,11 +151,11 @@ async function main(argv=process.argv.slice(2)){
  if(command==='stop'){fs.mkdirSync(dir,{recursive:true});S.atomic(path.join(dir,'stop.flag'),'requested '+new Date().toISOString());console.log(JSON.stringify({status:'stop-requested',run:dir}));return;}
  if(command==='status'){console.log(JSON.stringify({run:dir,state:S.read(path.join(dir,'state.json')),settings:S.read(path.join(dir,'settings.json'))}));return;}
  require('./deployment.cjs').recoverDeployment();
- const fresh=!fs.existsSync(path.join(dir,'state.json')),given=options(args),context=S.init(dir,fresh?continuousProfile(given):given);validateSettings(context.settings);S.checkIdentity(context);require('./trial-ledger.cjs').reconcile(context);const release=S.lock(dir);if(args.resume&&fs.existsSync(path.join(dir,'stop.flag')))fs.unlinkSync(path.join(dir,'stop.flag'));if(args.resume)delete context.state.stopReason;S.atomic(path.join(dir,'settings.json'),context.settings);
+ const fresh=!fs.existsSync(path.join(dir,'state.json')),given=options(args);if(args['continuation-mode']!=null&&!['normal','raw-reset'].includes(args['continuation-mode']))throw Error('Invalid continuation mode');if(fresh&&args['continuation-mode']==='raw-reset'&&(!args['from-run']||given.freshModel!==true))throw Error('Raw experience recovery requires --from-run and --fresh-model in a new run');if(fresh&&args['from-run']&&args['continuation-mode']!=='raw-reset')C.continuationPreflight(args['from-run']);const context=S.init(dir,fresh?continuousProfile(given):given);validateSettings(context.settings);S.checkIdentity(context);require('./trial-ledger.cjs').reconcile(context);const release=S.lock(dir);if(args.resume&&fs.existsSync(path.join(dir,'stop.flag')))fs.unlinkSync(path.join(dir,'stop.flag'));if(args.resume)delete context.state.stopReason;S.atomic(path.join(dir,'settings.json'),context.settings);
  const os=require('node:os');try{os.setPriority(0,context.settings.priority==='below-normal'?os.constants.priority.PRIORITY_BELOW_NORMAL:os.constants.priority.PRIORITY_NORMAL);context.state.resources={priority:context.settings.priority,applied:true,workers:context.settings.workers,concurrentTraining:context.settings.concurrentTraining};}catch(error){context.state.resources={priority:context.settings.priority,applied:false,error:error.message};}S.save(context);
  const started=Date.now(),deadline=started+context.settings.minutes*60000;let complete=false;
  try{if(S.stopped(dir)){context.state.status='stopped';context.state.message='Stop requested; use --resume to continue';S.save(context);return;}
-  const pending=S.read(path.join(dir,'continuation.json'));if(args['from-run']||pending&&!pending.complete){const continued=await timed(context,'import',()=>C.continueFrom(context,args['from-run']||pending.source));if(!continued.complete){context.state.status='stopped';context.state.message='경험 가져오기를 중단했습니다. 같은 실행을 재개하면 이어집니다.';S.save(context);return;}}
+  const pending=S.read(path.join(dir,'continuation.json'));if(args['from-run']||pending&&!pending.complete){const continued=await timed(context,'import',()=>C.continueFrom(context,args['from-run']||pending.source,{mode:args['continuation-mode']}));if(!continued.complete){context.state.status='stopped';context.state.message='경험 가져오기를 중단했습니다. 같은 실행을 재개하면 이어집니다.';S.save(context);return;}}
   if(command==='init'){importRecords(context,args.input,args);complete=true;}
   else if(command==='import'){importRecords(context,args.input,args);complete=true;}
   else if(command==='analyze'){importRecords(context,args.input,args);complete=await timed(context,'analyze',()=>G.analyzeRecords(context,{deadline}));}

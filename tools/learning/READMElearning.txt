@@ -13,6 +13,11 @@
   node tools/learning/run.cjs cycle --run=outputs/learning/my-run --resume --minutes=60
   node tools/learning/run.cjs status --run=outputs/learning/my-run
 
+이전 실험 폴더가 유실되어 모델의 학습 출처를 검증하지 못할 때:
+  화면에서 원본 실험을 선택하고 «대국 보존 · 모델 새로 학습»으로 이어받습니다.
+  node tools/learning/run.cjs cycle --run=outputs/learning/recovered-run --from-run=outputs/learning/source-run --continuation-mode=raw-reset --fresh-model --continuous --workers=12 --minutes=60
+  완료 대국과 검증된 원자료는 보존하고 가져온 모든 계열/국면을 학습용으로 제한합니다. 이전 후보·가중치·체크포인트·학습 갱신 횟수는 가져오지 않으며 검증/평가 자료는 새 대국에서 모읍니다. 원본 실험과 실패 기록은 바꾸지 않습니다. 복구 중 중단되면 같은 새 실험을 재개합니다. 일반 이어받기는 계보를 먼저 확인하여 자료 복사를 시작하기 전에 오류를 알립니다.
+
 입력 없이 시작하면 기존 앱 내장 기보, Reader 기보와 reports/*-loss-certificate.json의 기존 국면을 현재 규칙으로 복원하여 시작 자료로 사용합니다. 브라우저 localStorage 기보는 프로그램이 직접 읽을 수 없으므로 오목의 JSON 내보내기 후 가져옵니다. 백 선공, PASS, 흑백/내 돌 역할을 보존합니다. 숫자 위치는 앱의 A1=0 인덱스이며 화면의 좌표 방향을 뒤집어 해석하지 않습니다. 색을 쓰지 않은 텍스트 기보는 --first=1 또는 --first=2가 필요합니다.
 
 연속 경험 누적 예시 (총 대국 수를 고정하지 않음):

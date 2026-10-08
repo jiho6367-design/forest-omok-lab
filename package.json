@@ -6,7 +6,7 @@
   "scripts": {
     "learning": "node tools/learning/dashboard.cjs --open",
     "learning:run": "node tools/learning/run.cjs",
-    "test:learning": "node test/neural-evaluator.cjs && node test/learning-archive.cjs && node test/learning-atomic.cjs && node test/learning-metrics.cjs && node test/learning-generation.cjs && node test/learning-arena-speed.cjs && node test/learning-arena-parallel.cjs && node test/learning-corpus.cjs && node test/learning-snapshot.cjs && node test/learning-continuous.cjs && node test/learning-pipeline.cjs && node test/learning-dashboard.cjs && node test/learning-dashboard-monitor.cjs && node test/learning-concurrency.cjs && node test/learning-deployment-recovery.cjs && node test/learning-storage.cjs && node test/learning-trial-ledger.cjs && node test/learning-diagnose.cjs && node test/learning-stop-errors.cjs && node test/learning-experiment-plan.cjs",
+    "test:learning": "node test/neural-evaluator.cjs && node test/learning-archive.cjs && node test/learning-atomic.cjs && node test/learning-metrics.cjs && node test/learning-generation.cjs && node test/learning-arena-speed.cjs && node test/learning-arena-parallel.cjs && node test/learning-corpus.cjs && node test/learning-snapshot.cjs && node test/learning-continuous.cjs && node test/learning-pipeline.cjs && node test/learning-dashboard.cjs && node test/learning-dashboard-recovery.cjs && node test/learning-dashboard-monitor.cjs && node test/learning-concurrency.cjs && node test/learning-deployment-recovery.cjs && node test/learning-storage.cjs && node test/learning-trial-ledger.cjs && node test/learning-diagnose.cjs && node test/learning-stop-errors.cjs && node test/learning-experiment-plan.cjs",
     "build": "node build.cjs",
     "test": "node build.cjs && npm run test:turn-memory && node test/search-budget.cjs && node test/forest-quiet-state.cjs && node test/forest-search-work-state.cjs && node test/initiative-pool.cjs && node test/initiative-guard.cjs && npm run test:initiative && node test/five-priority.cjs && node test/performance-cache.cjs && node test/recommendation-policy.cjs && node test/reader/test.cjs && node test/unified.cjs && node test/historical.cjs && node test/historical-progress.cjs && node test/proof-certificate.cjs && node test/root-screen.cjs && node test/known-refutations.cjs && node test/vcf-prefilter.cjs && npm run test:strategy && node test/worker-lifecycle.cjs && npm run test:g13-counter && npm run test:learning",
     "test:search-budget": "node test/search-budget.cjs",
@@ -27,7 +27,7 @@
     "test:initiative": "node test/reader-initiative.cjs && node test/strategy-known-state.cjs && node test/reader-pressure.cjs && node test/strategy-raw-points.cjs && node test/initiative-screen-scope.cjs && node test/initiative-proof-cache.cjs && node test/certificate-shortcut.cjs && node test/initiative-comparison-retention.cjs && node test/counterblock-tempo.cjs",
     "test:g13-counter": "node test/counter-threat.cjs && node test/counter-worker.cjs && node test/reader-window-index.cjs",
     "test:learning:cpu": "python tools/learning/test_train.py",
-    "test:learning:ui": "node test/learning-dashboard-ui.cjs && node test/learning-dashboard-monitor.cjs --ui && node test/learning-model-ui.cjs",
+    "test:learning:ui": "node test/learning-dashboard-ui.cjs && node test/learning-dashboard-recovery.cjs --ui && node test/learning-dashboard-monitor.cjs --ui && node test/learning-model-ui.cjs",
     "learning:plan": "node tools/learning/experiment-plan.cjs"
   },
   "engines": {

@@ -52,6 +52,7 @@ function createDashboard(options={}){
   const runner=path.resolve(options.runner||path.join(repo,'tools','learning','run.cjs'));
   const python=options.python||path.join(require('node:os').homedir(),'Documents','Codex','.omok-runtime','Scripts','python.exe');
   const spawnChild=options.spawnChild||spawn;
+  const continuationPreflight=options.continuationPreflight||((source)=>require('./corpus.cjs').continuationPreflight(source));
   const sessionToken=crypto.randomBytes(32).toString('hex');
   let active=null,port=null;
   const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','Cross-Origin-Resource-Policy':'same-origin'};
@@ -109,8 +110,10 @@ function createDashboard(options={}){
     for(const name of ['records.json','games.jsonl','dataset.jsonl','family-groups.json','lessons.json','candidate.json','champion.json','continuation.json'])checkedFile(source,name);
     return source;
   }
-  function launch(id,config,resume,fromRun=null){
+  function preflight(source){try{continuationPreflight(source);}catch(error){throw fail(400,'이전 모델의 학습 출처를 확인할 수 없습니다. 남은 완료 대국은 보존되어 있습니다. 이어받기 방식에서 «대국 보존 · 모델 새로 학습»을 선택해 주세요. 원인: '+error.message);}}
+  function launch(id,config,resume,fromRun=null,continuationMode='verified'){
     if(activeId())throw fail(409,'진행 중인 실험을 중단한 후 시작해 주세요.');
+    if(resume){const pending=readJSON(resolveRun(id),'continuation.json');if(pending&&!pending.complete&&pending.mode!=='raw-reset')preflight(pending.source);}
     require('./deployment.cjs').recoverDeployment({root:repo});const run=resolveRun(id);let selected={runner,argsPrefix:[],cwd:repo};if(resume&&!options.runner){try{selected=require('./archive.cjs').selectResumeRunner(run,{repo});}catch(error){throw fail(400,error.message);}}
     const args=[selected.runner,...(selected.argsPrefix||[]),'cycle','--run='+run,'--python='+python,'--device=cuda'];
     if(resume)args.push('--resume');else{
@@ -118,6 +121,7 @@ function createDashboard(options={}){
       const keys={minutes:'minutes',games:'games',gamesPerCycle:'games-per-cycle',minNewSamples:'min-new-samples',recordBranchFraction:'record-branch-fraction',maxTrainingSamples:'max-training-samples',pairs:'pairs',minPairs:'min-pairs',moveMs:'move-ms',analysisMs:'analysis-ms',validationMs:'validation-ms',workers:'workers',epochs:'epochs'};
       for(const [key,flag] of Object.entries(keys))if(config[key]!=null)args.push('--'+flag+'='+config[key]);
       if(config.continuous)args.push('--continuous');if(fromRun)args.push('--from-run='+fromRun);
+      if(fromRun&&continuationMode==='raw-reset')args.push('--continuation-mode=raw-reset','--fresh-model');
       if(config.concurrentTraining!=null)args.push('--concurrent-training='+config.concurrentTraining);
     }
     const child=spawnChild(process.execPath,args,{cwd:selected.cwd||repo,stdio:['ignore','pipe','pipe'],windowsHide:true,shell:false});
@@ -141,15 +145,18 @@ function createDashboard(options={}){
         const data=await body(req);
         if(url.pathname==='/api/start'){
           if(activeId())throw fail(409,'진행 중인 실험을 중단한 후 시작해 주세요.');
-          const config=configuration(data);const source=data.fromRun==null||data.fromRun===''?null:accumulationSource(data.fromRun);let records=null;
+          const continuationMode=data.continuationMode??'verified';if(!['verified','raw-reset'].includes(continuationMode))throw fail(400,'이어받기 방식이 올바르지 않습니다.');
+          const config=configuration(data);let source=data.fromRun==null||data.fromRun===''?null:accumulationSource(data.fromRun);let records=null;
+          if(source&&continuationMode==='raw-reset'){const state=readJSON(source,'state.json'),pending=readJSON(source,'continuation.json');if(state?.phase==='import'&&state?.counters?.generatedGames===0&&state?.counters?.samples===0&&pending&&!pending.complete){const intended=accumulationSource(path.basename(pending.source));if(intended!==path.resolve(pending.source))throw fail(400,'복구할 원본 실험 경로가 올바르지 않습니다.');source=intended;}}
+          if(source&&continuationMode==='verified')preflight(source);
           if(typeof data.record==='string'){if(Buffer.byteLength(data.record)>MAX_UPLOAD)throw fail(413,'기보 파일이 너무 큽니다.');try{records=JSON.parse(data.record);}catch{throw fail(400,'기보 JSON을 읽을 수 없습니다.');}}
           else if(data.record&&typeof data.record==='object')records=data.record;
           else if(data.record!=null)throw fail(400,'기보는 JSON 객체 또는 배열이어야 합니다.');
           if(records!==null&&(!records||typeof records!=='object'))throw fail(400,'기보는 JSON 객체 또는 배열이어야 합니다.');
           const id='run-'+new Date().toISOString().replace(/[-:.TZ]/g,'')+'-'+crypto.randomBytes(3).toString('hex');
           const run=path.join(realRoot,id);fs.mkdirSync(run);if(records!==null)fs.writeFileSync(path.join(run,'uploaded-records.json'),JSON.stringify(records,null,2)+'\n');
-          fs.writeFileSync(path.join(run,'dashboard.json'),JSON.stringify({createdAt:new Date().toISOString(),preset:data.preset||'check',config,fromRun:source?path.basename(source):null,recordName:records===null?'기존 내장 기보':path.basename(String(data.recordName||'records.json'))},null,2)+'\n');
-          return respond(201,launch(id,config,false,source));
+          fs.writeFileSync(path.join(run,'dashboard.json'),JSON.stringify({createdAt:new Date().toISOString(),preset:data.preset||'check',config,fromRun:source?path.basename(source):null,continuationMode,recordName:records===null?'기존 내장 기보':path.basename(String(data.recordName||'records.json'))},null,2)+'\n');
+          return respond(201,launch(id,config,false,source,continuationMode));
         }
         if(url.pathname==='/api/stop')return respond(200,stop(data.id));
         if(url.pathname==='/api/resume')return respond(200,launch(data.id,null,true));
