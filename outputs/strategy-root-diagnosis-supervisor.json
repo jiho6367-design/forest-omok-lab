@@ -1,0 +1,14 @@
+{
+  "priorVerificationMs": 4485.242,
+  "perAnalysisExternalMs": 15000,
+  "elapsedMs": 40608.3716,
+  "finishedAt": "2026-10-05T04:19:43.4187999+00:00",
+  "maximumAnalysisStarts": 4,
+  "pid": 37504,
+  "startedAt": "2026-10-05T04:19:02.8018096+00:00",
+  "timedOut": false,
+  "limitMs": 115514.0,
+  "termination": "external watchdog of task child tree only",
+  "verificationMs": 45093.6136,
+  "exitCode": 0
+}

@@ -1,0 +1,29 @@
+G13 개선 — 완료/복원/재개 안내
+완료 2026-10-06T18:59:32.378Z; 현재 정상 실행본 v5.14.9. 고정 기준6개 완료. 미확인 G2/G6/C6/I4 전체안전·필승/I7 전체/densequiet 범위는 보고서대로 유지합니다. 새 사용자 지시 없이 재실험하지 않습니다. 메모리 속 탐색 상태 복원을 주장하지 않습니다.
+
+작업 위치:
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab
+기록 위치:
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\initiative-improvement-work\runs\20261006-g13-automatic
+
+PowerShell 정확한 재개 감사(계산 없음):
+Set-Location -LiteralPath 'C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab'
+node 'C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\initiative-improvement-work\runs\20261006-g13-automatic\task.cjs' resume-audit
+현재 expected source hash와 HEAD/미커밋 변경, checkpoint/STATUS 및 active-process.json을 대조합니다. 마지막 supervisor는finished, started 실험0입니다. 조건이 같은 완료 결과를 재사용하고 새 변경 영향/사용자 요청 부분만 실행합니다.
+
+마지막 검증9 실행본 복원(사용자가 복원을 요청한 경우에만):
+node 'C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\initiative-improvement-work\runs\20261006-g13-automatic\restore-verified-5.14.9.cjs' apply
+선택된16파일과 정상5HTML만 검증 hash의 backup/last-verified-5.14.9에서 복사합니다. 다른 소스의 후속 변경이 있으면 감사/대조부터 하며, 새 사용자 작업을 무작정 덮지 않습니다. 정상HTML SHA 3399999a8038d39bdb21346d7b95dba6558ac67e1b014a94c3dea63e4e0a368b
+
+수정 직전 검증8로 되돌리는 정확명령(요청한 경우에만):
+node 'C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\initiative-improvement-work\runs\20261006-g13-automatic\restore-before-5.14.9.cjs' apply
+6변경파일과 정상5HTML을 backup/last-validated-before-5.14.9의 hash 확인 후 복원합니다. 기존 미커밋 Forest8·신규 파일·실패 후보·로그는 보존합니다. 구HTML SHA c8496e1ad8de78c62406b648a4986c9d6ebb7bf923a2264f2b084f2e1ab3327b.
+
+재검증은 변경 영향이 있거나 새 정보/사용자 요청이 있을 때만:
+node 'C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\initiative-improvement-work\runs\20261006-g13-automatic\supervise.cjs' new-request '<명시한 유한실험script 절대경로>' <유한 watchdog ms>
+기존 완료된 actual default 계획의 같은 조건 로그는 artifact-plan.cjs의 reuse gate로 재사용 가능하며, 실패·부분·장치/예산/소스 변화는 새 id/조건을 저장합니다. 동일 전체 검사를 이유 없이 반복하지 않습니다. source9 테스트는 npm run test:g13-counter; 전체 npm test에는35프로그램이 등록됐습니다. 이미 완료한 full검사를 반복할 필요는 없습니다.
+
+중단 절차:
+사용자가 멈춰/중단/일단저장/다른작업을 말하면 새 수정·실험예약 중지, task.cjs pause로 paused+STOP부터 원자 저장합니다. 이번 owned Worker/Node/Edge 자식과 보조A/B만 즉시 중단하고 결과를 기다리지 않습니다. 사용자 다른 프로세스는 종료하지 않습니다. PID는 소유와 현재상태를 확인해 재사용된PID를 종료하지 않습니다. Windows sandbox에서 taskkill Access denied면 플랫폼 승인 요청을 따르며 우회하지 않습니다. child.kill ownhandle를 사용한 유한unit 취소도 실제 종료를 확인합니다. source/패치/partial/report/resume 저장 후 미완료는paused로 보고하며 새 재개 지시 전 자동 실행하지 않습니다.
+
+보고서와 안내는 저장소 outputs/통합 outputs/현재workspace outputs 세곳 동일 내용으로 저장했습니다. 원 자료·이전 목표checkpoint를 유지했고 checkout/전체복제/commit/push/deploy/globalsettings는 하지 않았습니다.

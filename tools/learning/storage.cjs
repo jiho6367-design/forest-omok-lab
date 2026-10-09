@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),S=require('./state.cjs');
 const reservations=new WeakMap();
-function watchedBytes(context){let total=0;for(const name of ['.train-cache','checkpoints']){const file=path.join(context.dir,name);if(fs.existsSync(file))total+=S.diskBytes(file);}for(const name of fs.readdirSync(context.dir))if(name.startsWith('candidate.json')||name.startsWith('train.')){const file=path.join(context.dir,name);if(fs.statSync(file).isFile())total+=fs.statSync(file).size;}return total;}
+function watchedBytes(context){let total=0;for(const name of ['.train-cache','checkpoints']){const file=path.join(context.dir,name);if(fs.existsSync(file))total+=S.diskBytes(file);}for(const name of fs.readdirSync(context.dir))if(name.startsWith('candidate.json')||name.startsWith('train.')){const file=path.join(context.dir,name);try{const stat=fs.statSync(file);if(stat.isFile())total+=stat.size;}catch(error){if(error.code!=='ENOENT')throw error;}}return total;}
 function remainingReservations(context){return (reservations.get(context)||[]).reduce((sum,row)=>sum+Math.max(0,row.bytes-Math.max(0,watchedBytes(context)-row.baseline)),0);}
 function reserveTraining(context,bytes){requireBudget(context,bytes,'trainer-reservation');const row={stage:'trainer',bytes,baseline:watchedBytes(context)},rows=reservations.get(context)||[];rows.push(row);reservations.set(context,rows);context.state.storageReservations=rows.map(({stage,bytes})=>({stage,bytes}));S.save(context);return ()=>{reservations.set(context,rows.filter(value=>value!==row));context.state.storageReservations=(reservations.get(context)||[]).map(({stage,bytes})=>({stage,bytes}));S.save(context);};}
 function checkBudget(context,reserveBytes=0,stage='write'){

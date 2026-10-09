@@ -1,0 +1,21 @@
+숲속 오목 탐색예산 작업 이어하기 안내
+
+상태:완료,통합실행본v5.14.4반영. 필수미완료작업0/예상추가시간0. 다음작업자동시작없음.
+원래시작 2026-10-05T04:38:42Z;새작업중단 2026-10-05T07:23:42Z;절대종료 2026-10-05T07:38:42Z;세션전환으로시간초기화금지.
+
+정확한 읽기/상태감사 명령(PowerShell):
+Set-Location 'C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab'
+Get-Content outputs\search-budget-work\STATUS.md
+Get-Content outputs\search-budget-work\checkpoint.json
+node outputs/search-budget-work/run.cjs resume-audit
+
+감사는새분석을실행하지않음. 완료자료48회는summary/results/checkpoint와원본logs에있음. 소스·하네스·plan·CPU해시가바뀌면감사에서변경을보고. 실제재개전에도GPUadapter/브라우저/패턴표hash·국면·규칙·예산·계측을일치확인하며,조건이맞는완료행만재사용. 진행중행은중단됨이며메모리내탐색상태는복원되지않음. 실패와부분완료기록은유지.
+
+패치/복원:patches/before-existing.patch와backup/before는기존미커밋+신규코드,01-timing.patch는시간수정,03-source-and-version.patch는누적소스/버전,02·04는신규검사,05는기존test fixture수정. backup/validated에는최종변경파일만있음. 현재변경을추가보존한후필요한파일만검토해복원하며git reset/전체복제는하지않음.
+
+통합실행본:
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\outputs\omok.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\outputs\omok-gpu.html
+SHA-256 5fb8697c6b6ba559cc88b5c7c76603134ee46f2bbf4818cccec9485a3c8478e7
+
+최종보고:outputs/search-budget-report.txt. 검토A/B:outputs/search-budget-work/agents/. 로그의regression기존중단1/fixture실패1은수정전근거와함께보존되어있으며최종미완료를뜻하지않음.

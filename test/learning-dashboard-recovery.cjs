@@ -17,7 +17,7 @@ const directories=()=>fs.readdirSync(runsRoot).sort();
 const digestFiles=dir=>Object.fromEntries(fs.readdirSync(dir).filter(name=>fs.statSync(path.join(dir,name)).isFile()).map(name=>[name,S.fileHash(path.join(dir,name))]));
 (async()=>{
   const good=fixture('fixture-valid-source'),broken=fixture('fixture-missing-lineage');missingContinuation(broken);const brokenBefore=digestFiles(broken),goodBefore=digestFiles(good);
-  app=createDashboard({runsRoot,runner:path.join(S.ROOT,'tools/learning/run.cjs'),spawnChild:fakeSpawn});({port,url}=await app.listen(0));token=(await request('GET','/api/session')).data.token;
+  app=createDashboard({retention:false,runsRoot,runner:path.join(S.ROOT,'tools/learning/run.cjs'),spawnChild:fakeSpawn});({port,url}=await app.listen(0));token=(await request('GET','/api/session')).data.token;
   const initial=directories();
   for(const continuationMode of [undefined,'verified']){
     const result=await request('POST','/api/start',{preset:'continuous',fromRun:path.basename(broken),...(continuationMode?{continuationMode}:{})});

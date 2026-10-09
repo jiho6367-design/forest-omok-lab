@@ -1,0 +1,13 @@
+G13 개선 재개 안내 — 2026-10-06T18:24:14.484Z
+상태 미완료.현재32진단 및미완료검사부터. 사용자중단시pause+STOP부터기록후이번owned작업만종료;사용자재개지시전자동재개하지않음. 메모리속탐색상태복원주장없음.
+
+PowerShell 정확명령:
+Set-Location -LiteralPath 'C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab'
+node 'C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\initiative-improvement-work\runs\20261006-g13-automatic\task.cjs' resume-audit
+
+다음은 STATUS.md/checkpoint.json 실제소스와조건hash확인후미완료계획만실행. 완료조건같은결과재사용,실패/partial로그삭제금지.
+후보32 stageManifest candidate32-staged-manifest.json. 정상실행8복원은backup/before의기존소스+package+README선택파일과omok.html 원본 사용; 정상3/I2 모두검증8 HTML hash c8496e1ad8de78c62406b648a4986c9d6ebb7bf923a2264f2b084f2e1ab3327b. 현재정상8이라복원필요없음. 전체복제/새개발저장소없음.
+활성작업: active-process.json/supervisor.json 및checkpoint.active 확인,PID재사용위험때문에소유·현재상태확인없이종료금지. Windows sandbox taskkill accessdenied 발생시플랫폼승인필요. 현재unitdriver child.kill() ownhandle사용,시간/STOP유한단위확인.
+
+현재다음행동:
+30첫18unit/Reader60 PASS, Unified34PASS/73E15근거누락1FAIL.32부분counterLoss의완료개별양성반증보존 수정, 전체미확인 그대로. stage만/실행8 유지. 정확73원인확인·변경영향검사 대기.

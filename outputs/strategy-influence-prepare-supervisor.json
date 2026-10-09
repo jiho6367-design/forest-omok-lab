@@ -1,0 +1,12 @@
+{
+  "priorMs": 0.0,
+  "finishedAt": "2026-10-05T03:38:59.1362056+00:00",
+  "exitCode": 0,
+  "elapsedMs": 1022.1561,
+  "limitMs": 20000,
+  "startedAt": "2026-10-05T03:38:58.1099713+00:00",
+  "pid": 14720,
+  "termination": "external watchdog: only task child tree",
+  "timedOut": false,
+  "stage": "prepare"
+}

@@ -1,0 +1,10 @@
+{"id":"T-D2-prefix5/baseline","status":"completed","coord":"G7","depth":8,"nodes":36292,"elapsedMs":4491.300000011921,"external":15000,"incomplete":false,"error":null,"invalid":null}
+{"id":"T-D2-prefix5/improved","status":"completed","coord":"G7","depth":8,"nodes":112297,"elapsedMs":10639.5,"external":15000,"incomplete":false,"error":null,"invalid":null}
+{"id":"T-D2-prefix5/shared/opponent","status":"completed","coord":"F7","depth":8,"nodes":149668,"elapsedMs":12884.399999976158,"external":15000,"incomplete":false,"error":null,"invalid":null}
+{"id":"T-D2-prefix5/baseline/own-followup","status":"completed","coord":"F8","depth":7,"nodes":189980,"elapsedMs":13713,"external":15000,"incomplete":false,"error":null,"invalid":null}
+{"id":"T-D2-prefix5/improved/own-followup","status":"completed","coord":"F8","depth":6,"nodes":166554,"elapsedMs":13717.400000035763,"external":15000,"incomplete":false,"error":null,"invalid":null}
+{"id":"S-A1-prefix6/improved","status":"completed","coord":"I8","depth":6,"nodes":1070564,"elapsedMs":7538.800000011921,"external":8000,"incomplete":false,"error":null,"invalid":null}
+{"id":"S-A1-prefix6/baseline","status":"completed","coord":"I8","depth":6,"nodes":1262804,"elapsedMs":7535.899999976158,"external":8000,"incomplete":false,"error":null,"invalid":null}
+{"id":"P-C2-prefix7/baseline","status":"completed","coord":"I7","depth":8,"nodes":129244,"elapsedMs":11161.199999988079,"external":15000,"incomplete":false,"error":null,"invalid":null}
+{"id":"P-C2-prefix7/improved","status":"completed","coord":"I7","depth":5,"nodes":119586,"elapsedMs":9972.800000011921,"external":15000,"incomplete":false,"error":null,"invalid":null}
+{"stopReason":"requested-limited-diagnosis-complete","actualAnalysisStarts":9,"reused":1,"sourceUnchanged":true}

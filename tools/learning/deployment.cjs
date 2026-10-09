@@ -27,10 +27,10 @@ function publish(root,intent,{identityProvider=S.sourceIdentity,onPublish=()=>{}
  for(const [n,row] of intent.targets.entries()){copyChecked(row.staged,row.file,row.sha256);onPublish(row.file,n);assertExecution();}
  intent.status='committed';intent.completedAt=new Date().toISOString();S.atomic(path.join(paths(root).dir,'transaction.json'),intent);return intent.delivery;
 }
-function recoverDeployment({root=S.ROOT,identityProvider=S.sourceIdentity,onRollback=()=>{}}={}){
+function recoverDeployment({root=S.ROOT,identityProvider,onRollback=()=>{}}={}){
  root=path.resolve(root);const {dir}=paths(root),file=path.join(dir,'transaction.json'),intent=S.read(file);if(!intent||!['prepared','rolling-back'].includes(intent.status))return null;
  const lock=S.read(path.join(dir,'runner.lock'));if(lock?.pid&&lock.pid!==process.pid){let alive=false;try{process.kill(lock.pid,0);alive=true;}catch{}if(alive)throw Error('Model deployment is in progress; retry after it completes');}
- const release=S.lock(dir);try{verify(root,intent);if(intent.status==='rolling-back')return rollback(root,intent,{onRollback});
+ const release=S.lock(dir);try{verify(root,intent);if(intent.status==='rolling-back')return rollback(root,intent,{onRollback});if(!identityProvider)identityProvider=()=>require('./archive.cjs').recoveryExecutionIdentity(intent,{root});
   let current;try{current=executionIdentity(identityProvider);}catch(error){rollback(root,intent,{reason:'execution-identity-unavailable: '+error.message,onRollback});throw Error('Pending deployment execution identity is unavailable; prior model/artifacts/run adoption state restored: '+error.message);}
   if(!sameIdentity(intent.identity,current)){rollback(root,intent,{reason:'execution-identity-changed',onRollback});throw Error('Pending deployment engine/harness/runtime changed; prior model/artifacts/run adoption state restored. Fresh evaluation is required.');}
   try{return publish(root,intent,{identityProvider});}catch(error){rollback(root,intent,{reason:error.message,onRollback});throw Error('Pending deployment failed and prior model/artifacts/run adoption state restored: '+error.message);}

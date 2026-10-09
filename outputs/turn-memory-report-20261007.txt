@@ -1,0 +1,83 @@
+오목 턴 사이 탐색 메모리 재사용 — 적용 보고서
+작업일: 2026-10-07 (Asia/Seoul)
+적용본: v5.15.0 / 출발본: v5.14.9
+상태: 구현·회귀 검사·실제 브라우저 검증·기존 실행본 반영 완료
+
+구현 결과
+일반 분석, 상대 수 예측, 내 응수 사전 계산이 같은 대국의 완료된 국면별 기록을 공유합니다. 상대가 예상과 다른 수를 놓아도 이전에 조사했던 동일 국면의 자료를 사용할 수 있습니다. 예상이 일치하면 기존 사전 계산의 진행/완료 결과도 그대로 이어받습니다.
+매번 새 Worker를 시작하되 페이지에 보관한 기록을 전달합니다. 완료 깊이의 중간 출력과 최종 출력에서 완료 노드 기록을 회수하므로 Worker를 즉시 종료하는 기존 취소 처리를 유지할 수 있습니다. 아직 전달되지 않은 작업은 취소 시 잃을 수 있으며, 살아 있는 탐색 스택 전체를 저장·복원하는 기능은 아닙니다.
+
+재사용 조건과 제한
+- 판 크기·돌 배치·차례·선공/전략/연산 문맥을 구분합니다.
+- Reader의 깊이·강제/조용한 확장·시작점 거리로 달라지는 확장 조건을 구분합니다.
+- Forest의 깊이·확장·후보폭·강제 탐색 지평선까지 일치하는 점수만 사용합니다.
+- 정확한 점수와 상/하한을 구분하며, 시작점이 바뀐 승패 점수의 거리를 보정합니다.
+- 완료된 강제수 하위 문제의 양성 증명과 범위 내 부정 결과를 저장합니다. 시간 초과는 완료 결과로 저장하지 않고, 부정 결과를 안전/패배의 증명으로 올리지 않습니다.
+- 예산에 따라 미완료가 될 수 있는 전략 설명/평가를 그대로 다른 턴에 전달하지 않습니다. 국면 자체에서 결정되는 값과 완료 탐색을 재사용합니다.
+- 다음 턴에 전달하는 기록은 최대 4,096개, 추정 저장 크기 최대 6MiB입니다. 이는 새 영속 기록의 제한이며 전체 브라우저 RSS를 뜻하지 않습니다. 현재 분석의 기존 임시 캐시는 따로 유지합니다.
+- 깊이·최근 사용을 기준으로 교체합니다. 새 게임·선공 문맥·연산 모드 변경은 격리합니다. 분석 시간 설정이 바뀌어도 호환되는 하위 문제는 남기며, 탐색 범위가 다른 점수는 섞지 않습니다.
+- 페이지 새로고침/종료 시 탐색 메모리는 사라집니다. 기보·복기·학습 데이터의 기존 저장은 유지합니다.
+- 추천 카드에 이전 계산의 재사용 횟수를 표시합니다.
+
+검증 근거
+38개 검사 프로그램 통과. 검사 목록과 개별 출력은 work/turn-memory-20261007/checks.json 및 logs/에 있습니다.
+Reader의 실제 고정 깊이에서 cold/warm/두 돌 착수 후 결과의 점수·PV·보드 복구를 비교했습니다. 실제 강제승의 시작점 거리를 바꿔 점수 보정을 확인했고, 다른 문맥/깊이의 평가가 섞이지 않는지 검사했습니다.
+Forest의 실제 내부 탐색에서 H2/L6와 양색의 고정 깊이 점수·PV를 대조했습니다. 시작점 거리·예산별 폭/지평선이 다른 경우 동일 노드의 완료 점수를 곧바로 가져오지 않습니다.
+메모리 상한, 깊은 기록을 먼저 담은 snapshot의 교체, 현재 proof memo의 보존, 완성 중간 기록 전달, 취소 후 늦은 메시지 차단을 검사했습니다.
+동일 Edge 154.0.4258.53, 같은 CPU 최적화/패턴 표에서 이전 실행본과 후보의 실제 HTML/spawnAnalysis를 순차 비교했습니다. 원자료는 browser.json의27분석입니다. GPU 준비 장치는 nvidia/blackwell, fallback=false, 패턴59,049개였습니다. 이27분석의 연산 모드는 CPU 최적화입니다.
+실제 commit 경로에서 예상 일치 사전 계산 승격, 예상 불일치 뒤의 기록 재사용, Native Worker 취소 뒤 기록 재사용을 확인했습니다. 새 게임/연산 모드 변경에서는 시작 기록이0개였습니다.
+원 G13 국면의 cold/warm 모두191합법 root의 완료 강제패배를 확인했습니다. 설치 후에는 실제 기본 GPU 모드의 G13 cold/warm 및 자기 E5 즉시승도 별도로 확인했습니다. 설치 검사는 installed.json에 있습니다.
+
+측정 결과와 전략 해석
+고정 깊이3에서 실제 다음 턴의 노드 수는 필수 방어4322→4270(약1.2% 감소), 초반253→229(약9.5%), 조용한 중반7481→7036(약5.9%)였습니다. 점수·PV는 동일했습니다.
+실제 1초 조용한 중반 분석은 후보 cold 완료 깊이2/993ms에서 기록 재사용 후 깊이3/870ms가 됐습니다. 이는 제한된 한 사례의 탐색 진전이며 그 추천의 필승을 뜻하지 않습니다.
+기본 자동 조용한 중반의 후보 cold 12609ms→warm 11877ms(약5.8% 단축), 모두 완료 깊이5였습니다. 이전 실행본은12452ms/깊이5였고 세 결과 모두같은 수를 추천했습니다.
+G13은 이전5519ms, 후보 cold5905ms, warm5850ms였습니다. 재사용이1025회 있었지만 이 사례는 이전보다 빨라지지 않았습니다. 첫 분석의 기록 관리 비용과 기록 적중률에 따라 이득이 다르며, 실제 기보33의 즉시 전술 후속에서는 적중0회였습니다.
+따라서 시간 절약·같은 시간의 추가 탐색 근거는 확인했지만 모든 국면의 속도 향상, 전반 기력 향상, 전국면 최선수/무패를 주장하지 않습니다. 공격·방어 가중치나 기존 전략 목표를 바꾸지 않았습니다.
+
+수정 중 발견한 회귀와 해결
+초기 교체 방식이 깊은 기록을 먼저 가져온 snapshot의 유용한 항목을 너무 일찍 버려 실제 브라우저 재사용0회를 만들었습니다. 전체 기록의 깊이/세대 우선순위를 관리하는 제한된 heap으로 고쳤습니다.
+다음 턴 보관 제한을 현재 counter proof memo에도 적용한 초기 후보는 G13 판정을15초 내에 완료하지 못했습니다. 현재 요청의 기존 Map과 제한된 다음 턴 저장소를 분리해 해결했습니다. 실패 측정은 browser-first-failure.json/browser-g13-failure.json에 보존했습니다.
+
+실제 브라우저 비교 원자료 요약
+버전 | 국면 | 단계 | 예산ms | 경과ms | 완료깊이 | 내부좌표index | 이전기록재사용 | 판정
+baseline | sixth-move | cold | 1000 | 998 | 2 | 114 | 0 | UNRESOLVED
+candidate | sixth-move | cold | 1000 | 978 | 3 | 54 | 0 | UNRESOLVED
+candidate | sixth-move | warm | 1000 | 988 | 3 | 54 | 510 | UNRESOLVED
+baseline | sixth-move | actual-two-stone-followup | 1000 | 983 | 2 | 84 | 0 | UNRESOLVED
+candidate | sixth-move | actual-two-stone-followup | 1000 | 1003 | 2 | 84 | 43 | UNRESOLVED
+baseline | quiet-middle | cold | 1000 | 985 | 2 | 123 | 0 | UNRESOLVED
+candidate | quiet-middle | cold | 1000 | 993 | 2 | 123 | 0 | UNRESOLVED
+candidate | quiet-middle | warm | 1000 | 870 | 3 | 125 | 639 | UNRESOLVED
+baseline | quiet-middle | actual-two-stone-followup | 1000 | 984 | 2 | 126 | 0 | UNRESOLVED
+candidate | quiet-middle | actual-two-stone-followup | 1000 | 1001 | 2 | 126 | 379 | UNRESOLVED
+baseline | known-refutations | cold | 1000 | 1035 | 0 | 114 | 0 | LOSS
+candidate | known-refutations | cold | 1000 | 1048 | 0 | 114 | 0 | LOSS
+candidate | known-refutations | warm | 1000 | 1011 | 0 | 114 | 86 | LOSS
+baseline | record33 | record-prefix | 1000 | 766 | 2 | 158 | 0 | UNRESOLVED
+candidate | record33 | record-prefix | 1000 | 792 | 2 | 158 | 0 | UNRESOLVED
+baseline | record33 | record-unpredicted-followup | 1000 | 39 | 1 | 169 | 0 | UNRESOLVED
+candidate | record33 | record-unpredicted-followup | 1000 | 41 | 1 | 169 | 0 | UNRESOLVED
+baseline | quiet-middle | default-auto-cold | 15000 | 12452 | 5 | 125 | 0 | UNRESOLVED
+candidate | quiet-middle | default-auto-cold | 15000 | 12609 | 5 | 125 | 0 | UNRESOLVED
+candidate | quiet-middle | default-auto-warm | 15000 | 11877 | 5 | 125 | 195 | UNRESOLVED
+baseline | G13-memory | G13-default-auto | 15000 | 5519 | 0 | 81 | 0 | LOSS
+candidate | G13-memory | G13-default-auto | 15000 | 5905 | 0 | 81 | 0 | LOSS
+candidate | G13-memory | G13-default-auto-warm | 15000 | 5850 | 0 | 81 | 1025 | LOSS
+candidate | ui-memory | ui-seed | 1000 | 1000 | 2 | 114 | 0 | UNRESOLVED
+candidate | cancel-native | after-native-cancel | 1000 | 994 | 2 | 123 | 96 | UNRESOLVED
+candidate | new-native-game | new-game-isolated | 1000 | 1000 | 2 | 123 | 0 | UNRESOLVED
+candidate | new-native-game | compute-change-isolated | 1000 | 986 | 2 | 123 | 0 | UNRESOLVED
+
+반영과 복원
+검증 HTML SHA256: 1706bb4d794e7d0411976e904bfda49d57fa7e78decf3a26b9c36342f8798d20
+기존 실행 경로5개가 위 hash와 일치합니다:
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\omok.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\omok-gpu.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\dist\index.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\outputs\omok.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\outputs\omok-gpu.html
+소스 저장소: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab
+선택 파일의 수정 전 원본 및 기존 미커밋 변경은 work/turn-memory-20261007/backup/에 보존했습니다. 기존 .previous 실행본을 덮어쓰지 않았습니다. 출발 HTML hash는 3399999a8038d39bdb21346d7b95dba6558ac67e1b014a94c3dea63e4e0a368b입니다.
+Git HEAD: 9f51d03062b039c6846e408c7dad6169ce0c5120 (변경 없음). 커밋/푸시/외부 배포는 수행하지 않았습니다.
+열려 있던 오목 창은 새로고침하면 새 코드가 로드됩니다. 기보 저장은 기존 방식으로 유지되며 새 탐색 기록은 그 페이지에서 다시 누적됩니다.

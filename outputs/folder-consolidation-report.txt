@@ -1,0 +1,28 @@
+숲속 오목 — 검증 자료 및 폴더 정리 최종 상태
+갱신: 2026-10-05 11:52:20 +09:00
+
+최종 상태: 통합 및 중복 폴더 삭제 완료.
+사용할 작업 폴더: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu
+실제 소스: work\forest-omok-lab
+실행 파일: outputs\omok.html 및 outputs\omok-gpu.html (v5.14.3)
+삭제된 이전 폴더: C:\Users\jiho\Documents\Codex\2026-10-05\forest-omok-lab-v5-14-0
+현재 이전 폴더는 존재하지 않는다. 앞으로 새 작업 폴더나 버전별 복제본을 만들지 않는다.
+
+보존: 기존 고유 파일 40개를 통합했고, 보존 목록의 현재 목적지 SHA-256 40개 모두 원래 값과 일치한다. 이전 보고서, comparison-report.txt, 미커밋 소스 변경은 유지했다. 기존 v5.14.2 실행 HTML은 과거 자료로 보존했다.
+보존 목록: work\folder-consolidation-preserved\manifest.json
+삭제 기록: work\folder-consolidation-preserved\deletion-logs\locks-before.json 및 released-handles.json
+삭제 방식: 지정한 빈 폴더의 핸들 4개만 해제 후 비재귀 삭제. 다른 프로세스 종료 0개.
+
+검증 자료는 이 폴더의 outputs에 모았다.
+- analysis-settings-ui-verification-report.txt: 상세 A~H 결과·범위·시간
+- analysis-settings-ui-verification-results.json: 원래 브라우저 검사 근거
+- analysis-settings-ui-verification.png: 같은 검사 세션의 최종 설정 화면
+- analysis-settings-ui-first.stdout.log 및 .stderr.log: 원본 실행 로그
+- analysis-settings-ui-first-supervisor.json: 외부 감시·실측 시간
+- folder-consolidation-result.json: 현재 폴더 정리 상태
+- folder-consolidation-report.txt: 이 안내
+
+원래 검증 결과: A~H 제한 UI 검사 통과, 검증 실행 1회/재검증 0회, 누적 9.5173069초, 실제 엔진 수읽기 0회. GPU와 Worker는 대역 검사이며 실제 GPU 확인·전체 앱 검증·오목 실력 검증은 아니다. G는 후보 안정 종료 표시 범위이며 실제 즉시 전술 종료는 미실행이다. 원래 사용자 세션의 '자동인데 1초' 현상은 직접 재현하지 않았다.
+이번 정리에서 브라우저·빌드·엔진 검사를 다시 실행하지 않았다.
+현재 소스 outputs에도 해당 결과를 보관하고, 이번 채팅 outputs는 보고서를 열기 위한 전달본이다. 현재 작업 기준과 실행 위치는 위 통합 폴더 하나다.
+실행 HTML 5개의 SHA-256: f3ec4da70caf46f4265cddc121d93c56a9ecd4fc15fc7f384f48d5e14e505924

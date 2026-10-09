@@ -1,6 +1,8 @@
 # 개발 중 생성되는 내부 작업물과 개인 복기 문서는 공개 저장소에서 제외합니다.
 /work/
 /outputs/learning/
+# 실험 실행 중 생성되는 대용량 내부 작업 자료는 로컬에 보존합니다.
+/outputs/*-work/
 __pycache__/
 *.pyc
 /src/active-model.json

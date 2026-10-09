@@ -1,0 +1,38 @@
+숲속 오목 — C2 루트 탐색 깊이 감소 진단
+
+결론: 다음 수정은 Forest의 12초 경계에서 주탐색 기한이 100%→72%로 급감하는 시간 배분 한 가지를 연속화하는 것으로 제안한다. 이번에 수정·재평가하지 않는다. 기존 깊이8→5의 단독 원인은 아직 확정하지 못했다. 선공 공격 유지·후공 선제 차단/역공 목표, 가중치와 제품 동작은 유지했다.
+
+기존 근거와 비교 조건
+우선 확인: outputs/strategy-influence-report.txt, strategy-influence-results.json. P-C2-prefix7 D8 H8 F8 H6 E10 J8 G10, p=1/firstPlayer=2(흑 후공), 동일 boardHash·자동정책·외부15000/내부14100ms. 기준v5.13.1/currentv5.14.3은 다른 소스. 깊이8/129244노드/11161.2ms→5/119586/9972.8ms; 추천 I7 유지.
+root/branch22/12→28/16 이외 forcing15→19, quiet6→10, screen8→12, 최대깊이8→10도 달랐다. 기존 보고서의 “현재 요청 시간이 짧음”은 소요시간을 의미할 때만 맞으며 설정 요청 예산이 짧았다는 뜻으로 읽으면 틀리다. 기존 자료는 덮어쓰지 않았다.
+동일 limitsFor·deadline 코드에서 기준 Forest 전달예산은7000≤budget<12000, 현재는12000≤budget<24000을 역추론한다. 현재 내부14100ms에서400ms 예약을 빼므로 Forest 예산 상한13700ms. 각 기존 실행의 정확한 Reader/Forest 소요는 미관측이다.
+
+이번 측정: 같은 현재 제품 소스·GPU 준비·새 Worker/캐시·동일 판·외부/내부15000/14100ms, 순차 실행
+1 실패(계측 off): 297.5ms, 진단 코드 지역 options 변수 충돌. 보존 후 진단만 수정, 분석1회로 계산.
+2 계측 off: 깊이4, 노드49332, 10023.8ms, 설정28/16, Reader 마지막progress 깊이1. 전체 루트 수는 off에서 미관측.
+3 계측 on: 깊이5, 노드45847, 13739.6ms, 설정22/12, 실제 Forest루트22, Reader24루트/깊이3.
+4 branch만12 지정: 깊이5, 노드45622, 13744.1ms, 실제 설정22/12, 실제루트22. 기본이 이미12여서 실효 대조가 아니다. 추가 실행하지 않았다.
+
+계측 on의 단계와 실제 진입
+Unified 사전 Reader/검사 2028.7ms → Forest 전달11671.3ms → Forest11673.2ms → 후처리15.3ms. Reader 예산2000ms, 사전선택까지528.3ms, 전체2002.4ms, 종료 2초 상한 도달 · 완료된 비교 결과.
+Forest rank2.4, 초기proof1.5, screen232.7, select0.2, probe165.2, minimax11269.4, finalGuard0.0ms. 주탐색/전체기한11671.3/11671.3ms, 마지막 전체완료깊이5, 깊이6 루트10진입/9완료/22보존 후 minimax-deadline.
+Forest 입력루트72, 보존22(attack2/cut2/dual2 + 일반16), 나머지50은width-cut. I7 quota:attack, E8 quota:cut, G8/H10 quota:dual, C8 일반순위보존, B8 width-cut. E8/G8/C8 마지막완료깊이5, I7/H10은부분반복깊이6도 완료했지만 전체 비교 결과는5. 대표6개중 B8만이실행에서root minimax미진입; 다른기존실행까지소급하지 않는다.
+branch 집계는 15016개 분기 호출에서 선택 슬롯 총143576, 최대22, 실제 진입 edge총45533. 중복 판·강제수·quiet확장 포함한 합계이며 고유 후보수나 branch12의 매노드 실방문수가 아니다. alpha-beta로 선택된 모든 수를 탐색하지 않을 수 있다.
+루트선택은 strategy-quota, 당시전략소비52.5/1000ms·skipped0. probe뒤217.6ms·skipped0. 종료1000.1/1000·skipped17527. 루트 선택 이전 소진/fallback 가설은 이 실행에서 반박. 깊은 단계의 여러 API fallback과 순수 비용 인과는 구분 불가.
+
+원인 판단
+- 지지: 잔여시간12초 경계가 폭·전술설정·주탐색 예약을 연동한다. 현재 코드의11999→12000ms에서 주탐색기한11999→8640ms로 감소한다. 계측off/on에서 preset변경을 실제 관측했고 완료깊이는 전체루트반복의 시간중단으로 제한된다.
+- 반박: 외부예산 감소/외부watchdog종료가이번완료깊이를만들었다는 주장; 루트가전략예산fallback으로선택되었다는 주장; E8/H10이루트에전혀들어가지않았다는 주장(이번계측국한).
+- 아직구분불가: 원래8→5에서후보폭·전술검사·전략전체비용 각각의기여. branch대조는12→12로실효변화없음. 계측on/off간3715.8ms차이는Reader깊이와예산구간이바뀌었으므로순수계측오버헤드가아니다. 단회·실행순서·기기변동과계측효과를분리못했다.
+전략 skipped는 여러 API 합계이며 positionValue와 직접 평가 비용까지 모두 포함하지 않는다. 추천동일/깊이감소만으로 실력저하를 선언하지 않는다.
+
+다음 행동 하나 — 제안만
+Forest.analyze src/forest-engine.js:210의 주탐색 예약량을 연속화한다. 구체안: guardReserve=Math.min(budget*.28,Math.max(0,budget-12000)); deadline=start+budget-guardReserve. totalDeadline 및 최종검증 호출 유지; 후보폭/가중치/공격·차단정책 동결. 이것은12초경계의불연속을제거하는제안이지 깊이8회복/기력개선의증명이아니다. 높은예산에서검증예약이줄어드므로 후속검토에서는검증완료의미를보존해야한다. 이번에제품수정·재평가하지않음.
+
+코드·보존·한도
+근거: Unified158,243-245 Reader/Forest배분; Forest120,210,228,247,266,269 설정/기한/선택/반복/검증; Reader181,187-195; Strategy19,86-94,155-157. 최소진단은 tools/strategy/root-instrument.cjs와 root-diagnose.cjs에만있고 제품파일을바꾸지않는기본비활성 runtime overlay. 노드별로그없음. 계측off에도 overlay의 비활성분기비용은있어 원제품대비절대오버헤드는미측정.
+제품 v5.14.3, HEAD6aee1afebeec451819c707cd76a5f4ab240881f5, src/package/기존HTML 스냅샷일치=true. 기존미커밋/원본보고서/JSON/실행본보존. 빌드·커밋·푸시·배포0.
+총분석4/4(완료3,실패1), 취소0/외부초과0, 누적검증45.1/120초, 회당외부15초. 보조에이전트정확히2(ultra), 읽기전용·재위임0. UI/폴더/회귀/대국/승률추가0.
+보수적시작04:10:15UTC, 계산완료2026-10-05T04:19:43.4187999+00:00, 12분새계산중단04:22:15UTC, 전체상한04:25:15UTC. 외부감시적용·한도연장없음. 보고2026-10-05T04:23:37.679Z. 실패근거attempt1.json·감시/log별도보존.
+근거 JSON: outputs/strategy-root-diagnosis-results.json; 외부감시 strategy-root-diagnosis-supervisor.json.
+

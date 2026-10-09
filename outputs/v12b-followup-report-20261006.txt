@@ -1,0 +1,39 @@
+V12B 후속 — 검증·실행본 반영 완료
+작성 UTC: 2026-10-05T20:06:57.394Z
+결론: 검증한 유한 응수에서 K4는 다른 축 공격을 준비하는 합리적인 절충. 추천을 강제로 공격 수로 바꾸는 수정은 불필요. 전체 최선수·필승·무패·일반적인 기력/속도 향상은 미증명.
+별도 확정 오류 2건 교정: unrelated root가 함께 쓰던 quiet 확장 잔량(5.14.7), 이전 전략 측정 예산에 따라 같은 내부 후보/TT 값이 달라지던 문제(5.14.8). 가지별 extension2/폭4/ply<=4 및 per-move deadline·필수 방어·취소·최종 검사 제한 유지. Reader420 감점 복사·좌표 규칙·무조건 공격 보너스 없음.
+최종 실행본 v5.14.8. src/forest-engine.js SHA256 47acfed0aad3d4f4b96c6091d214bd055300b94fdb070bc0b45d14e3ad01aa2d
+실행본 SHA256 c8496e1ad8de78c62406b648a4986c9d6ebb7bf923a2264f2b084f2e1ab3327b
+작업 저장소: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab
+기존 실행 경로 outputs/omok.html, outputs/omok-gpu.html, dist/index.html 및 통합 폴더 outputs/omok.html, outputs/omok-gpu.html 5개 동일.
+전후 검증: 같은 실제 자동 정책·rules·GPU장치에서 순차50국면쌍. 80개 신규 실제 Worker 결과와 20개 exact accepted-engine baseline 자료 재사용. 조건·합법 첫수·전체 PV 재생·유일 즉시5목 방어 대조 PASS. 각 판의 실제 자동 100ms/3s/8s/15s를 사용했고 Reader 판을 강제로15초로 대체하지 않음.
+환경: Edge154.0.4258.53 / NVIDIA blackwell(nonfallback) / verified59049 GPU patterns / tableSHA e58668c7ac821a6a549b24c7d28765980dcec607d6d921c66e36b53ca2b242e3.
+seed(선공1): J4 I5 K5 I7 A10 O11. 아래 suffix는 각각 정확한 서로 다른 board에서 actual 재분석한 결과.
+- initial: verified5.14.7 I4(d4)→2b I3(d3), Forest15. historical5.14.6 I3 결과와 구분. 깊이 감소를 기력 저하로 판정하지 않음.
+- I4 H2/L6: before/current 실제 Reader8 K4, I4-J4-K4 legal3 보존. I3 H2의 K4와는 다른 판.
+- I3 H2: before/current K4 준비 유지. I3 L6: K4→H4 준비; H4 뒤 H2/I6에는 I4 row3, I4에는 H3 추가 준비(three 완료 아님).
+- I3 L6 K4 I6: I4 row3+cut120→I8 순수 선제cut120. oldI4 뒤 whiteI8은 single4/유일I9 방어, actualI9 및 이후whiteL4→K6 col3 보존. newI8 뒤 K7→L4 row3, L4/J6→K6 col3(whiteJ6에는cut120). oldI4+whiteJ6에는H4 PROVEN_WIN open4여서 모든 응수의 템포 향상이라고 주장하지 않음.
+- I3 H2 L6 M7 및 I3 H2 M7 L6: 각각 contiguous/broken single4의 유일 block 후 K4 준비 보존. M7은 L6black/M7white 판의 endpoint와 구분.
+- I3 L6 H2 G1: K4→G3 두 축 준비. whiteH3→E5 legal3, whiteJ8→H3 row3. whiteI4/F4에는 oldJ3 legal3→newJ5 준비라는 템포 반례 유지.
+- G3 I4 뒤 oldJ3/newJ5에 공통 whiteI8 broken4→유일I6 방어 actual 보존. 이후whiteH3에서 oldJ3판 J5 column3 / newJ5판 H7-I6-J5 diag3. 준비의 유한 연결 근거이며 J5가 항상 더 낫다는 증명은 아님.
+독립 검증: N1/N2 기보와 응수는 변경 전 independent-frozen.json에서 동결. 지금은 같은 holdout의 재사용이며 새 blind라고 부르지 않음. 실제 old/current root 합집합의15후속쌍, 점유된N1 G5응수1개 skip/분석0.
+N1 first1: root H6→G5; 고정 응수 뒤 실제 legal3 유지. N2 first2/black1 후공: root K10→I9 준비. 기존K10의 고정응수 뒤 own3/3개PROVEN_WIN four 유지; 새I9의5응수 뒤 legal3, 특히whiteK7 뒤 K6 cut→K10 attack192+cut120. 루트 전체 기력 우열은 미확정이며 oldK10+ignored응수의 더 빠른 강제공격을 숨기지 않음.
+기존 개선 보존: Reader 본체·Unified 비심층 정책·Worker 본문은 동일하고 Forest 일반 ranked 호출의 후보 규칙을 유지. 설치본RH2 E11(Reader8), B-gap H7(cut/Reader3), V12A G7(own3+cut/Forest15) 확인. B-gap H7-H3 뒤 F5→F6 legal3(같은 선택이라고 주장하지 않음); H7-F6 뒤F5 legal3 유지.
+안전/미확인: I7 E9-F8의 E11은 이번 bounded guard complete/unrefuted, proofStatus UNRESOLVED. G10은 이번 field guard complete/refuted로 제외됐지만 선택K6의 finalDefenseUnchecked 유지. G3+I6의I8도 BLOCKING_UNCHECKED. 미증명을 패배·필승·무패로 바꾸지 않음. N2 I9-K7-K10 뒤 whiteK6/유일K5의 더 깊은 실제 분기는 기하상 제안만 있고 실행하지 않음.
+원인 검사: quiet root순서/TT on-off/색교환, measured full/cached/fresh depth0/1 값·PV·working/caller board 복구 PASS. 이전v5.14.7은 work-state 회귀에서 예상대로 실패. original full-budget 모델과 2b의8개 유한tree controls 값·PV 동일. outer nomination/probe는 계속 timed이며 전체analyze 결정론이라고 주장하지 않음.
+비용: 순차 same-board elapsed/depth/node는 field-review에 보존. 대부분15s 정책에서 약13s 종료, 완료depth 감소·증가가 함께 있음. I8-J6의d8 11.641→6.729s는 한 판 관찰이며 일반속도 향상 아님. pure 내부 비용은 measured strategy.ms에 빠져 있어 그 통계 감소를 실제 비용 감소로 해석하지 않음.
+설치 검증: accepted stage와 normal build의 전체 embedded engine/actual spawnAnalysis byte-identical. 실제 설치본 Worker6개 아래 결과:
+- installed-v5148-V12B-Forest-improved: K4 / forest / 13032.4ms / BOUNDED_FAVORABLE
+- installed-v5148-main-root-RH2-E8-improved: E11 / reader / 7581.5ms / BOUNDED_FAVORABLE
+- installed-v5148-second-root-B-gap-improved: H7 / reader / 2885.3ms / BOUNDED_FAVORABLE
+- installed-v5148-independent-V12-A-improved: G7 / forest / 13063.5ms / BOUNDED_FAVORABLE
+- installed-v5148-mandatory-I9-improved: I9 / reader / 48.8ms / BLOCKING_UNCHECKED
+- installed-v5148-G10-guard-improved: K6 / forest / 13524.8ms / BLOCKING_UNCHECKED
+실행량(이번 후속run 누적): 완료 실제 Worker 172; 영향 검사 16회/5종; 유한 진단 8회; 작성중 테스트 문법 실패 1건 수정 후 강화검사PASS. 기존 전체 검사·UI·폴더 작업은 재실행하지 않음.
+비선택/실패 보존: 후보2a의 full quiet descriptor map은 의미 확대여서2b에서 제거(패배로 판정한 것 아님); backup/candidate2a-forest.js 및 candidate2-staged 유지. 초기진단의TT-off 구성 오류와 수정v2, 실패test원본 backup/failed-work-state-test.cjs, restore-helper bare-source 경로의 dryrun실패/수정도 logs/backup에 보존.
+보조A/B는49쌍까지 전략·반례·조건을 별도 읽기 검토(자기 문서만 수정, 엔진/중복계산/재위임0). 메인이 추가 명시M7 1쌍 및 설치6개 검사. agent-a-review.md, agent-b-review.md에 범위/미확인과 해석 보존.
+상시 저장: store/task/supervise 재사용, begin/end 및 변경마다 atomic checkpoint·STATUS.previous·patch/newfile/snapshot/log 기록, heartbeat60s. 가벼운 save/pause/resume atomic mock 및 검증 snapshot7/8 restore dryrun 확인(엔진0).
+기존 Reader 목표 checkpoint/state complete 및 hash 유지. 현재 코드·패치·검증8/7/원래14.6 복원 자료 보존. 진행 Worker/예약 검사 없음.
+GitHub: 사용자의 별도 업데이트 지시로 검증7의9f51d03062b039c6846e408c7dad6169ce0c5120 push 당시 확인. 이번8은 추가 commit/push/외부배포 없음.
+증거·소스 해시·명령·실패·부분결과·실행식별자: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\initiative-improvement-work\runs\20261006-v12b-followup
+핵심 근거: candidate2b-field-review.json, candidate2b-acceptance.json, release8-equivalence.json, integration8.json, installed8-worker-verification.json, logs/candidate2b-full-budget-equivalence.json, checkpoint.json/STATUS.md 및 재개 안내.

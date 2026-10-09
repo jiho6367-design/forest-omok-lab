@@ -1,0 +1,3 @@
+{"start":"instrumentation-off","count":1}
+{"id":"instrumentation-off","depth":1,"nodes":5844,"elapsedMs":297.5,"error":"ReferenceError: Cannot access 'options' before initialization"}
+{"finished":true,"count":1,"preserved":true}

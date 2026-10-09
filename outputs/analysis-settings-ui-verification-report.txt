@@ -1,0 +1,60 @@
+숲속 오목 — 분석 설정 UI 검증 마무리
+
+1) 최종 판단: 제한된 설정/UI 검사 A~H 완료. 준비 수정 후 브라우저 검증 1회에 모두 통과, 재검증 0회. 제품 오류가 확인되지 않아 앱 코드·버전·분석 정책을 추가 변경하지 않았다. 전체 앱 검증이나 오목 실력 검증으로 확대하지 않는다.
+
+2) 실제 소스: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab
+앱 버전: 5.14.3. 시작 시 기존 미커밋 변경 12개 및 신규 설정/검사 파일 2개가 있었으며 보존했다.
+기존 사용자 실행 경로: C:\Users\jiho\Documents\Codex\2026-10-05\forest-omok-lab-v5-14-0\outputs\omok.html
+후속 사용자 요청에 따라 실행 파일과 고유 자료를 하나의 작업 폴더로 통합했다.
+현재 실행 경로: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\outputs\omok.html 및 omok-gpu.html
+소스 outputs/omok.html, outputs/omok-gpu.html, dist/index.html과 현재 실행 HTML의 SHA-256은 모두 f3ec4da70caf46f4265cddc121d93c56a9ecd4fc15fc7f384f48d5e14e505924. 이번에는 재빌드하지 않았다.
+
+3) A~H 결과와 근거
+A 통과: 빈 판/내 흑 차례/시계 없음. 실제 옛 budget 선택값 1000ms를 HTML 테스트 fixture로 구성하고 실제 존재하는 omok-gpu-profile=optimized를 이관. 자동 선택, 외부 3000/내부 2820, automatic=true. 모의 결과 채택 후 H8와 자동 3.00초 표시 확인.
+B 통과: summary를 클릭해 설정 영역을 열고 select의 표시·활성 상태 확인 후 심층 선택. 외부 25000/내부 23500, 최종 추천과 심층 표시 확인. 별도 격리 상태에서 유효한 새 심층 설정이 옛 optimized보다 우선하는 것도 확인.
+C 통과: 사용자 선택/입력/Tab 조작으로 직접 설정 1초 표시, 입력 활성화, 외부 1000/내부 940 및 최종 결과 표시 확인. 자동으로 바꾸면 3000/2820과 입력 비활성 상태로 복귀.
+D 통과: CPU→GPU 전환에서 심층 모드와 25000/23500 유지 및 최종 화면 확인. 별도 GPU 준비 실패 대역에서 CPU 실행과 test GPU unavailable 대체 이유, 심층 유지 확인.
+E 통과: 같은 격리 저장소에서 새로고침 후 직접 설정과 요청 1000/940 유지. 실제 옛 optimized 키가 새 설정을 덮어쓰지 않음. 별도 2수 테스트 기보 객체, 활성 게임, 무관한 저장값 유지 확인. 사용자의 실제 브라우저 프로필/기보는 접근하지 않음.
+F 통과: 분석 중 자동→심층 변경 시 추가 요청 정확히 1회. 새 심층 H8 최종 결과 채택 후 이전 자동 요청의 합법적인 I8 지연 최종 결과를 전달해도 추천·이유·적용 정책 표시가 그대로 유지. terminate 호출뿐 아니라 최종 화면을 비교했다.
+G 통과(후보 안정 종료 표시 범위): 고정 남은 시계 3500ms에서 자동 선택 유지, 외부 500/내부 440, 대국 시계 예산 축소 표시 확인. 정상 후보 안정 종료 메시지 채택 시 시간 상한 도달로 표시하지 않음. 시계 없는 자동 3000/2820에서도 조기 종료와 최대 예산을 함께 표시. 실제 즉시 전술 엔진 종료/실제 탐색의 안정 판정은 미실행.
+H 통과: 상대 예측 1000/940과 내 심층 사전 응수 25000/23500 분리. 직접 설정 변경 후 새 내 사전 응수 1000/940 사용. 옛 심층 사전 결과 무효화 확인. 실제 판 클릭으로 예측한 H8을 착수한 뒤 새 사전 응수 H9를 채택하고, 옛 결과 재전송에도 최종 추천/적용 정책 유지 확인.
+기존 A~H와 동일한 목적별 그룹이며, G는 실제 전술을 실행하지 않고 후보 안정 모의 종료의 화면 구분을 확인했고 H는 자동 대신 심층→직접 설정으로 서로 다른 정책을 구분했다.
+
+4) 대표 조작 → 모드 → 외부/내부 예산 → 화면
+분석 시간 제목 열기 → 심층 → 25000/23500ms → H8 및 선택 심층/적용 최대 25.00초.
+직접 설정 선택 + 1 입력 → 직접 설정 → 1000/940ms → 직접 설정 · 1초 및 H8.
+자동 선택 → 자동 → 3000/2820ms → 선택 자동/적용 최대 3.00초/후보 안정.
+고정 시계 3500ms → 자동 → 500/440ms → 대국 시계로 예산 축소 및 정상 조기 종료.
+
+5) 확인 범위
+앱 초기화 전에 Worker 대역을 연결하고 createEngine의 직접 analyze 호출을 차단·계수했다. 실제 UI 이벤트, 예산 정책, 요청 생성, 합법성/결과 정리, 채택과 표시 경로는 원래 코드를 사용했다. Worker 대역의 합법적인 형식 결과와 GPU 준비 대역을 사용했으며 실제 수읽기 0회, 실제 GPU 장치 확인 0회. 모의 Worker 요청은 25개. 결과에 요청 설정을 복사하지 않고 실제 요청과 별도로 화면 정책을 검사했다.
+원래 사용자 세션의 ‘자동인데 1초’ 현상은 직접 재현하지 않았으며 그 원인이 확정됐다고 주장하지 않는다.
+
+6) 변경 파일·실행 명령·로그
+이번 검사 코드: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\work\analysis-settings-ui\settings-ui-check.cjs
+외부 감시: 같은 폴더 supervise.ps1. 실행 명령: & '.\work\analysis-settings-ui\supervise.ps1'
+원본 로그: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\analysis-settings-ui-first.stdout.log 및 .stderr.log
+결과 JSON: 같은 outputs\analysis-settings-ui-verification-results.json
+외부 감시 기록: 같은 outputs\analysis-settings-ui-first-supervisor.json
+최종 설정 화면: 같은 outputs\analysis-settings-ui-verification.png (동일 브라우저 세션에서 저장).
+새 보고서는 소스 outputs와 통합된 실행 폴더 outputs, 이번 채팅 outputs에 동일하게 저장했다. 옛 실행 폴더는 통합 요청에 따라 정리했으므로 그 경로에 outputs를 다시 만들지 않았다.
+제품 파일 추가 변경, 신규 의존성 설치, 보조 에이전트, 커밋·푸시·배포, 전략 검증은 없음. 이전 보고서와 comparison-report.txt는 보존했다.
+
+7) 시간·횟수
+최초 제한 검증 작업의 전체 경과(보수적 예산 기준 2026-10-05 11:31:40 KST부터 최초 보고서 저장): 568.57초.
+최초 보고서 저장: 2026-10-05 11:41:08 +09:00.
+누적 검증 실측: 9.5173069초/90초. 브라우저 내부 실행 8.490초. 빌드·문법 검사 추가 실행 없음.
+외부 감시는 누적 90초와 전체 8분 중단 시각 중 이른 시각을 적용. 시간 초과/강제 종료 없음. 이번 생성 브라우저·서버를 정상 종료했고 사용자 프로세스는 종료하지 않음.
+실제 수읽기 시작: 0회. 작업별 토큰·크레딧 사용량: 미측정.
+
+8) 남은 사항 및 폴더 통합
+검사 범위 내 미완료 항목 없음. 실제 엔진/실제 GPU와 원래 사용자 세션 현상은 미확인이다.
+폴더 통합은 고유 파일 40개의 원본·복사본 SHA-256을 모두 확인한 뒤 수행했다. 실행 HTML을 최신 검증본으로 통일했고, 기존 통합 폴더의 v5.14.2 HTML도 work\folder-consolidation-preserved\canonical-before\outputs\omok.html에 보존했다.
+보존 목록: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\folder-consolidation-preserved\manifest.json
+기존 중복 폴더는 내용과 빈 폴더 자체까지 삭제 완료. 후속 사용자 지시에 따라 정확히 그 폴더를 가리키는 잠금 핸들 4개만 해제한 뒤 비재귀 삭제했고, 현재 해당 경로가 존재하지 않음을 확인했다. 다른 프로세스 자체를 종료하지 않았다. 향후 작업 기준은 C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu 하나이며 소스는 그 아래 work\forest-omok-lab만 사용한다.
+
+정리 갱신: 2026-10-05 11:52:20 +09:00. 이번 후속 작업은 보고서와 폴더 상태 정리만 수행했다. 브라우저/빌드/엔진 검증을 재실행하지 않았으며 기존 A~H 결과와 시간·횟수는 원래 검증 기록이다.
+보존 파일 40개는 현재 목적지에서 원래 SHA-256과 다시 대조해 일치함을 확인했다. 실행 HTML 5개도 동일 해시로 확인했다.
+삭제 원본 기록: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\folder-consolidation-preserved\deletion-logs\locks-before.json 및 released-handles.json.
+폴더 정리 요약: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\outputs\folder-consolidation-report.txt. 검증 결과·화면·원본 로그·외부 감시 기록도 이 outputs에 모았다.
+

@@ -1,0 +1,119 @@
+숲속 오목 엔진 전략 개선 v5 — 완료 보고서
+작성 2026-10-05T07:45:25.567Z (UTC, KST=UTC+9)
+결론: 검증 범위에서 개선되어 적용. 통합 실행본 v5.14.5.
+
+1. 적용한 범위와 완료 판단
+반증 없는 미완료 공격·차단 후보를 완료 후보가 하나 있다는 이유로 비교에서 제거하던 문제를 재현하고 수정했다. 선택된 미완료 후보의 최종 반격 검사를 같은 총 예산 안에 배정했고, 반증 발견 후에는 완료 비교 순위로 재선택한다. 횟수·시간이 소진되면 기존 완료 후보를 보수적으로 재사용하고 미완료 표시를 유지한다.
+기존 실제42의 이른 준비 분기와 복수 합법 응수에서 연결 공격 기회를 확인했다. 특히 F10–H10 뒤 G9–M6–I7은 양끝 4로 이어졌고, 비교한 K6–M6 뒤 J5는 아직 준비 단계였다. I7 응수 쪽은 미증명이다. 최초 F10의 항상 우월함, 전체 기력 향상, 후공의 전반적 개선, 최선수·필승·무패를 주장하지 않는다.
+단순 후보 통합만 한 후보1은 G10 반례로 보류했다. 최종 반격 검사와 보수 fallback까지 통과한 최종 소스만 빌드·반영했다.
+
+2. 작업 기준·보존·시간
+저장소: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab
+시작 HEAD: 6aee1afebeec451819c707cd76a5f4ab240881f5, main. 시작 당시 실제 package/app/실행본은 v5.14.4였고 이미 존재한 미커밋·신규 변경을 보존했다. 커밋·푸시·외부 배포·결제·전역 설정 변경은 하지 않았다.
+시작 2026-10-05T05:55:14Z / 2026-10-05 14:55:14 KST.
+새 수정·실험 중단 2026-10-05T08:40:14Z / 17:40:14 KST.
+절대 종료 2026-10-05T08:55:14Z / 17:55:14 KST. 준비·에이전트·오류 처리·보고를 포함해 고정했고 초기화하지 않았다.
+이 보고 시점 경과 110.19분. 목표를 마쳐 상한 전에 종료한다.
+수정 직전 백업: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\initiative-improvement-work\backup\before
+미커밋 패치: patches/before-existing.patch; 초기 git-status와 원본·신규 파일 해시: checkpoint.json/preservedFiles.
+직전 실행본: backup/before/{outputs/omok.html,outputs/omok-gpu.html,dist/index.html}, backup/integration/{omok.html,omok-gpu.html}.
+기존 search-budget-resume.txt와 v5.14.4 보고를 읽었다. 완료된 UI·폴더·12초 경계 작업을 다시 시작하지 않았다. 기존 12초 예약 공식은 그대로 두고, 미완료 후보를 새로 비교하는 경우에만 조건부 최종 검사 시간을 예약했다.
+
+3. 원기보·역할·당시 추천의 구분
+아래 돌 번호는 1=흑, 2=백. 최초 돌과 내 돌이 같으면 선공이며 공격·수비 역할을 영구 고정하지 않는다.
+actual42: 42수, 최초 2, 내 돌 2, 선공, development, 날짜 2026-09-25; 원본 수순 H8 I8 H7 H9 H6 G8 H4 H5 G7 F7 I10 J7 G10 I6 G4 G6 I4 F4 K4 J4 E8 I7 I9 F6 K11 J10 F5 E6 D5 K6 L5 K8 L9 K7 L7 L8 K9 J8 M8 J9 J11 J6
+actual17: 17수, 최초 2, 내 돌 1, 후공, development, 날짜 2026-09-26; 원본 수순 H8 G7 I7 G9 I8 G8 G6 F9 H7 J9 H9 G10 G11 H10 I6 H6 I5
+actual23: 23수, 최초 2, 내 돌 1, 후공, validation, 날짜 2026-09-26; 원본 수순 H8 G7 H9 H6 F8 H10 G8 I8 F7 E6 F9 F6 G6 E8 G9 F10 D9 E9 J9 I9 J11 C4 I10
+actual58: 58수, 최초 2, 내 돌 2, 선공, validation, 날짜 2026-09-25; 원본 수순 H8 H9 G9 I7 G7 I9 G8 G6 G11 G10 I8 J8 F10 K7 F8 E8 E11 D12 L6 F9 H11 F11 H6 E12 D13 E9 E7 D6 H10 I11 C6 J10 I5 J4 J9 I10 H12 K9 I13 J14 H14 H13 K6 J6 J7 K11 M4 L5 K10 L12 M13 L8 M7 L10 M11 M9 N10 N8
+actual48: 48수, 최초 1, 내 돌 1, 선공, development, 날짜 원기록 없음; 원본 수순 L4 K5 L5 L6 J4 K4 K6 J7 K3 I5 L3 I6 M3 N3 I3 J3 M5 J2 M4 M2 M7 M6 N6 O7 L8 K9 L2 L1 H5 I7 I8 H6 J8 K8 L9 H7 K7 G8 J5 F9 E10 G6 F6 G7 F7 G5 G9 G4
+actual42/17/23/58은 src/app.js에 저장된 사용자 기보를 재사용했다. actual48은 기존 reader 저장 기보이며 날짜·당시 분석 정책·당시 사용자 신원은 확인되지 않는다. reader31/29는 추가 검증용 기존 기보다.
+원래 저장 기보의 rec/time/remaining은 null이며 당시 엔진 추천·버전·예산은 확인되지 않는다. 원래 없던 정보를 당시 실측으로 채우지 않았다. 현재 추천은 전부 재분석 결과다. 로그 spec.analysisVersion의 초기 “5.14.4 current reanalysis” 문구가 후보에도 복사된 것은 초기 국면 메타 태그다. 실제 시험 엔진은 condition.version/sourceHash와 experiment-summary.json/experiment-moves.tsv의 engineRevision 보완 열로 식별한다. 완료 조건 해시가 바뀌지 않도록 원로그는 그대로 보존했다.
+reader 기보 좌표는 원 문자열에서 native y=row-1로 재생했다. reader 내부 배열의 y=15-row를 그대로 넘기지 않았다. 실제 기보 이후 local branch test는 history.type=simulation, continuationSource 및 branch.line으로 구별한다.
+개발용 actual42/17과 actual48을 먼저 분리했고, 수정 전에 actual23/58을 검증용으로 고정했다. reader31/29와 구조 사례를 추가 검증에 사용했으며 튜닝하지 않았다.
+
+4. 재현과 원인
+actual42 13수: 백 선공, 현재 백 차례, 사용자 실제 G10, 당시 추천 없음. 수정 직전 재분석은 K6. 후보1이 G10을 추천해 반례를 확인했다.
+actual42 21수: 백 선공, 현재 백 차례, 사용자 실제 E8, 당시 추천 없음. 더 늦은 강제패배 수보다 먼저 공격 준비·차단 갈림을 검사했다.
+12초 Forest 진단 reproduce2-actual42-move21: 근처 합법 후보78 중 완료·미반증3만 비교에 남고 미완료·미반증71이 전부 빠졌다. 검증된 반증4는 별도 제외됐다. 원인은 safe.length ? safe : undecided 계층 선택이었다. 공격 연결과 차단 후보가 있었지만 검사 시간 소진을 후보 탈락처럼 처리했다.
+동일 진단 paired pool-1: before는 완료2, 미완료72 탈락; 후보1은 완료+미완료74를 비교 가능 상태에 두고 root28을 실제 비교했다. 반증4는 계속 제외했다. 이 계측은 진단용 후보1이며 최종 실사용 수순과 혼합하지 않는다.
+actual42 23/27수, actual48 35수에서도 미완료 후보가 완료 후보 존재 때문에 빠지는 패턴을 찾았다. actual17의 초기 분기는 이 문제가 반복되지 않았다. actual42 19/25수는 현재 엔진에서 강제 공격을 찾았으므로 과거 패배를 현재 오류로 단정하지 않았다. 29/31수의 필수 방어와 늦은 강제패배는 그대로 구분했다.
+
+5. 일반 알고리즘 수정
+src/forest-engine.js:
+① 완료·미완료 미반증 후보를 함께 비교한다. 반증·replyTrap·counterThreat 제외 규칙은 유지한다.
+② 마지막 완료 minimax 라운드의 전체 순위를 보존한다. 최종 후보 반증 시 임의의 정적 점수 순서로 되돌아가지 않는다.
+③ 미완료 root가 비교에 포함되면 min(totalBudget×0.22,2500ms)를 같은 총 기한 안에 예약한다. 기존 예약과 합산하지 않는다. Unified가 Forest에 12초 미만을 넘기는 경우도 선택된 미완료 후보를 검사한다.
+④ 최대3 후보의 최종 반격 검사를 수행한다. 반증은 제외하고 재선택한다. cap/deadline 직후 미검사 대안이 노출되는 경우와 비교 폭 밖의 완료 대안을 놓치는 경우를 보완했다.
+⑤ 재선택/fallback은 depth0·단일 PV로 보수 반환한다. 검사가 미완료이면 analysisIncomplete=true와 미완료 이유를 남긴다. 유한 탐색 완료를 안전·승리 증명으로 승격하지 않는다.
+즉시 승리·필수 방어·금수·전역 패배 증명·검증된 반증 제외는 수정하지 않았다. 특정 좌표·기보 암기, 무조건 공격 가중치 증가, 방어 금지는 추가하지 않았다. 최초 착수자 문맥과 현재 차례에 따른 주도권 판단은 기존 전략 엔진을 유지했다.
+패치: 01-unrefuted-root-pool.patch(보류 후보1), 02-root-pool-finalist-guard.patch, 03-finalist-fallback-complete.patch, 04-final-task.patch(수정 직전 상태 대비 최종 소스·버전·테스트 전체).
+새 검사: test/initiative-pool.cjs, test/initiative-guard.cjs. 기존 recommendation-policy/worker-lifecycle 검사에 미완료 결과 전달 계약을 보완했다.
+
+6. 전후 실제 실행 수순과 복수 응수
+아래는 이번 엔진을 실제 실행해 얻은 결과다. 원 사용자 대국의 실착수와는 별개이며, 21수 이후 다른 착수로 분기한 줄은 모의 수순이다. PV 한 줄을 후속 실착수처럼 연결하지 않았다.
+최종 직접 설정15초 정책(automatic=false), baseline=v5.14.4 보존 코어, improved=빌드 v5.14.5:
+manual-final-actual42-13-baseline: K6, PV K6 I6 K8 I4 G6 I5 I7 G5, depth 8, 8074.8ms
+manual-final-actual42-13-improved: K6, PV K6, depth 0, 12845.1ms
+manual-final-actual42-21-baseline: F6, PV F6 I9 G5 I3 I5 J6, depth 6, 12410.3ms
+manual-final-actual42-21-improved: F10, PV F10 H10 F6, depth 3, 11840.6ms
+manual-final-actual42-F10-H10-baseline: K6, PV K6 K8 L9 J5 J6 I5, depth 6, 12503.3ms
+manual-final-actual42-F10-H10-improved: G9, PV G9 I7 I9, depth 3, 12352.1ms
+13수 수동 최종: G10 최종 guard complete=true/refuted=true, K6로 재선택. depth0, proof UNRESOLVED, assessment BLOCKING_UNCHECKED, analysisIncomplete=false. K6가 무패라는 뜻은 아니다.
+앞선 automatic API 최종13수는 G10 guard가 미완료여서 완료 후보 K6를 fallback하고 INCOMPLETE를 표시했다. 그 실행에서 반증 증명을 완료했다고 쓰지 않는다.
+21수 기준 추천은 시간 제한 반복에서 F6/L5/F10으로 변했다. 수정본 최종 코어는 F10을 유지했지만 마지막 automatic API 쌍은 양쪽 모두 F10이었다. “수정본만 F10을 발견”이라는 주장은 하지 않는다.
+
+공통 합법 응수 비교(기존 prefix20 뒤 백 대안 L5/F6/F10을 둔 국면):
+L5–J5 → J3(차단과 대각선3 준비), F10–J5 → H10(양끝 승리점 E10/J10). 양 버전 모두 후속을 실행했다.
+L5–I9 → 기존 I7/수정 F9 미완료, F10–I9 → H10 양끝4.
+L5/F6/F10–D9 → 전부 E8 필수 방어. 실제로 E8을 둔 뒤 공통 J5/H10 응수를 다시 실행했다.
+L5–D9–E8–J5는 J3 등 준비·교환이 남고, F10–D9–E8–J5 → H10 양끝4로 공격을 복구했다.
+F10–H10 뒤 before K6 vs after G9: 공통 M6 이후 K6 분기는 J5 준비(미증명), G9 분기는 I7 양끝 승리점 J6/E11, 상대 즉시 승리점 없음. 공통 I7 이후 K6 및 G9의 후속은 아직 미증명이며 전체 우월성을 단정하지 않는다.
+반대 근거: F6–J5/H10 → I9 강제 공격. D9–E8을 거친 뒤도 같은 공격을 유지한다. F6는 불필요한 방어로 분류할 수 없다. L5–H10–J3–I7도 I2 강제 공격을 찾았다. J3는 순수 방어가 아니며 L5가 항상 공격을 끊는 것도 아니다.
+semantic-audit.json은 Reader의 별도 규칙 구현(strategy=false)으로 합법성·정확한5목의 다음 승리점과 상대 즉시 승리점을 확인했다. 분석행52 중20에서 양끝4가 확인됐다. 버전쌍과 같은 분기의 중복이 포함되므로 20개의 독립 국면으로 집계하지 않는다. 점수·깊이 증가로 개선을 선언하지 않았다.
+
+7. 반례·검증·실패 기록
+G10 반례: 사용자 실제42의 prefix12에서 백 G10 뒤 흑 I6 준비. 모든 합법 백 응수 및 일부 응수 뒤 I5의 중첩 강제 공격을 기존 verify-attack 도구로 독립 검증했다. 첫 단순 변환은 중첩 children을 빠뜨려 실패했다(“Unrefuted reply G4”); 중첩 표현을 복구한 counter-audit-G10-nested는 verified=true, defenses626, VCF623, cached1, 2030ms. 후보1은 적용하지 않았다. 초기 실패 로그도 보존했다.
+분리 검증32회(16국면×전후): actual23 4/8/12/22수, actual58 7/11/25/47수, reader31 27/31수, reader29 20/24/26수, 구조3국면. error/illegal/PV/expected tactical failure 0. actual23/58의 모든 비교 추천이 같았으며, 필수 방어·금수 방어 불가의 패배 표시·즉시 승리가 유지됐다. 이는 전체 안전성 증명이 아니다.
+최종 회귀16 스크립트: initiative pool/guard, recommendation-policy, five-priority, known-refutations, root-screen, proof-certificate, performance-cache, strategy manifest/replay/engine/context/policy/proof, unified, worker-lifecycle. 최종 유효 결과 모두 PASS. Unified35 scenarios, 0 failed; 142903ms. 변경되지 않은 Reader 전체/DFPN/자가대국·UI·폴더 긴 검사는 반복하지 않았다.
+신규 guard 제어5종: 12초 미만 예약, 정적 순위와 완료 비교 순위가 역전된 재선택, 비교 폭 밖 완료 fallback, 최대3회 cap, 반증 직후 deadline. 이 fixture 증명은 실제 게임 인증서가 아니다.
+새 상태 전달 assertion은 proofStatus에 INCOMPLETE를 기대해 한 번 실패했다. 기존 계약은 proofStatus=UNRESOLVED / assessmentStatus=INCOMPLETE다. 테스트 기대만 고쳤고 회귀 재실행 PASS. 제품 source를 고치지 않았다. 정상 Worker 완료에서도 positive depth와 analysisIncomplete/assessment를 보존한다.
+설치 후 embedded source audit PASS: 테스트 코어와 HTML 코어가 비활성 CommonJS export를 제외하고 동일; 즉시 정확5목 우선, 필수 차단, 양측3×3 금수, 실행본5개 해시 일치. 최종 process-audit.json에서 감시19개 기록 모두 종료, 해당 PID/직접 자식 중 살아 있는 프로세스0을 확인했다.
+초기 PowerShell 인라인 인용 오류와 git diff no-index의 정상 차이 반환코드1 처리 오류는 준비 단계에서 교정했다. 분석 실패로 숨기지 않고 journal/실패 로그를 보존했다.
+
+8. 시간·장치·성능 한계
+순차 브라우저 수읽기 146회, 전부 완료: 직접 Forest 진단30회(각12초), Unified116회(외부15초/Worker 내부14100ms). Unified 중110회는 automatic=true를15초로 제한한 API 시험, 마지막6회는 UI 직접 설정15초 정책이다. 기본 자동2.5~8초는 Forest 심층 경로를 사용하지 않는 기존 Reader 경로이며 이번 개선을 기본 자동 기력 향상으로 확대하지 않는다.
+체크포인트 검증 요청 26회: 완료 24, 실패 후 해소 2. 이26회에는 독립 G10 인증2회, 제어5회, 최종 회귀16회, 정정 재검사2회, 설치 실행본 감사1회가 포함된다. 별도 짧은 개발 fixture 터미널 확인과 정적 semantic/resume 감사는 강도 비교 수읽기 횟수에 넣지 않았다. A/B 수읽기 계산은 각각0회다.
+같은 규칙·판·예산·장치에서 baseline/improved를 순차 실행했다. GPU 패턴표는 세션 내 동일 표를 공유하고, 실제 앱 spawnAnalysis와 새 Worker/빈 캐시를 사용했다. 기보 학습·ponder·대국 시계는 사용하지 않았다.
+장치: Windows x64, Intel(R) Core(TM) Ultra 7 356H; Edge 154.0.4258.53; NVIDIA Blackwell, fallback=false, verifiedPatterns59049.
+GPU 표 SHA256: e58668c7ac821a6a549b24c7d28765980dcec607d6d921c66e36b53ca2b242e3
+원래5목/3×3 양측/6목 비승리 규칙 고정. 모든 실험의 조건·소스·판·harness·장치·예산 해시와 소요시간은 checkpoint/각 로그에 보존했다. 진단 계측과 일반 실사용 정책은 따로 기록했다.
+비용: 최종 automatic 비교에서 actual42 13수 depth7→0, actual48 35수 depth6→3; actual23 12수도 depth8→6. 수동13수 depth8→0. 정적 점수로 재선택한 값을 이전 minimax 점수와 비교하지 않는다. 탐색 폭·최종 검사 예약으로 깊이가 줄 수 있고, 느린 장치·짧은 예산의 전반 성능은 미확인이다.
+외부 감시: 각 비교 단계는 supervise.ps1의 숨김 PowerShell process/자식 트리 감시를 사용했다. timeout 시 해당 PID만 taskkill /T /F 대상이다. branches-2는 limit420000ms에 elapsed706342ms인데 WaitForExit가 종료로 반환한 관측이 있었다. 시스템 시간/중단 영향을 확정할 근거가 없으므로 엄격한 단계 wall cap 성공이라 주장하지 않는다. 이후 UTC 절대 기한을1초 간격으로 재확인하도록 감시를 보완했다. 고정 전체 시각은 계속 유지했으며 후속 단계 overrunObserved=false였다.
+
+9. 실행본·해시·기록 위치
+수정 직전 실행본 SHA256: 5fb8697c6b6ba559cc88b5c7c76603134ee46f2bbf4818cccec9485a3c8478e7
+최종 시험 코어 SHA256: 77fc0c4421a0ccb9ae70583406ace12ad67ef44a3e4c40b720e5d8644f3ea3d6
+최종 실행본 SHA256: a140b8b04f7682684f8fabada37414cefb056a845318251db29285c34ee67d59
+적용 2026-10-05T07:33:35.161Z, v5.14.5, 적용 여부=true.
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\omok.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\omok-gpu.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\dist\index.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\outputs\omok.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\outputs\omok-gpu.html
+정확한 증거 루트: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\initiative-improvement-work
+STATUS.md / checkpoint.json(+.previous) / results.jsonl: 진행·조건·완료·실패·다음 행동.
+records/original-records.json: 원본 수순·역할·개발/검증 구분.
+experiment-moves.tsv / experiment-summary.json: 모든146회의 수번호·내 선후공·현재차례·원 실제착수/원 추천 없음·현재 추천/PV·정책·버전 보완·해시·로그 경로.
+logs/<experiment-id>.json: 조건, 실제 결과·후보·반증·미완료. logs/*supervisor.json / stdout.log / stderr.log: 감시와 실패.
+agents/A-analysis.md: 실제 기보 분기·공격/차단 대안, agents/B-review.md: 독립 반례·검증 기준·적용 범위. 보조2명만 사용했고 제품 소스는 메인만 수정했다. 재위임·동시 성능 계산 없음.
+patches/04-final-task.patch: 최종 변경; backup/before·integration: 복원 원본; installed-build-audit.json, semantic-audit.json, resume-audit.json, process-audit.json: 별도 감사.
+보고서/재개 전달본은 저장소 outputs, 통합 outputs, 현재 대화 outputs에 동일하게 저장했다.
+
+10. 다음 행동과 재개
+이번 승인 범위의 필수 작업은 완료했다. 새 근거 없는 반복·무제한 자가대국은 하지 않는다. 후속 지시가 있으면 저장 상태부터 읽고 완료 조건이 같은 결과를 재사용한다. 과거 완료 상태만으로 새 지시를 자동 중단하지 않는다. 이번 실행의 고정 기한을 새 세션에서 자동 연장하지 않는다.
+Set-Location 'C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab'
+Get-Content outputs\initiative-improvement-work\STATUS.md
+Get-Content outputs\initiative-improvement-work\checkpoint.json
+node outputs/initiative-improvement-work/run.cjs resume-audit
+resume-audit는 저장 파일·실행본·소스·harness·CPU·실패 해소·미완료 여부만 확인한다. 새 수읽기를 시작하지 않는다. 완료 hash가 같아도 새 브라우저의 adapter/Edge/GPU표/규칙/국면/예산이 일치해야 재사용한다. 탐색 메모리 상태는 복원하지 않는다.
+실행본 복원만 필요하면 backup/integration의 두 HTML을 위 통합 실행 경로에 Copy-Item -LiteralPath로 복사한다. 소스도 복원할 경우 backup/before의 이번 변경 파일7개(src forest/unified-app/gpu-app, package, README, recommendation-policy, worker-lifecycle)를 원 위치에 복사하고 node build.cjs로 재생성한다. 새 fixture2개는 보존해도 되며 과거 npm test에는 연결되지 않는다. 직전 실행본 해시로 확인한다.

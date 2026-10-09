@@ -1,0 +1,213 @@
+{
+  "version": "5.16.0",
+  "completedAt": "2026-10-06T21:06:56.747Z",
+  "git": {
+    "branch": "codex/local-learning-v5.16.0",
+    "localCommit": "6b8a56360858847d361718844dd2916c011f65ed",
+    "mainCommit": "0c652e887753e338eeccc52e86d1722a6b62c26e",
+    "remoteMain": "0c652e887753e338eeccc52e86d1722a6b62c26e",
+    "remotePublishedVersion": "5.15.0",
+    "learningBranchPushed": false
+  },
+  "run": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\local-gpu-verified-20261007",
+  "identity": {
+    "sourceHash": "c3d02fd0f3951be4b80c563827f5b67e387d17863f3011671bc04fe565f870f7",
+    "harnessHash": "4e2847de0648cea9627f3cf0b74352418de61f6ed00a012d000117c6fe76794b"
+  },
+  "counters": {
+    "generatedGames": 15,
+    "completedGames": 15,
+    "samples": 780,
+    "analyzedPositions": 89,
+    "importedRecords": 31,
+    "uniquePositions": 672,
+    "existingLessons": 1
+  },
+  "training": {
+    "modelId": "mlp-f5d76d53b3d8dcb68061407cb100a165e2a1c2d826d0c39563ed6facfd3da6e3",
+    "initModelId": "mlp-3a19f3ba153455e2c4d1ad4ce91e8b38a7d26c511af88c6d7d48fc92586e1b7f",
+    "updates": 50,
+    "counts": {
+      "train": 636,
+      "validation": 63,
+      "test": 52
+    },
+    "families": {
+      "train": 14,
+      "validation": 2,
+      "test": 1
+    },
+    "validationMse": 0.0909904298328218,
+    "device": {
+      "pythonVersion": "3.13.15",
+      "torchVersion": "2.12.1+cu130",
+      "cudaVersion": "13.0",
+      "device": "cuda",
+      "trainedOnCuda": true,
+      "name": "NVIDIA GeForce RTX 5070 Laptop GPU",
+      "computeCapability": [
+        12,
+        0
+      ],
+      "totalMemoryBytes": 8546549760,
+      "compiledArchitectures": [
+        "sm_75",
+        "sm_80",
+        "sm_86",
+        "sm_90",
+        "sm_100",
+        "sm_120"
+      ],
+      "peakAllocatedBytes": 67871744,
+      "peakReservedBytes": 69206016,
+      "elapsedSeconds": 0.8010383999790065,
+      "samplesPerSecond": 39698.471385183795,
+      "updates": 50,
+      "samplesProcessedThisRun": 31800,
+      "updatesThisRun": 50,
+      "actualForwardBackward": true,
+      "finite": true,
+      "weightChanged": true,
+      "totalRunSeconds": 5.013358500029426
+    }
+  },
+  "arena": {
+    "wins": 30,
+    "draws": 0,
+    "losses": 34,
+    "unfinished": 0,
+    "completedGames": 64,
+    "completedPairs": 32,
+    "independentFamilies": 32,
+    "meanScore": 0.46875,
+    "lowerConfidenceBound": 0.22866930217001985,
+    "alpha": 0.025000000000000022,
+    "minPairs": 32,
+    "passed": false,
+    "method": "one-sided Hoeffding bound on family-averaged paired scores with alpha spending",
+    "scope": "Improvement only against the recorded opponent, openings and move budget; not a universal strength claim",
+    "moveMs": 200,
+    "identicalPlayedLinesInPairedGames": 2,
+    "rules": {
+      "passed": true,
+      "checks": 32,
+      "errors": [],
+      "scope": "Both-color house-rule fixtures, winning priority, board restoration and compulsory immediate defense. Broader repository regressions remain separate."
+    },
+    "parity": {
+      "passed": true,
+      "maxAbsoluteError": 5.551115123125783e-17,
+      "effectiveMaxAbsoluteError": 5.551115123125783e-17,
+      "cases": 5,
+      "modelId": "mlp-f5d76d53b3d8dcb68061407cb100a165e2a1c2d826d0c39563ed6facfd3da6e3"
+    },
+    "trainingCheck": {
+      "passed": true,
+      "errors": [],
+      "modelId": "mlp-f5d76d53b3d8dcb68061407cb100a165e2a1c2d826d0c39563ed6facfd3da6e3",
+      "datasetHash": "aaa6a23172250c573e6b83d2b44d3de03c78ff8cbfcd04dc2fc3794a7c0feb2d",
+      "updates": 50,
+      "trainedOnCuda": true,
+      "actualUpdatesThisRun": 50,
+      "scope": "Current snapshot and exported model consistency; optimizer loss is not playing strength"
+    },
+    "startPositionsDisjointFromTraining": true
+  },
+  "decision": {
+    "at": "2026-10-06T21:02:51.630Z",
+    "cycle": 2,
+    "modelId": "mlp-f5d76d53b3d8dcb68061407cb100a165e2a1c2d826d0c39563ed6facfd3da6e3",
+    "candidateHash": "3ff6895480271af33ee38d2554b6720ffc27bf322e55d90ad290bda2c4f8bc90",
+    "adopted": false,
+    "decision": "kept-current",
+    "reason": "conservative strength threshold not met against baseline",
+    "arena": "arena-cycle-2.json"
+  },
+  "resume": {
+    "passed": true,
+    "preservedCompletedGames": 7,
+    "partialMovesPreserved": 11,
+    "sameCandidate": true,
+    "partialGenerationGames": [
+      "game-15"
+    ],
+    "originalRunUnchanged": true
+  },
+  "delivery": {
+    "version": "5.16.0",
+    "remotePublishedVersion": "5.15.0",
+    "defaultModel": null,
+    "identity": {
+      "sourceHash": "c3d02fd0f3951be4b80c563827f5b67e387d17863f3011671bc04fe565f870f7",
+      "harnessHash": "4e2847de0648cea9627f3cf0b74352418de61f6ed00a012d000117c6fe76794b"
+    },
+    "htmlSha256": "2e5e9a8c9bda96645e7b50056b5c72e13c08a25c15be19fb66f2a803dc05b74f",
+    "artifacts": [
+      {
+        "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\omok.html",
+        "previous": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\work\\local-learning-20261007\\pre-learning-artifacts\\previous-0.html",
+        "previousSha256": "1706bb4d794e7d0411976e904bfda49d57fa7e78decf3a26b9c36342f8798d20",
+        "sha256": "2e5e9a8c9bda96645e7b50056b5c72e13c08a25c15be19fb66f2a803dc05b74f"
+      },
+      {
+        "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\omok-gpu.html",
+        "previous": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\work\\local-learning-20261007\\pre-learning-artifacts\\previous-1.html",
+        "previousSha256": "1706bb4d794e7d0411976e904bfda49d57fa7e78decf3a26b9c36342f8798d20",
+        "sha256": "2e5e9a8c9bda96645e7b50056b5c72e13c08a25c15be19fb66f2a803dc05b74f"
+      },
+      {
+        "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\dist\\index.html",
+        "previous": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\work\\local-learning-20261007\\pre-learning-artifacts\\previous-2.html",
+        "previousSha256": "1706bb4d794e7d0411976e904bfda49d57fa7e78decf3a26b9c36342f8798d20",
+        "sha256": "2e5e9a8c9bda96645e7b50056b5c72e13c08a25c15be19fb66f2a803dc05b74f"
+      },
+      {
+        "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\outputs\\omok.html",
+        "previous": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\work\\local-learning-20261007\\pre-learning-artifacts\\previous-3.html",
+        "previousSha256": "1706bb4d794e7d0411976e904bfda49d57fa7e78decf3a26b9c36342f8798d20",
+        "sha256": "2e5e9a8c9bda96645e7b50056b5c72e13c08a25c15be19fb66f2a803dc05b74f"
+      },
+      {
+        "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\outputs\\omok-gpu.html",
+        "previous": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\work\\local-learning-20261007\\pre-learning-artifacts\\previous-4.html",
+        "previousSha256": "1706bb4d794e7d0411976e904bfda49d57fa7e78decf3a26b9c36342f8798d20",
+        "sha256": "2e5e9a8c9bda96645e7b50056b5c72e13c08a25c15be19fb66f2a803dc05b74f"
+      }
+    ],
+    "browserProof": "model-ui.json",
+    "at": "2026-10-06T21:00:18.457Z"
+  },
+  "verification": {
+    "regressionPrograms": 41,
+    "pipelineCases": 23,
+    "pythonCases": 11,
+    "nativeWorkerUiFlows": 13,
+    "actualDashboardPassed": true,
+    "postReviewTargetedChecks": [
+      "neural-evaluator + actual candidate parity",
+      "strategy-engine",
+      "strategy-policy",
+      "turn-memory-forest",
+      "worker-lifecycle",
+      "turn-memory-worker",
+      "learning-pipeline",
+      "learning-dashboard"
+    ]
+  },
+  "totalRunningSecondsExcludingPause": 305.088,
+  "limits": [
+    "Strength improvement not demonstrated; current default evaluator is preserved.",
+    "Final-test records and 52 samples remain unused for training/model selection/automatic arena.",
+    "64-game comparison used 200 ms per move; normal longer-budget strength remains unverified.",
+    "Analysis visited 89 positions, not every position of all 31 records.",
+    "GPU allocation is PyTorch tensor memory, not total device consumption."
+  ],
+  "publication": {
+    "version": "5.16.0",
+    "commit": "03e99c1485674ec575d2d41d592a35fecf3b0bfc",
+    "branch": "main",
+    "remote": "origin/main",
+    "verifiedAt": "2026-10-06T21:11:14.235Z",
+    "url": "https://github.com/jiho6367-design/forest-omok-lab/commit/03e99c1485674ec575d2d41d592a35fecf3b0bfc"
+  }
+}

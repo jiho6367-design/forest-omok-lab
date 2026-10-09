@@ -1,0 +1,7 @@
+{"start":"instrumentation-off","count":2}
+{"id":"instrumentation-off","depth":4,"nodes":49332,"elapsedMs":10023.800000011921,"error":null}
+{"start":"instrumentation-on","count":3}
+{"id":"instrumentation-on","depth":5,"nodes":45847,"elapsedMs":13739.600000023842,"roots":22,"error":null}
+{"start":"branch-only-12","count":4}
+{"id":"branch-only-12","depth":5,"nodes":45622,"elapsedMs":13744.100000023842,"roots":22,"error":null}
+{"finished":true,"count":4,"preserved":true}

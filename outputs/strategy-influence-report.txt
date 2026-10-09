@@ -1,0 +1,71 @@
+숲속 오목 — 전략 후보 반영 경로 및 후속 수순 제한 진단
+
+1) 결론
+S·P·T 모두 현재본의 전략이 실제 루트의 제한 응수 검사에 관여한 근거를 확인했다. 선택된 I8/I7/G7은 완료 깊이의 비교 후보로도 반환됐다. 단순히 화면에 전략 설명이 붙었다는 이유로 관여를 주장하지 않는다.
+기준·현재의 기본 추천은 세 국면 모두 같고 대표 후속 수순도 같다. 이번 표본의 수의 이득과 주도권 탈환은 미확인이다. 특정 전략 후보가 잘못 탈락하는 제품 오류는 확인하지 못했다. 일부 후보의 실제 보존·미완료 깊이는 기존 출력으로 구분 불가다.
+
+2) 버전·경로·동일 조건과 사전 선정
+현재 v5.14.3 / 커밋 6aee1afebeec451819c707cd76a5f4ab240881f5 / C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab
+기준 v5.13.1 / 커밋 72a11f7fd3bd7b4c922d337b9cfdc036ee0030ed / C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\baseline (기존 보존본, manifest 소스 SHA-256 검증)
+기존 미커밋 변경, 제품 엔진·평가·전략·UI·버전·실행 HTML을 유지했다. 최종 현재 소스 스냅샷 일치=true, 기준 소스 일치=true.
+국면은 결과 전에 2026-10-05T03:38:59.096Z에 outputs/strategy-influence-selection.json으로 고정. 검토한 원본 후보 판 3개와 한 수 뒤 정적 검사 7개, 합계 10개로 최대 12개 이내. 다른 국면으로 교체하지 않았다.
+T: T-D2-prefix5, tools/strategy/manifest.json의 holdout-D2 5수 접두부. 최초 흑, 현재 백, 후공, 내 돌=2. 기보: E5 H7 F6 I7 H8. 선정 가설: G7 may cut the opponent diagonal and extend our row 7; response may retain or extinguish that connection.
+S: S-A1-prefix6, tools/strategy/manifest.json의 holdout-A1 6수 접두부. 최초 흑, 현재 흑, 선공, 내 돌=1. 기보: H8 G9 J8 F7 H10 I11. 선정 가설: I8 or H9 may connect separate attack axes; actual reply determines whether continuation survives.
+P: P-C2-prefix7, tools/strategy/manifest.json의 holdout-C2 7수 접두부. 최초 백, 현재 흑, 후공, 내 돌=1. 기보: D8 H8 F8 H6 E10 J8 G10. 선정 가설: Interception of I7/E8-related extension anchors may compete with our H6-H8/J8 connection.
+T→후속 수순→S→P 순서. T/P는 기준→현재, S는 현재→기준. C2는 이전 검사 재사용이며 새로운 평가 표본이 아니다. 즉시 5목 점과 선정된 전략 상위 후보의 직접 이중 승리점은 정적 검사에서 없었다. 다만 T의 실제 결과는 선제 전술 방어로 분류되어 장기 전략 독립 효과를 대표하지 않는다.
+시계 없음·동일 판/차례/최초 착수자·기존 정확한 5목 우선 규칙·자동 정책. 조용한 판은 기준 suggestBudget, 정적 즉시 위협 판은 기준의 명시된 100ms 정책으로 별도 urgent 수읽기를 피했다. 양 버전에 같은 외부/내부 예약 정책. 매 요청 새 실제 Worker·새 캐시, 사용자 앱/자동 예측/ponder 시작 없음.
+GPU 패턴은 기존 환경에서 한 번 준비해 공유(NVIDIA Blackwell, 59,049개 검증, 준비 558.8ms). 실제 수읽기는 JavaScript CPU Worker다. GPU 속도 비교나 UI 검사가 아니다.
+
+기본 비교 (기준→현재; 실측 시간은 요청 전체)
+T T-D2-prefix5: G7→G7; 외부/내부 15000/14100ms; 완료 깊이 8→8; 노드 36,292→112,297; 시간 4491.3→10639.5ms; 종료 위협 국면 심층 방어 검사 완료 / 위협 국면 심층 방어 검사 완료.
+S S-A1-prefix6: I8→I8; 외부/내부 8000/7520ms; 완료 깊이 6→6; 노드 1,262,804→1,070,564; 시간 7535.9→7538.8ms; 종료 7.52초 상한 도달 · 완료된 비교 결과 / 7.52초 상한 도달 · 완료된 비교 결과.
+P P-C2-prefix7: I7→I7; 외부/내부 15000/14100ms; 완료 깊이 8→5; 노드 129,244→119,586; 시간 11161.2→9972.8ms; 종료 위협 국면 심층 방어 검사 완료 / 위협 국면 심층 방어 검사 완료.
+
+3) 후보 흐름 표 (현재본, 국면당 주요 후보 최대 5개)
+국면 | 후보 | 생성 | 보존 | 실제 탐색 | 최종 선택 | 확인된 이유/미관측
+T | G7 | 실제 루트 특징 | 완료 비교 후보 | forest 깊이8 완료, 응수6 제한 검사 완료 | 예 | 4-3·연속 4 강제 공격 선제 방어
+S | H7 | 실제 루트 특징 | 완료 비교 후보 | reader 깊이6 완료 | 아니오 | retained comparison, final top 3 but not first
+S | K7 | 공개 API 정적 생성 | 미관측 | 미관측 | 아니오 | no returned root-specific evidence
+S | G8 | 공개 API 정적 생성 | probe 입력에 보존 | 응수6 제한 검사 완료 | 아니오 | bounded probe completed; final top 3 absent; exact final ranking/cutoff reason unobserved
+S | I8 | 실제 루트 특징 | 완료 비교 후보 | reader 깊이6 완료, 응수6 제한 검사 완료 | 예 | 공격과 방어를 비교한 추천
+S | K8 | 공개 API 정적 생성 | 미관측 | 미관측 | 아니오 | no returned root-specific evidence
+P | I7 | 실제 루트 특징 | 완료 비교 후보 | forest 깊이5 완료, 응수6 제한 검사 완료 | 예 | 공격과 수비를 함께 고려한 추천
+P | G8 | 공개 API 정적 생성 | 미관측 | 미관측 | 아니오 | no returned root-specific evidence
+P | H10 | 공개 API 정적 생성 | probe 입력에 보존 | 응수6 제한 검사 완료 | 아니오 | bounded probe completed; final top 3 absent; exact final ranking/cutoff reason unobserved
+P | B8 | 공개 API 정적 생성 | 미관측 | 미관측 | 아니오 | no returned root-specific evidence
+P | E8 | 공개 API 정적 생성 | probe 입력에 보존 | 응수6 제한 검사 완료 | 아니오 | bounded probe completed; final top 3 absent; exact final ranking/cutoff reason unobserved
+정적 생성은 실제 Worker 진입과 별개다. probe 완료는 제한 응수 검사 수행의 직접 근거이나, 그 수의 모든 반복 깊이 완료는 기록하지 않는다. final 후보의 comparisonComplete/depth는 실제 완료 비교의 근거이며 width quota가 어떤 경로로 보존했는지는 미관측이다. 최종 top 3에 없는 수를 잘못 잘랐다고 단정하지 않는다.
+공개된 전략 특징: T G7 attack/cut/dual=192/120/120, 합법 확장 F7/J7. S I8=192/0/0, G8/K8 확장. P E8=0/12/0, I7=192/0/0(대각 D5/K9 확장). 2돌 창의 cut=12 같은 기하학적 지지는 즉시 사용 가능한 공격이나 필수 방어 증명이 아니다.
+코드 흐름: Worker firstPlayer=g.first, b,p 전달→Strategy structure/move의 합법 확장→Reader/Forest rich rank→전술·반증 screen→select의 attack/cut/dual 보존 quota→bounded probe→완료 루트 깊이 비교→Unified 빠른/심층 결과 결합 및 합법성·반증 게이트→최종 특징/추천. 내 돌 정보는 UI 정책 역할 선택에 쓰이며 전략 컨텍스트는 최초 착수자와 현재 p로 역할을 계산한다. 색을 영구 공격/수비로 고정하지 않는다.
+근거: src/unified-app.js:91,129; src/strategy-engine.js:21-76,86-95,104-157; src/reader-engine.js:154-196; src/forest-engine.js:214-279; src/unified-engine.js:33-113,158-164,245-292. 원본 필드 result.strategy.checks/work, result.candidates[].strategy/comparisonComplete/depth, rejected, progress.
+
+4) 대표 실제 수순
+T: 기준 G7 → 기준본 상대 F7 → 기준 내 F8. 현재 G7 → 같은 상대 F7 재사용 → 현재 내 F8. 내 돌 백(후공), 상대 흑(선공). 상대 응수는 같은 판·차례·예산이어서 1회만 실행했고 재사용 1건을 명시했다.
+상대 외부/내부 15000/14100ms, F7 깊이8. 내 후속 양쪽 15000/14100ms; F8 깊이 기준7/현재6, 노드 189,980/166,554. 모든 실제 착수와 반환 PV는 합법 검사 통과, 수순 중 대국 종료 없음.
+G7은 흑 E5-F6-H8의 대각 빈 연결점을 차단하면서 백 H7-I7의 가로 연결을 3돌로 만든다. 현재 G7 probe는 6응수 중 4응수에서 forcing continuation을 기록했으며 모든 응수의 유지가 아니다.
+G7 직후 양쪽의 즉시 5목 승리점은 없으므로 F7을 유일한 현재 필수 방어라고 표현하지 않는다. F7은 실제로 계산한 기준본 예상 응수이며 백 가로 연결의 왼쪽 확장을 막는다. 이후 F8에도 즉시 승리점은 양쪽 모두 없었다. 현재 F8 특징은 attack=0/cut=12/dual=0, 제한 probe 6응수의 continues=0이므로 이 기록에서 공격 주도권 탈환을 확인하지 못했다. 이것만으로 장기 공격 불가능이나 불필요한 반응성 방어라고 단정하지 않는다.
+연속된 합법 수순 한 줄과 최대 6응수 probe는 모든 최선 방어·강제승·무패·전체 안전성의 검증이 아니다.
+
+5) 확인된 비용·한계와 미확인 가설
+T: 최종 forest 전략 work.ms=1000.1, limit=1000, skipped=34286. 공개 probe complete=true.
+S: 최종 reader 전략 work.ms=902.4, limit=902.4, skipped=56896. 공개 probe complete=true.
+P: 최종 forest 전략 work.ms=1000.0, limit=1000, skipped=42292. 공개 probe complete=true.
+전략 작업 예산이 소진되면 measured 함수가 fallback을 사용하고 select는 기존 순서/강제 후보 중심의 fallbackSelect로 이동할 수 있다. skipped는 여러 전략 API의 합계다. 특정 후보가 이 경로에서 탈락했는지, 그 탈락이 잘못됐는지는 미관측이다. 이 수치가 모든 전략 CPU 시간을 측정한 것도 아니다.
+P/C2에서 E8은 6응수 probe 완료(score23, continues0), I7은 score110/continues4와 최종 깊이5 완료. 선제 차단 후보가 전혀 탐색되지 않았다는 가설은 E8에 대해서 반박되지만, 순서/최종 상위3 밖 이유와 후보별 minimax 평가점은 미관측이다.
+C2 이번 실측은 기준 깊이8/129,244노드→현재 깊이5/119,586노드다. 과거 6→5 및 46,491→33,796 수치와 별도 실행이다. 요청 시간은 이번 현재본이 더 짧았고 빠른/심층 시간 배분·루트 quota·부분 반복·캐시 비용을 독립 계측하지 않아 과거 감소 원인이나 전략 기능의 인과 효과를 확정하지 않는다.
+T의 다른 많은 루트에는 fork 반증이 반환됐다. 전술상 정상 제외를 전략 미반영 오류로 부르지 않는다. 버전 간 여러 변경과 1회 표본, logging/기기 상태 때문에 수의 질·순수 성능·승률 개선 또는 퇴보도 선언하지 않는다.
+
+6) 다음 행동 하나 (이번에는 실행하지 않음)
+Reader.analyze의 frontier select 직후와 Forest.analyze의 rootOptions select 직후에 선택적 루트 진단 콜백을 추가해, kept 후보 ID·quota/강제/일반 정렬의 보존 근거·루트별 마지막 완료 깊이·단계 소요시간만 기록하라. Unified의 빠른/심층 병합에서도 이 요약을 보존한다. 노드 로그·가중치 변경 없이 C2의 실제 탐색 진입과 예산 소진을 구분하는 최소 계측이 먼저다.
+
+7) 작업량·파일
+최초 예산 기준 시작: 2026-10-05T03:32:45Z (한국 12:32:45), 계산 중단: 한국 12:44:45, 전체 종료 상한: 한국 12:47:45. 보고 시각 2026-10-05T03:46:09.345Z, 전체 경과 804.35초.
+누적 검증 97.737초/180초 (정적 준비 1.022 + 비교 96.715). 실제 최상위 분석 9/10회 = 기본6 + 후속3. 공유 결과 재사용1. 실패0/취소0/요청 미완료0/외부 시간초과0/실행 재시도0.
+S 양쪽은 내부 7.52초 상한에서 마지막 완료 깊이6을 정상 반환했다. 내부 중단된 다음 반복을 완료된 탐색으로 세지 않는다. analysisIncomplete 명시 플래그 0은 전체 안전성/탐색 완결을 뜻하지 않는다.
+지원된 외부 PowerShell 감시로 누적180초와 고정12분 중단 시각 중 이른 제한 적용. 강제 종료 없음, 생성 브라우저와 Worker 정상 종료. UI/회귀/대국/독립 강제승 검사 추가0, 보조 에이전트0, 신규 의존성/유료 API/전역설정/커밋/푸시/배포 없음. 토큰·크레딧 소비량 미측정.
+신규 드라이버: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\tools\strategy\influence-diagnose.cjs
+준비·실행: work/strategy-influence-supervise.ps1 -Stage prepare / -Stage run -PriorMs 1022.1561
+원본 로그/감시: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\strategy-influence-{prepare,run}.stdout.log / .stderr.log / -supervisor.json
+원본 선정: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\strategy-influence-selection.json
+근거 JSON: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\strategy-influence-results.json
+보고서와 JSON은 통합 작업 폴더 outputs에 동일 전달본을 저장한다. 기존 보고서/원본 JSON은 변경하지 않는다.

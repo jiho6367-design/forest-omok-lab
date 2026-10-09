@@ -1,0 +1,115 @@
+G13 기본 자동 분석 개선 — 최종 보고서
+완료 2026-10-06T18:59:32.378Z / 적용 실행본 v5.14.9
+
+34수 G13 이후는 강제패배가 맞습니다. 이후의 공격은 시간을 끌 수 있지만, 생존 응수가 되지는 않습니다. 모든191합법 응수를 확인한 full-DAG를 별도 scalar 규칙으로 검증했습니다(65326nodes/171214defenses). 원 기보의34수 입력 직후 실제 자동 분석에서도 이제 강제패배를 표시합니다.
+
+시작 시 고정한 기준: CRITERIA.md를 변경하지 않았습니다.
+reproduction: Replay all34 under exact-five priority/both-colour double-three; actual current artifact default Worker automatic path; distinguish historical UI/device/budget unknown.
+loss: Prove or refute G13 forced-loss premise using every legal defense and exact counterwins; unknown never loss; correct discovery if causal coverage/budget defect.
+attack: Inspect earlier attack/defense turns and finite alternatives with multiple opponent replies; distinguish necessary defenses, rational setup and preventable retreats.
+generalFix: Minimum causal general algorithm; no coordinates/blanket attack/no defense prohibition; frozen validation separate before changes.
+validation: Same before/current actual automatic policy/device/rules sequential; whole PV legal; independent positives/negatives/transforms; RH2 B-gap V12A G10 safeguards and per-move/cancel preserved.
+integration: Only validated change normal5 runtime paths; preserve8/currentdirty/failedpatch; atomic ongoing save and exact report/resume in3outputs; no commit/push/deploy/globalsettings.
+
+목표별 상태와 근거:
+reproduction: complete
+원 기보34/48 재현;47PASS는 사용자 지연으로 엔진 오류에서 제외. 원34의191합법수와 강제 시간 끌기 응수도 모두 패배임을 독립 full-DAG 확인.
+다음: 고정 기준 완료; 새 사용자 요청 대기
+
+loss: complete
+실제 기본 자동 Worker: 원34 이전UNRESOLVED13.333s→LOSS1916.813s, 반사/색교환 이전UNRESOLVED13.322s→LOSS1915.741s. 설치 실행본도LOSS1915.591s. 독립 교차 연결/자기 즉시승과 잘못된 증명 거부 확인.
+다음: 고정 기준 완료; 새 사용자 요청 대기
+
+attack: complete
+원32/공격 대안G3G2/상대G13·G11·D3·D5 및 후속39 검토. D3/F11/F12 뒤 새 반증G11·K11·I4를 실제자동 제외+독립 scalar 확인. C6/G2/G6/I4의 전체 안전·필승은 미확인. 기존 Reader3/8의 공격·선제차단/후공H7과 복수응수 보존.
+다음: 전체 안전·필승/일반 기력/I7 전체 분기는 미확인으로 보존; 새 요청 때만 추가 검토
+
+generalFix: complete
+좌표 암기 없이 강제 방어와 조용한 준비의 AND 증명, mode별memo·창 index·부분 양성 반증 보존. early/middle16..40 wide q2; 나머지는 q1 잔여시간과 Forest 최종guard 시간 배분. exact5/양색33/시계/취소/역할 비고정 유지.
+다음: 고정 기준 완료; 새 사용자 요청 대기
+
+validation: complete
+후보34의35 test programs PASS: Unified35/Reader60/window2056, negative10(잘못된 증명7 거부), 원G13 full-DAG/새 후속root3 scalar PASS. 실제 자동16쌍 같은 장치 순차. 실제 forcing-line 양성 뒤 취소 callbacks0 및 동일page E5 WIN재분석 PASS. q2특정 실제취소는 미관찰, controlled6 검증 범위.
+다음: 고정 기준 완료; 새 사용자 요청 대기
+
+integration: complete
+검증 후보34만5.14.9로 정상5HTML 동일hash3399999a… 반영. Forest8 hash47ac… 보존. 설치actual Worker G13/G10/E5 확인. 마지막 검증9/직전8 선택파일·HTML·패치·실패 후보와 복원 명령 저장; 커밋·푸시·외부배포 없음.
+다음: 고정 기준 완료; 새 사용자 요청 대기
+
+수정의 원인과 범위:
+기존 연속4 탐색은 상대의 조용한 교차 준비와, 우리 강제 공격을 먼저 막은 뒤 다시 이어지는 반격을 충분히 발견하지 못했습니다. Reader의 증분 창 상태를 재사용해 강제 방어·상대의 합법 시간 끌기 공격과 조용한 준비를 이어 검사하고, 모든 필요한 합법 응수를 확인한 양성 증명만 반증으로 사용합니다. 좁은 q1과 넓은 q2는 발견 범위가 다르며 memo key에 구분합니다. 폭/깊이/시간 내에 못 찾은 경우는 UNKNOWN입니다.
+전체 패배 검사가 미완료여도 완료된 개별 root 반증은 보존합니다. Worker는 새 반증으로 무효가 된 이전 추천을 진행·최종·watchdog·취소 fallback에서 다시 사용하지 않습니다. 전체합법수 coverage가 있는 LOSS에서는 합법 저항 수를 표시할 수 있습니다.
+후반73수 검사에서 새5초 reserve가 기존 Forest에9.33초만 남겨 finalguard reserve0/forcing15로 줄어 E15를 다시 추천하는 회귀를 warm-prefix로 재현했습니다.32 부분증명 보존만으로는 해결되지 않았습니다.33/34는 wide probe를16..40에 배정하고, 나머지 q1 slice도 available−12400 이내로 제한해 Forest12초 배정 목표를 보존했습니다. 이미 소비한 시간·후처리·overshoot를 되돌리는 절대 보장은 아닙니다.33 warm-prefix PASS 후 최종34 fullUnified35/0fail를 확인했습니다. dense의 새 q2 탐색을 생략하는 발견 범위 절충은 남습니다.
+
+공격 수순 검토와 한계:
+원32의 E4 뒤 G13은 독립191-root 패배 증명과 결합됩니다. 최종 실제자동 원32는 E4→G2로 바뀌었지만 E4 추가 q2 검사는 시간 초과였고 실제 trace에 E4반증이 없었습니다. 따라서 이 추천 변경만으로 E4를 증명으로 제외했다거나 G2가 이긴다고 말하지 않습니다. G3/G2 뒤 G6도 범위 내 미반증이며 전체 안전 증명이 아닙니다.
+G6 뒤 상대 G13/G11이면 F11 F12 D3의 승리 수순이 존재하는 유한 근거가 있고, 상대 D3/D5 선제차단은 강한 반례입니다. D3 F11 F12 이후39수의 G11/K11/I4는 새 q2 양성 반증과 독립 scalar replay를 확인했고, 실제자동이 이 세 후보를 제외했습니다. 대안 C6는 UNKNOWN/depth0입니다. D5 E4 D3 뒤 I4는 기존과 같은 수순/depth6이며 새 selected q2검사는 미완료입니다. 이 결과를 승리·안전·기력저하로 승격하지 않습니다.
+원 기보의 H5/H6, J7/K8 등 강제 응수 관계도 유지해야 합니다. 무조건 공격하거나 선공/후공을 영구 역할로 고정하지 않습니다. 후공 B-gap H7, Reader RH1/RH2, V12A/B와 복수응수의 기존 연결·겸용 차단 근거를 보존했습니다. 전국면 최선수·필승·무패·일반 기력 우월, 모든 I7 분기, 별도40/41 경계와 모든densequiet topology는 미확인입니다. 이는 이번 고정 검증의 미완료 항목으로 바꾼 것이 아닌 추가 범위 한계입니다.
+
+공정 비교 조건:
+수정 직전 실행본5.14.8 HTML c8496e1ad8de78c62406b648a4986c9d6ebb7bf923a2264f2b084f2e1ab3327b vs 최종후보34 staged HTML bfd832228c8e1732a2fc3fa0af0bca62356c0d50d9abcf6e626c5c0a340a1aec. 실제 전체HTML의 spawnAnalysis와 자동 suggestBudget을 사용했습니다. 표의15초는 실제 복잡 국면의 기본 자동 선택이며 수동15초 대체가 아닙니다. Worker 내부 예산14.1초/900ms reserve, 실제 Reader3/8초·urgent100ms도 확인했습니다.
+Edge154.0.4258.53 / Intel xe-3lpg GPU / fallbackfalse / pattern59049 SHA e58668c7ac821a6a549b24c7d28765980dcec607d6d921c66e36b53ca2b242e3. 이전NVIDIA결과와 직접 속도 비교하지 않았습니다. 모든 CPU/GPU/대국 계산은 순차 실행했습니다.
+candidate34-final-G13-reflect-colour | baseline | p1/first1 | auto15000ms | L3 | UNRESOLVED | depth7 | 13321.5ms
+candidate34-final-G13-reflect-colour | improved | p1/first1 | auto15000ms | I6 | PROVEN_LOSS | depth0 | 5741.3ms
+candidate34-final-G13-original | baseline | p2/first2 | auto15000ms | D3 | UNRESOLVED | depth6 | 13333.4ms
+candidate34-final-G13-original | improved | p2/first2 | auto15000ms | G6 | PROVEN_LOSS | depth0 | 6813.2ms
+candidate34-attack-34 | baseline | p2/first2 | auto15000ms | G11 | UNRESOLVED | depth5 | 13168.5ms
+candidate34-attack-34 | improved | p2/first2 | auto15000ms | G6 | UNRESOLVED | depth5 | 13729.4ms
+candidate34-final-original32-attack | baseline | p2/first2 | auto15000ms | E4 | UNRESOLVED | depth5 | 13078.8ms
+candidate34-final-original32-attack | improved | p2/first2 | auto15000ms | G2 | UNRESOLVED | depth5 | 13766.5ms
+candidate34-final-independent-crossed-broken3-forbidden-center | baseline | p2/first2 | auto15000ms | J9 | PROVEN_LOSS | depth0 | 237.3ms
+candidate34-final-independent-crossed-broken3-forbidden-center | improved | p2/first2 | auto15000ms | J9 | PROVEN_LOSS | depth0 | 219.3ms
+candidate34-final-independent-own-exact-five-over-counterfork | baseline | p2/first2 | auto100ms | E5 | PROVEN_WIN | depth1 | 37.7ms
+candidate34-final-independent-own-exact-five-over-counterfork | improved | p2/first2 | auto100ms | E5 | PROVEN_WIN | depth1 | 39.5ms
+candidate34-preserve-V12B-Forest | baseline | p1/first1 | auto15000ms | K4 | UNRESOLVED | depth4 | 13033.9ms
+candidate34-preserve-V12B-Forest | improved | p1/first1 | auto15000ms | K4 | UNRESOLVED | depth4 | 13065.1ms
+candidate34-preserve-main-root-RH2-E8 | baseline | p1/first1 | auto8000ms | E11 | UNRESOLVED | depth4 | 7596.4ms
+candidate34-preserve-main-root-RH2-E8 | improved | p1/first1 | auto8000ms | E11 | UNRESOLVED | depth4 | 7575.3ms
+candidate34-preserve-second-root-B-gap | baseline | p1/first2 | auto3000ms | H7 | UNRESOLVED | depth3 | 2886.2ms
+candidate34-preserve-second-root-B-gap | improved | p1/first2 | auto3000ms | H7 | UNRESOLVED | depth3 | 2890.8ms
+candidate34-preserve-independent-V12-A | baseline | p2/first1 | auto15000ms | G7 | UNRESOLVED | depth6 | 13054.2ms
+candidate34-preserve-independent-V12-A | improved | p2/first1 | auto15000ms | G7 | UNRESOLVED | depth7 | 13028.8ms
+candidate34-preserve-mandatory-I9 | baseline | p1/first1 | auto100ms | I9 | UNRESOLVED | depth1 | 23.5ms
+candidate34-preserve-mandatory-I9 | improved | p1/first1 | auto100ms | I9 | UNRESOLVED | depth1 | 15.9ms
+candidate34-preserve-G10-guard | baseline | p2/first2 | auto15000ms | K6 | UNRESOLVED | depth8 | 5487.9ms
+candidate34-preserve-G10-guard | improved | p2/first2 | auto15000ms | K6 | UNRESOLVED | depth8 | 5544.3ms
+candidate34-small-source5-reader-holdout-RH1-baseline | baseline | p1/first2 | auto3000ms | H10 | UNRESOLVED | depth3 | 2842.8ms
+candidate34-small-source5-reader-holdout-RH1-baseline | improved | p1/first2 | auto3000ms | H10 | UNRESOLVED | depth3 | 2844.7ms
+candidate34-small-source5-reader-holdout-RH2-baseline | baseline | p1/first1 | auto8000ms | G9 | UNRESOLVED | depth5 | 7541.6ms
+candidate34-small-source5-reader-holdout-RH2-baseline | improved | p1/first1 | auto8000ms | G9 | UNRESOLVED | depth5 | 7544.0ms
+candidate34-final-D3-F11-F12-followup39 | baseline | p2/first2 | auto15000ms | J12 | UNRESOLVED | depth3 | 13714.1ms
+candidate34-final-D3-F11-F12-followup39 | improved | p2/first2 | auto15000ms | C6 | UNRESOLVED | depth0 | 8129.8ms
+candidate34-final-D5-E4-D3-followup39 | baseline | p2/first2 | auto15000ms | I4 | UNRESOLVED | depth6 | 13172.2ms
+candidate34-final-D5-E4-D3-followup39 | improved | p2/first2 | auto15000ms | I4 | UNRESOLVED | depth6 | 10734.0ms
+
+관련 안전 검사:
+35개 프로그램을 최종34 동일 sourcehash로 나누어 실행했습니다. Unified35/0fail, Reader60, 독립 exact-five endpoint2056(15/19판 CPU/table/양색/overline/replace/undo), 규칙126/verifiedrefutation256, 역할·시계·상태·캐시·법적PV·actual-turn·Worker lifecycle 등 PASS입니다. 전략manifest의12dev/12holdout/36games는 구조 검사이며36개 실제대국 결과로 부풀리지 않습니다. 독립 사전 rule preflight17100 비교는 이전 규칙과 같은 수학을 검증한 별도 근거입니다.
+negative10 중 missing/duplicate root·quietdefense, occupiedVCF, zero time, ownexactcounterwin 등7개 잘못된 증명을 의도한 이유로 거부했습니다. 새 후속39의 G11/K11/I4는 각각1079/1082/1993 DAGnodes의 scalar 검증 PASS입니다.
+실제 새 forcing-line i42 반증이 도착하자 취소: 합법selected84/PV, 입력복구, 이후250ms관찰 callbacks0, shortlist에 반증 수 없음, 결과UNRESOLVED를 유지했습니다. 같은페이지에서 다음 기본자동 E5 즉시승22.7ms 완료. cancelMs289.7은250ms 관찰 포함이며 취소 반응시간 자체가 아닙니다. q2특정양성 뒤 realcancel은 미관찰이고 controlled6 consumer검사의 범위를 구분합니다.
+
+실행본 반영:
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\omok.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\omok-gpu.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\dist\index.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\outputs\omok.html
+C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\outputs\omok-gpu.html
+정상5 HTML SHA 3399999a8038d39bdb21346d7b95dba6558ac67e1b014a94c3dea63e4e0a368b
+설치 actual Worker: G13 LOSS1915.591s, G10 제외/K6 UNRESOLVED13.299s, E5 WIN42.2ms. 설치smoke는 공정 전후 성능 비교가 아닙니다. G10 smoke label의undefined는 표시id 오류이며 frozen boardHash417f135393a01773493c0ab118b6db9b98ce345514238f0370ea661e2a1d8589/p2/first2로 원 case와 동일함을 검증했습니다.
+Reader SHA 398a7ea27a5084ab1141bcbea69ead518384ef772b45f77c4da7fb3eb1996212
+Unified SHA 964054610dda18890d20a1504a46d23738493f604f87285ab403d001b5f21b93
+App SHA 35f431643c4ac20587c470eceb88c6d9a9c5480a47d1ea1c070e9e1782902ada (34 staged와 버전 라벨만 차이)
+Forest SHA47acfed0aad3d4f4b96c6091d214bd055300b94fdb070bc0b45d14e3ad01aa2d — 이번 변경에서 유지. HEAD 9f51d03062b039c6846e408c7dad6169ce0c5120; 시작 시 미커밋 변경 보존.
+
+실패·정정과 저장:
+후보1..34 source/patch/로그와 agent검토를 C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\initiative-improvement-work\runs\20261006-g13-automatic에 보존했습니다. 같은 실패를 새정보 없이 반복하지 않았습니다. 큰 global DAG를 같은 harness heap에 둔29/30/31 B5의14초 미완료를 전체 기력/속도 결론으로 쓰지 않았습니다. fresh process 공정순차 재비교28/29/30/31은11.489/11.153/10.501/11.374초, 모두 같은291379nodes/독립 B5증명입니다. 선택된30 창 index를 재사용했으며 이는 유한작업 비용 근거입니다.
+legacy green11/17 최초 첫돌색 오류 결과는 무효 로그로 남기고 정상색 fullproof를 다시 확인했습니다. stage12 정상3 빌드 경로 사고는 즉시8로 복원했고 이후stage helper에 정상hash 보호를 넣었습니다. 특정E4/B5 positive 취소 target 미발생 두 실패를 실제 forcing-line 취소 PASS로 덮어 쓰지 않았습니다. 후보31 retained-heap B5 실패는 terminal failed로 정리하고 fresh11.374s 성공과 구분했습니다.
+原子 checkpoint.previous·STATUS.previous/실험 start/end·소스변경 저장을 유지했으며 가벼운 save/pause/torn-temp/resume mock PASS(엔진분석0)입니다. 소스/신규 파일/마지막 검증9/직전8 선택백업과 정확복원은 재개 안내에 있습니다. 기존 보고서·UI·폴더 작업을 반복하지 않았고 전체 저장소 복제/커밋/푸시/외부배포/전역설정/플랫폼 우회/구매를 하지 않았습니다.
+
+주요 근거 파일:
+CRITERIA.md / checkpoint.json(.previous) / STATUS.md / fixture.json / fixture-full.json / results.jsonl
+logs/final-acceptance-5.14.9.json / logs/candidate34-actual-comparison-summary.json
+logs/g13-global-independent-DAG-replay.json / logs/counter-proof-negatives-final34.json
+logs/candidate34-followup39-independent-summary.json / logs/candidate34-real-GPU-cancel-actual-refutation.json
+logs/candidate34-unit-suite.json / logs/candidate34-remaining-unit-suite.json / logs/normal-5.14.9-integration.json
+agent-a-review.md / agent-b-review.md / isolated-candidates-manifest.json
+patches/current-source.patch / backup/new-files / backup/last-verified-5.14.9 / backup/last-validated-before-5.14.9

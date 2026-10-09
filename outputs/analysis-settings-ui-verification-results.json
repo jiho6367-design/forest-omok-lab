@@ -1,0 +1,442 @@
+{
+  "startedAt": "2026-10-05T02:36:26.637Z",
+  "groups": [
+    {
+      "id": "A",
+      "status": "PASS",
+      "elapsedMs": 2217,
+      "evidence": {
+        "legacyManualMs": 1000,
+        "before": {
+          "mode": "auto",
+          "selected": "선택: 자동",
+          "disabled": true,
+          "internal": 2820,
+          "automatic": true,
+          "external": 3000,
+          "plan": "선택 자동 · 적용 최대 3.00초 · 내부 탐색 2.82초 · 최대 3초 · 후보 안정 시 조기 종료",
+          "recommend": "—",
+          "reason": "국면을 분석하면 추천과 근거가 표시됩니다.",
+          "state": "분석 중",
+          "starts": 1
+        },
+        "after": {
+          "mode": "auto",
+          "selected": "선택: 자동",
+          "disabled": true,
+          "internal": 2820,
+          "automatic": true,
+          "external": 3000,
+          "plan": "선택 자동 · 적용 최대 3.00초 · 내부 탐색 2.82초 · 후보 안정",
+          "recommend": "H8",
+          "reason": "후보 안정",
+          "recMode": "auto",
+          "recExternal": 3000,
+          "recIndex": 112,
+          "state": "분석 완료 · 제한 비교 추천",
+          "starts": 1
+        }
+      }
+    },
+    {
+      "id": "B",
+      "status": "PASS",
+      "elapsedMs": 827,
+      "evidence": {
+        "deep": {
+          "before": {
+            "mode": "deep",
+            "selected": "선택: 심층 · 최대 25초",
+            "disabled": true,
+            "internal": 23500,
+            "automatic": false,
+            "external": 25000,
+            "plan": "선택 심층 · 최대 25초 · 적용 최대 25.00초 · 내부 탐색 23.50초 · 선택한 분석 모드",
+            "recommend": "—",
+            "reason": "국면을 분석하면 추천과 근거가 표시됩니다.",
+            "state": "분석 중",
+            "starts": 2
+          },
+          "after": {
+            "mode": "deep",
+            "selected": "선택: 심층 · 최대 25초",
+            "disabled": true,
+            "internal": 23500,
+            "automatic": false,
+            "external": 25000,
+            "plan": "선택 심층 · 최대 25초 · 적용 최대 25.00초 · 내부 탐색 23.50초 · 후보 안정",
+            "recommend": "H8",
+            "reason": "후보 안정",
+            "recMode": "deep",
+            "recExternal": 25000,
+            "recIndex": 112,
+            "state": "분석 완료 · 제한 비교 추천",
+            "starts": 2
+          }
+        },
+        "newSettingsWinOverLegacyOptimized": {
+          "mode": "deep",
+          "selected": "선택: 심층 · 최대 25초",
+          "disabled": true,
+          "internal": 23500,
+          "automatic": false,
+          "external": 25000,
+          "plan": "선택 심층 · 최대 25초 · 적용 최대 25.00초 · 내부 탐색 23.50초 · 선택한 분석 모드",
+          "recommend": "—",
+          "reason": "국면을 분석하면 추천과 근거가 표시됩니다.",
+          "state": "분석 중",
+          "starts": 1
+        }
+      }
+    },
+    {
+      "id": "C",
+      "status": "PASS",
+      "elapsedMs": 404,
+      "evidence": {
+        "custom": {
+          "mode": "custom",
+          "selected": "선택: 직접 설정 · 1초",
+          "disabled": false,
+          "internal": 940,
+          "automatic": false,
+          "external": 1000,
+          "plan": "선택 직접 설정 · 1초 · 적용 최대 1.00초 · 내부 탐색 0.94초 · 선택한 분석 모드",
+          "recommend": "—",
+          "reason": "국면을 분석하면 추천과 근거가 표시됩니다.",
+          "state": "분석 중",
+          "starts": 2
+        },
+        "customResult": {
+          "mode": "custom",
+          "selected": "선택: 직접 설정 · 1초",
+          "disabled": false,
+          "internal": 940,
+          "automatic": false,
+          "external": 1000,
+          "plan": "선택 직접 설정 · 1초 · 적용 최대 1.00초 · 내부 탐색 0.94초 · 후보 안정",
+          "recommend": "H8",
+          "reason": "후보 안정",
+          "recMode": "custom",
+          "recExternal": 1000,
+          "recIndex": 112,
+          "state": "분석 완료 · 제한 비교 추천",
+          "starts": 2
+        },
+        "auto": {
+          "mode": "auto",
+          "selected": "선택: 자동",
+          "disabled": true,
+          "internal": 2820,
+          "automatic": true,
+          "external": 3000,
+          "plan": "선택 자동 · 적용 최대 3.00초 · 내부 탐색 2.82초 · 최대 3초 · 후보 안정 시 조기 종료",
+          "recommend": "—",
+          "reason": "국면을 분석하면 추천과 근거가 표시됩니다.",
+          "state": "분석 중",
+          "starts": 3
+        },
+        "autoResult": {
+          "mode": "auto",
+          "selected": "선택: 자동",
+          "disabled": true,
+          "internal": 2820,
+          "automatic": true,
+          "external": 3000,
+          "plan": "선택 자동 · 적용 최대 3.00초 · 내부 탐색 2.82초 · 후보 안정",
+          "recommend": "H8",
+          "reason": "후보 안정",
+          "recMode": "auto",
+          "recExternal": 3000,
+          "recIndex": 112,
+          "state": "분석 완료 · 제한 비교 추천",
+          "starts": 3
+        }
+      }
+    },
+    {
+      "id": "D",
+      "status": "PASS",
+      "elapsedMs": 764,
+      "evidence": {
+        "transitions": [
+          {
+            "compute": "cpu",
+            "mode": "deep",
+            "selected": "선택: 심층 · 최대 25초",
+            "disabled": true,
+            "internal": 23500,
+            "automatic": false,
+            "external": 25000,
+            "plan": "선택 심층 · 최대 25초 · 적용 최대 25.00초 · 내부 탐색 23.50초 · 후보 안정",
+            "recommend": "H8",
+            "reason": "후보 안정",
+            "recMode": "deep",
+            "recExternal": 25000,
+            "recIndex": 112,
+            "state": "분석 완료 · 제한 비교 추천",
+            "starts": 3
+          },
+          {
+            "compute": "gpu",
+            "mode": "deep",
+            "selected": "선택: 심층 · 최대 25초",
+            "disabled": true,
+            "internal": 23500,
+            "automatic": false,
+            "external": 25000,
+            "plan": "선택 심층 · 최대 25초 · 적용 최대 25.00초 · 내부 탐색 23.50초 · 후보 안정",
+            "recommend": "H8",
+            "reason": "후보 안정",
+            "recMode": "deep",
+            "recExternal": 25000,
+            "recIndex": 112,
+            "state": "분석 완료 · 제한 비교 추천",
+            "starts": 4
+          }
+        ],
+        "fallback": {
+          "gpu": {
+            "compute": "cpu",
+            "status": "GPU 사용 불가 · 현재 CPU 실행: test GPU unavailable"
+          },
+          "result": {
+            "mode": "deep",
+            "selected": "선택: 심층 · 최대 25초",
+            "disabled": true,
+            "internal": 23500,
+            "automatic": false,
+            "external": 25000,
+            "plan": "선택 심층 · 최대 25초 · 적용 최대 25.00초 · 내부 탐색 23.50초 · 후보 안정",
+            "recommend": "H8",
+            "reason": "후보 안정",
+            "recMode": "deep",
+            "recExternal": 25000,
+            "recIndex": 112,
+            "state": "분석 완료 · 제한 비교 추천",
+            "starts": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "E",
+      "status": "PASS",
+      "elapsedMs": 580,
+      "evidence": {
+        "stored": {
+          "legacy": "optimized",
+          "other": "keep",
+          "record": {
+            "id": "preserved-record",
+            "date": "2026-10-05",
+            "me": 1,
+            "first": 1,
+            "rules": {
+              "fivePriority": true
+            },
+            "timer": false,
+            "axis": "ascending",
+            "remaining": 40000,
+            "cursor": 2,
+            "result": null,
+            "events": [
+              {
+                "type": "move",
+                "i": 0,
+                "p": 1
+              },
+              {
+                "type": "move",
+                "i": 224,
+                "p": 2
+              }
+            ],
+            "source": "keep this test record"
+          },
+          "game": "isolated-settings-ui-empty"
+        },
+        "result": {
+          "mode": "custom",
+          "selected": "선택: 직접 설정 · 1초",
+          "disabled": false,
+          "internal": 940,
+          "automatic": false,
+          "external": 1000,
+          "plan": "선택 직접 설정 · 1초 · 적용 최대 1.00초 · 내부 탐색 0.94초 · 후보 안정",
+          "recommend": "H8",
+          "reason": "후보 안정",
+          "recMode": "custom",
+          "recExternal": 1000,
+          "recIndex": 112,
+          "state": "분석 완료 · 제한 비교 추천",
+          "starts": 1
+        }
+      }
+    },
+    {
+      "id": "F",
+      "status": "PASS",
+      "elapsedMs": 527,
+      "evidence": {
+        "old": 0,
+        "current": 1,
+        "startsAfterChange": 1,
+        "fresh": {
+          "mode": "deep",
+          "selected": "선택: 심층 · 최대 25초",
+          "disabled": true,
+          "internal": 23500,
+          "automatic": false,
+          "external": 25000,
+          "plan": "선택 심층 · 최대 25초 · 적용 최대 25.00초 · 내부 탐색 23.50초 · 새 심층 결과",
+          "recommend": "H8",
+          "reason": "새 심층 결과",
+          "recMode": "deep",
+          "recExternal": 25000,
+          "recIndex": 112,
+          "state": "분석 완료 · 제한 비교 추천",
+          "starts": 2
+        },
+        "after": {
+          "mode": "deep",
+          "selected": "선택: 심층 · 최대 25초",
+          "disabled": true,
+          "internal": 23500,
+          "automatic": false,
+          "external": 25000,
+          "plan": "선택 심층 · 최대 25초 · 적용 최대 25.00초 · 내부 탐색 23.50초 · 새 심층 결과",
+          "recommend": "H8",
+          "reason": "새 심층 결과",
+          "recMode": "deep",
+          "recExternal": 25000,
+          "recIndex": 112,
+          "state": "분석 완료 · 제한 비교 추천",
+          "starts": 2
+        },
+        "oldStopped": true
+      }
+    },
+    {
+      "id": "G",
+      "status": "PASS",
+      "elapsedMs": 486,
+      "evidence": {
+        "fixedAvailableMs": 3500,
+        "limited": {
+          "mode": "auto",
+          "selected": "선택: 자동",
+          "disabled": true,
+          "internal": 440,
+          "automatic": true,
+          "external": 500,
+          "plan": "선택 자동 · 적용 최대 0.50초 · 내부 탐색 0.44초 · 대국 시계로 예산 축소 · 최대 3초 · 후보 안정 시 조기 종료",
+          "recommend": "—",
+          "reason": "국면을 분석하면 추천과 근거가 표시됩니다.",
+          "state": "분석 중",
+          "starts": 2
+        },
+        "limitedResult": {
+          "mode": "auto",
+          "selected": "선택: 자동",
+          "disabled": true,
+          "internal": 440,
+          "automatic": true,
+          "external": 500,
+          "plan": "선택 자동 · 적용 최대 0.50초 · 내부 탐색 0.44초 · 대국 시계로 예산 축소 · 후보 안정으로 정상 조기 종료",
+          "recommend": "H8",
+          "reason": "후보 안정으로 정상 조기 종료",
+          "recMode": "auto",
+          "recExternal": 500,
+          "recIndex": 112,
+          "state": "분석 완료 · 제한 비교 추천",
+          "starts": 2
+        },
+        "normal": {
+          "mode": "auto",
+          "selected": "선택: 자동",
+          "disabled": true,
+          "internal": 2820,
+          "automatic": true,
+          "external": 3000,
+          "plan": "선택 자동 · 적용 최대 3.00초 · 내부 탐색 2.82초 · 최대 3초 · 후보 안정 시 조기 종료",
+          "recommend": "—",
+          "reason": "국면을 분석하면 추천과 근거가 표시됩니다.",
+          "state": "분석 중",
+          "starts": 3
+        },
+        "normalResult": {
+          "mode": "auto",
+          "selected": "선택: 자동",
+          "disabled": true,
+          "internal": 2820,
+          "automatic": true,
+          "external": 3000,
+          "plan": "선택 자동 · 적용 최대 3.00초 · 내부 탐색 2.82초 · 후보 안정으로 정상 조기 종료",
+          "recommend": "H8",
+          "reason": "후보 안정으로 정상 조기 종료",
+          "recMode": "auto",
+          "recExternal": 3000,
+          "recIndex": 112,
+          "state": "분석 완료 · 제한 비교 추천",
+          "starts": 3
+        }
+      }
+    },
+    {
+      "id": "H",
+      "status": "PASS",
+      "elapsedMs": 527,
+      "evidence": {
+        "predictionState": {
+          "mode": "deep",
+          "selected": "선택: 심층 · 최대 25초",
+          "disabled": true,
+          "internal": 940,
+          "automatic": false,
+          "external": 1000,
+          "plan": "상대 다음 수 예측 · 1초 고정 · 선택 심층 · 최대 25초 · 적용 최대 1.00초 · 내부 탐색 0.94초 · 내 분석 모드와 별도의 짧은 예산",
+          "recommend": "—",
+          "reason": "국면을 분석하면 추천과 근거가 표시됩니다.",
+          "state": "분석 중",
+          "starts": 3
+        },
+        "oldPonder": {
+          "id": 3,
+          "mode": "deep",
+          "external": 25000,
+          "internal": 23500,
+          "note": "상대 H8 1초 예측 · 내 응수 심층 · 최대 25초으로 사전 계산"
+        },
+        "newPonder": {
+          "id": 5,
+          "mode": "custom",
+          "external": 1000,
+          "internal": 940
+        },
+        "final": {
+          "mode": "custom",
+          "selected": "선택: 직접 설정 · 1초",
+          "disabled": false,
+          "internal": 940,
+          "automatic": false,
+          "external": 1000,
+          "plan": "내 예상 응수 · 선택 직접 설정 · 1초 · 적용 최대 1.00초 · 내부 탐색 0.94초 · 새 직접 설정 사전 응수",
+          "recommend": "H9",
+          "reason": "새 직접 설정 사전 응수",
+          "recMode": "custom",
+          "recExternal": 1000,
+          "recIndex": 127,
+          "state": "분석 완료 · 제한 비교 추천",
+          "starts": 6
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "realSearchStarts": 0,
+  "mockedWorkerStarts": 25,
+  "finishedAt": "2026-10-05T02:36:35.127Z",
+  "elapsedMs": 8490,
+  "passed": true
+}

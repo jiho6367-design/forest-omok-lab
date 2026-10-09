@@ -1,0 +1,768 @@
+{
+  "taskStartedAt": "2026-10-05T04:10:15Z",
+  "calculationCutoff": "2026-10-05T04:22:15Z",
+  "startedAt": "2026-10-05T04:18:07.178Z",
+  "originalEvidence": "strategy-influence-results.json",
+  "caseId": "P-C2-prefix7",
+  "spec": {
+    "board": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      0,
+      2,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      0,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "p": 1,
+    "firstPlayer": 2,
+    "winner": null,
+    "history": [
+      {
+        "p": 2,
+        "type": "move",
+        "i": 108,
+        "coord": "D8"
+      },
+      {
+        "p": 1,
+        "type": "move",
+        "i": 112,
+        "coord": "H8"
+      },
+      {
+        "p": 2,
+        "type": "move",
+        "i": 110,
+        "coord": "F8"
+      },
+      {
+        "p": 1,
+        "type": "move",
+        "i": 82,
+        "coord": "H6"
+      },
+      {
+        "p": 2,
+        "type": "move",
+        "i": 139,
+        "coord": "E10"
+      },
+      {
+        "p": 1,
+        "type": "move",
+        "i": 114,
+        "coord": "J8"
+      },
+      {
+        "p": 2,
+        "type": "move",
+        "i": 141,
+        "coord": "G10"
+      }
+    ],
+    "me": 1
+  },
+  "sourceHashes": {
+    "src/analysis-settings.js": "8a5bb67f10523cca1a8d6df396a9c0adb2ee8706d407b35d21b4dbadeed784ae",
+    "src/app.js": "2a113d504ab2387660e51c729a61dde456b7ea0873c4732c4a8d3683edca6f1e",
+    "src/forest-engine.js": "a8951d556f0371235a3baafe8fbcdd59b2f6ba8866bf5139c0bea472c07626b4",
+    "src/gpu-app.js": "cdd407e0f5ce5347ccdf549158dece15fa1e2e4ca203dcdf3da465d703b62e7b",
+    "src/gpu-patterns.js": "eaab311e4bd7d020a0aacc0b5a15bb7f49cb9b750e935633142e19c042a35c8b",
+    "src/historical-analysis.cjs": "a727c9eb4b19b3ba3cbd942328ad0f52e92058033541d48d575bbd1e1cfb4749",
+    "src/node-engine.cjs": "1347c39faf83fb568ca43d20d014df31cc85164c0521ab1928b9a13fb82174c4",
+    "src/reader-engine.js": "4f37298835e1444707307ee268cff3e82bcc4e575ed33d527b3262b2c887f696",
+    "src/strategy-engine.js": "e080a8731a05ce1a3a7f2dabdeb4d80262b18d03b8801082a754422d2879b9a7",
+    "src/template.html": "4c58effade8fc8c3ff4960e8f9338cc557a493b0ab856f1718ff649573c59055",
+    "src/unified-app.js": "22674075e2a8fc8418337d0d602419fc19590dce60a97f02889bb428d28450fd",
+    "src/unified-engine.js": "c2f94cb1e040e9392edb9e70b6d0284978a53b928526077755a1442bb089c72c",
+    "package.json": "7cc058ad4b58bd838b52dcce911a357dd9f4730eb6b9e5616d45ef352fcd43eb",
+    "outputs/omok.html": "f3ec4da70caf46f4265cddc121d93c56a9ecd4fc15fc7f384f48d5e14e505924",
+    "outputs/omok-gpu.html": "f3ec4da70caf46f4265cddc121d93c56a9ecd4fc15fc7f384f48d5e14e505924",
+    "dist/index.html": "f3ec4da70caf46f4265cddc121d93c56a9ecd4fc15fc7f384f48d5e14e505924"
+  },
+  "overlayHash": "ba7c2f37b8f685491daf2cea9ed9bda87f8a86add7911081b09d8b48168c7a4a",
+  "overlayAnchors": [
+    "strategy:options.strategy};",
+    "function finalizeResult(board,p,result){",
+    "r.engineVersion='unified-'+strategyVersion;",
+    "const started=clockNow(),automatic=budget==='auto'||budget?.automatic===true;",
+    "const remaining=limit-(clockNow()-started)-Math.min(400,limit*.04);",
+    "const extended=forest.analyze(board,p,remaining,lessons);",
+    "best.ms=clockNow()-started;\n    return ensureLegalCandidate(best);",
+    "const add=m=>{if(m&&!seen.has(m.i)){seen.add(m.i);out.push(m);}};",
+    "if(forcingSet.has(m.i)||m.strategy.forcing)add(m);",
+    "add(m);used++;",
+    "select:measured(select,fallbackSelect)",
+    "deadline=start+Math.max(30,ms);phaseDeadline=Infinity;",
+    "const forceSet=new Set(forcingCandidates(p));let frontier=",
+    "const strategicAdjust=new Map();\n    if(strategy",
+    "const rounds=[];let stopReason=",
+    "const round=[];\n      try{for(let r of frontier){tick();set(r.i,p);",
+    "round.push({...r,score,pv:[r.i,...child.pv],depth:d,comparisonComplete:true});",
+    "round.sort((a,c)=>c.score-a.score);best=round.slice(0,3);depth=d;frontier=round;",
+    "return output(kind,best,depth,{...extra,autoReason:automatic?stopReason:null});",
+    "const check=()=>{nodes++;if(clockNow()>=deadline)throw TIME;};",
+    "let ownProof=timedProof",
+    "let screenEnd=Math.min",
+    "let rootOptions=strategy?",
+    "const strategicAdjust=new Map();\n  if(strategy",
+    "const staticEval=q=>",
+    "let best={score:-Infinity,pv:[]};for(let m of moves){b[m.i]=q;",
+    "const round=[];try{for(let m of rootOptions){check();b[m.i]=p;",
+    "round.push({m,i:m.i,score:v,pv:[m.i,...r.pv],depth:d,strategy:m.strategy,comparisonComplet",
+    "depth=d;lastCandidates=",
+    "catch(e){if(e!==TIME)throw e;break;}",
+    "let finalGuard=null,avoidedTrap=false;",
+    "let reason=enemyWins.length?"
+  ],
+  "diagnosticsDefault": false,
+  "requests": [
+    {
+      "id": "instrumentation-off",
+      "config": {
+        "id": "instrumentation-off",
+        "enabled": false
+      },
+      "startedAt": "2026-10-05T04:18:08.515Z",
+      "status": "failed",
+      "externalBudgetMs": 15000,
+      "internalBudgetMs": 14100,
+      "result": {
+        "i": 98,
+        "reason": "공격과 방어를 비교한 추천 · 심층 위협 검사 중",
+        "depth": 1,
+        "nodes": 5844,
+        "ms": 297,
+        "score": 9999997,
+        "pv": [
+          98,
+          140,
+          66
+        ],
+        "proven": false,
+        "lossProven": false,
+        "forcedLoss": false,
+        "threats": [],
+        "shape": {
+          "threes": [
+            2
+          ],
+          "fours": [],
+          "details": [
+            {
+              "axis": 0,
+              "three": [],
+              "four": []
+            },
+            {
+              "axis": 1,
+              "three": [],
+              "four": []
+            },
+            {
+              "axis": 2,
+              "three": [
+                66,
+                130
+              ],
+              "four": []
+            },
+            {
+              "axis": 3,
+              "three": [],
+              "four": []
+            }
+          ],
+          "win": [],
+          "legal": true,
+          "reason": "",
+          "fork43": false
+        },
+        "urgent": false,
+        "forbiddenDefense": null,
+        "defenseChecked": true,
+        "fallback": false,
+        "kind": "search",
+        "autoReason": null,
+        "automatic": true,
+        "screeningComplete": true,
+        "forcingChecksComplete": true,
+        "strategy": {
+          "initiative": "unknown",
+          "firstPlayer": 2,
+          "strategyVersion": "initiative-1",
+          "evidence": {
+            "ownWins": [],
+            "enemyWins": [],
+            "forcingAxes": [
+              2,
+              1,
+              0
+            ],
+            "opponentAxes": [
+              0
+            ],
+            "commonAnchors": 0,
+            "opponentCommonAnchors": 0,
+            "replyCoverage": "bounded",
+            "checkedRoots": 4,
+            "continues": 4,
+            "forcingReplies": 0
+          },
+          "checks": [
+            {
+              "i": 140,
+              "complete": true,
+              "score": 46,
+              "pv": [
+                140,
+                109,
+                107
+              ],
+              "forcingReplies": 0,
+              "continues": 0,
+              "replies": 6,
+              "replyCoverage": "bounded",
+              "extensionPlies": 0,
+              "continuationDepth": 3,
+              "refuted": false,
+              "proven": false
+            },
+            {
+              "i": 98,
+              "complete": true,
+              "score": 110,
+              "pv": [
+                98,
+                66,
+                140
+              ],
+              "forcingReplies": 0,
+              "continues": 4,
+              "replies": 6,
+              "replyCoverage": "bounded",
+              "extensionPlies": 2,
+              "continuationDepth": 5,
+              "refuted": false,
+              "proven": false
+            },
+            {
+              "i": 142,
+              "complete": true,
+              "score": 75,
+              "pv": [
+                142,
+                127,
+                111
+              ],
+              "forcingReplies": 0,
+              "continues": 4,
+              "replies": 6,
+              "replyCoverage": "bounded",
+              "extensionPlies": 2,
+              "continuationDepth": 5,
+              "refuted": false,
+              "proven": false
+            },
+            {
+              "i": 97,
+              "complete": true,
+              "score": 107,
+              "pv": [
+                97,
+                127,
+                111
+              ],
+              "forcingReplies": 0,
+              "continues": 4,
+              "replies": 6,
+              "replyCoverage": "bounded",
+              "extensionPlies": 2,
+              "continuationDepth": 5,
+              "refuted": false,
+              "proven": false
+            }
+          ],
+          "complete": true,
+          "ms": 71.5,
+          "work": {
+            "ms": 104.30000007152557,
+            "limitMs": 240,
+            "skipped": 0
+          },
+          "context": {
+            "firstPlayer": 2,
+            "strategyVersion": "initiative-1",
+            "strategyEnabled": true
+          },
+          "selected": {
+            "i": 98,
+            "legal": true,
+            "attack": 192,
+            "cut": 0,
+            "dual": 0,
+            "score": 105.60000000000001,
+            "axes": [
+              2
+            ],
+            "anchors": [],
+            "legalExtensions": [
+              66,
+              130
+            ],
+            "invalidExtensions": [],
+            "invalidThreeAxes": [],
+            "usableThreeAxes": [
+              2
+            ],
+            "forcing": false
+          }
+        },
+        "comparisonSource": "reader",
+        "candidates": [
+          {
+            "i": 98,
+            "s": 1407.6,
+            "strategy": {
+              "i": 98,
+              "legal": true,
+              "attack": 192,
+              "cut": 0,
+              "dual": 0,
+              "score": 105.60000000000001,
+              "axes": [
+                2
+              ],
+              "anchors": [],
+              "legalExtensions": [
+                66,
+                130
+              ],
+              "invalidExtensions": [],
+              "invalidThreeAxes": [],
+              "usableThreeAxes": [
+                2
+              ],
+              "forcing": false
+            },
+            "score": 9999997,
+            "pv": [
+              98,
+              140,
+              66
+            ],
+            "status": "screened",
+            "refutation": [],
+            "lossReason": null,
+            "depth": 1,
+            "comparisonComplete": true,
+            "comparisonSource": "reader"
+          },
+          {
+            "i": 97,
+            "s": 1375.75,
+            "strategy": {
+              "i": 97,
+              "legal": true,
+              "attack": 192,
+              "cut": 0,
+              "dual": 0,
+              "score": 105.60000000000001,
+              "axes": [
+                1
+              ],
+              "anchors": [],
+              "legalExtensions": [
+                67,
+                127
+              ],
+              "invalidExtensions": [],
+              "invalidThreeAxes": [],
+              "usableThreeAxes": [
+                1
+              ],
+              "forcing": false
+            },
+            "score": 9999997,
+            "pv": [
+              97,
+              142,
+              67
+            ],
+            "status": "screened",
+            "refutation": [],
+            "lossReason": null,
+            "depth": 1,
+            "comparisonComplete": true,
+            "comparisonSource": "reader"
+          },
+          {
+            "i": 113,
+            "s": 995.6500000000001,
+            "strategy": {
+              "i": 113,
+              "legal": true,
+              "attack": 192,
+              "cut": 0,
+              "dual": 0,
+              "score": 105.60000000000001,
+              "axes": [
+                0
+              ],
+              "anchors": [],
+              "legalExtensions": [
+                115
+              ],
+              "invalidExtensions": [],
+              "invalidThreeAxes": [],
+              "usableThreeAxes": [
+                0
+              ],
+              "forcing": false
+            },
+            "score": 9999997,
+            "pv": [
+              113,
+              142,
+              115
+            ],
+            "status": "screened",
+            "refutation": [],
+            "lossReason": null,
+            "depth": 1,
+            "comparisonComplete": true,
+            "comparisonSource": "reader"
+          }
+        ],
+        "rejected": [],
+        "engineVersion": "unified-initiative-1",
+        "memory": 0,
+        "safety": "제한 탐색이며 무패를 보장하지 않습니다.",
+        "patternHint": null,
+        "proofStatus": "UNRESOLVED",
+        "unverifiedDefense": true,
+        "assessmentStatus": "INCOMPLETE",
+        "timedOut": false,
+        "analysisIncomplete": true,
+        "workerError": "ReferenceError: Cannot access 'options' before initialization",
+        "externalBudgetMs": 15000,
+        "internalBudgetMs": 14100
+      },
+      "error": "ReferenceError: Cannot access 'options' before initialization",
+      "invalid": null,
+      "elapsedMs": 297.5,
+      "progress": [
+        {
+          "i": 140,
+          "depth": 0,
+          "kind": "incomplete",
+          "proven": false,
+          "lossProven": false,
+          "legal": true,
+          "proofStatus": "UNRESOLVED"
+        },
+        {
+          "i": 140,
+          "depth": 0,
+          "kind": "search",
+          "proven": false,
+          "lossProven": false,
+          "legal": true,
+          "proofStatus": "UNRESOLVED"
+        },
+        {
+          "i": 98,
+          "depth": 1,
+          "kind": "search",
+          "proven": false,
+          "lossProven": false,
+          "legal": true,
+          "proofStatus": "UNRESOLVED"
+        },
+        {
+          "i": 98,
+          "depth": 1,
+          "kind": "search",
+          "proven": false,
+          "lossProven": false,
+          "legal": true,
+          "proofStatus": "UNRESOLVED"
+        }
+      ],
+      "finishedAt": "2026-10-05T04:18:08.822Z"
+    }
+  ],
+  "actualAnalysisStarts": 1,
+  "errors": [],
+  "limits": {
+    "verificationMs": 120000,
+    "starts": 4,
+    "perRequestMs": 15000
+  },
+  "metadata": {
+    "browser": "154.0.4258.53",
+    "gpu": {
+      "adapter": {
+        "vendor": "nvidia",
+        "architecture": "blackwell",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "gpuSetupMs": 249.10000002384186,
+      "dispatchReadbackMs": 3.300000011920929,
+      "validationMs": 9.5,
+      "totalMs": 258.60000002384186,
+      "verifiedPatterns": 59049,
+      "mode": "gpu"
+    },
+    "computeRequested": "gpu",
+    "versions": {
+      "baseline": {
+        "fingerprint": "9e0101e69418606d77f28c7e6eb6c854da4d561ba8b19cbef7207b60984b61fc"
+      },
+      "improved": {
+        "fingerprint": "b15c8ebf5b76265ffb1025868f34954496d237883d4eeed5ac3370144460393a"
+      }
+    }
+  },
+  "finishedAt": "2026-10-05T04:18:09.124Z",
+  "finalSourceHashes": {
+    "src/analysis-settings.js": "8a5bb67f10523cca1a8d6df396a9c0adb2ee8706d407b35d21b4dbadeed784ae",
+    "src/app.js": "2a113d504ab2387660e51c729a61dde456b7ea0873c4732c4a8d3683edca6f1e",
+    "src/forest-engine.js": "a8951d556f0371235a3baafe8fbcdd59b2f6ba8866bf5139c0bea472c07626b4",
+    "src/gpu-app.js": "cdd407e0f5ce5347ccdf549158dece15fa1e2e4ca203dcdf3da465d703b62e7b",
+    "src/gpu-patterns.js": "eaab311e4bd7d020a0aacc0b5a15bb7f49cb9b750e935633142e19c042a35c8b",
+    "src/historical-analysis.cjs": "a727c9eb4b19b3ba3cbd942328ad0f52e92058033541d48d575bbd1e1cfb4749",
+    "src/node-engine.cjs": "1347c39faf83fb568ca43d20d014df31cc85164c0521ab1928b9a13fb82174c4",
+    "src/reader-engine.js": "4f37298835e1444707307ee268cff3e82bcc4e575ed33d527b3262b2c887f696",
+    "src/strategy-engine.js": "e080a8731a05ce1a3a7f2dabdeb4d80262b18d03b8801082a754422d2879b9a7",
+    "src/template.html": "4c58effade8fc8c3ff4960e8f9338cc557a493b0ab856f1718ff649573c59055",
+    "src/unified-app.js": "22674075e2a8fc8418337d0d602419fc19590dce60a97f02889bb428d28450fd",
+    "src/unified-engine.js": "c2f94cb1e040e9392edb9e70b6d0284978a53b928526077755a1442bb089c72c",
+    "package.json": "7cc058ad4b58bd838b52dcce911a357dd9f4730eb6b9e5616d45ef352fcd43eb",
+    "outputs/omok.html": "f3ec4da70caf46f4265cddc121d93c56a9ecd4fc15fc7f384f48d5e14e505924",
+    "outputs/omok-gpu.html": "f3ec4da70caf46f4265cddc121d93c56a9ecd4fc15fc7f384f48d5e14e505924",
+    "dist/index.html": "f3ec4da70caf46f4265cddc121d93c56a9ecd4fc15fc7f384f48d5e14e505924"
+  },
+  "productSourceUnchanged": true
+}

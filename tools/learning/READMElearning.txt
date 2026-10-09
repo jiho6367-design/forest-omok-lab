@@ -8,33 +8,33 @@
   이미 실행 중이면 기존 학습 화면을 엽니다. 저장된 기보·모델·진행 상태는 유지됩니다.
   node tools/learning/run.cjs init --run=outputs/learning/my-run
   node tools/learning/run.cjs import --run=outputs/learning/my-run --input=C:/path/omok-records.json
-  node tools/learning/run.cjs cycle --run=outputs/learning/my-run --games=8 --pairs=4 --minutes=3 --workers=1
+  node tools/learning/run.cjs cycle --run=outputs/learning/my-run --games=8 --pairs=4 --workers=1
   node tools/learning/run.cjs stop --run=outputs/learning/my-run
-  node tools/learning/run.cjs cycle --run=outputs/learning/my-run --resume --minutes=60
+  node tools/learning/run.cjs cycle --run=outputs/learning/my-run --resume
   node tools/learning/run.cjs status --run=outputs/learning/my-run
 
 이전 실험 폴더가 유실되어 모델의 학습 출처를 검증하지 못할 때:
   화면에서 원본 실험을 선택하고 «대국 보존 · 모델 새로 학습»으로 이어받습니다.
-  node tools/learning/run.cjs cycle --run=outputs/learning/recovered-run --from-run=outputs/learning/source-run --continuation-mode=raw-reset --fresh-model --continuous --workers=12 --minutes=60
+  node tools/learning/run.cjs cycle --run=outputs/learning/recovered-run --from-run=outputs/learning/source-run --continuation-mode=raw-reset --fresh-model --continuous --workers=12
   완료 대국과 검증된 원자료는 보존하고 가져온 모든 계열/국면을 학습용으로 제한합니다. 이전 후보·가중치·체크포인트·학습 갱신 횟수는 가져오지 않으며 검증/평가 자료는 새 대국에서 모읍니다. 원본 실험과 실패 기록은 바꾸지 않습니다. 복구 중 중단되면 같은 새 실험을 재개합니다. 일반 이어받기는 계보를 먼저 확인하여 자료 복사를 시작하기 전에 오류를 알립니다.
 
 입력 없이 시작하면 기존 앱 내장 기보, Reader 기보와 reports/*-loss-certificate.json의 기존 국면을 현재 규칙으로 복원하여 시작 자료로 사용합니다. 브라우저 localStorage 기보는 프로그램이 직접 읽을 수 없으므로 오목의 JSON 내보내기 후 가져옵니다. 백 선공, PASS, 흑백/내 돌 역할을 보존합니다. 숫자 위치는 앱의 A1=0 인덱스이며 화면의 좌표 방향을 뒤집어 해석하지 않습니다. 색을 쓰지 않은 텍스트 기보는 --first=1 또는 --first=2가 필요합니다.
 
 연속 경험 누적 예시 (총 대국 수를 고정하지 않음):
-  node tools/learning/run.cjs cycle --run=outputs/learning/my-continuous --continuous --workers=10 --minutes=60
-  node tools/learning/run.cjs cycle --run=outputs/learning/my-continuous --resume --minutes=60
+  node tools/learning/run.cjs cycle --run=outputs/learning/my-continuous --continuous --workers=10
+  node tools/learning/run.cjs cycle --run=outputs/learning/my-continuous --resume
 완료된 예전 경험을 이어받아 새 실험으로 시작:
-  node tools/learning/run.cjs cycle --run=outputs/learning/my-continuous --continuous --from-run=outputs/learning/runs/OLD-RUN --workers=10 --minutes=60
+  node tools/learning/run.cjs cycle --run=outputs/learning/my-continuous --continuous --from-run=outputs/learning/runs/OLD-RUN --workers=10
 OLD-RUN에는 실제 실험 폴더 이름을 넣습니다. 원본을 변경하지 않고 대국·자료·기존 평가 패턴을 보존합니다. 미채택 모델은 다음 학습 초기값으로만 사용할 수 있습니다. 새 실험에서 실제 대국은 검증된 채택판 또는 기존 엔진을 사용합니다.
-연속 모드는 기본 CPU 작업자10개(설정 범위1~16개)와 낮은 우선순위로 실행합니다. 검증도 같은 CPU 작업 수로 독립 대국을 병렬 처리합니다. 검증 후보·상대·시작 국면·착수 시간은 고정하며 양쪽 엔진은 한 대국 안에서 같은 작업자를 사용합니다. 매 수는 중앙 실행기가 저장을 확인한 뒤 다음 수를 허용합니다. 중단·시간 제한은 부분 대국을 보존하며, 작업자 실패 시 다른 대국도 협조적으로 멈춥니다. 검증 작업 수를 바꾸면 새 검증 실행이 필요합니다. GPU 학습 중에는 시작 전에 고정한 자료만 학습하고 CPU가 다음 대국을 생성합니다. 새 자료는 다음 학습의 새 표본으로 남습니다. 학습이 끝나면 현재 수를 저장하고 생성 작업을 합류한 뒤 기존 검증·채택 기준을 적용합니다. --concurrent-training=false로 동시 생성을 끄고, --workers=1로 CPU 작업 수를 줄일 수 있습니다. --priority=normal은 일반 우선순위를 명시적으로 선택합니다. 동시 실행은 GPU의 작은 모델 학습을 CPU 생성과 겹치게 하는 기능이며 GPU 사용률100%나 화면 끊김 해소를 보장하지 않습니다.
+연속 모드는 기본 CPU 작업자10개(설정 범위1~16개)와 낮은 우선순위로 실행합니다. 검증도 같은 CPU 작업 수로 독립 대국을 병렬 처리합니다. 검증 후보·상대·시작 국면·착수 시간은 고정하며 양쪽 엔진은 한 대국 안에서 같은 작업자를 사용합니다. 매 수는 중앙 실행기가 저장을 확인한 뒤 다음 수를 허용합니다. 수동 중단·단계별 작업 예산은 부분 대국을 보존하며, 작업자 실패 시 다른 대국도 협조적으로 멈춥니다. 검증 작업 수를 바꾸면 새 검증 실행이 필요합니다. GPU 학습 중에는 시작 전에 고정한 자료만 학습하고 CPU가 다음 대국을 생성합니다. 새 자료는 다음 학습의 새 표본으로 남습니다. 학습이 끝나면 현재 수를 저장하고 생성 작업을 합류한 뒤 기존 검증·채택 기준을 적용합니다. --concurrent-training=false로 동시 생성을 끄고, --workers=1로 CPU 작업 수를 줄일 수 있습니다. --priority=normal은 일반 우선순위를 명시적으로 선택합니다. 동시 실행은 GPU의 작은 모델 학습을 CPU 생성과 겹치게 하는 기능이며 GPU 사용률100%나 화면 끊김 해소를 보장하지 않습니다.
 연속 모드는 512대국마다 자료를 점검하며, 마지막 학습 이후 새 표본10,000개가 쌓이면 다시 학습합니다. 실행을 재개하거나 경험을 이어받았을 때 이미 새 표본이 충분하면 먼저 학습을 시작할 수 있습니다. --games-per-cycle / --min-new-samples로 조정합니다. 과거 자료는 새 자료로 중복 계산하지 않습니다. 기본 기보 변형 비율은0.25, 학습 반복 상한은20, 검증 흑백 교환 쌍은64입니다. 기본값은 새 실행에 적용하며 기존 실험을 재개하면 저장된 설정을 유지합니다. 기본1회 학습자료는 최대100,000표본이며 --max-training-samples로 조정합니다. 전체 기록은 지우지 않고 최근/과거 자료를 나눠 선택합니다. family 편중 완화, 초기 모델과 비교한 독립 검증 오차, 조기 종료와 제한된 변화 진단을 기록합니다. 검증된 기본판이 아닌 후보도 학습 초기값으로 계속 이어받을 수 있지만 대국 채택은 별도 기준을 통과해야 합니다.
 학습 자료와 family 가중치는 여유 VRAM 범위에서 GPU에 한 번 올리고 미니배치마다 다시 복사하지 않습니다. 부족하면 기존 CPU mmap 방식으로 실행합니다. 검증 오차는 GPU에서 합산한 뒤 한 번 읽으며, FP32 학습 목표·배치 크기·학습률·CPU RNG 순서와 체크포인트는 유지합니다. GPU는 CPU 대국 생성·검증 중에는 대기합니다. 32→16→1의 작은 신경망은 GPU 연산량보다 명령 전달·전송 시간이 클 수 있어, 사용률보다 초당 학습 국면과 전체 사이클 시간을 함께 봅니다.
 경험 이어받기는 기보·국면 검증 색인을 128대국/2,048표본 단위 SQLite 트랜잭션으로 저장합니다. 배치 중 오류는 미커밋 색인만 롤백하고, 원본 JSONL과 승패·family 분리 검증은 보존합니다.
-자동 부팅/무한 백그라운드 실행은 설정하지 않습니다. 이번 실행 시간이 끝나면 같은 실험을 재개합니다. 디스크8GiB 기본한도는 --max-disk-gb로 조정합니다. 자원 한도는 총 대국 목표와 다릅니다. 브라우저만 닫으면 서버/학습은 계속될 수 있으므로 중단 요청을 사용하세요. 강제 종료 후에는 마지막 저장 지점부터 복구합니다.
+자동 부팅 실행은 설정하지 않습니다. 연속 실행은 수동 중지 전까지 계속되며, 중지 후에는 같은 실험을 재개합니다. 직접 CLI 재개와 화면 재개 모두 필요한 경우 보관 실행기를 선택하고 이전 전체 실행 시간 제한을 해제합니다. 디스크8GiB 기본한도는 --max-disk-gb로 조정합니다. 자원 한도는 총 대국 목표와 다릅니다. 브라우저만 닫으면 서버/학습은 계속될 수 있으므로 중단 요청을 사용하세요. 강제 종료 후에는 마지막 저장 지점부터 복구합니다.
 
 대국 수를 지정하는 기존 방식 예시:
-  node tools/learning/run.cjs cycle --run=outputs/learning/long-run --games=100000 --games-per-cycle=100 --workers=2 --move-ms=80 --validation-ms=1000 --pairs=64 --minutes=60
-같은 명령에 --resume를 더하면 부분 대국/학습/평가를 계속합니다. 60분은 한 번 실행의 예산이며 수십만 판의 실제 완료 시간을 약속하지 않습니다. 먼저 짧은 실행의 게임/초·학습 samples/초·RAM/VRAM 실측을 확인합니다. 생성과 학습은 서로 다른 병목이므로 GPU 사용률만으로 대국 처리량을 판단하지 않습니다. --max-samples/--max-disk-gb로 자료·디스크 예산을 제한할 수 있습니다. 전용 Python 기본 경로는 C:/Users/jiho/Documents/Codex/.omok-runtime/Scripts/python.exe이며 --python으로 지정할 수 있습니다. GPU 미지원은 실패 이유로 표시하고, --device=cpu를 명시한 경우에만 CPU 학습을 선택합니다.
+  node tools/learning/run.cjs cycle --run=outputs/learning/long-run --games=100000 --games-per-cycle=100 --workers=2 --move-ms=80 --validation-ms=1000 --pairs=64
+같은 명령에 --resume를 더하면 부분 대국/학습/평가를 계속합니다. 전체 실행 시간 상한은 없으며 연속 모드는 수동 중지 요청 전까지 누적합니다. 기존 저장 설정이나 예전 명령의 --minutes 값도 종료 시간으로 사용하지 않습니다. 단계별 대국 처리 예산과 학습 단계의 trainSeconds, 자료·디스크 안전장치는 유지합니다. 먼저 짧은 실행의 게임/초·학습 samples/초·RAM/VRAM 실측을 확인합니다. 생성과 학습은 서로 다른 병목이므로 GPU 사용률만으로 대국 처리량을 판단하지 않습니다. --max-samples/--max-disk-gb로 자료·디스크 예산을 제한할 수 있습니다. 전용 Python 기본 경로는 C:/Users/jiho/Documents/Codex/.omok-runtime/Scripts/python.exe이며 --python으로 지정할 수 있습니다. GPU 미지원은 실패 이유로 표시하고, --device=cpu를 명시한 경우에만 CPU 학습을 선택합니다.
 
 각 단계도 단독 실행할 수 있습니다:
   analyze : 기존 기보의 여러 이전 국면/실제 착수/대안과 상대 강제수 검사
@@ -94,3 +94,10 @@ GitHub 기본 CI는 CPU PyTorch와 Chromium을 설치하여 세 경로를 실행
 leaf-profile은 별도의 고정 깊이 Reader 실행에서 실제 static leaf 및 accumulator.score 호출을 측정합니다. timer 자체의 비용이 있으므로 시간제 비교에 섞지 않습니다. 실험 계획은 최소 개선폭과 통계 gate의 조건부 검정력, 두 대조군, 모든 artifact hash, shared trial, 가족 수와 자원 상한을 결과 전에 고정합니다. 계획 파일은 읽기 전용 원장 조회이며 trial 예약이나 기력 결과가 아닙니다. 원장이나 소스가 바뀌면 계획을 거부합니다. bounded-family 독립성과 실제 효과에 관한 가정 아래의 보수적 계산은 합법성/완료 등 다른 gate의 통과 확률이나 실제 기력을 보장하지 않습니다.
 
 학습 loss 개선은 기력 증거가 아닙니다. diagnose의 fixed-work는 Reader의 동일 depth/정적 규칙 비교이며 동일 node 수가 아닙니다. spatial-rel-v1은 별칭을 구별하는 진단용 prototype이고 production trainer/model 형식이 아닙니다. 실제 새로운 representation/수집 actor/최적화 대안의 다중 seed 결과와 사전 고정된 독립 arena 비교가 남아 있습니다. 현재까지 이 수정으로 기력이 개선됐다고 주장하지 않습니다.
+
+실험 전체 보관 정책 (2026-10-08)
+- 생성 시각(state.createdAt, 없으면 dashboard.createdAt 및 실험 ID의 시각) 최신순으로 실험 3개를 유지합니다. 저장된 목록만 숨기지 않고 이전 폴더를 이동합니다.
+- outputs/learning/runs/.recycle/<transaction>/run은 복구 가능한 자체 보관함입니다. manifest.json의 원위치와 체크 정보로 run-retention.cjs.restoreRetained(runsRoot, transactionId)를 호출하여 복원할 수 있습니다. 자동 영구 삭제나 보관함 비우기는 수행하지 않습니다.
+- 필요한 오래된 계보 자료는 .dependencies에 별도 보존하고 원본 경로 연결을 유지합니다. 진행 중인 실험과 진행 중 가져오기의 원본·계보는 보호하며 일시적으로 3개를 초과할 수 있습니다. 보존 계보를 직접 재개하려면 먼저 복원해야 합니다.
+- 이 이동은 디스크 공간을 확보하지 않습니다. 영구 삭제에는 정확한 대상과 용량을 검토한 뒤 별도 확인이 필요합니다. 단계별 파생 snapshot 보관 및 기존 디스크 예산 안전장치는 별개로 유지합니다.
+- 과거 실험은 원래 실행 코드와 실험 식별자를 유지합니다. 이번 시간·정리·파일 용량 검사 운영 수정만 정확한 변경 전/후 해시를 검토한 호환성 기록으로 연결하며 엔진·학습·검증 알고리즘 또는 네이티브 실행환경이 바뀌면 새 검증을 요구합니다.

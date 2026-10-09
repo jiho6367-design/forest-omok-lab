@@ -22,12 +22,12 @@ function arenaView(value){
  return result;
 }
 const PRESETS={
-  continuous:{continuous:true,concurrentTraining:true,minutes:60,games:256,gamesPerCycle:512,minNewSamples:10000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:10,epochs:20},
-  check:{minutes:3,games:8,pairs:4,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:3},
-  standard:{minutes:60,games:128,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:10},
-  extended:{minutes:180,games:1024,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:20}
+  continuous:{continuous:true,concurrentTraining:true,minutes:null,games:256,gamesPerCycle:512,minNewSamples:10000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:10,epochs:20},
+  check:{minutes:null,games:8,pairs:4,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:3},
+  standard:{minutes:null,games:128,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:10},
+  extended:{minutes:null,games:1024,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:20}
 };
-const LIMITS={minutes:[1,1440],games:[1,1000000],gamesPerCycle:[1,10000],minNewSamples:[1,1000000],maxTrainingSamples:[100,1000000],pairs:[1,2048],minPairs:[32,2048],moveMs:[30,10000],analysisMs:[50,30000],validationMs:[50,30000],workers:[1,16],epochs:[1,1000]};
+const LIMITS={games:[1,1000000],gamesPerCycle:[1,10000],minNewSamples:[1,1000000],maxTrainingSamples:[100,1000000],pairs:[1,2048],minPairs:[32,2048],moveMs:[30,10000],analysisMs:[50,30000],validationMs:[50,30000],workers:[1,16],epochs:[1,1000]};
 function inside(root,target){const relative=path.relative(root,target);return relative===''||(!relative.startsWith('..'+path.sep)&&relative!=='..'&&!path.isAbsolute(relative));}
 function fail(status,message){const error=new Error(message);error.status=status;return error;}
 function configuration(body){
@@ -35,6 +35,8 @@ function configuration(body){
   const config={...PRESETS[preset]};
   if(body.config!=null){if(typeof body.config!=='object'||Array.isArray(body.config))throw fail(400,'설정은 객체여야 합니다.');
     for(const [key,value] of Object.entries(body.config)){
+      // Old open dashboards may still submit minutes; it no longer schedules a stop.
+      if(key==='minutes'){if(value!==null&&(typeof value!=='number'||!Number.isFinite(value)))throw fail(400,'이전 실행 시간 설정은 숫자여야 합니다.');continue;}
       if(key==='continuous'||key==='concurrentTraining'){if(typeof value!=='boolean')throw fail(400,key+'는 true 또는 false여야 합니다.');config[key]=value;continue;}
       if(key==='recordBranchFraction'){if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>1)throw fail(400,'기존 기보 변형 비율은 0~1이어야 합니다.');config[key]=value;continue;}
       if(!Object.hasOwn(LIMITS,key))throw fail(400,'지원하지 않는 설정: '+key);
@@ -55,12 +57,21 @@ function createDashboard(options={}){
   const continuationPreflight=options.continuationPreflight||((source)=>require('./corpus.cjs').continuationPreflight(source));
   const sessionToken=crypto.randomBytes(32).toString('hex');
   let active=null,port=null;
+  const Retention=require('./run-retention.cjs'),retentionEnabled=options.retention!==false;
+  let retentionStatus={enabled:retentionEnabled,keep:3,freedBytes:0};
+  function enforceRetention(lease=null,protect=[]){
+    if(!retentionEnabled)return retentionStatus;
+    try{retentionStatus={enabled:true,...Retention.enforceRetention(realRoot,{repo,lease,activeIds:active?[active.id]:[],protectedIds:[...protect,...(active?.fromRun?[active.fromRun]:[])]})};}
+    catch(error){retentionStatus={enabled:true,keep:3,freedBytes:0,error:error.message};if(active)log(resolveRun(active.id),JSON.stringify({dashboard:'retention-error',message:error.message,at:new Date().toISOString()})+'\n');}
+    return retentionStatus;
+  }
+  enforceRetention();
   const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','Cross-Origin-Resource-Policy':'same-origin'};
   function resolveRun(id){
     if(typeof id!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/.test(id))throw fail(400,'실험 ID가 올바르지 않습니다.');
     const target=path.resolve(realRoot,id);if(!inside(realRoot,target))throw fail(400,'허용되지 않은 경로입니다.');
     if(!fs.existsSync(target)||!fs.statSync(target).isDirectory())throw fail(404,'실험을 찾을 수 없습니다.');
-    const real=fs.realpathSync(target);if(!inside(realRoot,real))throw fail(403,'실험 폴더가 저장 영역 밖을 가리킵니다.');return real;
+    const real=fs.realpathSync(target);if(!inside(realRoot,real))throw fail(403,'실험 폴더가 저장 영역 밖을 가리킵니다.');if(fs.lstatSync(target).isSymbolicLink())throw fail(409,'계보 보존 위치에 있는 실험입니다. 복원한 뒤 재개해 주세요.');return real;
   }
   function checkedFile(run,name){const target=path.join(run,name);if(!fs.existsSync(target))return null;const real=fs.realpathSync(target);if(!inside(realRoot,real)||!inside(run,real))throw fail(403,'허용되지 않은 파일입니다.');return real;}
   function readJSON(run,name,maximum=MAX_UPLOAD){try{const file=checkedFile(run,name);if(!file)return null;if(fs.statSync(file).size>maximum) return {unavailable:'파일이 커서 요약을 읽지 못했습니다.'};return JSON.parse(fs.readFileSync(file,'utf8'));}catch(error){if(error.status)throw error;return null;}}
@@ -98,7 +109,7 @@ function createDashboard(options={}){
       const logFile=checkedFile(run,'dashboard.log');if(logFile){const size=fs.statSync(logFile).size,fd=fs.openSync(logFile,'r');try{const buffer=Buffer.alloc(Math.min(size,MAX_LOG));fs.readSync(fd,buffer,0,buffer.length,Math.max(0,size-buffer.length));summary.log=buffer.toString('utf8');}finally{fs.closeSync(fd);}}
     }return summary;
   }
-  function listRuns(){return fs.readdirSync(realRoot,{withFileTypes:true}).filter(entry=>entry.isDirectory()&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/.test(entry.name)).map(entry=>{try{const run=resolveRun(entry.name);return checkedFile(run,'state.json')||checkedFile(run,'dashboard.json')?describe(entry.name,false):null;}catch{return null;}}).filter(Boolean).sort((a,b)=>Number(b.active)-Number(a.active)||b.id.localeCompare(a.id)).slice(0,100);}
+  function listRuns(){return fs.readdirSync(realRoot,{withFileTypes:true}).filter(entry=>entry.isDirectory()&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}$/.test(entry.name)).map(entry=>{try{const run=resolveRun(entry.name);return checkedFile(run,'state.json')||checkedFile(run,'dashboard.json')?describe(entry.name,false):null;}catch{return null;}}).filter(Boolean).sort((a,b)=>Number(b.active)-Number(a.active)||(Date.parse(b.state?.createdAt)||0)-(Date.parse(a.state?.createdAt)||0)||b.id.localeCompare(a.id)).slice(0,100);}
   function activeId(){return active?.id||listRuns().find(run=>run.active)?.id||null;}
   function log(run,text){const target=path.join(run,'dashboard.log');if(fs.existsSync(target))checkedFile(run,'dashboard.log');fs.appendFileSync(target,String(text));}
   function accumulationSource(id){
@@ -112,23 +123,27 @@ function createDashboard(options={}){
   }
   function preflight(source){try{continuationPreflight(source);}catch(error){throw fail(400,'이전 모델의 학습 출처를 확인할 수 없습니다. 남은 완료 대국은 보존되어 있습니다. 이어받기 방식에서 «대국 보존 · 모델 새로 학습»을 선택해 주세요. 원인: '+error.message);}}
   function launch(id,config,resume,fromRun=null,continuationMode='verified'){
+    if(!retentionEnabled)return launchInternal(id,config,resume,fromRun,continuationMode);
+    return Retention.withRetentionLock(realRoot,lease=>{Retention.recoverRetention(realRoot,{lease});const result=launchInternal(id,config,resume,fromRun,continuationMode);enforceRetention(lease,fromRun?[path.basename(fromRun)]:[]);return result;});
+  }
+  function launchInternal(id,config,resume,fromRun=null,continuationMode='verified'){
     if(activeId())throw fail(409,'진행 중인 실험을 중단한 후 시작해 주세요.');
     if(resume){const pending=readJSON(resolveRun(id),'continuation.json');if(pending&&!pending.complete&&pending.mode!=='raw-reset')preflight(pending.source);}
     require('./deployment.cjs').recoverDeployment({root:repo});const run=resolveRun(id);let selected={runner,argsPrefix:[],cwd:repo};if(resume&&!options.runner){try{selected=require('./archive.cjs').selectResumeRunner(run,{repo});}catch(error){throw fail(400,error.message);}}
     const args=[selected.runner,...(selected.argsPrefix||[]),'cycle','--run='+run,'--python='+python,'--device=cuda'];
     if(resume)args.push('--resume');else{
       if(checkedFile(run,'uploaded-records.json'))args.push('--input='+path.join(run,'uploaded-records.json'));
-      const keys={minutes:'minutes',games:'games',gamesPerCycle:'games-per-cycle',minNewSamples:'min-new-samples',recordBranchFraction:'record-branch-fraction',maxTrainingSamples:'max-training-samples',pairs:'pairs',minPairs:'min-pairs',moveMs:'move-ms',analysisMs:'analysis-ms',validationMs:'validation-ms',workers:'workers',epochs:'epochs'};
+      const keys={games:'games',gamesPerCycle:'games-per-cycle',minNewSamples:'min-new-samples',recordBranchFraction:'record-branch-fraction',maxTrainingSamples:'max-training-samples',pairs:'pairs',minPairs:'min-pairs',moveMs:'move-ms',analysisMs:'analysis-ms',validationMs:'validation-ms',workers:'workers',epochs:'epochs'};
       for(const [key,flag] of Object.entries(keys))if(config[key]!=null)args.push('--'+flag+'='+config[key]);
       if(config.continuous)args.push('--continuous');if(fromRun)args.push('--from-run='+fromRun);
       if(fromRun&&continuationMode==='raw-reset')args.push('--continuation-mode=raw-reset','--fresh-model');
       if(config.concurrentTraining!=null)args.push('--concurrent-training='+config.concurrentTraining);
     }
     const child=spawnChild(process.execPath,args,{cwd:selected.cwd||repo,stdio:['ignore','pipe','pipe'],windowsHide:true,shell:false});
-    active={id,child,startedAt:new Date().toISOString()};log(run,JSON.stringify({dashboard:'start',resume,at:active.startedAt})+'\n');
+    active={id,child,fromRun:fromRun?path.basename(fromRun):null,startedAt:new Date().toISOString()};log(run,JSON.stringify({dashboard:'start',resume,wholeRunTimeLimit:'none',at:active.startedAt})+'\n');
     child.stdout?.on('data',data=>log(run,data));child.stderr?.on('data',data=>log(run,data));
     child.once('error',error=>{log(run,JSON.stringify({dashboard:'launch-error',message:error.message})+'\n');if(active?.child===child)active=null;});
-    child.once('exit',(code,signal)=>{log(run,JSON.stringify({dashboard:'exit',code,signal,at:new Date().toISOString()})+'\n');if(active?.child===child)active=null;});
+    child.once('exit',(code,signal)=>{log(run,JSON.stringify({dashboard:'exit',code,signal,at:new Date().toISOString()})+'\n');if(active?.child===child)active=null;enforceRetention();});
     return describe(id);
   }
   function stop(id){const run=resolveRun(id);const flag=path.join(run,'stop.flag');if(fs.existsSync(flag))checkedFile(run,'stop.flag');fs.writeFileSync(flag,new Date().toISOString()+'\n');return describe(id);}
@@ -164,7 +179,7 @@ function createDashboard(options={}){
       }
       if(req.method!=='GET')throw fail(405,'지원하지 않는 요청입니다.');
       if(url.pathname==='/api/session')return respond(200,{token:sessionToken,presets:PRESETS,limits:LIMITS,activeId:activeId()});
-      if(url.pathname==='/api/status'){const running=activeId();return respond(200,{activeId:running,runs:listRuns(),selected:url.searchParams.has('id')?describe(url.searchParams.get('id')):running?describe(running):null});}
+      if(url.pathname==='/api/status'){const running=activeId();return respond(200,{activeId:running,runs:listRuns(),retention:retentionStatus,selected:url.searchParams.has('id')?describe(url.searchParams.get('id')):running?describe(running):null});}
       if(url.pathname==='/api/download'){
         const run=resolveRun(url.searchParams.get('id'));const kind=url.searchParams.get('kind')||'champion';
         const names={champion:'champion.json',candidate:'candidate.json',arena:'arena.json',training:'candidate.json.training.json'};

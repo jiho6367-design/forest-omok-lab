@@ -1,0 +1,36 @@
+숲속 오목 — 12초 경계 탐색시간 수정·검증·실행본 반영
+결론: 완료. v5.14.4 통합 실행본 반영 및 SHA-256 확인. 선공 공격 유지·후공 선제 차단/역공 정책 유지. 종료 이유: 범위 내 수정·검증·반영 완료, 다음 작업 자동 시작 없음.
+작업 ID forest-search-budget-20261005-133842; 시작 2026-10-05 13:38:42 KST, 보고 2026-10-05 14:16:56 KST; 경과 38.24분. 새 수정·실험 중단 2026-10-05 16:23:42 KST, 절대 종료 2026-10-05 16:38:42 KST. 시간 초기화 없음.
+
+수정
+src/forest-engine.js의 주탐색 예약식만 변경: guardReserve=min(budget*0.28,max(0,budget-11000)); searchDeadline=start+budget-guardReserve. 총기한 start+budget과 최종 검증 gate/호출·반증·미완료 처리는 그대로 유지.
+기존 진단의 budget-12000 제안은 12초에서 예약0으로 최종 guard를 건너뛸 수 있어 채택하지 않음. 새 식의11999/12000/12001ms 주탐색은11000/11000/11000ms(기존11999/8640/8640.72), 예약999/1000/1001ms. 30~25000ms 비감소/총기한 이내 확인. 약15.278초 이상은 기존72%와 동일.
+절충:11~12초 구간은 주탐색을 최대약1초 줄이며 기존 budget<12000 gate 때문에 이 예약은 최종guard에 사용하지 않음. 1000ms는 모든 국면의 검증완료 보장이 아님. 후보폭·전략 가중치·규칙·UI 배치/동작은 유지; 버전 표시는 기존방식으로5.14.4 갱신. 새 경계검사를 npm test에 추가, 기존 strategy-context 테스트의 빠진 설정변수 fixture만 보완.
+
+전후 비교
+사전 고정48분석=직접 Forest30+실제 Unified Worker18, 모든 순차. 각 일반조건3쌍 AB/BA/AB;E5/I7/H11 각1쌍. baseline은수정직전5.14.3 미커밋 상태이며 과거5.13.1과의비교아님. GPU NVIDIA blackwell,Edge154.0.4258.53,CPU Intel Core Ultra7 356H;패턴59049개검증,새Worker/캐시. 동일규칙·국면·요청예산·계측방식 및 해시 보존.
+직접 비교: 국면/Forest예산 | 완료깊이 전→후(3회) | 소요ms 중앙값 전→후 | 노드 중앙값 전→후 | 주탐색ms 전→후
+forest/P-C2-prefix7/11999/on | 5,5,5→5,5,5 | 12025.2→11032.8 | 51612→46209 | 11999.0→11000.0
+forest/P-C2-prefix7/12000/on | 4,4,4→4,4,4 | 8710.9→11073.5 | 35251→43898 | 8640.0→11000.0
+forest/P-C2-prefix7/12001/on | 4,5,5→5,5,5 | 8665.1→11025.0 | 103738→147926 | 8640.7→11000.0
+forest/S-A1-prefix6/12000/on | 5,5,5→5,5,5 | 8651.1→11012.2 | 120280→160298 | 8640.0→11000.0
+forest/T-D2-prefix5/13000/on | 6,6,6→6,6,6 | 9389.4→11030.1 | 45690→54410 | 9360.0→11000.0
+직접15쌍의실제limits와최초완료반복루트진입순서는모두동일. 14쌍깊이동일/1쌍+1/감소0,추천은모든24쌍동일. 깊이8회복·기력향상/퇴보·승률변화는입증하지않음.
+실제Unified15초는외부15000/내부14100ms 그대로. C2계측on깊이5,5,5→5,5,5, 중앙값13747.8→13079.5ms;off깊이4,5,4→5,5,5,10018.5→13078.2ms. 순수시간식효과로해석하지않음: on첫쌍Forest11662.2→13427.2ms,22/12→28/16;off0·2쌍28/16→22/12. 이3쌍은같은후보조건인과대조에서제외. off정확Forest진입시간은미관측이나반환limits는보존. on/off는세션·시점효과도섞여순수계측오버헤드추정불가.
+
+안전성
+48분석완료/분석오류0/불합법추천·PV·진행추천0/외부Worker시간초과0. E5필수방어양쪽유지(BLOCKING_UNCHECKED),I7인증반증제외·G8추천유지,H11반증·G5저항·PROVEN_LOSS유지. 일반증거있는반증의재추천0(증명된전체패배의저항수예외별도).
+trace있는40행: guard대상25(직접24+Unified1),실제진입25/완료25/누락관찰0;below-threshold13·loss-proven2는검증대상아님. 무계측6·긴급2행의guard완료는미관측/비대상으로구분. 실제guard는대부분매우짧은no-proof검사(최대46.2ms),반증발견/대안교체0. 장기quiet검증완료보장으로확대하지않음.
+신규제어검사:경계·비감소·고예산예약,guard직접/함정불완료,증거있는반증후대안depth0/PV·반증증거보존,대안없음,기한소진skip·threshold비대상 모두PASS. 불완료는defenseChecked/proven으로승격하지않고미확인문구유지;시간초과Worker는INCOMPLETE·마지막완료깊이유지. proof stub는분기흐름검사이며실제승패증거아님.
+기존 npm test 전체구성+analysis-settings 총21개스크립트의필요범위통과,Unified35/35개이름별검사커버.180초프로세스상한중단1은PASS33개재사용·미완료2개만필터실행으로완료. 기존strategy-context fixture오류1은수정직전소스에서도재현되어테스트환경만보완후1회재검증. 원래실패/중단행과로그는삭제하지않음. 저장모의시험:불완전tmp를무시하고직전완료기록재사용PASS;외부watchdog부모/자식종료모의시험PASS.
+
+적용·보존·미확인점
+기존 node build.cjs로생성한저장소outputs/omok.html,omok-gpu.html,dist/index.html 및통합폴더outputs의기존HTML2개 모두SHA-256 5fb8697c6b6ba559cc88b5c7c76603134ee46f2bbf4818cccec9485a3c8478e7. 교체전HTML은backup/integration과backup/before에보존.제품runtime계측은실행본에포함되지않음.
+통합폴더 C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\outputs. HEAD 6aee1afebeec451819c707cd76a5f4ab240881f5 유지,기존미커밋/신규코드최소백업체크불일치0. 새개발저장소/전체프로젝트복제없음. 커밋·푸시·외부배포·결제·전역설정변경0. 보조agent정확히2(ultra),A시간/안전·B대조/반대근거,실제계산/재위임0,결과agents/에보존.
+미확인:전국면guard완료율·기력/승률,원래8→5의다른폭·전략비용인과,무계측구간정확한Forest배정,Forest검증대상과후속Unified대안의전체안전. 이번범위의필수미완료작업0;추가완료예상시간0. 범위밖성능연구를자동시작하지않음.
+실행기록:최상위전후분석48회(재시도0),제어/회귀/빌드검사별명령·오류·상태는results.jsonl/checkpoint에개별기록. 비교프로세스503.46초;검사중단/fixture실패각1 및준비UTC파싱오류도보존. 지원외부PowerShell감시로자식tree관리,모의종료이외강제종료는Unified검사프로세스상한1. 생성browser.close·감시PID잔존0 확인.
+사용량:goal도구가 2026-10-05T05:16:23Z에보고한누적tokensUsed=782450. 이것을청구토큰/크레딧으로환산하지않음. 크레딧소비량은미측정.
+재개기록: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\search-budget-work — STATUS.md,checkpoint.json(직전본.previous),results.jsonl,plan.json,summary.json,logs/,patches/,backup/,agents/.
+다음읽기/명령은동봉 search-budget-resume.txt 참조. 완료실험은전체조건해시·장치·규칙·국면·예산·계측이같을때만재사용하고원래실패기록을보존. 메모리탐색상태복원을주장하지않음.
+
+버전 표시 후속 수정: GPU 코드의5.14.3 덮어쓰기 누락을5.14.4로수정. GPU 배지 실행검사와기존탐색식보존검사통과,실행본5개해시일치. 최종 SHA-256 5fb8697c6b6ba559cc88b5c7c76603134ee46f2bbf4818cccec9485a3c8478e7

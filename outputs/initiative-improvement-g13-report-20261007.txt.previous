@@ -1,0 +1,50 @@
+G13 기본 자동 분석 개선 — 진행 기록
+갱신 2026-10-06T18:24:14.484Z
+상태: 미완료 / 정상 실행본5.14.8 유지 / 후보32 검증 중
+
+사용자가 맞았습니다.34수G13 이후 시간 끌기 반격도 모든191합법수의강제패배에포함됩니다. 독립DAG검증완료(65326nodes,171214defenses); 글로벌미증명/시간초과는패배가아닙니다.
+
+검증기준(실행시고정):
+reproduction: Replay all34 under exact-five priority/both-colour double-three; actual current artifact default Worker automatic path; distinguish historical UI/device/budget unknown.
+loss: Prove or refute G13 forced-loss premise using every legal defense and exact counterwins; unknown never loss; correct discovery if causal coverage/budget defect.
+attack: Inspect earlier attack/defense turns and finite alternatives with multiple opponent replies; distinguish necessary defenses, rational setup and preventable retreats.
+generalFix: Minimum causal general algorithm; no coordinates/blanket attack/no defense prohibition; frozen validation separate before changes.
+validation: Same before/current actual automatic policy/device/rules sequential; whole PV legal; independent positives/negatives/transforms; RH2 B-gap V12A G10 safeguards and per-move/cancel preserved.
+integration: Only validated change normal5 runtime paths; preserve8/currentdirty/failedpatch; atomic ongoing save and exact report/resume in3outputs; no commit/push/deploy/globalsettings.
+
+현재 목표 상태:
+reproduction complete
+근거: initial auto and user continuation reproduced on current Intel GPU, historical hardware unknown
+다음: Replay all34 under exact-five priority/both-colour double-three; actual current artifact default Worker automatic path; distinguish historical UI/device/budget unknown.
+
+loss in-progress
+근거: 원34 전191합법수 독립DAG검증 완료.28 실제기본자동 원34+색대칭 LOSS191 8.459/8.690s vs8 UNKNOWN13.347/13.326s.
+다음: 부분완료반증보존32 최종실제자동/독립음성/기본Reader경로 영향 확인
+
+attack in-progress
+근거: 28 실제auto 원32 E4→G2, G3G2after34 B5/G11→G6. G6 뒤G13/G11은F11 F12 D3 Reader증명승리; D3/D5는강한선제차단, 이후39분기검사남음. G3/G2/G6 자체안전/필승 미증명.
+다음: 32 최종원32와G3G2, D3/D5/복수상대응수 후속39 동일장치/자동시간 비교; 일반기력/전국면필승으로확대하지않음
+
+generalFix in-progress
+근거: 32 bounded quiet/counter forcing AND, mode별memo, boardundo,색역할비고정;30의count-eligibility transition index;global미완료라도완료개별양성반증보존.
+다음: 32 변경영향과partialunknownno-loss 검사;계산상한/취소 유지
+
+validation in-progress
+근거: 30첫18unit/Reader60/Unified34 PASS,73 E15 근거누락1FAIL보존.28나머지15PASS/독립10음성PASS.30실제GPU firstactualpositive취소+250ms관찰 callback0 PASS(새q2cancel은controlled6범위). fresh4CPU B5291379nodes/full독립DAG같음.
+다음: 32 73원인확인/영향검사+remainingunit/실제default primary preservation followups/동일page cancel후다음분석
+
+integration pending
+근거: 정상Forest8 SHA47acfed0… 및정상5 HTML c8496e1a…보존. 신규코어모두D staged,실행본미교체.
+다음: 검증완료후5.14.9 기존빌드/정상5반영 및최종smoke,보고서·재개안내3outputs
+
+장치/공정조건: Edge154.0.4258.53 Intel xe-3lpg GPU, pattern59049/hash e58668c7ac821a6a549b24c7d28765980dcec607d6d921c66e36b53ca2b242e3. 기존NVIDIA결과와속도직접비교하지않음. 자동suggestBudget 실제Worker, 각수예산/시계/취소유지, 공정계산순차. 외부15s인복잡국면 Worker내부14.1s이며15s강제수동을default자동으로대체하지않음.
+
+비용 측정: 큰globalDAG를같은harness메모리에둔29/30/31 B5 14s미완료는왜곡된조건. 로그유지하며각후보새Nodeprocess에서동일조건순차재비교:28 11.489s,29 11.153s,30 10.501s,31 11.374s; 전291379nodes/full독립B5증명과동일. 이는유한작업비용이며전체기력/보편속도보장아님.
+
+실패/정정: legacy green11/17 최초첫돌색오류결과무효, 정상색4개국면독립alllegal완료후회귀계약확장;E15기존반증누락은미해결기록에서32부분완료반증보존으로수정검증중. 첫E4/B5특정positive취소2회는그추천이미선택안돼target미발생;30 realforcing-line i42취소PASS. cancelMs300.4는250ms관찰을포함하고취소시각자체로쓰지않음. stage12빌드경로사고정상3즉시8복원/정상5 hash확인,이후build-stage정상hash보호추가.
+
+미확인: G3/G2/G6전체안전·필승, D3/D5후속39, I7등전국면분기,일반기력상승,새q2양성뒤실제cancel은현재미관찰. 기존완료UI/폴더작업반복없음. 47PASS 사용자지연무시.
+
+자료/소스/명령/재개: C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab\outputs\initiative-improvement-work\runs\20261006-g13-automatic
+기보 fixture.json /fixture-full.json, CRITERIA.md, STATUS.md,checkpoint.json(.previous),patches/current-source.patch,backup/before,backup/new-files,logs/,agent-a-review.md,agent-b-review.md
+GitHEAD 9f51d03062b039c6846e408c7dad6169ce0c5120; 기존미커밋소스/신규파일보존. 커밋·푸시·외부배포·전역설정없음. 이전완료목표checkpoint수정없음.

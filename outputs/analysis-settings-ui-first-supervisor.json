@@ -1,0 +1,11 @@
+{
+  "termination": "external task-specific PowerShell watchdog; taskkill /T /F only own child tree",
+  "finishedAt": "2026-10-05T02:36:35.1635145+00:00",
+  "startedAt": "2026-10-05T02:36:25.6409360+00:00",
+  "pid": 23420,
+  "limitMs": 90000,
+  "timedOut": false,
+  "exitCode": 0,
+  "priorMs": 0,
+  "elapsedMs": 9517.3069
+}
