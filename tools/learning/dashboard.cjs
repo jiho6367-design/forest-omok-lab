@@ -22,6 +22,7 @@ function arenaView(value){
  return result;
 }
 const PRESETS={
+  planned:{continuous:true,concurrentTraining:true,poweredEvaluation:true,minimumUsefulImprovement:.10,targetPower:.8,maxEvaluationPairs:2048,trainSeconds:120,learningRate:.0003,minutes:null,games:256,gamesPerCycle:512,minNewSamples:10000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:10,epochs:20},
   continuous:{continuous:true,concurrentTraining:true,minutes:null,games:256,gamesPerCycle:512,minNewSamples:10000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:10,epochs:20},
   check:{minutes:null,games:8,pairs:4,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:3},
   standard:{minutes:null,games:128,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:10},
@@ -133,11 +134,12 @@ function createDashboard(options={}){
     const args=[selected.runner,...(selected.argsPrefix||[]),'cycle','--run='+run,'--python='+python,'--device=cuda'];
     if(resume)args.push('--resume');else{
       if(checkedFile(run,'uploaded-records.json'))args.push('--input='+path.join(run,'uploaded-records.json'));
-      const keys={games:'games',gamesPerCycle:'games-per-cycle',minNewSamples:'min-new-samples',recordBranchFraction:'record-branch-fraction',maxTrainingSamples:'max-training-samples',pairs:'pairs',minPairs:'min-pairs',moveMs:'move-ms',analysisMs:'analysis-ms',validationMs:'validation-ms',workers:'workers',epochs:'epochs'};
+      const keys={games:'games',gamesPerCycle:'games-per-cycle',minNewSamples:'min-new-samples',recordBranchFraction:'record-branch-fraction',maxTrainingSamples:'max-training-samples',pairs:'pairs',minPairs:'min-pairs',moveMs:'move-ms',analysisMs:'analysis-ms',validationMs:'validation-ms',workers:'workers',epochs:'epochs',trainSeconds:'train-seconds',learningRate:'learning-rate',minimumUsefulImprovement:'minimum-useful-improvement',targetPower:'target-power',maxEvaluationPairs:'max-evaluation-pairs'};
       for(const [key,flag] of Object.entries(keys))if(config[key]!=null)args.push('--'+flag+'='+config[key]);
       if(config.continuous)args.push('--continuous');if(fromRun)args.push('--from-run='+fromRun);
       if(fromRun&&continuationMode==='raw-reset')args.push('--continuation-mode=raw-reset','--fresh-model');
       if(config.concurrentTraining!=null)args.push('--concurrent-training='+config.concurrentTraining);
+      if(config.poweredEvaluation!=null)args.push('--powered-evaluation='+config.poweredEvaluation);
     }
     const child=spawnChild(process.execPath,args,{cwd:selected.cwd||repo,stdio:['ignore','pipe','pipe'],windowsHide:true,shell:false});
     active={id,child,fromRun:fromRun?path.basename(fromRun):null,startedAt:new Date().toISOString()};log(run,JSON.stringify({dashboard:'start',resume,wholeRunTimeLimit:'none',at:active.startedAt})+'\n');

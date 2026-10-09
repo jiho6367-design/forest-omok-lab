@@ -1,0 +1,2262 @@
+{
+  "schemaVersion": 1,
+  "kind": "omok-learning-adoption-diagnostic",
+  "createdAt": "2026-10-09T15:43:09.349Z",
+  "run": {
+    "dir": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417",
+    "runId": "run-20261008053900024-596417",
+    "cycle": 81,
+    "status": "stopped"
+  },
+  "currentDecision": {
+    "available": true,
+    "source": {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\adoption.json",
+      "available": true,
+      "bytes": 281,
+      "mtimeMs": 1791558487753.699,
+      "sha256": "8a96867dfb8da6239cc54396568afde4508fc7f9427471881b85c3434da5116c"
+    },
+    "at": "2026-10-09T15:08:07.753Z",
+    "cycle": 80,
+    "adopted": false,
+    "decision": "kept-current",
+    "reason": "독립 검증 오차가 개선되지 않아 이전 후보 함수를 유지하고 새 자료를 모읍니다. 대국 실력 향상은 확인되지 않았습니다.",
+    "newerThanLatestArena": true
+  },
+  "training": {
+    "available": true,
+    "source": {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\candidate.json.training.json",
+      "available": true,
+      "bytes": 6710,
+      "mtimeMs": 1791558486528.1619,
+      "sha256": "ed413e1d2d352371333225942b82d5771bcb25182b3762081bb515c6c48387df"
+    },
+    "cycle": 80,
+    "modelId": "mlp-f5aab02287feef5b9451cefc83ceaee2b5724532332578987177e40abdc32b53",
+    "selectedBaseline": true,
+    "bestEpoch": 0,
+    "exportUsesTrainedEpoch": false,
+    "epochsCompleted": 8,
+    "configuredEpochs": 20,
+    "minEpochs": 10,
+    "reachedMinEpochs": false,
+    "status": "interrupted",
+    "stopReason": "time-limit",
+    "timeLimitedBeforeMinEpochs": true,
+    "diagnosticMaximumAbsoluteScoreChange": {
+      "train": 0,
+      "validation": 0
+    },
+    "preservedOnDiagnosticSamples": true,
+    "scope": "Selected baseline means the exported candidate retained the initialization on validation selection. Bounded score samples and optimizer loss do not prove playing strength or feature/objective causality.",
+    "sameCycleAsCurrentDecision": true
+  },
+  "counts": {
+    "preservedSummaries": 33,
+    "completedAccepted": 0,
+    "completedRejected": 33,
+    "incomplete": 0,
+    "scoreEligible": 33,
+    "scoreSuppressed": 0
+  },
+  "arenas": [
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-1.summary.json",
+      "available": true,
+      "cycle": 1,
+      "trial": 35,
+      "candidateHash": "a383d379c2bc5841472b1646edbdaedf360a7c79f5b13c71de31955e25c52f49",
+      "candidateModelId": "mlp-6eb4bd329c43f19442507fbb5f827d461dfd218449fe13d8fdb0b99c901c1959",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 72,
+          "draws": 0,
+          "losses": 56,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5625,
+          "lowerConfidenceBound": 0.2811167083421353,
+          "alpha": 0.000039682539682539716,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 60,
+          "draws": 1,
+          "losses": 67,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.47265625,
+          "lowerConfidenceBound": 0.1912729583421353,
+          "alpha": 0.000039682539682539716,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 1
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-2.summary.json",
+      "available": true,
+      "cycle": 2,
+      "trial": 36,
+      "candidateHash": "730f3d4da0eebd49ed345dce8847bf8dd9da9371abddde22880e44741c18340e",
+      "candidateModelId": "mlp-62fbfea920bafacf992cd3a767aac98a5caf9cab03eb9a5f346fadd8f24c39cd",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 65,
+          "draws": 1,
+          "losses": 62,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.51171875,
+          "lowerConfidenceBound": 0.22956507505253115,
+          "alpha": 0.00003753753753753757,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 66,
+          "draws": 1,
+          "losses": 61,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.51953125,
+          "lowerConfidenceBound": 0.23737757505253115,
+          "alpha": 0.00003753753753753757,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 2
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-3.summary.json",
+      "available": true,
+      "cycle": 3,
+      "trial": 37,
+      "candidateHash": "ff6115313807c5ae2cd1f69d543c2ede1da9e5bd17d22235de600906bf95d8ea",
+      "candidateModelId": "mlp-d2dbd03453312094130467f59d8795cdeea46f96ae5e5a0458bb32ae6b9cbbe8",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 63,
+          "draws": 3,
+          "losses": 62,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.50390625,
+          "lowerConfidenceBound": 0.22100503676022626,
+          "alpha": 0.000035561877667140855,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 66,
+          "draws": 0,
+          "losses": 62,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.515625,
+          "lowerConfidenceBound": 0.23272378676022626,
+          "alpha": 0.000035561877667140855,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 3
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-4.summary.json",
+      "available": true,
+      "cycle": 4,
+      "trial": 38,
+      "candidateHash": "be7873fa03f6535403a18451e3132185a5a166b221e0a9be8d94f7c8956e97cb",
+      "candidateModelId": "mlp-23f8e4df1cacfdbb1750168c6c31b3d5baf572cdeed18012308efa52794e7481",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 58,
+          "draws": 0,
+          "losses": 70,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.453125,
+          "lowerConfidenceBound": 0.1694978228459219,
+          "alpha": 0.00003373819163292851,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 65,
+          "draws": 2,
+          "losses": 61,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.515625,
+          "lowerConfidenceBound": 0.2319978228459219,
+          "alpha": 0.00003373819163292851,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 4
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-5.summary.json",
+      "available": true,
+      "cycle": 5,
+      "trial": 39,
+      "candidateHash": "9cdcd55a232c47dd898ab49ad6026375bbec6dd84d7c622a1e35106417c80daa",
+      "candidateModelId": "mlp-77c8ee2d37898ac6659b6c50741664f15442f13f0b046f03804e2033b90dac8a",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 66,
+          "draws": 0,
+          "losses": 62,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.515625,
+          "lowerConfidenceBound": 0.231292264489659,
+          "alpha": 0.00003205128205128208,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 63,
+          "draws": 2,
+          "losses": 63,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5,
+          "lowerConfidenceBound": 0.215667264489659,
+          "alpha": 0.00003205128205128208,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 5
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-6.summary.json",
+      "available": true,
+      "cycle": 6,
+      "trial": 40,
+      "candidateHash": "9144017a5ca0bebdbe84d9ff011fad4733cdb557cd5dc9567ef03ecc72ec4adb",
+      "candidateModelId": "mlp-e7d70b0cab772b91757db4e2af88708d09da27a1583cf58990affad8a2cd02cb",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 67,
+          "draws": 1,
+          "losses": 60,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.52734375,
+          "lowerConfidenceBound": 0.24232478415117603,
+          "alpha": 0.000030487804878048808,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 65,
+          "draws": 2,
+          "losses": 61,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.515625,
+          "lowerConfidenceBound": 0.23060603415117603,
+          "alpha": 0.000030487804878048808,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 6
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-7.summary.json",
+      "available": true,
+      "cycle": 7,
+      "trial": 41,
+      "candidateHash": "2aecf33e122d813f01f8691307ccc2d179c9daa2d348e7f75b99cd1baf526bef",
+      "candidateModelId": "mlp-4bbc64438988822e2523950485fad1bb86460911e59861e3e98be907d81e01a9",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 74,
+          "draws": 2,
+          "losses": 52,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5859375,
+          "lowerConfidenceBound": 0.300250636369369,
+          "alpha": 0.00002903600464576077,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 59,
+          "draws": 3,
+          "losses": 66,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.47265625,
+          "lowerConfidenceBound": 0.186969386369369,
+          "alpha": 0.00002903600464576077,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 7
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-8.summary.json",
+      "available": true,
+      "cycle": 8,
+      "trial": 42,
+      "candidateHash": "c188e778a87e81ed80673da26caa47dbb8793758e6875ee1853ef9334bbb6f7a",
+      "candidateModelId": "mlp-c28664e5005a3c7ff3aec2fd120e8396c9eab922d78ffe190e38b96dca0e4ada",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 66,
+          "draws": 1,
+          "losses": 61,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.51953125,
+          "lowerConfidenceBound": 0.2331938996877585,
+          "alpha": 0.000027685492801771897,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 55,
+          "draws": 5,
+          "losses": 68,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.44921875,
+          "lowerConfidenceBound": 0.1628813996877585,
+          "alpha": 0.000027685492801771897,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 8
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-9.summary.json",
+      "available": true,
+      "cycle": 9,
+      "trial": 43,
+      "candidateHash": "c5f059d84c4dc76639aed5098dbba28c6b6333f8783e3250babf32d151ca0d08",
+      "candidateModelId": "mlp-2777a841e877d29268459b8f8d53b3b9e48af6af2a79ee7d5b2d48699c7c58ac",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 56,
+          "draws": 3,
+          "losses": 69,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.44921875,
+          "lowerConfidenceBound": 0.16224746954499886,
+          "alpha": 0.000026427061310782263,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 61,
+          "draws": 1,
+          "losses": 66,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.48046875,
+          "lowerConfidenceBound": 0.19349746954499886,
+          "alpha": 0.000026427061310782263,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 9
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-10.summary.json",
+      "available": true,
+      "cycle": 10,
+      "trial": 44,
+      "candidateHash": "ea6cebac3715e2a4854a381f00ecd21e0395e584e4d5d6584f3237c54f2acc5a",
+      "candidateModelId": "mlp-1af081b28286e66dbfb690f42f82aec2c8489041c5e38bc17329cc57cdcdfa91",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 66,
+          "draws": 1,
+          "losses": 61,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.51953125,
+          "lowerConfidenceBound": 0.23194180199563114,
+          "alpha": 0.000025252525252525276,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 56,
+          "draws": 2,
+          "losses": 70,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.4453125,
+          "lowerConfidenceBound": 0.15772305199563114,
+          "alpha": 0.000025252525252525276,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 10
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-12.summary.json",
+      "available": true,
+      "cycle": 12,
+      "trial": 45,
+      "candidateHash": "a8c6576cbb33a71e6a867e15241a8e99447cac2d3b98cb07a416d61b4037927d",
+      "candidateModelId": "mlp-14110a14a616a0e12748b22a2956f241b43f00bfc926dcdf8d4339d1454b7065",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 73,
+          "draws": 1,
+          "losses": 54,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.57421875,
+          "lowerConfidenceBound": 0.2860261581477072,
+          "alpha": 0.0000241545893719807,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 68,
+          "draws": 1,
+          "losses": 59,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.53515625,
+          "lowerConfidenceBound": 0.2469636581477072,
+          "alpha": 0.0000241545893719807,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 12
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-13.summary.json",
+      "available": true,
+      "cycle": 13,
+      "trial": 46,
+      "candidateHash": "56e573019aaff6933d9a4534a0a0c5abd0008d7d023357b54b7f3b6c194186c3",
+      "candidateModelId": "mlp-e6dd5afa69953c1488a3f0958cd07b8bb3b04c44960fcfef105d60b200456587",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 73,
+          "draws": 0,
+          "losses": 55,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5703125,
+          "lowerConfidenceBound": 0.28153109922153674,
+          "alpha": 0.0000231267345050879,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 74,
+          "draws": 1,
+          "losses": 53,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.58203125,
+          "lowerConfidenceBound": 0.29324984922153674,
+          "alpha": 0.0000231267345050879,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 13
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-14.summary.json",
+      "available": true,
+      "cycle": 14,
+      "trial": 47,
+      "candidateHash": "f76931b1e79196e0ebe4d3f924083257056000747cf0d3eb9b556ac5f298b93a",
+      "candidateModelId": "mlp-22179a89b5f07c5565634a3f2bd5b3c6bcbf7f1fc2c587e247ec88750feb3bfc",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 61,
+          "draws": 0,
+          "losses": 67,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.4765625,
+          "lowerConfidenceBound": 0.18720598214837414,
+          "alpha": 0.000022163120567375905,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 62,
+          "draws": 1,
+          "losses": 65,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.48828125,
+          "lowerConfidenceBound": 0.19892473214837414,
+          "alpha": 0.000022163120567375905,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 14
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-15.summary.json",
+      "available": true,
+      "cycle": 15,
+      "trial": 48,
+      "candidateHash": "2d963b6af86a3c3f9ee83d57859dd3870bfea30d50c07bba8519ca6c6f99f053",
+      "candidateModelId": "mlp-8cc8ad79bfdc9eadf09ca0444bb1f2afd88753d200597a2fcbb0413731a0c9bc",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 72,
+          "draws": 1,
+          "losses": 55,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.56640625,
+          "lowerConfidenceBound": 0.2764877056399544,
+          "alpha": 0.000021258503401360563,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 70,
+          "draws": 1,
+          "losses": 57,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.55078125,
+          "lowerConfidenceBound": 0.2608627056399544,
+          "alpha": 0.000021258503401360563,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 15
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-16.summary.json",
+      "available": true,
+      "cycle": 16,
+      "trial": 49,
+      "candidateHash": "f5bc9c49c9e2631e83720b1e502a50f0a9d7f53d6b77611d95942fad96fd46b2",
+      "candidateModelId": "mlp-07157d9e5382c3bbcf6eeacb54c8221420a2f32b8eb4b1d68c96f5dacb4ab110",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 69,
+          "draws": 2,
+          "losses": 57,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.546875,
+          "lowerConfidenceBound": 0.25640695666986496,
+          "alpha": 0.00002040816326530614,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 75,
+          "draws": 1,
+          "losses": 52,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.58984375,
+          "lowerConfidenceBound": 0.29937570666986496,
+          "alpha": 0.00002040816326530614,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 16
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-19.summary.json",
+      "available": true,
+      "cycle": 19,
+      "trial": 50,
+      "candidateHash": "faf5968d6b3d92d45897622bce111794ea43c0e933f9c025972e4c298127763d",
+      "candidateModelId": "mlp-325c815eb01444843b84ccadf408a75593b313abd40d5ea848cfe9645e61047a",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 62,
+          "draws": 3,
+          "losses": 63,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.49609375,
+          "lowerConfidenceBound": 0.20508820731617633,
+          "alpha": 0.00001960784313725492,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 70,
+          "draws": 0,
+          "losses": 58,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.546875,
+          "lowerConfidenceBound": 0.25586945731617633,
+          "alpha": 0.00001960784313725492,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 19
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-20.summary.json",
+      "available": true,
+      "cycle": 20,
+      "trial": 51,
+      "candidateHash": "2e9195d7b181da0bb6a8ffea4a55a42cc4eaaee65df5c7e257dd4d94f4056ca0",
+      "candidateModelId": "mlp-8d0c54c750650f6343e321f303ea427de34734f736bb1c1e355f85b42a93d9b0",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 71,
+          "draws": 1,
+          "losses": 56,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.55859375,
+          "lowerConfidenceBound": 0.26706221192184154,
+          "alpha": 0.000018853695324283577,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 59,
+          "draws": 1,
+          "losses": 68,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.46484375,
+          "lowerConfidenceBound": 0.17331221192184154,
+          "alpha": 0.000018853695324283577,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 20
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-21.summary.json",
+      "available": true,
+      "cycle": 21,
+      "trial": 52,
+      "candidateHash": "f6db13e10847999f6a1e6b41889dae79cccc848765f42c044f0ab91cacd3cabe",
+      "candidateModelId": "mlp-4a3b8ec567ce3fd072880d8c53f3a1c37bbe7f5e710a575edbb372b850bc3919",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 61,
+          "draws": 1,
+          "losses": 66,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.48046875,
+          "lowerConfidenceBound": 0.1884222545353499,
+          "alpha": 0.000018142235123367214,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 75,
+          "draws": 0,
+          "losses": 53,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5859375,
+          "lowerConfidenceBound": 0.2938910045353499,
+          "alpha": 0.000018142235123367214,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 21
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-22.summary.json",
+      "available": true,
+      "cycle": 22,
+      "trial": 53,
+      "candidateHash": "a4dfed0fb10ac2612181750acbffd9ed9213fc2970ab3ca9c89af72c277776f6",
+      "candidateModelId": "mlp-e0a6eeeeb29372ab601231f7a3aa8afad5acb4745c0b7534dd6449cff7bad6a4",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 71,
+          "draws": 2,
+          "losses": 55,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5625,
+          "lowerConfidenceBound": 0.2699491465991769,
+          "alpha": 0.00001747030048916843,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 65,
+          "draws": 3,
+          "losses": 60,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.51953125,
+          "lowerConfidenceBound": 0.2269803965991769,
+          "alpha": 0.00001747030048916843,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 22
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-24.summary.json",
+      "available": true,
+      "cycle": 24,
+      "trial": 54,
+      "candidateHash": "59772189f4198dea4bc37f44bdef88bcd419d5f7bb6de0d077e36ff2a92aa547",
+      "candidateModelId": "mlp-5f4b0596f0a6881591005e33ae7bc30769935e59b7d69c668c9399b3f71d2a36",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 68,
+          "draws": 2,
+          "losses": 58,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5390625,
+          "lowerConfidenceBound": 0.2460174748578683,
+          "alpha": 0.00001683501683501685,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 72,
+          "draws": 1,
+          "losses": 55,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.56640625,
+          "lowerConfidenceBound": 0.2733612248578683,
+          "alpha": 0.00001683501683501685,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 24
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-27.summary.json",
+      "available": true,
+      "cycle": 27,
+      "trial": 55,
+      "candidateHash": "792d6765f390e83189558be1100b2f6bbdd378039105eb07b987a202e7ea8b25",
+      "candidateModelId": "mlp-2cd5a6f6f222e76e60d1d2e5601f9ccdbd46a1b462858ecf5670c56fed65e45a",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 66,
+          "draws": 0,
+          "losses": 62,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.515625,
+          "lowerConfidenceBound": 0.22209559946125057,
+          "alpha": 0.000016233766233766247,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 61,
+          "draws": 1,
+          "losses": 66,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.48046875,
+          "lowerConfidenceBound": 0.18693934946125057,
+          "alpha": 0.000016233766233766247,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 27
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-38.summary.json",
+      "available": true,
+      "cycle": 38,
+      "trial": 56,
+      "candidateHash": "bec696708bdfd01422ce39c5f72efb5b29f6d07421e3aae1ec4d12152b3d96e6",
+      "candidateModelId": "mlp-2d9343c446fac56e14d957ae68b198f033c74db9eebb7d51ca8f9f401a5c1c4a",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 68,
+          "draws": 2,
+          "losses": 58,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5390625,
+          "lowerConfidenceBound": 0.24505815224138894,
+          "alpha": 0.00001566416040100252,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 70,
+          "draws": 0,
+          "losses": 58,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.546875,
+          "lowerConfidenceBound": 0.25287065224138894,
+          "alpha": 0.00001566416040100252,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 38
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-42.summary.json",
+      "available": true,
+      "cycle": 42,
+      "trial": 57,
+      "candidateHash": "54cc7be3e5560449435b9d4a82a871f5f0ea50c9d1446ce02dbe6b13934db133",
+      "candidateModelId": "mlp-8384419e5cdb7f89d1a106d5f4ed9f0c636c119d0edc7a621437364183786d03",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 70,
+          "draws": 2,
+          "losses": 56,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5546875,
+          "lowerConfidenceBound": 0.2602172851445891,
+          "alpha": 0.000015124016938898985,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 68,
+          "draws": 1,
+          "losses": 59,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.53515625,
+          "lowerConfidenceBound": 0.24068603514458908,
+          "alpha": 0.000015124016938898985,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 42
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-43.summary.json",
+      "available": true,
+      "cycle": 43,
+      "trial": 58,
+      "candidateHash": "323ab8b68c6309a03fe44e5684c94881c846bceb533af3c29fb148d97ac89561",
+      "candidateModelId": "mlp-994afa8164563aebbf27ef94740618d5b3fc99e29213d17049358eca2f8fe17d",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 69,
+          "draws": 1,
+          "losses": 58,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.54296875,
+          "lowerConfidenceBound": 0.2480414188020456,
+          "alpha": 0.000014611338398597324,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 60,
+          "draws": 0,
+          "losses": 68,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.46875,
+          "lowerConfidenceBound": 0.1738226688020456,
+          "alpha": 0.000014611338398597324,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 43
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-45.summary.json",
+      "available": true,
+      "cycle": 45,
+      "trial": 59,
+      "candidateHash": "9253a521e299f92d307a87eed3e888faec35306e6c41674b7a30bf5d0416c0b4",
+      "candidateModelId": "mlp-219dfbba33094c16685ab6f961b12f32c609a395d9b8a8c46fb0feb219c7cb55",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 79,
+          "draws": 0,
+          "losses": 49,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.6171875,
+          "lowerConfidenceBound": 0.32181149122472025,
+          "alpha": 0.000014124293785310748,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 75,
+          "draws": 0,
+          "losses": 53,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5859375,
+          "lowerConfidenceBound": 0.29056149122472025,
+          "alpha": 0.000014124293785310748,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 45
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-46.summary.json",
+      "available": true,
+      "cycle": 46,
+      "trial": 60,
+      "candidateHash": "a341db11224fddebbae028ff248aadc33d673a12f8e4641db815c87331167217",
+      "candidateModelId": "mlp-73a22eedf1a2c928ebdb7f5c6ab02fa7ceeb84ad8b57ad7f6b46ba2aaae9ecb7",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 62,
+          "draws": 3,
+          "losses": 63,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.49609375,
+          "lowerConfidenceBound": 0.20027720660975162,
+          "alpha": 0.000013661202185792362,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 60,
+          "draws": 0,
+          "losses": 68,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.46875,
+          "lowerConfidenceBound": 0.17293345660975162,
+          "alpha": 0.000013661202185792362,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 46
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-47.summary.json",
+      "available": true,
+      "cycle": 47,
+      "trial": 61,
+      "candidateHash": "bd551d52d7f678f8947cd88ac07cb7b9dc06627ed27db92af5022c31171c3d13",
+      "candidateModelId": "mlp-783a32c57e269acf27e0eb6d8640c0aa9fb3e3e34901985b3c6ab2f10fb7e003",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 66,
+          "draws": 0,
+          "losses": 62,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.515625,
+          "lowerConfidenceBound": 0.21937578424718263,
+          "alpha": 0.000013220518244315189,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 67,
+          "draws": 0,
+          "losses": 61,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5234375,
+          "lowerConfidenceBound": 0.22718828424718263,
+          "alpha": 0.000013220518244315189,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 47
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-49.summary.json",
+      "available": true,
+      "cycle": 49,
+      "trial": 62,
+      "candidateHash": "29ad4810365c7db84280f0a2fc4461e31c9eeababa2d7e7b6acd9d9c7e81d4c1",
+      "candidateModelId": "mlp-0b26f8d93c948052fa286d5ef78bc91441fee6858c7480bf11844e400117f8a0",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 65,
+          "draws": 0,
+          "losses": 63,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5078125,
+          "lowerConfidenceBound": 0.21113820751708334,
+          "alpha": 0.000012800819252432168,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 67,
+          "draws": 1,
+          "losses": 60,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.52734375,
+          "lowerConfidenceBound": 0.23066945751708334,
+          "alpha": 0.000012800819252432168,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 49
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-50.summary.json",
+      "available": true,
+      "cycle": 50,
+      "trial": 63,
+      "candidateHash": "fa1e540bb2db0732df568cb6cf29ccd48b42d6f1488ee530e3c279a1d81b1f4e",
+      "candidateModelId": "mlp-08783267edf345fcef81b55d39203c301f2aa419e2f7b6a6520a670b7e481a40",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 64,
+          "draws": 1,
+          "losses": 63,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.50390625,
+          "lowerConfidenceBound": 0.20681422296827062,
+          "alpha": 0.000012400793650793663,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 66,
+          "draws": 0,
+          "losses": 62,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.515625,
+          "lowerConfidenceBound": 0.21853297296827062,
+          "alpha": 0.000012400793650793663,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 50
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-60.summary.json",
+      "available": true,
+      "cycle": 60,
+      "trial": 64,
+      "candidateHash": "12a1b81739176e264e49ef41798c2d0f5523d0b8a0192d660188bf5296181e3f",
+      "candidateModelId": "mlp-5c036ba7f2543a9b33b1f0b3172dccf5581033d66cbb1d5dc0d7f791ec23240e",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 69,
+          "draws": 0,
+          "losses": 59,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5390625,
+          "lowerConfidenceBound": 0.241559839470808,
+          "alpha": 0.00001201923076923078,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 69,
+          "draws": 2,
+          "losses": 57,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.546875,
+          "lowerConfidenceBound": 0.249372339470808,
+          "alpha": 0.00001201923076923078,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 60
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-61.summary.json",
+      "available": true,
+      "cycle": 61,
+      "trial": 65,
+      "candidateHash": "dff9d8649669bc8c38f9186d21cd9ab934838e59479a693530091ceabe53d551",
+      "candidateModelId": "mlp-9e87208b6b3f54c35ad2d0f8a062e47b87c5453426a78762ea978360165f85e4",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 72,
+          "draws": 2,
+          "losses": 54,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5703125,
+          "lowerConfidenceBound": 0.27240607743532674,
+          "alpha": 0.000011655011655011665,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 62,
+          "draws": 1,
+          "losses": 65,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.48828125,
+          "lowerConfidenceBound": 0.19037482743532674,
+          "alpha": 0.000011655011655011665,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 61
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-68.summary.json",
+      "available": true,
+      "cycle": 68,
+      "trial": 66,
+      "candidateHash": "0ee719f48c8b96b5c2333cedfe32da0335d74e25bb5db566d2d5f691d0e280b0",
+      "candidateModelId": "mlp-4b5e7d90ad2c84f61019870974b886dd0aa1df86e52cb7303f368037239bbd70",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 63,
+          "draws": 3,
+          "losses": 62,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.50390625,
+          "lowerConfidenceBound": 0.20560271809296088,
+          "alpha": 0.000011307100859339676,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 58,
+          "draws": 1,
+          "losses": 69,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.45703125,
+          "lowerConfidenceBound": 0.15872771809296088,
+          "alpha": 0.000011307100859339676,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 68
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-70.summary.json",
+      "available": true,
+      "cycle": 70,
+      "trial": 67,
+      "candidateHash": "1c3e7fd797b6af874542503c699ba24d3d300975de01516581f42da936a8e97c",
+      "candidateModelId": "mlp-531b402c5f945dcff6024f9880129cd49c4780746556fe129323f48aff879a1b",
+      "complete": true,
+      "passed": false,
+      "rejectionReasons": [
+        "conservative strength threshold not met against baseline",
+        "conservative strength threshold not met against current-no-model"
+      ],
+      "scoresAvailable": true,
+      "scoresSuppressedReasons": [],
+      "controls": [
+        {
+          "name": "baseline",
+          "sourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+          "modelHash": null,
+          "wins": 69,
+          "draws": 1,
+          "losses": 58,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.54296875,
+          "lowerConfidenceBound": 0.2442745528303516,
+          "alpha": 0.000010974539069359096,
+          "minPairs": 32,
+          "passed": false
+        },
+        {
+          "name": "current-no-model",
+          "sourceHash": "de2a6fa04c7024f4742fdf675ee24bcc8bd274a51007fb769af1d8b6942ea643",
+          "modelHash": null,
+          "wins": 66,
+          "draws": 2,
+          "losses": 60,
+          "completedGames": 128,
+          "independentFamilies": 64,
+          "meanScore": 0.5234375,
+          "lowerConfidenceBound": 0.2247433028303516,
+          "alpha": 0.000010974539069359096,
+          "minPairs": 32,
+          "passed": false
+        }
+      ],
+      "rejectionCategories": [
+        "strength-threshold"
+      ],
+      "moveMs": 1000,
+      "pairs": 64,
+      "filenameCycle": 70
+    }
+  ],
+  "latestArenaCycle": 70,
+  "latestGate": {
+    "available": true,
+    "cycle": 70,
+    "trial": 67,
+    "confidence": 0.95,
+    "minPairs": 32,
+    "pairs": 64,
+    "alpha": 0.000010974539069359096,
+    "requiredObservedMeanStrictlyGreaterThan": 0.7986941971696484,
+    "boundCrossingPossible": true,
+    "scope": "Historical gate arithmetic only; this is not a score or a fresh promotion authorization."
+  },
+  "ledger": {
+    "available": true,
+    "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\evaluation-ledger.sqlite",
+    "highwater": 67,
+    "nextTrial": 68,
+    "reservedFamilies": 3733,
+    "maxReservedTrial": 67,
+    "maxLegacyTrial": 32,
+    "access": "Read-only disposable byte snapshot; source database never opened by SQLite; no reservations or allocations",
+    "scope": "Shared post-migration budget. Legacy evaluations were not globally coordinated. This snapshot does not reserve the next ordinal."
+  },
+  "nextTrialPlan": {
+    "available": true,
+    "trial": 68,
+    "confidence": 0.95,
+    "totalFalsePromotionBudget": 0.050000000000000044,
+    "alpha": 0.000010656436487638543,
+    "alphaSchedule": "alpha_t=(1-confidence)/(t*(t+1)); sum over t>=1 is 1-confidence. The shared ordinal is never reset.",
+    "familyScore": {
+      "minimum": 0,
+      "maximum": 1,
+      "definition": "Within each opening/source family, average the color-swapped paired candidate game scores (win=1, draw=0.5, loss=0); the independent observation count is families, not games."
+    },
+    "minimumUsefulImprovement": 0.1,
+    "assumedMeanAtLeast": 0.6,
+    "targetPower": 0.8,
+    "opponents": 2,
+    "minPairs": 32,
+    "promotionGate": {
+      "minimumFamilies": 32,
+      "lowerBoundStrictlyGreaterThan": 0.5,
+      "formula": "familyMean-sqrt(log(1/alpha)/(2*n)) > 0.5",
+      "intersection": "Every required opponent must pass. Alpha is not divided by opponents for this intersection gate."
+    },
+    "configured": {
+      "familiesPerOpponent": 64,
+      "opponents": 2,
+      "games": 256,
+      "pairedGamesPerFamilyPerOpponent": 2,
+      "workers": 12,
+      "maxPlies": 225,
+      "moveMs": 1000,
+      "maximumConfiguredMoveBudgetCpuMs": 57600000,
+      "maximumConfiguredMoveBudgetCpuHours": 16,
+      "maximumConfiguredMoveBudgetParallelMs": 4950000,
+      "maximumConfiguredMoveBudgetParallelHours": 1.375,
+      "scope": "Clock allotment only: games*225*moveMs summed across lanes, and ceil(games/workers) such game allotments. These are neither measured CPU time, predicted wall time nor hard runtime bounds; engine overshoot, startup, I/O, synchronization and contention are additional.",
+      "radius": 0.29907861742524317,
+      "requiredObservedMeanStrictlyGreaterThan": 0.7990786174252431,
+      "boundCrossingPossible": true,
+      "conditionalFullGatePowerLowerBound": 0
+    },
+    "boundCrossing": {
+      "strictFamilyCountBound": 572.4673241663677,
+      "families": 573,
+      "assumedObservedMean": 0.6,
+      "formula": "n > log(1/alpha)/(2*delta^2)",
+      "familiesPerOpponent": 573,
+      "opponents": 2,
+      "games": 2292,
+      "pairedGamesPerFamilyPerOpponent": 2,
+      "workers": 12,
+      "maxPlies": 225,
+      "moveMs": 1000,
+      "maximumConfiguredMoveBudgetCpuMs": 515700000,
+      "maximumConfiguredMoveBudgetCpuHours": 143.25,
+      "maximumConfiguredMoveBudgetParallelMs": 42975000,
+      "maximumConfiguredMoveBudgetParallelHours": 11.9375,
+      "scope": "Algebraic crossing at the specified observed mean, not a power calculation or a claim that this score will occur."
+    },
+    "conditionalPower": {
+      "betaPerOpponent": 0.09999999999999998,
+      "strictFamilyCountBound": 1201.0466205633986,
+      "families": 1202,
+      "formula": "beta=(1-targetPower)/opponents; n > (sqrt(log(1/alpha))+sqrt(log(1/beta)))^2/(2*delta^2)",
+      "guaranteedFullGatePowerLowerBound": 0.8011777385393719,
+      "familiesPerOpponent": 1202,
+      "opponents": 2,
+      "games": 4808,
+      "pairedGamesPerFamilyPerOpponent": 2,
+      "workers": 12,
+      "maxPlies": 225,
+      "moveMs": 1000,
+      "maximumConfiguredMoveBudgetCpuMs": 1081800000,
+      "maximumConfiguredMoveBudgetCpuHours": 300.5,
+      "maximumConfiguredMoveBudgetParallelMs": 90225000,
+      "maximumConfiguredMoveBudgetParallelHours": 25.0625,
+      "scope": "Sufficient conservative conditional bound for the statistical full gate, not estimated actual power, a universal strength claim or evidence that the current candidate has the assumed improvement.",
+      "derivation": "For each opponent, if its conditional mean is at least 0.5+delta, failure probability <= exp(-2*n*(delta-radius)^2). Sum those failure bounds over opponents. Independence between opponents is unnecessary.",
+      "assumptions": [
+        "Condition on all prior training, selection and evaluation history before fixing the candidate and this plan.",
+        "For each opponent, the newly evaluated family scores are independent, in [0,1], and have average conditional mean at least 0.5+delta under the recorded opening distribution and move budget.",
+        "Family exclusions and unique family IDs prevent recorded reuse but do not prove these statistical independence or mean assumptions.",
+        "Do not adapt the candidate, sample count, controls, clocks, gate or outcome handling after observing these evaluation results.",
+        "All planned games must actually complete and existing parity, rules and training-evidence gates must also pass. The power bound concerns only the statistical intersection and does not guarantee those other gates."
+      ]
+    },
+    "source": {
+      "title": "Wassily Hoeffding (1963), Probability Inequalities for Sums of Bounded Random Variables",
+      "url": "https://www.tandfonline.com/doi/abs/10.1080/01621459.1963.10500830",
+      "application": "One-sided bounded independent-observation inequality; the two-control union bound and sample-size inversion above are explicit derivations."
+    },
+    "reservationCreated": false
+  },
+  "nextSteps": [
+    "Read the current decision and same-cycle training report first; the older arena result does not describe the current candidate.",
+    "Freeze the current dataset and initialization; compare completed validation epochs and selectedBaseline before spending another arena trial. Do not force-export a worse epoch to obtain an adoption.",
+    "The time limit stopped training before minEpochs. Test a separate bounded run with enough startup/data preparation and epoch time; reaching minEpochs still does not guarantee validation improvement or promotion.",
+    "Preregister one fixed candidate and fresh paired families with the shared nextTrial sample plan, then check resources. Keep the existing gate; do not pool adaptive trials, resize after scores or reset the ledger.",
+    "Investigate search/value transmission, data coverage and representation/objective alternatives in separate controlled diagnostics. These stored reports do not establish which mechanism causes the plateau."
+  ],
+  "interpretation": "Scores remain separate for each candidate/trial/control. No pooled significance or strength claim is made across adaptive trials. Stored passed statuses are not independently replayed adoption evidence.",
+  "limitations": [
+    "No new training, gameplay, reservations or model adoption were performed.",
+    "Completed summary identities and counts are checked, but original moves are not replayed by this report.",
+    "Feature, optimizer, data and search causality remains unknown until controlled comparisons are completed."
+  ],
+  "inputsUnchanged": true,
+  "inputVerification": "SHA-256 plus size/mtime for all read inputs; metadata only for skipped oversized files.",
+  "inputs": [
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\state.json",
+      "available": true,
+      "bytes": 684640,
+      "mtimeMs": 1791558506006.8076,
+      "sha256": "41cbf54e7b53bf27c554bebce6814a33527dce137cb168d9042ca5929390b366"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\settings.json",
+      "available": true,
+      "bytes": 1190,
+      "mtimeMs": 1791497190238.927,
+      "sha256": "365de744c328809003cdd1c28465fb2db79c76c3a865f30b0a6c052ba41c5cbd"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\adoption.json",
+      "available": true,
+      "bytes": 281,
+      "mtimeMs": 1791558487753.699,
+      "sha256": "8a96867dfb8da6239cc54396568afde4508fc7f9427471881b85c3434da5116c"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\candidate.json.training.json",
+      "available": true,
+      "bytes": 6710,
+      "mtimeMs": 1791558486528.1619,
+      "sha256": "ed413e1d2d352371333225942b82d5771bcb25182b3762081bb515c6c48387df"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-1.summary.json",
+      "available": true,
+      "bytes": 13058,
+      "mtimeMs": 1791444740214.5571,
+      "sha256": "8732e633a2afd264a1a37c2cea09bd3a51fb5ef56c207d55522e37295da02a6d"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-2.summary.json",
+      "available": true,
+      "bytes": 13064,
+      "mtimeMs": 1791445768759.804,
+      "sha256": "592e4867b7844a1d478af21a167f97fc106c062bf236a0a3255d386d0b7b5cf4"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-3.summary.json",
+      "available": true,
+      "bytes": 13069,
+      "mtimeMs": 1791446779331.748,
+      "sha256": "03379a9d6f048dcceedf9c444dc7042cfc9699d49cbf320ba6b6e0dcdbaf15d6"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-4.summary.json",
+      "available": true,
+      "bytes": 13058,
+      "mtimeMs": 1791447880991.1404,
+      "sha256": "cb9095fd98214ab719038e15e00c3da7d53ec229cfdbe9a1bba5b37e39e70323"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-5.summary.json",
+      "available": true,
+      "bytes": 13049,
+      "mtimeMs": 1791458478769.213,
+      "sha256": "c9d48561b3c5ccb40b4f1d4b01a4859a8670f3b9c53dea66c7559220a11e8dfa"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-6.summary.json",
+      "available": true,
+      "bytes": 13067,
+      "mtimeMs": 1791459606202.113,
+      "sha256": "0e36cca47e8658a7312e24714270a393e50dd55714617082fa688e3854064be2"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-7.summary.json",
+      "available": true,
+      "bytes": 13057,
+      "mtimeMs": 1791466380281.6042,
+      "sha256": "5c6d8e81471c6e8f7c430193b5e3eef9aa0ed52b759bd739679d745c7697a04a"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-8.summary.json",
+      "available": true,
+      "bytes": 13069,
+      "mtimeMs": 1791467549222.887,
+      "sha256": "2111b6f9fcee761ebde4d9d69fa3f97607162588bd997644eee2f782f006ecea"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-9.summary.json",
+      "available": true,
+      "bytes": 13071,
+      "mtimeMs": 1791468789997.7173,
+      "sha256": "d32aae501a3ec25a9bc397fc7f2dc02749fba7e06b45a98fbae09db18c92da7c"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-10.summary.json",
+      "available": true,
+      "bytes": 13071,
+      "mtimeMs": 1791471372436.685,
+      "sha256": "4c0319ab20fbe812896e3904b6f454f454ef587f280e89640f0787d96bd8a903"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-12.summary.json",
+      "available": true,
+      "bytes": 13060,
+      "mtimeMs": 1791473139844.0635,
+      "sha256": "1882ab29144c4b41a41aa5e2a180bb77e69d050b2f5a8d83c49f05b27a65777e"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-13.summary.json",
+      "available": true,
+      "bytes": 13063,
+      "mtimeMs": 1791474250719.0232,
+      "sha256": "033969cf56a5a814d8873d09dc11b6cfce67d735788c1a8cf8f1cf05d0274740"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-14.summary.json",
+      "available": true,
+      "bytes": 13073,
+      "mtimeMs": 1791475409006.0576,
+      "sha256": "947d419c5965f3ad50c3920b58c4c40e418967c30464bc7ffde6b6b5464e9d81"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-15.summary.json",
+      "available": true,
+      "bytes": 13073,
+      "mtimeMs": 1791476511213.6316,
+      "sha256": "5d063b257b5de821154ec44151e6bcf497bc2b1ca3f40d8c0d8c8a4f288ce9de"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-16.summary.json",
+      "available": true,
+      "bytes": 13064,
+      "mtimeMs": 1791477750360.3655,
+      "sha256": "55706d4f6af7387fe32363e2d1e588ae6d0f47438cb8760608f458582c70cd3e"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-19.summary.json",
+      "available": true,
+      "bytes": 13067,
+      "mtimeMs": 1791480321754.94,
+      "sha256": "4d9d6e50cccc621701fa0244762ec4c2939e0ee42eaa30591de8e94e752a6ff4"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-20.summary.json",
+      "available": true,
+      "bytes": 13074,
+      "mtimeMs": 1791481643102.35,
+      "sha256": "18b94003e0d234f210794e2d65d0a32469c786a6704c185b9f6f741b0f57fb4b"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-21.summary.json",
+      "available": true,
+      "bytes": 13071,
+      "mtimeMs": 1791482849260.5276,
+      "sha256": "c84c4650b3ec4a8cc05d348c07bdea473005157ea6d658eaf2b2c9afb0cb6d5c"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-22.summary.json",
+      "available": true,
+      "bytes": 13060,
+      "mtimeMs": 1791484241124.5059,
+      "sha256": "203283e2b5d657b11cd34fdf376e52fc4e37308aa0a0b1640b4870dbf49de96a"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-24.summary.json",
+      "available": true,
+      "bytes": 13067,
+      "mtimeMs": 1791486349965.457,
+      "sha256": "e666fdbb55cffb70a0f71d1c615a46593f94d0fab87aea774d9d0f7813138a4c"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-27.summary.json",
+      "available": true,
+      "bytes": 13071,
+      "mtimeMs": 1791489440454.5647,
+      "sha256": "c480e644830f56b88e50d747202dc9c569252ebf16c99ca1ec866c0e68eb69a2"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-38.summary.json",
+      "available": true,
+      "bytes": 13067,
+      "mtimeMs": 1791503360059.005,
+      "sha256": "97fbeff748635519f59a057712870408de6b915af6dda1faa35c2a9dc1655ed5"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-42.summary.json",
+      "available": true,
+      "bytes": 13071,
+      "mtimeMs": 1791507337304.2983,
+      "sha256": "9fcb6d377822fe30c7b335c2eca170cab36d93017ecafa9b7424ed679c753b4c"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-43.summary.json",
+      "available": true,
+      "bytes": 13070,
+      "mtimeMs": 1791508726345.552,
+      "sha256": "13160be43953cb7ba7c3c845ba5aa684e5cb30191204021f2694cc8f37d30523"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-45.summary.json",
+      "available": true,
+      "bytes": 13072,
+      "mtimeMs": 1791511062945.99,
+      "sha256": "16a70b8bfe778f86da3a1900536c4f1d3d88bc15c0c7dd5b5dcc7fd75bd0d9f3"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-46.summary.json",
+      "available": true,
+      "bytes": 13071,
+      "mtimeMs": 1791512525484.8987,
+      "sha256": "0f4b38fa1fc8edd794b1935edaa51fe5a0bbdc262836b0d3c9c11e08399a2dad"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-47.summary.json",
+      "available": true,
+      "bytes": 13070,
+      "mtimeMs": 1791513970381.1873,
+      "sha256": "ba745bd8dbbed34502fb5cc0ed13df5a7ec50c25b4fb0a5c71f9762a2fec8aff"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-49.summary.json",
+      "available": true,
+      "bytes": 13073,
+      "mtimeMs": 1791516455773.4233,
+      "sha256": "788664ff4569110f29d4b72163b1e30151d99ec1f98a78ff56f127d33cc3dffb"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-50.summary.json",
+      "available": true,
+      "bytes": 13074,
+      "mtimeMs": 1791517832615.1858,
+      "sha256": "9daa6ba5d60d2ee93b8b580d751a1f817b0c4f58124816d0516d9730520eaa1c"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-60.summary.json",
+      "available": true,
+      "bytes": 13060,
+      "mtimeMs": 1791534862725.0503,
+      "sha256": "09906920b05900c542c1d9a575e55129176b2ae8a2518079fa1d2937718ff252"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-61.summary.json",
+      "available": true,
+      "bytes": 13074,
+      "mtimeMs": 1791536368011.436,
+      "sha256": "0236381caab459cebd55f83c7d9bc5ba2a55fd89d201d5f84840ec9858cb94fa"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-68.summary.json",
+      "available": true,
+      "bytes": 13077,
+      "mtimeMs": 1791543845454.582,
+      "sha256": "dd162231d416d95c95224136a614ca579c5ec18818ad0d8caba69daf0b1caafd"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\arena-cycle-70.summary.json",
+      "available": true,
+      "bytes": 13071,
+      "mtimeMs": 1791546541718.577,
+      "sha256": "8a132afae53a587bb832d66ba71d58b1eb9f6e8432815f139ab5030b3306441f"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\evaluation-ledger.sqlite",
+      "available": true,
+      "bytes": 12619776,
+      "mtimeMs": 1791545976749.5515,
+      "sha256": "adca923a17cf27e693da4a9c6f8dc22498eafeac95a2b4cfa476417a952da8b9"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\evaluation-ledger.sqlite-wal",
+      "available": true,
+      "bytes": 0,
+      "mtimeMs": 1791560429371.0522,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\evaluation-ledger.sqlite-shm",
+      "available": true,
+      "bytes": 32768,
+      "mtimeMs": 1791560429372.053,
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb"
+    }
+  ]
+}

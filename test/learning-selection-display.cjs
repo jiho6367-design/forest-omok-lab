@@ -1,0 +1,17 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const elements=new Map(),element=()=>({textContent:'',className:'',value:'',replaceChildren(){},append(){},after(){},parentElement:{after(){}}});
+const context={document:{getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:element},Intl,console};
+vm.createContext(context);const source=fs.readFileSync(require.resolve('../tools/learning/dashboard.js'),'utf8');vm.runInContext(source.slice(0,source.indexOf("$('preset').addEventListener")),context);
+const current={at:'2026-10-10T00:00:00Z',cycle:80,decision:'kept-current',adopted:false,reason:'독립 검증 오차가 개선되지 않아 이전 후보 함수를 유지'};
+context.run={id:'fixture',active:false,settings:{epochs:20},state:{status:'stopped',adoptions:[{at:'2026-10-09T00:00:00Z',cycle:70,decision:'kept-current'}]},candidate:{modelId:'fixture',training:{selectedBaseline:true,warmStartModelId:"prior",epochsCompleted:8,stopReason:'time-limit',validationMse:.7}},training:{device:{trainedOnCuda:true},performance:{stagesMs:{prepareData:28000,trainAndControl:19000}}},adoption:current};
+vm.runInContext('session={activeId:null}; renderSelected(run)',context);
+assert.match(elements.get('gpu').textContent,/이전 후보를 유지/);
+assert.match(elements.get('training').textContent,/완료 epoch 8 \/ 20.*학습 시간 한도 도달.*자료 준비 28.0초.*학습 처리 19.0초/);
+assert.match(elements.get('adoption').textContent,/같은 후보의 대국 평가는 반복하지/);
+assert.equal(vm.runInContext('lastAdoption(run.state,run.adoption).cycle',context),80);
+delete context.run.candidate.training.warmStartModelId;vm.runInContext('renderSelected(run)',context);assert.match(elements.get('gpu').textContent,/초기값 유지/);
+context.run.candidate.training={selectedBaseline:false,epochsCompleted:20,validationMse:.699};
+vm.runInContext('renderSelected(run)',context);assert.match(elements.get('gpu').textContent,/새 학습 후보 선택/);assert(!elements.get('training').textContent.includes('새 가중치 미선택'));
+const runner=require('../tools/learning/run.cjs'),S=require('../tools/learning/state.cjs');assert.equal(runner.continuousProfile({continuous:true}).learningRate,.0003);assert.equal(runner.continuousProfile({continuous:true}).trainSeconds,120);assert.equal(S.defaults().learningRate,.001);assert.equal(S.defaults().trainSeconds,60);assert.equal(runner.continuousProfile({continuous:true,learningRate:.001,trainSeconds:60}).learningRate,.001);assert.equal(runner.continuousProfile({continuous:true,learningRate:.001,trainSeconds:60}).trainSeconds,60);
+console.log('PASS unchanged/new candidate selection, latest decision, epoch/time diagnostics, explicit experiment settings preserved');

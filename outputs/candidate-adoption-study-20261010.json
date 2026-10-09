@@ -1,0 +1,242 @@
+{
+  "manifest": {
+    "scope": "Matched warm-start learning-rate diagnostics on fixed training/validation only. No final-test tuning, final arena, or promotion.",
+    "dataset": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\outputs\\learning\\runs\\run-20261008053900024-596417\\datasets\\cycle-80.jsonl",
+    "datasetHash": "ac55ef6bb558f45d1cb59297bd8eb9f9e8c2fd9c52b5c9b6de18a96b5d55307a",
+    "initial": "C:\\Users\\jiho\\Documents\\Codex\\2026-10-05\\jiho6367-design-forest-omok-lab-gpu\\work\\forest-omok-lab\\work\\adoption-investigation-20261010\\study-initial.json",
+    "initialHash": "a425325780154fe922a6aa0f3b7f7f6926a23644308ad3f1be94c79efbf6d34c",
+    "seeds": [
+      20261010,
+      20261011,
+      20261012
+    ],
+    "arms": [
+      {
+        "id": "control",
+        "learningRate": 0.001
+      },
+      {
+        "id": "lower-rate",
+        "learningRate": 0.0003
+      }
+    ],
+    "epochs": 20,
+    "minEpochs": 10,
+    "seconds": 120,
+    "hiddenSize": 16
+  },
+  "results": [
+    {
+      "id": "control-20261010",
+      "seed": 20261010,
+      "learningRate": 0.001,
+      "elapsedMs": 39541,
+      "modelId": "mlp-f5aab02287feef5b9451cefc83ceaee2b5724532332578987177e40abdc32b53",
+      "epochs": 10,
+      "selectedBaseline": true,
+      "baselineMse": 0.6985748749550763,
+      "mse": 0.6985748749550763,
+      "improvement": 0,
+      "updates": 3270,
+      "parity": {
+        "passed": true,
+        "maxAbsoluteError": 0.0000013195489604045374
+      },
+      "trainedOnCuda": true,
+      "jsParity": {
+        "passed": true,
+        "maxAbsoluteError": 6.661338147750939e-16,
+        "effectiveMaxAbsoluteError": 3.3306690738754696e-16,
+        "cases": 5,
+        "modelId": "mlp-f5aab02287feef5b9451cefc83ceaee2b5724532332578987177e40abdc32b53"
+      },
+      "trainingEvidence": {
+        "passed": true,
+        "errors": [],
+        "modelId": "mlp-f5aab02287feef5b9451cefc83ceaee2b5724532332578987177e40abdc32b53",
+        "datasetHash": "ac55ef6bb558f45d1cb59297bd8eb9f9e8c2fd9c52b5c9b6de18a96b5d55307a",
+        "updates": 3270,
+        "trainedOnCuda": true,
+        "actualUpdatesThisRun": 3270,
+        "scope": "Current snapshot and exported model consistency; optimizer loss is not playing strength"
+      }
+    },
+    {
+      "id": "lower-rate-20261010",
+      "seed": 20261010,
+      "learningRate": 0.0003,
+      "elapsedMs": 35760,
+      "modelId": "mlp-beac6d2874eb0725235812648d5c76b667ac1a712900c50cee848252c0703b06",
+      "epochs": 20,
+      "selectedBaseline": false,
+      "baselineMse": 0.6985748749550763,
+      "mse": 0.697734633872099,
+      "improvement": 0.000840241082977311,
+      "updates": 6540,
+      "parity": {
+        "passed": true,
+        "maxAbsoluteError": 8.355326189118939e-7
+      },
+      "trainedOnCuda": true,
+      "jsParity": {
+        "passed": true,
+        "maxAbsoluteError": 2.220446049250313e-16,
+        "effectiveMaxAbsoluteError": 2.220446049250313e-16,
+        "cases": 5,
+        "modelId": "mlp-beac6d2874eb0725235812648d5c76b667ac1a712900c50cee848252c0703b06"
+      },
+      "trainingEvidence": {
+        "passed": true,
+        "errors": [],
+        "modelId": "mlp-beac6d2874eb0725235812648d5c76b667ac1a712900c50cee848252c0703b06",
+        "datasetHash": "ac55ef6bb558f45d1cb59297bd8eb9f9e8c2fd9c52b5c9b6de18a96b5d55307a",
+        "updates": 6540,
+        "trainedOnCuda": true,
+        "actualUpdatesThisRun": 6540,
+        "scope": "Current snapshot and exported model consistency; optimizer loss is not playing strength"
+      }
+    },
+    {
+      "id": "control-20261011",
+      "seed": 20261011,
+      "learningRate": 0.001,
+      "elapsedMs": 12608,
+      "modelId": "mlp-f5aab02287feef5b9451cefc83ceaee2b5724532332578987177e40abdc32b53",
+      "epochs": 10,
+      "selectedBaseline": true,
+      "baselineMse": 0.6985748749550763,
+      "mse": 0.6985748749550763,
+      "improvement": 0,
+      "updates": 3270,
+      "parity": {
+        "passed": true,
+        "maxAbsoluteError": 0.0000013195489604045374
+      },
+      "trainedOnCuda": true,
+      "jsParity": {
+        "passed": true,
+        "maxAbsoluteError": 6.661338147750939e-16,
+        "effectiveMaxAbsoluteError": 3.3306690738754696e-16,
+        "cases": 5,
+        "modelId": "mlp-f5aab02287feef5b9451cefc83ceaee2b5724532332578987177e40abdc32b53"
+      },
+      "trainingEvidence": {
+        "passed": true,
+        "errors": [],
+        "modelId": "mlp-f5aab02287feef5b9451cefc83ceaee2b5724532332578987177e40abdc32b53",
+        "datasetHash": "ac55ef6bb558f45d1cb59297bd8eb9f9e8c2fd9c52b5c9b6de18a96b5d55307a",
+        "updates": 3270,
+        "trainedOnCuda": true,
+        "actualUpdatesThisRun": 3270,
+        "scope": "Current snapshot and exported model consistency; optimizer loss is not playing strength"
+      }
+    },
+    {
+      "id": "lower-rate-20261011",
+      "seed": 20261011,
+      "learningRate": 0.0003,
+      "elapsedMs": 18195,
+      "modelId": "mlp-09e16fdaaf80816bcab6b2a4d82453af1eb7713902f7e2aa191ee50fe8c88a9b",
+      "epochs": 19,
+      "selectedBaseline": false,
+      "baselineMse": 0.6985748749550763,
+      "mse": 0.6979984638193627,
+      "improvement": 0.0005764111357136059,
+      "updates": 6213,
+      "parity": {
+        "passed": true,
+        "maxAbsoluteError": 7.960619625990706e-7
+      },
+      "trainedOnCuda": true,
+      "jsParity": {
+        "passed": true,
+        "maxAbsoluteError": 2.220446049250313e-16,
+        "effectiveMaxAbsoluteError": 2.220446049250313e-16,
+        "cases": 5,
+        "modelId": "mlp-09e16fdaaf80816bcab6b2a4d82453af1eb7713902f7e2aa191ee50fe8c88a9b"
+      },
+      "trainingEvidence": {
+        "passed": true,
+        "errors": [],
+        "modelId": "mlp-09e16fdaaf80816bcab6b2a4d82453af1eb7713902f7e2aa191ee50fe8c88a9b",
+        "datasetHash": "ac55ef6bb558f45d1cb59297bd8eb9f9e8c2fd9c52b5c9b6de18a96b5d55307a",
+        "updates": 6213,
+        "trainedOnCuda": true,
+        "actualUpdatesThisRun": 6213,
+        "scope": "Current snapshot and exported model consistency; optimizer loss is not playing strength"
+      }
+    },
+    {
+      "id": "control-20261012",
+      "seed": 20261012,
+      "learningRate": 0.001,
+      "elapsedMs": 12401,
+      "modelId": "mlp-f5aab02287feef5b9451cefc83ceaee2b5724532332578987177e40abdc32b53",
+      "epochs": 10,
+      "selectedBaseline": true,
+      "baselineMse": 0.6985748749550763,
+      "mse": 0.6985748749550763,
+      "improvement": 0,
+      "updates": 3270,
+      "parity": {
+        "passed": true,
+        "maxAbsoluteError": 0.0000013195489604045374
+      },
+      "trainedOnCuda": true,
+      "jsParity": {
+        "passed": true,
+        "maxAbsoluteError": 6.661338147750939e-16,
+        "effectiveMaxAbsoluteError": 3.3306690738754696e-16,
+        "cases": 5,
+        "modelId": "mlp-f5aab02287feef5b9451cefc83ceaee2b5724532332578987177e40abdc32b53"
+      },
+      "trainingEvidence": {
+        "passed": true,
+        "errors": [],
+        "modelId": "mlp-f5aab02287feef5b9451cefc83ceaee2b5724532332578987177e40abdc32b53",
+        "datasetHash": "ac55ef6bb558f45d1cb59297bd8eb9f9e8c2fd9c52b5c9b6de18a96b5d55307a",
+        "updates": 3270,
+        "trainedOnCuda": true,
+        "actualUpdatesThisRun": 3270,
+        "scope": "Current snapshot and exported model consistency; optimizer loss is not playing strength"
+      }
+    },
+    {
+      "id": "lower-rate-20261012",
+      "seed": 20261012,
+      "learningRate": 0.0003,
+      "elapsedMs": 12126,
+      "modelId": "mlp-082ab9798542789327d8546932493825952c930ef65f7dcfccc77e1d6f422ced",
+      "epochs": 11,
+      "selectedBaseline": false,
+      "baselineMse": 0.6985748749550763,
+      "mse": 0.6982652718751469,
+      "improvement": 0.0003096030799294436,
+      "updates": 3597,
+      "parity": {
+        "passed": true,
+        "maxAbsoluteError": 8.514977834495063e-7
+      },
+      "trainedOnCuda": true,
+      "jsParity": {
+        "passed": true,
+        "maxAbsoluteError": 2.0816681711721685e-16,
+        "effectiveMaxAbsoluteError": 3.885780586188048e-16,
+        "cases": 5,
+        "modelId": "mlp-082ab9798542789327d8546932493825952c930ef65f7dcfccc77e1d6f422ced"
+      },
+      "trainingEvidence": {
+        "passed": true,
+        "errors": [],
+        "modelId": "mlp-082ab9798542789327d8546932493825952c930ef65f7dcfccc77e1d6f422ced",
+        "datasetHash": "ac55ef6bb558f45d1cb59297bd8eb9f9e8c2fd9c52b5c9b6de18a96b5d55307a",
+        "updates": 3597,
+        "trainedOnCuda": true,
+        "actualUpdatesThisRun": 3597,
+        "scope": "Current snapshot and exported model consistency; optimizer loss is not playing strength"
+      }
+    }
+  ],
+  "complete": true,
+  "inputsPreserved": true
+}
