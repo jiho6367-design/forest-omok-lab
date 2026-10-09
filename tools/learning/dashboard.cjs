@@ -22,8 +22,8 @@ function arenaView(value){
  return result;
 }
 const PRESETS={
-  planned:{continuous:true,concurrentTraining:true,poweredEvaluation:true,minimumUsefulImprovement:.10,targetPower:.8,maxEvaluationPairs:2048,trainSeconds:120,learningRate:.0003,minutes:null,games:256,gamesPerCycle:512,minNewSamples:10000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:10,epochs:20},
-  continuous:{continuous:true,concurrentTraining:true,minutes:null,games:256,gamesPerCycle:512,minNewSamples:10000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:10,epochs:20},
+  planned:{continuous:true,concurrentTraining:true,poweredEvaluation:true,minimumUsefulImprovement:.10,targetPower:.8,maxEvaluationPairs:2048,trainSeconds:120,learningRate:.0003,minutes:null,games:256,gamesPerCycle:512,minNewSamples:10000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:13,epochs:20},
+  continuous:{continuous:true,concurrentTraining:true,minutes:null,games:256,gamesPerCycle:512,minNewSamples:10000,recordBranchFraction:.25,maxTrainingSamples:100000,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:13,epochs:20},
   check:{minutes:null,games:8,pairs:4,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:3},
   standard:{minutes:null,games:128,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:10},
   extended:{minutes:null,games:1024,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:20}
