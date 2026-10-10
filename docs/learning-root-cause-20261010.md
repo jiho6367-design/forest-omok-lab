@@ -4,6 +4,10 @@
 
 **2026-10-11 02:37 KST 후속 결과:** 개선된 Reader의 trial 73을 4,848대국 모두 완료하고 전체 184,680착수를 재생 검증했다. baseline 56.2294%, current-no-model 54.0842%로 두 상대 모두 요구 점수 >56.9148%에 미달했다. 별도 stock `adopt`의 실제 결정은 `kept-current`다. 교사 혼합 실험도 고정 개발 기준에 미달하여 새 모델을 선택하지 않았다. 아래의 초기 조사와 실행 시작 기록은 당시 시점 기록이며, 완료된 결과는 마지막 절에 구분한다.
 
+**03:38 KST 추가 확인:** 수정 소스로 실제 정상 이어받기를 실행하여 기존 자료 전체와 새 28대국을 저장했으나 첫 학습이 ID 길이 계약 오류로 종료됐다. 반복 이어받기의 계보 접두사 때문에 `sampleId`가 266자로 늘었고 Python의 256자 한도를 넘었다. 이번 실행 실패의 확정 원인이며, 이전에 완료된 trial 71~73의 기력 결과에 소급할 근거는 없다. 원본을 보존하고 전달 ID와 오류 보고를 수정하는 후속 작업은 마지막 절에 기록한다.
+
+**03:59 KST 실제 수정:** 새 이어받기에서 한도를 넘는 표본 ID만 전체 원본·소스 ID에 결합된 SHA-256 ID로 전달하고, 원래 ID는 계보에 보존하도록 적용했다. snapshot과 Python의 256 Unicode 문자 한도를 맞췄으며 Python 검증기는 그대로다. 실행기는 현재 자식 프로세스의 stdout 오류와 stderr를 함께 전달하고 파이프가 닫힌 뒤 결과를 판단한다. 독립 검토를 마친 두 수정은 실제 소스에 적용됐고 전체 회귀·GPU·CPU·게시 경계·UI 검사를 실제 통과했다. 실패한 실행을 고쳐 썼거나 새 훈련이 성공했다고 부르지 않는다.
+
 ## 판단
 
 **미채택을 단순한 표본 부족이나 얕은 신경망 하나의 문제로 설명할 수 없다.** 초기 조사에서 cycle 이력을 오해하게 만드는 화면 표시와, 앞서 개선한 Reader가 실제 실행에 적용되지 않은 사실을 확인했다. 후속 teacher 실험에서는 패배 증명의 완료 표시 누락과 국면의 음수 값을 양수 후보 평가값으로 덮어쓰는 출력 계약 결함도 확인했다. 학습 측면에서는 기존 정책의 대국 결과를 대부분 반복 학습하며 더 깊은 탐색의 교정 신호가 거의 없는 구조가 우선 조사 대상이다. 이 구조와 새로 찾은 출력 결함이 과거 기력 정체에 얼마나 기여했는지는 통제 실험과 원자료로 구분해야 한다.
@@ -105,7 +109,7 @@ GitHub 연결로 `jiho6367-design/AI-Lecture`의 README, **1~9강 각 README 요
 
 적용은 실행 가능한 조사로 구체화했다. 사용자의 질문을 표본·표현·학습 목표·대조군·실행 귀속으로 나누고, 화면 설명보다 원본 저장 기록을 우선했다. runtime/arena와 data/objective를 독립 감사한 뒤 반례를 대조했다. ‘GPU가 안 배운다’, ‘cycle 5 유실’, ‘시간 부족’, ‘딥러닝만 넣으면 해결’, ‘채택 안 됐으니 개선 0’이라는 설명을 실제 기록으로 점검했다. 확정 사실과 가설을 구분하고 다음 실험을 한 가지 변화씩 비교하도록 제한했다. AI의 제안이나 MSE를 채택 증거로 바꾸지 않았다.
 
-원자료는 ignored 로컬 폴더에 보존한다. 현재 run은 `run-20261009164620115-30c039`이며 cycle별 snapshot manifest·prepared binary·checkpoint·adoption 결정과 완료 arena summary를 대조했다. 실행 감사는 `work/strength-investigation-20261010/audit-cycle4-6-1791635228838.json`에 있다. 최종 test는 학습 metadata의 행 수만 확인했으며 test features·labels·성능은 이번 개발 판단에서 열지 않았다.
+원자료는 ignored 로컬 폴더에 보존한다. 초기 감사 대상 run은 `run-20261009164620115-30c039`이며 cycle별 snapshot manifest·prepared binary·checkpoint·adoption 결정과 완료 arena summary를 대조했다. 실행 감사는 `work/strength-investigation-20261010/audit-cycle4-6-1791635228838.json`에 있다. 최종 test는 학습 metadata의 행 수만 확인했으며 test features·labels·성능은 이번 개발 판단에서 열지 않았다.
 
 현재 특징 충돌의 새 감사는 `work/diagnostics/cycle6-feature-oracle-20261010T123142175203Z.json`에 있다. validation binary hash를 manifest와 대조했고 한 CPU의 표준 라이브러리 집계는 0.066초였다. 모델 훈련이나 생산 자료 수정은 하지 않았다.
 
@@ -188,7 +192,7 @@ V4는 **320국면 전체의 교사 분석과 실제 CUDA 6회를 완료**했고,
 
 완료 감사 SHA `c27af862aada3ab713130459d652f64aba4c0af8baf7d3a782f3229afe61ddf3`, 독립 검토 SHA `0b7efc0ae8322d705eef8969b90b9cf35b3ce2c37500b18058aa6a39cc8ab7da`, 완료 summary SHA `cfcb6764a07810d8f0c08cff0b1290bf1d7684bce25392db32a434a5ccf07be8`를 ignored 로컬 조사 자료에 보존한다. 검증 소스는 `42089a7…/9f9a8a26…/8cddf88c…`이며 이번 run의 새 학습 update는 0이다.
 
-그 뒤 원본 평가 소스 37개와 속성 파일을 보존하고, 실제 평가와 다른 Git 원시 줄바꿈을 가진 `run.cjs/state.cjs` 두 파일만 CRLF→LF로 정리했다. native source archive와 평가 manifest는 바꾸지 않는다. 미채택이므로 임시 속성 변경·채택 게시용 commit은 실행하지 않았다. 독립 검토한 a7을 실제 적용하여 패배 증명의 전체 합법 root 완료 범위와 음수 국면 scalar를 보존하고, 명시적 `proofDetails` 옵션에서 이미 계산된 전체 AND child 증명을 출력한다. 기본 옵션은 false이며 새 탐색이나 실력 증명을 추가하는 변경이 아니다. 실제 Reader/Unified·테스트·package 5파일이 고정 제안 bytes와 일치한다는 독립 검토 SHA는 `14979db7dd6252aa30f5ae66103e653f2def0dae27bc7e87173286c9ff86d179`다. 새 source `313dd35c…`, harness `5f8db9c2…`를 기존 native 평가와 구분하며, 전체 검사 후 새 normal 연속 실행으로 이어받는다.
+그 뒤 원본 평가 소스 37개와 속성 파일을 보존하고, 실제 평가와 다른 Git 원시 줄바꿈을 가진 `run.cjs/state.cjs` 두 파일만 CRLF→LF로 정리했다. native source archive와 평가 manifest는 바꾸지 않는다. 미채택이므로 임시 속성 변경·채택 게시용 commit은 실행하지 않았다. 독립 검토한 a7을 실제 적용하여 패배 증명의 전체 합법 root 완료 범위와 음수 국면 scalar를 보존하고, 명시적 `proofDetails` 옵션에서 이미 계산된 전체 AND child 증명을 출력한다. 기본 옵션은 false이며 새 탐색이나 실력 증명을 추가하는 변경이 아니다. 실제 Reader/Unified·테스트·package 5파일이 고정 제안 bytes와 일치한다는 독립 검토 SHA는 `14979db7dd6252aa30f5ae66103e653f2def0dae27bc7e87173286c9ff86d179`다. 새 source `313dd35c…`, harness `5f8db9c2…`를 기존 native 평가와 구분한다. 전체 검사와 유지보수 동기화 후 새 normal 실행을 실제 시작했지만 첫 학습의 ID 전달 오류로 종료되어, 추가 수정과 건강한 재개 확인이 필요하다.
 
 ## 완료된 pilot의 사후 진단과 다음 우선순위
 
@@ -213,3 +217,22 @@ Windows의 고정 Node 24.19.0에서 전체 `npm test`를 실제 실행하여 �
 앞서 실패했던 `test/unified.cjs`의 선택적 진단 항목은 이번 전체 실행에서 재현되지 않았다. 조건부로 준비했던 별도 테스트 수정은 적용하지 않았다. 이는 모든 환경에서 시간 제한 검사가 항상 성공한다는 보장이 아니며, 실제 CI 결과와 로컬 실행 결과는 구분한다. 로컬 전체 검사 원문은 ignored `post-native-a7-full-npm.actual.log`에 보존한다.
 
 추가 CI 계약도 실제 통과했다: 게시 경계 26개, 동기화 경계 20개, 확인된 CPU 학습 28개·CUDA 1개 skip이다. 처음 Python 호출에서는 생성 fixture의 작은 CUDA 검사가 함께 실행되어 그 기록을 보존하고 CPU 전용이라고 표시하지 않았다. 별도 CPU 호출에서 CUDA 사용 불가와 초기화 없음, 전후 37개 소스·배포 메타데이터 불변을 확인했다. 이는 기존 격리 테스트이며 생산 모델의 추가 학습이나 채택이 아니다. 최종 기록 SHA는 `61b0b69f4e84da289fac4dd090f4e683c09ff42d97f3b31410b674a959233f46`다.
+
+이 소스 수정은 commit `a82d198964a0807c42cdb9cb543fe2b23278a15d`로 GitHub에 동기화했고 [push CI 실행 #146](https://github.com/jiho6367-design/forest-omok-lab/actions/runs/38073737908)이 실제 성공했다. CI 성공과 이후 생산 자료의 정상 이어받기 성공은 서로 다른 증거다.
+
+## 정상 이어받기에서 발견한 추가 계약 결함
+
+원래 48개 설정을 유지한 새 stock normal 실행 `run-20261010175654551-a7c4`를 2026-10-11 02:56:57 KST에 시작했다. 03:26:43에 전체 import **129,996대국·1,458,044행**을 완료했고 기존 모델 object hash `0c10736a…`와 원본 노출 계보를 검증했다. snapshot 준비는 271.223초에 완료했다. 병행 생성에서 새 대국 28개·191행을 저장했지만 03:31:25에 첫 학습이 실패하여 runner와 trainer가 종료됐다. lock·stop·살아 있는 자식 프로세스가 없음을 확인했다. 데이터 준비 단계의 실패로 새 optimizer update는 0이고 candidate·PT checkpoint는 없다.
+
+첫 행의 ID는 `origin-<16hex>:` 접두사 10개(240자)와 원래 26자 ID가 합쳐진 **266자**였다. 생산 import는 매번 24자 접두사를 붙이고 snapshot은 비어 있지 않은 문자열만 검사했지만, Python은 최대 256자를 요구했다. 이전 소스의 242자 ID에 이번 접두사를 더하면서 경계를 넘긴 것이다. 실제 오류는 `ValueError: Invalid data at line 1: Invalid sampleId`이며 실행기는 Python stdout의 구조화 오류를 사용하지 않고 stderr만 붙여 `Training failed: `로 원인을 가렸다. 표본의 양·모델 깊이·비교군과 별개의 전달 계약 결함이다.
+
+실패한 원자료·100,000행 snapshot·새 28대국·오류 보고서와 보관 runtime 37개를 그대로 보존했다. 종료·보존 감사 SHA는 `4404661efe2603508b09882ab7ca98a8f0d6e06100f827904eab0c296c116f3a`, 최소 원인 증거 SHA는 `39450deb00eb7a832b1ad8f5a887235a4aca6cf8431d7c2e8cc42b0d5628533f`다. 이 실패를 재개 완료로 표시하지 않고, 과거 기력 탈락의 원인으로 소급하지 않는다.
+
+03:59 KST에 두 전달 계약 수정을 실제 적용했다. 새 continuation은 encoding version 1을 고정하고, 한도 이내 ID는 기존 바이트를 유지하며 초과 ID만 `origin-sha256-<64hex>` 78자로 만든다. digest는 전체 소스 ID와 원래 표본 ID에 결합되고 원래 ID·자료·label·가족 split은 보존한다. 이미 완료된 실행·snapshot은 수정하지 않고, encoding 없는 중단 실행은 기존 방식으로만 재시도하며 한도 초과를 명확히 거부한다. 새 ID가 snapshot의 hash 순위에 영향을 줄 수 있으므로 새 실행 경계에서만 사용한다. Python 한도와 채택 기준을 낮추지 않는다.
+
+오류 보고는 오래된 report 대신 현재 자식의 제한된 stdout 끝부분에서 구조화 오류를 읽고 stderr 문맥도 보존한다. 실제 작은 Node 자식의 stdout·stderr 전달을 exit 이후까지 지연한 검사로 파이프 close 대기를 검증했고, 메모리에서 exit 대기로 되돌리면 오류 문맥 검사가 실패했다. 격리 자료의 실제 20회 이어받기·첫/둘째/20번째 snapshot의 Python 준비 검사, Unicode 경계, 이전 encoding의 중단 재개도 검증했다. 실제 적용 기록은 `71ce01af…`와 `d5bcc58b…`, 독립 검토는 `00aaa47e…`와 `fbeb06de…`다. 현재 source는 `313dd35c…`, harness는 `f8cdb48d…`, runtime은 `8cddf88c…`이며 이전 실패 당시 harness `5f8db9c2…`를 새 코드의 증거로 바꾸지 않는다.
+
+이후 정상 실행은 candidate가 있는 마지막 검증 부모 `run-20261010125452441-7a75a6`에서 원래 48개 설정으로 새로 이어받는다. 실패한 `a7c4`에는 candidate가 없어 이를 부모로 쓰면 stock import가 warm 모델을 가져오지 못한다. 실패 시 추가한 28대국은 그 실행에 별도로 보존하고 새 import에 포함했다고 주장하지 않는다. 재개 성공은 전체 import·정상 모델 초기값·새 완료 대국·실제 새 CUDA optimizer work·성공한 첫 학습 export 및 이후 건강한 runner를 함께 확인한 뒤 기록한다.
+
+
+04:07 KST에 실제 수정 소스의 여섯 검사 묶음이 모두 종료 코드 0으로 완료됐다. 전체 `npm test`(320.992초), GPU 계약, CPU 학습 계약 총 30개(29개 통과·CUDA 1개 skip), 게시 경계 26개, 동기화 경계 20개, UI 5개 흐름을 확인했다. CPU 호출은 CUDA 사용 불가와 전후 초기화 없음도 검증했다. 실제 전체 검사에는 새 corpus 31개·snapshot 18개 및 quota 경계·훈련 오류 13개가 포함된다. 전후 37개 소스·runtime·active/deployment 메타데이터는 같고 추적 HTML 세 파일도 추가 변경이 없다. 이는 생성 fixture와 소스 계약 검사이며 생산 기력이나 정상 재개 완료 증거가 아니다. 최종 검사 기록 SHA는 `a903afb1a7339f96bd076558b2b7e46653746fcff729a767d71b5402c78091ef`다. 원격에 먼저 추가된 README commit `fd384ce2b9770efba095afbd7359f379b68a611b`도 fast-forward로 보존했다.

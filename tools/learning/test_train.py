@@ -36,6 +36,16 @@ class DataContract(unittest.TestCase):
             self.assertFalse((Path(manifest["folder"]) / "test.f32").exists())
             self.assertEqual(manifest["counts"], {"train": 2, "validation": 1, "test": 1})
 
+    def test_sample_identity_bound_and_types_remain_strict(self):
+        for identity in ("x" * 256, "😀" * 256):
+            with self.subTest(identity=repr(identity)), tempfile.TemporaryDirectory() as temporary:
+                manifest = self.prepare([sample(identity, "train-family", "train", 1)], temporary)
+                self.assertEqual(manifest["counts"]["train"], 1)
+        for identity in ("x" * 257, "😀" * 257, "origin-0123456789abcdef:" * 10 + "record:builtin-reader-29:4", "", 0, False, [], {}):
+            with self.subTest(identity=repr(identity)), tempfile.TemporaryDirectory() as temporary:
+                with self.assertRaisesRegex(ValueError, "Invalid sampleId"):
+                    self.prepare([sample(identity, "train-family", "train", 1)], temporary)
+
     def test_same_family_cannot_leak_into_validation(self):
         with tempfile.TemporaryDirectory() as temporary:
             with self.assertRaisesRegex(ValueError, "family leaks"):

@@ -211,7 +211,7 @@ async function buildSnapshot(context,file,metrics,mark){
   database.exec('BEGIN');transaction=true;
   for await(const {text:line,offset,length} of sourceLines(source)){
    lines++;if(!line.trim())continue;let row;try{row=JSON.parse(line.replace(/^\uFEFF/,''));}catch{throw Error('Invalid dataset JSON at line '+lines);}
-   if(!row||typeof row!=='object'||typeof row.sampleId!=='string'||!row.sampleId||typeof row.familyId!=='string'||!row.familyId||row.schemaVersion!==1||row.rulesId!==S.RULES_ID||row.featureVersion!==S.FEATURE_VERSION)throw Error('Invalid dataset identity at line '+lines);
+   if(!row||typeof row!=='object'||typeof row.sampleId!=='string'||!row.sampleId||(row.sampleId.length>256&&Array.from(row.sampleId).length>256)||typeof row.familyId!=='string'||!row.familyId||row.schemaVersion!==1||row.rulesId!==S.RULES_ID||row.featureVersion!==S.FEATURE_VERSION)throw Error('Invalid dataset identity at line '+lines);
    row.familyId=alias.get(row.familyId)?.family||row.familyId;row.split=assignment.get(row.familyId)?.split||row.split;
    if(!splits.includes(row.split))throw Error('Invalid dataset split at line '+lines);
    const prior=priorFamily.get(row.familyId);if(prior&&prior.split!==row.split)throw Error('Source family crosses data splits: '+row.familyId);if(!prior)putFamily.run(row.familyId,row.split);

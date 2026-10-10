@@ -17,6 +17,17 @@ function checkedSource(source,{allowRunningDir=null}={}){
 }
 async function eachLine(file,fn){if(!fs.existsSync(file))return true;const input=fs.createReadStream(file),lines=readline.createInterface({input,crlfDelay:Infinity});let lineNo=0;try{for await(const line of lines){lineNo++;if(!line.trim())continue;try{if(await fn(JSON.parse(line))===false)return false;}catch(error){throw Object.assign(Error(path.basename(file)+' line '+lineNo+': '+error.message),error.code?{code:error.code}:{});}}return true;}finally{lines.close();input.destroy();}}
 function continuationPreflight(source){const checked=checkedSource(source);require('./snapshot.cjs').exposureChain(checked.source);return checked;}
+// Keep the trainer's 256-character identity bound across arbitrary continuations.
+// The overflow namespace is disjoint from the legacy origin-<16hex>: prefix.
+// Full source/row identities stay in the digest and unchanged provenance.
+// Python len(str) counts Unicode code points, unlike JS UTF-16 string.length.
+function continuationSampleId(sourceId,originalId,encodingVersion=1){
+ if(typeof sourceId!=='string'||!/^[a-f0-9]{64}$/.test(sourceId)||typeof originalId!=='string'||!originalId||![0,1].includes(encodingVersion))throw Error('Invalid continuation sample identity');
+ const legacy='origin-'+sourceId.slice(0,16)+':'+originalId;
+ if(legacy.length<=256||Array.from(legacy).length<=256)return legacy;
+ if(encodingVersion===0)throw Error('Legacy continuation sample identity exceeds trainer bound; choose a separate new run');
+ return 'origin-sha256-'+S.hash(['continuation-sample-id-v1',sourceId,originalId]);
+}
 function requireFreshModel(context){
  if(context.state.freshModel!==true||context.state.cycle!==0||context.state.initialIncumbentHash||context.state.pendingModelExposure||context.state.inheritedModelExposure||context.state.training||context.state.validation||context.state.adoptions?.length||context.state.counters?.trainingUpdates>0||Object.keys(context.state.activeGames||{}).length)throw Error('Raw experience recovery requires a fresh model in a new run');
  for(const name of ['candidate.json','champion.json','warm-start.json','checkpoints','models']){const file=path.join(context.dir,name);if(fs.existsSync(file)&&(!fs.statSync(file).isDirectory()||fs.readdirSync(file).length))throw Error('Raw experience recovery cannot inherit model or checkpoint artifacts: '+name);}
@@ -29,9 +40,10 @@ async function continueFrom(context,source,{mode:requestedMode}={}){
  const ids=Object.fromEntries(names.filter(n=>fs.existsSync(path.join(source,n))).map(n=>[n,S.fileHash(path.join(source,n))]));
  if(mode==='normal')for(const file of exposure.snapshotFiles(source))ids['snapshot:'+path.basename(file)]=S.fileHash(file+'.manifest.json');
  const sourceId=S.hash(mode==='raw-reset'?[source,ids,mode]:[source,ids]);if(prior){if(prior.sourceId!==sourceId)throw Error('Source experience changed after continuation began');if(prior.complete){exposure.verifyLineage(context.dir);return prior;}}
+ const sampleIdEncodingVersion=prior?(prior.sampleIdEncodingVersion??0):1;if(![0,1].includes(sampleIdEncodingVersion))throw Error('Unsupported continuation sample identity encoding');
  const prefix='origin-'+sourceId.slice(0,16)+':',records=S.read(path.join(source,'records.json'),[]),existing=S.read(path.join(context.dir,'records.json'),[]);R.assertRecordIds([...existing,...records]);const grouped=R.groupFamilies([...existing,...records.filter(r=>!existing.some(x=>x.id===r.id))],records);
  const recordMap=new Map(grouped.records.map(r=>[r.id,r]));
- const manifest={schemaVersion:1,source,sourceId,sourceRun:checked.state.runId,sourceIdentity:checked.state.identity,hashes:ids,createdAt:prior?.createdAt||new Date().toISOString(),complete:false,...(mode==='raw-reset'?{mode,modelReset:true,scope:'Validated raw played experience only. Historical model ancestry is unavailable and no historical model or evaluation result is inherited.'}:{})};S.atomic(marker,manifest);
+ const manifest={schemaVersion:1,source,sourceId,sourceRun:checked.state.runId,sourceIdentity:checked.state.identity,hashes:ids,createdAt:prior?.createdAt||new Date().toISOString(),complete:false,...(sampleIdEncodingVersion===1?{sampleIdEncodingVersion}:{}),...(mode==='raw-reset'?{mode,modelReset:true,scope:'Validated raw played experience only. Historical model ancestry is unavailable and no historical model or evaluation result is inherited.'}:{})};S.atomic(marker,manifest);
  // Compact disk indexes allow bounded, idempotent copying. Final family splits
  // are settled before any raw game or training row is appended.
  const db=new DatabaseSync(path.join(context.dir,'continuation.sqlite'));db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS games(id TEXT PRIMARY KEY,family TEXT,completed INTEGER,winner INTEGER,firstPlayer INTEGER); CREATE TABLE IF NOT EXISTS aliases(old TEXT PRIMARY KEY,family TEXT); CREATE TABLE IF NOT EXISTS families(id TEXT PRIMARY KEY,split TEXT);');
@@ -60,6 +72,7 @@ async function continueFrom(context,source,{mode:requestedMode}={}){
    const alias=getAlias.get(game.familyId);if(alias&&alias.family!==f)throw Error('Source family aliases conflict');putAlias.run(game.familyId,f);join(f,game.split);putGame.run(game.id,f,game.completed?1:0,game.winner,game.firstPlayer);if(++indexed%128===0)checkpoint();
   });commit();if(!ok)return manifest;
   const validateRow=row=>{
+   continuationSampleId(sourceId,row.sampleId,sampleIdEncodingVersion);
    const p=row.position;if(row.rulesId!==S.RULES_ID||row.featureVersion!==S.FEATURE_VERSION||!p||!Array.isArray(p.board)||p.board.length!==225||!p.board.every(v=>v===0||v===1||v===2)||![1,2].includes(p.p)||![1,2].includes(p.firstPlayer)||!Array.isArray(row.features)||row.features.length!==32||!row.features.every(Number.isFinite)||!Number.isFinite(row.target)||Math.abs(row.target)>1||!Number.isFinite(row.weight)||row.weight<=0||typeof row.sampleId!=='string')throw Error('Invalid source learning row');
    if(row.positionKey!==R.positionKey(p.board,p.p,p.firstPlayer))throw Error('Source position identity differs from board');
    const played=getPosition.get(row.source?.gameId,row.source?.ply);if(!played||played.boardHash!==S.hash([p.board,p.p,p.firstPlayer]))throw Error('Source sample differs from played position/ply');if(played.featureHash!==S.hash(row.features))throw Error('Source features differ from house32 extraction');
@@ -76,7 +89,7 @@ async function continueFrom(context,source,{mode:requestedMode}={}){
   S.atomic(path.join(context.dir,'records.json'),grouped.records);S.atomic(path.join(context.dir,'family-groups.json'),{schemaVersion:1,aliases:grouped.aliases,groups:grouped.groups});
   const flush=(name,key)=>{if(batch.length){J.appendRows(context.dir,name,batch,key,context);batch=[];}};
   ok=await eachLine(path.join(source,'games.jsonl'),game=>{if(interrupted())return false;batch.push(convertGame(game));if(batch.length>=256)flush('games.jsonl','id');});flush('games.jsonl','id');if(!ok)return manifest;
-  ok=await eachLine(path.join(source,'dataset.jsonl'),row=>{if(interrupted())return false;const f=family(row.familyId);batch.push({...row,sampleId:prefix+row.sampleId,familyId:f,split:getSplit.get(f).split,provenance:{sourceRun:checked.state.runId,sourceId,originalSampleId:row.sampleId},source:{...row.source,gameId:getGame.get(row.source?.gameId)?prefix+row.source.gameId:row.source?.gameId}});if(batch.length>=512)flush('dataset.jsonl','sampleId');});flush('dataset.jsonl','sampleId');if(!ok)return manifest;
+  ok=await eachLine(path.join(source,'dataset.jsonl'),row=>{if(interrupted())return false;const f=family(row.familyId);batch.push({...row,sampleId:continuationSampleId(sourceId,row.sampleId,sampleIdEncodingVersion),familyId:f,split:getSplit.get(f).split,provenance:{sourceRun:checked.state.runId,sourceId,originalSampleId:row.sampleId},source:{...row.source,gameId:getGame.get(row.source?.gameId)?prefix+row.source.gameId:row.source?.gameId}});if(batch.length>=512)flush('dataset.jsonl','sampleId');});flush('dataset.jsonl','sampleId');if(!ok)return manifest;
   const lessons=S.read(path.join(source,'lessons.json'));if(lessons)S.atomic(path.join(context.dir,'lessons.json'),lessons);
   const candidate=mode==='normal'?S.read(path.join(source,'candidate.json')):null;if(candidate?.training?.updates>0){require('../../src/neural-evaluator.js').validate(candidate);S.atomic(path.join(context.dir,'warm-start.json'),candidate);}
   context.state.sourceFamilyIndex=true;context.state.familySplits=Object.fromEntries(grouped.records.map(r=>[r.familyId,r.split]));context.state.importedSampleGames=checked.state.importedSampleGames||[];context.state.importedRecordDigests=checked.state.importedRecordDigests||Object.fromEntries(records.filter(r=>context.state.importedSampleGames.includes(r.id)).map(r=>[r.id,R.recordDigest(r)]));context.state.analysisDone=checked.state.analysisDone||[];context.state.counters.analyzedPositions=checked.state.counters?.analyzedPositions||0;
@@ -84,4 +97,4 @@ async function continueFrom(context,source,{mode:requestedMode}={}){
   manifest.complete=true;manifest.importedGames=context.state.counters.generatedGames;manifest.importedSamples=context.state.counters.samples;manifest.completedAt=new Date().toISOString();S.save(context);S.atomic(marker,manifest);return manifest;
  }finally{if(transaction)try{db.exec('ROLLBACK');}catch{}db.close();}
 }
-module.exports={inside,checkedSource,continuationPreflight,eachLine,continueFrom,familySplit,close};
+module.exports={inside,checkedSource,continuationPreflight,continuationSampleId,eachLine,continueFrom,familySplit,close};
