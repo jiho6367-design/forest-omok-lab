@@ -8,9 +8,21 @@ const REPO=path.resolve(__dirname,'../..');
 const MAX_UPLOAD=2*1024*1024;
 const MAX_LOG=256*1024;
 const MAX_HISTORY=8,MAX_HISTORY_BYTES=128*1024,MAX_RETENTION=24;
+const unchangedDecision='독립 검증 오차가 개선되지 않아 이전 후보 함수를 유지하고 새 자료를 모읍니다. 대국 실력 향상은 확인되지 않았습니다.';
 const hashPattern=/^[a-f0-9]{64}$/;
 function modelHash(model){return crypto.createHash('sha256').update(JSON.stringify(model)).digest('hex');}
 function compactIdentity(value){return {sourceHash:value?.sourceHash||null,harnessHash:value?.harnessHash||null,runtimeHash:value?.runtimeHash||null};}
+// A running arena can be large. Read only its bounded header before the games
+// array; nested keys and escaped strings cannot masquerade as a top-level key.
+function arenaHeader(text){
+ let depth=0,inString=false,escaped=false,wantKey=false,start=0;
+ for(let i=0;i<text.length;i++){
+  const char=text[i];
+  if(inString){if(escaped){escaped=false;continue;}if(char==='\\'){escaped=true;continue;}if(char!=='"')continue;inString=false;if(depth===1&&wantKey){const key=JSON.parse(text.slice(start,i+1));wantKey=false;if(key==='games')return JSON.parse(text.slice(0,start).trimEnd().replace(/,$/,'')+'}');}continue;}
+  if(char==='"'){inString=true;start=i;}else if(char==='{'||char==='['){depth++;if(depth===1)wantKey=true;}else if(char==='}'||char===']')depth--;else if(char===','&&depth===1)wantKey=true;
+ }
+ return null;
+}
 function exactArenaIdentity(value){return Number.isSafeInteger(value?.cycle)&&value.cycle>0&&Number.isSafeInteger(value?.trial)&&value.trial>0&&typeof value?.candidateModelId==='string'&&value.candidateModelId.length>0&&value.candidateModelId.length<=160&&hashPattern.test(value.candidateHash||'')&&Object.values(compactIdentity(value.identity)).every(hash=>hashPattern.test(hash||''));}
 function arenaView(value){
  if(!value)return null;if(value.unavailable)return {unavailable:value.unavailable,status:'pending',complete:false};
@@ -76,6 +88,26 @@ function createDashboard(options={}){
   }
   function checkedFile(run,name){const target=path.join(run,name);if(!fs.existsSync(target))return null;const real=fs.realpathSync(target);if(!inside(realRoot,real)||!inside(run,real))throw fail(403,'허용되지 않은 파일입니다.');return real;}
   function readJSON(run,name,maximum=MAX_UPLOAD){try{const file=checkedFile(run,name);if(!file)return null;if(fs.statSync(file).size>maximum) return {unavailable:'파일이 커서 요약을 읽지 못했습니다.'};return JSON.parse(fs.readFileSync(file,'utf8'));}catch(error){if(error.status)throw error;return null;}}
+  function readPrefix(run,name){const file=checkedFile(run,name);if(!file)return null;const fd=fs.openSync(file,'r');try{const buffer=Buffer.alloc(Math.min(fs.fstatSync(fd).size,MAX_HISTORY_BYTES)),length=fs.readSync(fd,buffer,0,buffer.length,0);return buffer.subarray(0,length).toString('utf8');}finally{fs.closeSync(fd);}}
+  function skippedDecisions(run){
+    const file=checkedFile(run,'adoptions.jsonl');if(!file)return [];const fd=fs.openSync(file,'r');try{const size=fs.fstatSync(fd).size,offset=Math.max(0,size-MAX_HISTORY_BYTES),buffer=Buffer.alloc(Math.min(size,MAX_HISTORY_BYTES)),length=fs.readSync(fd,buffer,0,buffer.length,offset),lines=buffer.subarray(0,length).toString('utf8').split(/\r?\n/);if(offset)lines.shift();return lines.flatMap(line=>{try{const row=JSON.parse(line);return Number.isSafeInteger(row.cycle)&&row.cycle>0&&row.adopted===false&&row.decision==='kept-current'&&row.reason===unchangedDecision?[row]:[];}catch{return [];}}).slice(-MAX_HISTORY);}finally{fs.closeSync(fd);}
+  }
+  function liveArena(run,state,model,active){
+    if(state?.phase!=='validate'||!Number.isSafeInteger(state.cycle)||state.cycle<1||!model||model.unavailable||state.validation?.cycle===state.cycle&&state.validation.complete===true&&state.validation.candidateHash===modelHash(model))return null;
+    try{
+      const text=readPrefix(run,'arena-cycle-'+state.cycle+'.json'),header=text&&arenaHeader(text),candidateHash=modelHash(model),savedValidation=state.validation?.cycle===state.cycle&&state.validation.candidateHash===candidateHash?state.validation:null;
+      if(!header||header.candidateHash!==candidateHash||header.candidateModelId!==model.modelId)return null;
+      // state.trial is the shared highwater, not this arena's reserved ordinal.
+      if(!Number.isSafeInteger(header.trial)||header.trial<1||Number.isSafeInteger(state.trial)&&header.trial>state.trial||Number.isSafeInteger(savedValidation?.trial)&&header.trial!==savedValidation.trial)return null;
+      if(!hashPattern.test(header.datasetSha256||'')||header.datasetSha256!==model.training?.datasetHash||header.datasetSha256!==state.dataset?.sha256)return null;
+      if(!Object.keys(compactIdentity(state.identity)).every(key=>hashPattern.test(header.identity?.[key]||'')&&header.identity[key]===state.identity?.[key]))return null;
+      const requirements=header.evaluationDesign?.requirements,planning=requirements?{trial:header.trial,confidence:requirements.confidence,alpha:requirements.alpha,independentFamilies:header.pairs,minPairs:requirements.minPairs,requiredMeanStrictlyGreaterThan:requirements.configured?.requiredObservedMeanStrictlyGreaterThan,games:requirements.configured?.games}:undefined,view=arenaView({...header,cycle:state.cycle,complete:false,planning});if(!view.identityVerified)return null;return {...view,status:active?'evaluating':'pending'};
+    }catch(error){if(error.status)throw error;return null;}
+  }
+  function executionSource(state){
+    let host=null;try{host=compactIdentity((options.identityProvider||(()=>require('./state.cjs').sourceIdentity()))());}catch{}
+    const saved=compactIdentity(state?.identity),known=host&&hashPattern.test(saved.sourceHash||'')&&hashPattern.test(host.sourceHash||''),same=known&&['sourceHash','harnessHash','runtimeHash'].every(key=>hashPattern.test(saved[key]||'')&&saved[key]===host[key]);return {saved,host,mode:!known?'unavailable':same?'current':state?.executionPolicy?.archivedRuntime===true?'archived':'different',sourceChanged:known?saved.sourceHash!==host.sourceHash:null};
+  }
   function metric(model,arena=null,accepted=false){
     if(!model||model.unavailable||typeof model.modelId!=='string'||model.modelId.length>160)return null;
     const original=accepted?Object.fromEntries(Object.entries(model).filter(([key])=>key!=='adoption')):model,hash=modelHash(original);
@@ -89,12 +121,13 @@ function createDashboard(options={}){
       let training=metric(model,arena);if(!training&&typeof arena.candidateModelId==='string'&&/^[A-Za-z0-9._-]{1,120}$/.test(arena.candidateModelId)&&!['.','..'].includes(arena.candidateModelId))training=metric(readJSON(run,'models/'+arena.candidateModelId+'.json',MAX_HISTORY_BYTES),arena,true);
       rows.push({...arena,validationMse:training?.validationMse??null,trainingProvenance:training?.provenance||'not-preserved'});
     };
-    for(const row of files.slice(0,MAX_HISTORY)){const value=readJSON(run,row.name,MAX_HISTORY_BYTES);if(value&&!value.unavailable&&value.cycle===Number(row.match[1]))add(arenaView(value));else rows.push({cycle:Number(row.match[1]),trial:null,candidateModelId:null,candidateHash:null,identity:compactIdentity(null),complete:false,status:'summary-unavailable',validationMse:null,trainingProvenance:'not-preserved'});}
-    add(currentArena);const training=metric(model);
+    add(currentArena);for(const row of files.slice(0,MAX_HISTORY)){const value=readJSON(run,row.name,MAX_HISTORY_BYTES);if(value&&!value.unavailable&&value.cycle===Number(row.match[1]))add(arenaView(value));else rows.push({cycle:Number(row.match[1]),trial:null,candidateModelId:null,candidateHash:null,identity:compactIdentity(null),complete:false,status:'summary-unavailable',validationMse:null,trainingProvenance:'not-preserved'});}
+    const training=metric(model);
     if(training&&!rows.some(row=>row.candidateHash===training.candidateHash&&row.candidateModelId===training.modelId)){
       const match=/^cycle-(\d+)\.jsonl$/.exec(state?.dataset?.file||''),matchesSnapshot=!!training.datasetSha256&&training.datasetSha256===state?.dataset?.sha256,cycle=matchesSnapshot&&match?Number(match[1]):null;
       rows.unshift({cycle,trial:null,candidateModelId:training.modelId,candidateHash:training.candidateHash,identity:compactIdentity(state?.identity),complete:false,status:'pending',stats:null,validationMse:training.validationMse,trainingProvenance:training.provenance,datasetSha256:training.datasetSha256});
     }
+    for(const decision of skippedDecisions(run)){const existing=rows.find(row=>row.cycle===decision.cycle);if(existing&&existing.trial!==null)continue;const row={cycle:decision.cycle,trial:null,candidateModelId:null,candidateHash:null,identity:compactIdentity(state?.identity),validationMse:null,trainingProvenance:'retained-function-decision',...existing,status:'evaluation-skipped',complete:false,reason:decision.reason,decisionAt:decision.at||null};if(existing)rows.splice(rows.indexOf(existing),1,row);else rows.push(row);}
     rows.sort((a,b)=>(b.cycle??Infinity)-(a.cycle??Infinity)||(b.trial??Infinity)-(a.trial??Infinity));return {limit:MAX_HISTORY,truncated:files.length>MAX_HISTORY||rows.length>MAX_HISTORY,rows:rows.slice(0,MAX_HISTORY),scope:'Model identity maps each preserved MSE to its own candidate. Only completed evaluations with recorded cycle/trial/model/source identity expose control scores. Missing historical MSE is not reconstructed.'};
   }
   function storageView(run,state,settings){
@@ -106,7 +139,7 @@ function createDashboard(options={}){
   function describe(id,withDetails=true){
     const run=resolveRun(id),fullState=readJSON(run,'state.json'),progress=readJSON(run,'progress.json'),state=fullState?.unavailable?progress||fullState:progress&&(!fullState||progress.updatedAt>fullState.updatedAt)?{...fullState,...progress}:fullState,visibleState=state?.validation?{...state,validation:{...state.validation,stats:undefined,pending:state.validation.complete!==true||Object.values(state.validation.stats||{}).some(stats=>Number.isFinite(stats?.unfinished)&&stats.unfinished>0)||state.validation.rejectionReasons?.includes('invalid played game')===true}}:state,summary={id,state:visibleState,active:active?.id===id||runnerAlive(run),stopRequested:!!checkedFile(run,'stop.flag')};
     summary.settings=readJSON(run,'settings.json');
-    if(withDetails){const model=readJSON(run,'candidate.json'),champion=readJSON(run,'champion.json');summary.continuation=readJSON(run,'continuation.json');summary.training=readJSON(run,'candidate.json.training.json');summary.parity=readJSON(run,'candidate.json.parity.json');summary.arena=arenaView(readJSON(run,'arena.summary.json',MAX_HISTORY_BYTES)||readJSON(run,'arena.json'));summary.adoption=readJSON(run,'adoption.json');summary.candidate=model&&!model.unavailable?{modelId:model.modelId,hash:modelHash(model),kind:model.kind,training:model.training}:null;summary.champion=champion&&!champion.unavailable?{modelId:champion.modelId,kind:champion.kind,training:champion.training}:null;summary.candidateHistory=candidateHistory(run,state,model,summary.arena);summary.storage=storageView(run,state,summary.settings);
+    if(withDetails){const model=readJSON(run,'candidate.json'),champion=readJSON(run,'champion.json');summary.continuation=readJSON(run,'continuation.json');summary.training=readJSON(run,'candidate.json.training.json');summary.parity=readJSON(run,'candidate.json.parity.json');summary.arena=arenaView(readJSON(run,'arena.summary.json',MAX_HISTORY_BYTES)||readJSON(run,'arena.json'));summary.liveArena=liveArena(run,state,model,summary.active);summary.executionSource=executionSource(state);summary.adoption=readJSON(run,'adoption.json');summary.candidate=model&&!model.unavailable?{modelId:model.modelId,hash:modelHash(model),kind:model.kind,training:model.training}:null;summary.champion=champion&&!champion.unavailable?{modelId:champion.modelId,kind:champion.kind,training:champion.training}:null;summary.candidateHistory=candidateHistory(run,state,model,summary.liveArena||summary.arena);summary.storage=storageView(run,state,summary.settings);
       const logFile=checkedFile(run,'dashboard.log');if(logFile){const size=fs.statSync(logFile).size,fd=fs.openSync(logFile,'r');try{const buffer=Buffer.alloc(Math.min(size,MAX_LOG));fs.readSync(fd,buffer,0,buffer.length,Math.max(0,size-buffer.length));summary.log=buffer.toString('utf8');}finally{fs.closeSync(fd);}}
     }return summary;
   }
