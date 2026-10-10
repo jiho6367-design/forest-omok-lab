@@ -8,7 +8,7 @@ function createEngine(options={}) {
   const searchMemory=options.searchMemory===false?null:options.searchMemory||
     (typeof OmokSearchMemory!=='undefined'?OmokSearchMemory.create({snapshot:options.memorySnapshot}):null);
   const rules={fivePriority:true,patternTable:options.patternTable,optimized:options.optimized,
-    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy,searchMemory,memoryManaged:true,
+    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy,searchMemory,memoryManaged:true,...(options.proofDetails===true?{proofDetails:true}:{}),
     model:options.model===undefined?(typeof OmokNeural!=='undefined'?OmokNeural.getDefaultModel():null):options.model};
   rules.modelVersion=typeof OmokNeural!=='undefined'?OmokNeural.identity(rules.model):'baseline';
   let forest=createForestEngine(rules);
@@ -43,6 +43,9 @@ function createEngine(options={}) {
     let r={...result,modelVersion:rules.modelVersion,learnedEvaluation:!!rules.model},rejected=[...(r.rejected||[])];
     for(const m of forest.knownRefutations(board,p))if(!rejected.some(x=>x.i===m.i&&refutation(x)))
       rejected.push({...m,verifiedRefutation:true});
+    // A resistance move may have a positive ordering heuristic in a lost
+    // position. Preserve the proved position value separately from candidates.
+    const lossScore=r.lossProven&&Number.isFinite(r.score)&&r.score<0?r.score:-10000000;
     const bad=new Set(rejected.filter(refutation).map(m=>m.i));
     let candidates=(r.candidates||[]).filter(m=>m.i!=null&&inspect(board,m.i,p).legal&&
       !bad.has(m.i)).map(m=>({...m,pv:validPV(board,p,m.pv),depth:m.depth??r.depth??0,
@@ -76,6 +79,7 @@ function createEngine(options={}) {
     if(r.i!=null&&pv[0]!==r.i)r.pv=[r.i];else r.pv=pv;
     if(r.retainedComparison&&r.retainedComparison.i!==r.i)delete r.retainedComparison;
     r.lossProven=!!r.lossProven;r.forcedLoss=r.lossProven;
+    if(r.lossProven)r.score=lossScore;
     r.shape=r.i==null?null:inspect(board,r.i,p);
     if(r.i!=null){
       const at=candidates.findIndex(m=>m.i===r.i);
@@ -119,7 +123,7 @@ function createEngine(options={}) {
       forbiddenDefense,
       defenseChecked:first?.status==='screened',fallback:!!r.fallback,kind:r.kind,
       autoReason:r.autoReason,automatic:r.automatic,screeningComplete:r.screeningComplete,
-      forcingChecksComplete:r.forcingChecksComplete,counterProof:r.counterProof,counterChecks:r.counterChecks,strategy:r.strategy,comparisonSource:'reader',
+      forcingChecksComplete:r.forcingChecksComplete,counterProof:r.counterProof,lossCoverage:r.lossCoverage,counterChecks:r.counterChecks,strategy:r.strategy,comparisonSource:'reader',
       candidates:(r.moves||[]).map(m=>{const pv=validPV(board,p,m.pv);return {...m,pv,depth:m.depth??r.depth??0,comparisonSource:'reader',
         comparisonDepthExplicit:Number.isInteger(m.depth)&&m.depth>0,
         comparisonPVComplete:Array.isArray(m.pv)&&m.pv.length>0&&pv.length===m.pv.length&&pv[0]===m.i};}),rejected:r.rejectedMoves||[],

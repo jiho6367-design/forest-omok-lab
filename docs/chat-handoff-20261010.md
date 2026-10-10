@@ -2,6 +2,10 @@
 
 작성일: 2026-10-10, 한국시간(Asia/Seoul). 이 문서는 채팅의 결정과 파일로 확인한 결과를 요약한다. 다음 작업자는 실행 상태와 원장을 다시 확인해야 한다.
 
+**최신 갱신: 2026-10-11 02:37 KST.** 평가 당시 Reader 소스 `42089a7…`로 기존 cycle 6 모델을 검증한 trial 73은 4,848대국 전부 완료했다. 독립 감사가 전체 184,680착수, 상대별 1,212가족, 원장·중복 배제·규칙·parity·원본 입력 일치를 확인했다. baseline 56.2294%/신뢰하한 49.3146%, current-no-model 54.0842%/신뢰하한 47.1693%로 요구 점수 >56.9148%에 미달했다. 별도 실제 stock `adopt`는 `kept-current`이며 새 active model이나 채택 artifact 게시가 없다. 이번 검증의 새 optimizer update는 0이고 과거 CUDA 6,194 updates와 구분한다.
+
+완료 감사 `completed-trial73-audit-1791653723266.json` SHA `c27af862…`, 독립 검토 SHA `0b7efc0a…`, 실제 adopt 판정 시각 `2026-10-10T17:37:06.456Z`를 ignored 조사 폴더에 보존했다. 원본 37개 평가 소스·속성·기보·candidate·checkpoint·stop marker는 유지했다. 이후 출력 계약 수정 a7을 실제 적용하고 run/state 두 파일의 CRLF만 LF로 정리했다. 실제 수정 source는 `313dd35c…`, harness `5f8db9c2…`이며 원래 평가의 `42089a7…/9f9a8a26…` 증거를 새 코드로 바꾸지 않는다. 전체 검사·문서·휴대 가능한 HTML 검토와 유지보수 Git 동기화를 닫은 뒤, 원래 48개 설정의 **새 stock normal --from-run 연속 실행**을 시작한다. 아래 실행 중·미완료 표현은 각 과거 시점의 기록이다.
+
 최신 후속 조사: **cycle 4 / trial 71은 완료·미채택**, **cycle 5는 학습 후 초기함수를 유지하여 대국 검증 생략**, **cycle 6 / trial 72는 21:49 KST에 4,840대국 완료·미채택**이다. trial 72의 baseline 점수는 53.0165%, current-no-model은 54.6694%이며 요구 점수는 56.9123% 초과다. 원본 대국 재집계와 요약이 일치하며 규칙·parity·학습·대조군은 통과했다. cycle 5의 파일은 남아 있고 조사 당시 cycle 6의 ‘trial 대기’는 실제 예약을 반영하지 못한 표시였다. 세부 근거와 표본·목표·작은 신경망·비교군을 분리한 실험안은 [cycle 4~6 조사 보고서](learning-root-cause-20261010.md)에 있다. 이번에는 AI-Lecture 1~9강의 README 요약과 만능 프롬프트 가이드를 GitHub에서 읽고 적용했다. 전체 원문·영상 완독을 주장하지 않는다.
 
 앞선 Reader 비용 개선은 commit `5f72078`에 동기화되어 있으나 **trial 71·72의 보관 실행기에는 미적용**이었다. trial 71 전환 helper는 16:44:05 KST에 `USER_STOP`으로 종료했고 대시보드가 기존 보관 코드의 연속 cycle을 재개했다. 기존 helper의 cycle·trial 고정을 trial 72에 재사용하지 않는다. 사용자의 후속 요청에 따라 trial 72가 끝난 뒤 기존 PID 2572를 협조적으로 저장·종료하고 현재 source `42089a7…`의 새 실행 `run-20261010125452441-7a75a6`을 시작했다. 이 실행은 정상 continuation으로 기존 데이터·노출 이력·warm-start를 검증해 가져온 뒤 1,024대국을 새로 수집한다. 시작 PID는 28680이며 PID 숫자·lock만으로 완료를 판단하지 않는다. teacher 실험과 새 독립 arena는 별도 완료 증거가 필요하다. ignored 실행 자료는 `work/teacher-pilot-20261010/`에 있다.

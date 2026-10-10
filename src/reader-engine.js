@@ -84,27 +84,30 @@ function createEngine(N, board, options={}) {
   // position. Prove this only after checking EVERY legal reply, without a beam.
   function forcedReplyTrap(p){
     tick();const threats=wins(p);if(threats.length!==1||!legal(threats[0],3-p))return null;
-    const block=threats[0];set(block,3-p);
-    try{if(wins(p).length)return null;const replies=rank(p,b.flatMap((v,i)=>v?[]:[i]));if(!replies.length)return null;let example=null;
-      for(const r of replies){tick();set(r.i,p);let proof;try{if(exact(r.i,p))return null;proof=vcf(3-p,13);}finally{set(r.i,0);}if(!proof)return null;if(!example)example=[r.i,...proof];}
-      return {line:[block,...example],checkedReplies:replies.length};
+    const block=threats[0],entryBoardKey=options.proofDetails?b.join(''):null;set(block,3-p);
+    try{if(wins(p).length)return null;const replies=rank(p,b.flatMap((v,i)=>v?[]:[i]));if(!replies.length)return null;let example=null;const proofBranches=options.proofDetails?[]:null;
+      for(const r of replies){tick();set(r.i,p);let proof;try{if(exact(r.i,p))return null;proof=vcf(3-p,13);}finally{set(r.i,0);}if(!proof)return null;if(proofBranches)proofBranches.push({i:r.i,pv:proof.slice()});if(!example)example=[r.i,...proof];}
+      return {line:[block,...example],checkedReplies:replies.length,...(options.proofDetails?{proofTree:{schemaVersion:1,type:'forced-block-all-legal-defender-replies',attacker:3-p,defender:p,block,entryBoardKey,afterBlockBoardKey:b.join(''),firstPlayer:options.firstPlayer??null,complete:true,requiredReplies:replies.map(r=>r.i),branches:proofBranches}}:{})};
     }finally{set(block,0);}
   }
   // A quiet three is a proof only when EVERY legal defense is refuted.
   // Candidate pruning affects discovery, never the completeness of defenses.
+  let lastThreatProof=null;
   function threatWin(p){
+    if(options.proofDetails)lastThreatProof=null;
     tick();if(wins(3-p).length)return null;
+    const entryBoardKey=options.proofDetails?b.join(''):null;
     const attacks=rank(p).slice(0,12);
     for(const {i} of attacks){tick();set(i,p);try{
       if(wins(3-p).length||!openThrees(i,p))continue;
       const defenses=rank(3-p,b.flatMap((v,j)=>v?[]:[j]));
-      if(!defenses.length)continue;let example=null,proven=true;
+      if(!defenses.length)continue;let example=null,proven=true;const proofBranches=options.proofDetails?[]:null;
       for(const {i:j} of defenses){tick();set(j,3-p);let proof;try{
         if(exact(j,3-p)){proven=false;break;}
         proof=vcf(p,13);
       }finally{set(j,0);}
-      if(!proof){proven=false;break;}if(!example)example=[j,...proof];}
-      if(proven)return [i,...example];
+      if(!proof){proven=false;break;}if(proofBranches)proofBranches.push({i:j,pv:proof.slice()});if(!example)example=[j,...proof];}
+      if(proven){if(options.proofDetails)lastThreatProof={schemaVersion:1,type:'quiet-attack-all-legal-defenses',attacker:p,defender:3-p,attack:i,entryBoardKey,afterAttackBoardKey:b.join(''),firstPlayer:options.firstPlayer??null,complete:true,requiredReplies:defenses.map(r=>r.i),branches:proofBranches};return [i,...example];}
     }finally{set(i,0);}}
     return null;
   }
@@ -231,6 +234,21 @@ function createEngine(N, board, options={}) {
         moves=options.slice(0,3).map(r=>({i:r.i,score:kind==='lost'?-M:0,pv:[r.i],status:'fallback'}));
         fallback=!!moves.length;
       }
+      // A completed loss covers every legal root, including nonblocking moves
+      // that already concede exact five. This is metadata, not extra search.
+      let lossCoverage=null;
+      if(kind==='lost'){
+        const legalRoots=b.flatMap((v,i)=>!v&&legal(i,p)?[i]:[]),
+          refuted=new Set((extra.rejectedMoves||[]).filter(r=>r.verifiedRefutation||r.line?.length||r.pv?.length||r.replyTrap).map(r=>r.i)),
+          mandatoryBlock=danger.length===1&&legal(danger[0],p)?danger[0]:null,
+          immediate=i=>danger.length>1||danger.length===1&&i!==mandatoryBlock;
+        const explicitlyRefutedRoots=legalRoots.filter(i=>refuted.has(i)).length,
+          implicitImmediateRoots=legalRoots.filter(i=>!refuted.has(i)&&immediate(i)).length;
+        lossCoverage={scope:'all-legal-roots',complete:legalRoots.length>0&&explicitlyRefutedRoots+implicitImmediateRoots===legalRoots.length,
+          legalRoots:legalRoots.length,explicitlyRefutedRoots,implicitImmediateRoots,mandatoryBlock};
+        extra={...extra,screeningComplete:lossCoverage.complete,forcingChecksComplete:lossCoverage.complete,
+          counterProof:extra.counterProof||null,lossCoverage};
+      }
       const summary=strategy?(strategicSummary||(strategicSummary=(own.length||danger.length)?{initiative:own.length?'own':'opponent',firstPlayer:strategy.context.firstPlayer,strategyVersion:strategy.strategyVersion,evidence:{ownWins:own,enemyWins:danger,replyCoverage:'not-checked'}}:strategy.profile(b,p))):null;
       const selectedCheck=summary?.checks?.find(c=>c.i===moves[0]?.i&&c.complete),bounded=summary?.evidence?.replyCoverage==='bounded';
       const initiative=['win','forced'].includes(kind)?'own':bounded?(selectedCheck?.replies>0&&selectedCheck.continues===selectedCheck.replies?(selectedCheck.forcingReplies?'contested':'own'):selectedCheck?.forcingReplies&&selectedCheck.score<0?'opponent':'unknown'):summary?.initiative;
@@ -263,16 +281,16 @@ function createEngine(N, board, options={}) {
     if(!roots.length)return output('lost',[],0,{lossReason:'counter-threat',screened:counterRejected.length,rejectedMoves:counterRejected,screeningComplete:true,forcingChecksComplete:true});
     const screeningDeadline=Math.min(deadline,start+(automatic?2200:Math.max(10,ms*.45)));
     const screened=[];let screeningComplete=true,forcingChecksComplete=true;
-    for(let r of roots){if(clockNow()>screeningDeadline){screeningComplete=false;break;}phaseDeadline=screeningDeadline;let status='screened',refutation=[],lossReason=null;try{tick();set(r.i,p);try{const threats=wins(3-p);if(threats.length){status='loss';refutation=[threats[0]];lossReason='immediate';}else{const f=fork(3-p);if(f){status='loss';refutation=[f.i];lossReason=f.forbiddenBlock?'forbidden-defense':'fork';}
+    for(let r of roots){if(clockNow()>screeningDeadline){screeningComplete=false;break;}phaseDeadline=screeningDeadline;let status='screened',refutation=[],lossReason=null,proofTree=null;try{tick();set(r.i,p);try{const threats=wins(3-p);if(threats.length){status='loss';refutation=[threats[0]];lossReason='immediate';}else{const f=fork(3-p);if(f){status='loss';refutation=[f.i];lossReason=f.forbiddenBlock?'forbidden-defense':'fork';}
         else{try{phaseDeadline=Math.min(screeningDeadline,clockNow()+Math.max(20,Math.min(200,ms*.035)));const line=vcf(3-p,13);if(line){status='loss';refutation=line;lossReason='forcing-line';}
-          else{phaseDeadline=Math.min(screeningDeadline,clockNow()+Math.max(60,Math.min(650,ms*.15)));const trap=forcedReplyTrap(p);if(trap){status='loss';refutation=trap.line;lossReason='forced-reply-trap';}
-            else{phaseDeadline=Math.min(screeningDeadline,clockNow()+Math.max(50,Math.min(4000,ms*.15)));const quiet=threatWin(3-p);if(quiet){status='loss';refutation=quiet;lossReason='three-threat';}}}
+          else{phaseDeadline=Math.min(screeningDeadline,clockNow()+Math.max(60,Math.min(650,ms*.15)));const trap=forcedReplyTrap(p);if(trap){status='loss';refutation=trap.line;lossReason='forced-reply-trap';proofTree=trap.proofTree||null;}
+            else{phaseDeadline=Math.min(screeningDeadline,clockNow()+Math.max(50,Math.min(4000,ms*.15)));const quiet=threatWin(3-p);if(quiet){status='loss';refutation=quiet;lossReason='three-threat';proofTree=lastThreatProof;}}}
         }catch(e){if(e.message!=='timeout')throw e;status='unverified';forcingChecksComplete=false;}finally{phaseDeadline=Infinity;}}
       }}finally{set(r.i,0);}}catch(e){if(e.message!=='timeout')throw e;screeningComplete=false;break;}
-      screened.push({...r,score:status==='loss'?-M+3:r.s,pv:[r.i],status,refutation,lossReason});
+      screened.push({...r,score:status==='loss'?-M+3:r.s,pv:[r.i],status,refutation,lossReason,...(options.proofDetails&&proofTree?{proofTree}:{})});
     }
     phaseDeadline=Infinity;
-    const rejectedMoves=[...counterRejected,...screened.filter(r=>r.status==='loss').map(r=>({i:r.i,reason:r.lossReason,line:[r.i,...r.refutation]}))];
+    const rejectedMoves=[...counterRejected,...screened.filter(r=>r.status==='loss').map(r=>({i:r.i,reason:r.lossReason,line:[r.i,...r.refutation],...(r.proofTree?{proofTree:r.proofTree}:{})}))];
     // Unexamined points remain candidates; a partial screen cannot prove loss.
     const checked=new Set(screened.map(r=>r.i));
     const pending=roots.filter(r=>!checked.has(r.i)).map(r=>({...r,score:r.s,pv:[r.i],status:'unverified'}));
