@@ -10,6 +10,8 @@
 
 ## 판단
 
+**2026-10-11 04:48 KST 정상 재개 확인:** 수정 commit `09c41d…`의 새 연속 실행 `run-20261010191342223-19db4f`에서 전체 자료 가져오기와 첫 CUDA 학습이 실제 성공했다. 새 optimizer update 3,575회·11 epoch, 학습 epoch 모델 내보내기·parity 통과, 새 완료 대국 167개를 확인했다. 첫 학습 뒤 50.183초 간격의 두 관찰에서 같은 PID·lock·소스·설정과 무오류 상태가 유지됐다. 현재 CPU 검증을 계속 실행 중이며, 아직 이 새 후보의 기력 개선이나 채택을 선언하지 않는다.
+
 **미채택을 단순한 표본 부족이나 얕은 신경망 하나의 문제로 설명할 수 없다.** 초기 조사에서 cycle 이력을 오해하게 만드는 화면 표시와, 앞서 개선한 Reader가 실제 실행에 적용되지 않은 사실을 확인했다. 후속 teacher 실험에서는 패배 증명의 완료 표시 누락과 국면의 음수 값을 양수 후보 평가값으로 덮어쓰는 출력 계약 결함도 확인했다. 학습 측면에서는 기존 정책의 대국 결과를 대부분 반복 학습하며 더 깊은 탐색의 교정 신호가 거의 없는 구조가 우선 조사 대상이다. 이 구조와 새로 찾은 출력 결함이 과거 기력 정체에 얼마나 기여했는지는 통제 실험과 원자료로 구분해야 한다.
 
 모델은 CUDA에서 실제로 학습하고 있으며 무의미한 0 예측보다 검증 오차가 낮다. 하지만 최근 추가 오차 개선은 작고, 완료된 trial 71의 53~54% 점수로는 현재의 보수적인 채택 기준을 넘는 개선을 입증하지 못했다. 개선이 전혀 없다는 증명과 채택 증거가 부족하다는 판단은 다르다.
@@ -232,7 +234,29 @@ Windows의 고정 Node 24.19.0에서 전체 `npm test`를 실제 실행하여 �
 
 오류 보고는 오래된 report 대신 현재 자식의 제한된 stdout 끝부분에서 구조화 오류를 읽고 stderr 문맥도 보존한다. 실제 작은 Node 자식의 stdout·stderr 전달을 exit 이후까지 지연한 검사로 파이프 close 대기를 검증했고, 메모리에서 exit 대기로 되돌리면 오류 문맥 검사가 실패했다. 격리 자료의 실제 20회 이어받기·첫/둘째/20번째 snapshot의 Python 준비 검사, Unicode 경계, 이전 encoding의 중단 재개도 검증했다. 실제 적용 기록은 `71ce01af…`와 `d5bcc58b…`, 독립 검토는 `00aaa47e…`와 `fbeb06de…`다. 현재 source는 `313dd35c…`, harness는 `f8cdb48d…`, runtime은 `8cddf88c…`이며 이전 실패 당시 harness `5f8db9c2…`를 새 코드의 증거로 바꾸지 않는다.
 
-이후 정상 실행은 candidate가 있는 마지막 검증 부모 `run-20261010125452441-7a75a6`에서 원래 48개 설정으로 새로 이어받는다. 실패한 `a7c4`에는 candidate가 없어 이를 부모로 쓰면 stock import가 warm 모델을 가져오지 못한다. 실패 시 추가한 28대국은 그 실행에 별도로 보존하고 새 import에 포함했다고 주장하지 않는다. 재개 성공은 전체 import·정상 모델 초기값·새 완료 대국·실제 새 CUDA optimizer work·성공한 첫 학습 export 및 이후 건강한 runner를 함께 확인한 뒤 기록한다.
+아래의 실제 정상 재개에서는 candidate가 있는 마지막 검증 부모 `run-20261010125452441-7a75a6`에서 원래 48개 설정으로 새로 이어받았다. 실패한 `a7c4`에는 candidate가 없어 이를 부모로 쓰면 stock import가 warm 모델을 가져오지 못한다. 실패 시 추가한 28대국은 그 실행에 별도로 보존하고 새 import에 포함했다고 주장하지 않는다. 이 재개 성공 조건인 전체 import·정상 모델 초기값·새 완료 대국·실제 새 CUDA optimizer work·첫 학습 export·이후 건강한 runner는 아래 실제 정상 재개에서 함께 확인했다.
 
 
 04:07 KST에 실제 수정 소스의 여섯 검사 묶음이 모두 종료 코드 0으로 완료됐다. 전체 `npm test`(320.992초), GPU 계약, CPU 학습 계약 총 30개(29개 통과·CUDA 1개 skip), 게시 경계 26개, 동기화 경계 20개, UI 5개 흐름을 확인했다. CPU 호출은 CUDA 사용 불가와 전후 초기화 없음도 검증했다. 실제 전체 검사에는 새 corpus 31개·snapshot 18개 및 quota 경계·훈련 오류 13개가 포함된다. 전후 37개 소스·runtime·active/deployment 메타데이터는 같고 추적 HTML 세 파일도 추가 변경이 없다. 이는 생성 fixture와 소스 계약 검사이며 생산 기력이나 정상 재개 완료 증거가 아니다. 최종 검사 기록 SHA는 `a903afb1a7339f96bd076558b2b7e46653746fcff729a767d71b5402c78091ef`다. 원격에 먼저 추가된 README commit `fd384ce2b9770efba095afbd7359f379b68a611b`도 fast-forward로 보존했다.
+
+두 계약 수정은 유지보수 commit `09c41d5730b3612fbd418c1dd605c399026cf8fd`로 실제 push했고 로컬·origin/main·실제 원격 ID 일치를 확인했다. [해당 소스의 push CI #148](https://github.com/jiho6367-design/forest-omok-lab/actions/runs/38078906817)은 04:19:29 KST에 `success`로 완료되어 04:22:31에 GitHub API로 확인했다. CI 확인 기록 SHA는 `a7e2d28155bd5c4e24dd984db4ec24c51a5d57f8d50bcc501a542a22c1112c35`다. 이 유지보수는 사용자의 명시적 요청에 따른 작업이며, 새 채택이 없으면 게시를 건너뛰는 예약 `github`의 [채택 전용 정책](github-adoption-policy.md)과 구분한다.
+
+## 수정 후 실제 정상 재개
+
+04:14:06.978 KST에 stock normal 연속 실행 `run-20261010191342223-19db4f`를 실제 시작했다(PID 19520). candidate가 있는 마지막 검증 부모 `run-20261010125452441-7a75a6`에서 원래 48개 설정을 정확히 유지했다. CUDA·CPU worker 13개·병행 생성·18 GiB 저장 한도·무기한 연속 실행·기존 자동 채택 기준을 사용한다. 새 run의 cycle은 1부터 시작하며 기존 경험과 warm 모델·공유 trial 원장을 유지한다. 실패 `a7c4`의 추가 28대국은 별도 실패 기록에 보존했고 이 import에 포함하지 않았다.
+
+04:39:52.161 KST에 **129,996 완료 대국·1,458,044행 전체**의 import가 완료됐다. 소스 ID `314ae710…`, 기존 모델 전체 object hash `0c10736a…`, 실제 stock 직렬화 SHA `0626c5d2…`, sealed 노출 계보 `0d0679eb…`가 원래 부모와 일치했다. 첫 고정 snapshot은 100,000행(train 83,199·validation 8,401·격리 test 8,400)이며 test의 내용·성능을 후보 선택에 사용하지 않았다.
+
+04:47:01.904 KST에 첫 학습 호출이 종료 코드 0으로 완료됐다. stock 학습 증거 검증과 export parity가 통과했고 CPU 생성 작업도 저장·합류했다. 보고서는 `completed / validation-early-stop`, 실제 **새 CUDA optimizer update 3,575회·11 epoch**다. 요청된 20 epoch를 모두 수행했다는 뜻은 아니다. `actualForwardBackward`, `trainedOnCuda`, `finite`가 모두 true이며 `selectedBaseline=false`, `exportUsesTrainedEpoch=true`로 실제 학습 epoch의 새 후보 `mlp-97ffc295…`를 내보냈다. 보고서 wall time은 60.862초, 실제 train/control은 26.043초다. 이번 snapshot은 병행 생성 전 1,458,044행까지를 학습한 것이며, 생성한 167대국을 이번 학습에 포함했다고 주장하지 않는다.
+
+| 첫 학습의 실제 파일 | SHA-256 |
+| --- | --- |
+| `datasets/cycle-1.jsonl` | `c19c1dd88909bec1883587071ae10fef316197e950d6bb60605fe640b1b6ec16` |
+| `candidate.json.training.json` | `60f8451133286ee34f12abd609aea98156e6c1bc9bdc0cabd3c294f32d53e57e` |
+| `candidate.json` | `cc5180984da1f2474f057a08054e7fc2b849a970830e6c18731c6fc6e8e6c5fc` |
+| `candidate.json.parity.json` | `140cbd3626c63bb1db0a2d6a8eda80acad96769863900ebe80683580089c1e13` |
+| `checkpoints/cycle-1.pt` | `2f95c2c12382b7c4d99529830737d1879c7a2f86476cafbac9706e452516ffbd` |
+
+04:47:17.224와 04:48:07.407 KST의 실제 관찰에서 PID·lock 모두 19520, 전체 import 완료·설정 48개 정확한 일치·source `313dd35c…`/harness `f8cdb48d…`/runtime `8cddf88c…` 유지, stop 없음·오류 없음·훈련 자식 종료를 확인했다. journal의 읽기 전용 완료 수 집계는 총 130,163대국에서 가져온 129,996대국을 뺀 **새 완료 대국 167개**다. 원래 `30c039`의 stop marker는 stock의 완료된 `.recycle/e03a38d3-a665-42bb-a087-35cdfd8aedd5/run/` 보관 위치에서 SHA `13401c52…`가 일치했고 지우거나 복구하지 않았다.
+
+실제 관찰의 불변 기록은 ignored `work/strength-investigation-20261010/normal-continuation-19db4f-observation-v3/successful-training-and-fresh-completion-1791661687407.json`, SHA `f54e88ea67c06a2c5bcdccab474d2344c7294ed74c7eeaf33f44a081e4620b72`다. 04:48 KST에는 새 후보의 CPU 검증 단계가 실행 중이며 부분 arena 점수는 읽거나 후보 선택에 사용하지 않았다. 연속 실행을 유지한다. 이는 재개와 실제 새 학습 성공의 증거이며, 새 모델 채택이나 기력 향상의 증거는 별도 완료 평가를 필요로 한다.
