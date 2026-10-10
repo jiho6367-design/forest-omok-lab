@@ -1,0 +1,24 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{EventEmitter}=require('node:events');
+const {createDashboard}=require('../tools/learning/dashboard.cjs');
+const {chromium}=require(process.env.OMOK_PLAYWRIGHT||(process.platform==='win32'?'C:/Users/jiho/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright':'playwright'));
+const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'omok-resume-budget-ui-')),runsRoot=path.join(temporary,'runs'),run=path.join(runsRoot,'disk-stopped'),calls=[],children=[],GiB=1024**3;
+fs.mkdirSync(run,{recursive:true});
+const write=(name,value)=>fs.writeFileSync(path.join(run,name),JSON.stringify(value));
+const paused={schemaVersion:1,status:'stopped',phase:'validate',cycle:3,trial:69,counters:{completedGames:125273,samples:1404437},stopReason:{kind:'disk-budget'},disk:{usedBytes:6387930765,reservedBytes:2302490086,heldBytes:0,limitBytes:8*GiB}};
+write('state.json',paused);write('settings.json',{workers:13,maxDiskBytes:8*GiB});
+let app,browser;
+function spawnChild(_executable,args){calls.push(args);const child=new EventEmitter();child.stdout=new EventEmitter();child.stderr=new EventEmitter();children.push(child);const flag=args.find(arg=>arg.startsWith('--max-disk-gb='));write('settings.json',{workers:13,maxDiskBytes:(flag?Number(flag.split('=')[1]):12)*GiB});write('state.json',{...paused,status:'running',stopReason:undefined});return child;}
+(async()=>{
+ app=createDashboard({retention:false,repo:temporary,runsRoot,runner:path.resolve(__dirname,'../tools/learning/run.cjs'),spawnChild});const {url}=await app.listen(0);
+ browser=await chromium.launch({executablePath:process.env.OMOK_BROWSER||(process.platform==='win32'?'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe':undefined),headless:true});const page=await browser.newPage({viewport:{width:1280,height:980}}),errors=[];page.on('pageerror',error=>errors.push(error.message));await page.goto(url);
+ await page.waitForFunction(()=>!document.getElementById('resumeBudget').hidden);assert.equal(await page.locator('#stateBadge').textContent(),'중단됨');assert.equal(await page.locator('#resumeMaxDiskGiB').inputValue(),'12');assert.equal(await page.locator('#resumeMaxDiskGiB').getAttribute('min'),'9');assert.match(await page.locator('#diskUsage').textContent(),/상한 8 GiB.*예산으로 중단/);
+ await page.locator('#resumeMaxDiskGiB').fill('16');await page.waitForTimeout(2100);assert.equal(await page.locator('#resumeMaxDiskGiB').inputValue(),'16');
+ for(const value of ['8','9.5','']){await page.locator('#resumeMaxDiskGiB').fill(value);await page.locator('#resumeButton').click();assert.equal(calls.length,0);}
+ await page.setViewportSize({width:390,height:844});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ const screenshot=path.resolve(__dirname,'../work/resume-budget-20261010/dashboard.png');fs.mkdirSync(path.dirname(screenshot),{recursive:true});await page.locator('#resumeMaxDiskGiB').fill('12');await page.screenshot({path:screenshot,fullPage:true});
+ await page.locator('#resumeButton').click();await page.waitForFunction(()=>document.getElementById('stateBadge').textContent==='진행 중');assert.equal(calls.length,1);assert(calls[0].includes('--resume'));assert(calls[0].includes('--max-disk-gb=12'));assert(!calls[0].some(arg=>/^--(from-run|workers|pairs|validation-ms|powered-evaluation)=/.test(arg)));assert.equal(await page.locator('#resumeBudget').isVisible(),false);assert.equal(await page.locator('#resumeButton').isDisabled(),true);
+ write('state.json',{...paused,stopReason:undefined});children[0].emit('exit',0,null);await page.waitForFunction(()=>!document.getElementById('resumeButton').disabled);assert.equal(await page.locator('#resumeBudget').isVisible(),false);
+ await page.locator('#resumeButton').click();await page.waitForFunction(()=>document.getElementById('stateBadge').textContent==='진행 중');assert.equal(calls.length,2);assert(!calls[1].some(arg=>arg.startsWith('--max-disk-gb=')));assert.deepEqual(errors,[]);
+ console.log(JSON.stringify({passed:true,kind:'isolated-resume-budget-browser-fixture',checks:['disk stop budget suggestion','manual edit survives polling','invalid and empty values never launch','same-run budget-only resume','ordinary resume keeps saved budget','mobile width','no browser errors'],screenshot}));
+})().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(app)await app.close({stopRuns:false});const absolute=path.resolve(temporary);if(path.dirname(absolute)!==path.resolve(os.tmpdir())||!path.basename(absolute).startsWith('omok-resume-budget-ui-'))throw Error('Unsafe resume budget UI fixture cleanup');fs.rmSync(absolute,{recursive:true,force:true});});

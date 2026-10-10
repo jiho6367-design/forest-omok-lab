@@ -123,6 +123,20 @@ function createDashboard(options={}){
     return source;
   }
   function preflight(source){try{continuationPreflight(source);}catch(error){throw fail(400,'이전 모델의 학습 출처를 확인할 수 없습니다. 남은 완료 대국은 보존되어 있습니다. 이어받기 방식에서 «대국 보존 · 모델 새로 학습»을 선택해 주세요. 원인: '+error.message);}}
+  function resumeConfiguration(data){
+    if(activeId())throw fail(409,'진행 중인 실험을 중단한 후 시작해 주세요.');
+    resolveRun(data.id);
+    for(const key of Object.keys(data))if(!['id','maxDiskGiB'].includes(key))throw fail(400,'지원하지 않는 재개 설정: '+key);
+    if(!Object.hasOwn(data,'maxDiskGiB'))return null;
+    const value=data.maxDiskGiB,bytes=value*1024**3;
+    if(!Number.isSafeInteger(value)||value<=0||!Number.isSafeInteger(bytes))throw fail(400,'저장 한도는 안전하게 계산할 수 있는 양의 정수 GiB여야 합니다.');
+    const saved=describe(data.id,false);
+    if(saved.state?.status!=='stopped'||saved.state?.stopReason?.kind!=='disk-budget')throw fail(409,'저장 한도 초과로 중단된 실험만 저장 한도를 높여 재개할 수 있습니다.');
+    const previous=saved.settings?.maxDiskBytes;
+    if(!Number.isFinite(previous)||previous<=0)throw fail(400,'실험에 저장된 저장 한도를 확인할 수 없습니다.');
+    if(bytes<=previous)throw fail(400,'새 저장 한도는 저장된 한도보다 커야 합니다.');
+    return {maxDiskGiB:value};
+  }
   function launch(id,config,resume,fromRun=null,continuationMode='verified'){
     if(!retentionEnabled)return launchInternal(id,config,resume,fromRun,continuationMode);
     return Retention.withRetentionLock(realRoot,lease=>{Retention.recoverRetention(realRoot,{lease});const result=launchInternal(id,config,resume,fromRun,continuationMode);enforceRetention(lease,fromRun?[path.basename(fromRun)]:[]);return result;});
@@ -132,7 +146,7 @@ function createDashboard(options={}){
     if(resume){const pending=readJSON(resolveRun(id),'continuation.json');if(pending&&!pending.complete&&pending.mode!=='raw-reset')preflight(pending.source);}
     require('./deployment.cjs').recoverDeployment({root:repo});const run=resolveRun(id);let selected={runner,argsPrefix:[],cwd:repo};if(resume&&!options.runner){try{selected=require('./archive.cjs').selectResumeRunner(run,{repo});}catch(error){throw fail(400,error.message);}}
     const args=[selected.runner,...(selected.argsPrefix||[]),'cycle','--run='+run,'--python='+python,'--device=cuda'];
-    if(resume)args.push('--resume');else{
+    if(resume){args.push('--resume');if(config?.maxDiskGiB!=null)args.push('--max-disk-gb='+config.maxDiskGiB);}else{
       if(checkedFile(run,'uploaded-records.json'))args.push('--input='+path.join(run,'uploaded-records.json'));
       const keys={games:'games',gamesPerCycle:'games-per-cycle',minNewSamples:'min-new-samples',recordBranchFraction:'record-branch-fraction',maxTrainingSamples:'max-training-samples',pairs:'pairs',minPairs:'min-pairs',moveMs:'move-ms',analysisMs:'analysis-ms',validationMs:'validation-ms',workers:'workers',epochs:'epochs',trainSeconds:'train-seconds',learningRate:'learning-rate',minimumUsefulImprovement:'minimum-useful-improvement',targetPower:'target-power',maxEvaluationPairs:'max-evaluation-pairs'};
       for(const [key,flag] of Object.entries(keys))if(config[key]!=null)args.push('--'+flag+'='+config[key]);
@@ -176,7 +190,7 @@ function createDashboard(options={}){
           return respond(201,launch(id,config,false,source,continuationMode));
         }
         if(url.pathname==='/api/stop')return respond(200,stop(data.id));
-        if(url.pathname==='/api/resume')return respond(200,launch(data.id,null,true));
+        if(url.pathname==='/api/resume')return respond(200,launch(data.id,resumeConfiguration(data),true));
         throw fail(404,'요청을 찾을 수 없습니다.');
       }
       if(req.method!=='GET')throw fail(405,'지원하지 않는 요청입니다.');

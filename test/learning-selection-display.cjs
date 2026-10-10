@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const elements=new Map(),element=()=>({textContent:'',className:'',value:'',replaceChildren(){},append(){},after(){},parentElement:{after(){}}});
+const elements=new Map(),element=()=>({textContent:'',className:'',value:'',dataset:{},replaceChildren(){},append(){},after(){},parentElement:{after(){}}});
 const context={document:{getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:element},Intl,console};
 vm.createContext(context);const source=fs.readFileSync(require.resolve('../tools/learning/dashboard.js'),'utf8');vm.runInContext(source.slice(0,source.indexOf("$('preset').addEventListener")),context);
 const current={at:'2026-10-10T00:00:00Z',cycle:80,decision:'kept-current',adopted:false,reason:'독립 검증 오차가 개선되지 않아 이전 후보 함수를 유지'};

@@ -31,6 +31,7 @@
     <p id="experienceInfo" class="hint"></p><p id="resourceInfo" class="hint"></p>
     <div class="metrics"><div><strong id="completedGames">0</strong><span>누적 완료 대국</span></div><div><strong id="samples">0</strong><span>보관 자료 표본</span><small id="uniquePositions">고유 국면 집계 전</small></div><div><strong id="families">0</strong><span>시작 국면 계열</span></div><div><strong id="updates">0</strong><span>누적 모델 갱신</span></div></div>
     <p id="gate" class="hint">새 자료가 쌓이면 학습합니다.</p><p class="hint">이번 실행 경과 시간 <strong id="elapsed">—</strong></p>
+    <div id="resumeBudget" hidden><label for="resumeMaxDiskGiB">재개 저장 예산 (GiB)</label><input id="resumeMaxDiskGiB" type="number" min="1" step="1" disabled aria-describedby="resumeBudgetInfo"><p id="resumeBudgetInfo" class="hint">예산을 올린 뒤 ‘저장한 지점에서 재개’를 누르세요. 기존 자료와 같은 후보를 이어갑니다.</p></div>
     <div class="actions"><button id="stopButton" type="button" disabled>중단 요청</button><button id="resumeButton" type="button" disabled>저장한 지점에서 재개</button><button id="continueButton" type="button" disabled>이 경험을 이어서 누적</button></div>
     <p id="resumeInfo" class="hint"></p>
     <p id="stopping" class="hint" hidden>현재 작업을 마치고 저장한 뒤 중단합니다. 브라우저를 닫아도 서버와 학습은 계속 실행됩니다.</p>
