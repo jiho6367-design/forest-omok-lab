@@ -8,3 +8,24 @@ __pycache__/
 /src/active-model.json
 /outputs/*.md
 !/outputs/omok.html
+
+# Private/local runtime dependencies and training data (never force-add).
+node_modules/
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.db
+*.db-*
+*.pt
+*.pth
+*.ckpt
+*.tmp
+*.tmp-*
+.train-cache/
+candidate.json
+candidate.*.json
+champion.json
+warm-start.json

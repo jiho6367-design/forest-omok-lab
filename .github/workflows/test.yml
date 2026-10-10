@@ -27,6 +27,10 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:gpu
       - run: npm test
+      - name: Check adopted-model publication boundaries
+        run: |
+          node test/learning-publish-adoption.cjs
+          node test/learning-sync-adoption.cjs
       - run: npm run test:learning:cpu
         env:
           CUDA_VISIBLE_DEVICES: ''

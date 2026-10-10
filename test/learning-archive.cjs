@@ -2,8 +2,11 @@
 const assert=require('node:assert/strict'),S=require('../tools/learning/state.cjs'),archive=require('../tools/learning/archive.cjs');
 archive.assertDeliverySource({identity:S.sourceIdentity()});
 assert.throws(()=>archive.assertDeliverySource({identity:{sourceHash:'0'.repeat(64)}}),/production engine changed/);
-const path=require('node:path'),fs=require('node:fs'),baseline=path.join(S.ROOT,'work/continuous-runtime-baseline.json');
-if(fs.existsSync(baseline)){const original=S.read(baseline);if(original.files['src/node-engine.cjs']&&original.files['build.cjs']&&original.files['src/neural-app.js'])assert.deepEqual(archive.frozenRuntime().load('tools/learning/state.cjs').sourceIdentity(),original.identity);else assert.throws(()=>archive.frozenRuntime(),/Archived repository dependency missing/);}
+const path=require('node:path'),fs=require('node:fs');
+// Real local baseline checks are explicit; portable contracts below construct all
+// their own archives from tracked source and do not inspect existing laptop work.
+const localBaselineArgument=process.argv.slice(2).find(value=>value.startsWith('--local-baseline='));
+if(localBaselineArgument){const baseline=path.resolve(localBaselineArgument.slice('--local-baseline='.length)),original=S.read(baseline);assert(original,'The explicitly selected local baseline is missing');if(original.files['src/node-engine.cjs']&&original.files['build.cjs']&&original.files['src/neural-app.js'])assert.deepEqual(archive.frozenRuntime(baseline).load('tools/learning/state.cjs').sourceIdentity(),original.identity);else assert.throws(()=>archive.frozenRuntime(baseline),/Archived repository dependency missing/);}
 fs.mkdirSync(path.join(S.ROOT,'work'),{recursive:true});
 const dir=fs.mkdtempSync(path.join(S.ROOT,'work/archive-contract-')),identity=S.sourceIdentity(),files=Object.fromEntries([...identity.sourceManifest,...identity.harnessManifest].map(row=>[row.path,fs.readFileSync(path.join(S.ROOT,row.path),'utf8')])),snapshot={schemaVersion:2,identity,files,externalDependencies:[]};
 const write=(name,value)=>{const file=path.join(dir,name+'.json');S.atomic(file,value);return file;};
