@@ -26,7 +26,11 @@ jobs:
       - run: npm install --no-save playwright
       - run: npx playwright install --with-deps chromium
       - run: npm run test:gpu
+      - name: Check buffered analysis diagnostics
+        run: node test/engine-diagnostics.cjs
       - run: npm test
+        env:
+          OMOK_ENGINE_DIAGNOSTICS: 33-ply
       - name: Check adopted-model publication boundaries
         run: |
           node test/learning-publish-adoption.cjs

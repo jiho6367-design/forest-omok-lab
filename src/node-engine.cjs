@@ -8,3 +8,7 @@ const active=path.join(__dirname,'active-model.json');
 if(fs.existsSync(active)){context.activeModel=JSON.parse(fs.readFileSync(active,'utf8'));if(context.activeModel.adoption?.accepted!==true)throw Error('The default model has no accepted validation record');vm.runInContext('OmokNeural.setDefaultModel(activeModel)',context);}
 module.exports=context.createEngine;
 module.exports.neural=vm.runInContext('OmokNeural',context);
+// Normal/frozen engine loading does not require this optional host-only helper.
+// Explicit diagnostic use still fails if the helper is missing or broken.
+let diagnostics;
+Object.defineProperty(module.exports,'diagnostics',{get(){return diagnostics||(diagnostics=require('./node-engine-diagnostics.cjs').createDiagnostics(context));}});

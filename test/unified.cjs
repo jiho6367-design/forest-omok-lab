@@ -17,7 +17,9 @@ function independentlyProvenLoss(board,p,result){
   const dag=require('../tools/counter-dag.cjs')(null,{attacker:3-p,roots:check.branches}),verified=require('../tools/verify-counter.cjs')(board,dag,{limitMs:20000});assert(verified.verified,verified.error);assert(verified.boardRestored);
 }
 
-const strict=createEngine({fivePriority:false}),priority=createEngine();
+const diagnosticCapture=process.env.OMOK_ENGINE_DIAGNOSTICS==='33-ply'?createEngine.diagnostics.createCapture():null;
+const strict=diagnosticCapture?diagnosticCapture.createEngine({fivePriority:false}):createEngine({fivePriority:false}),priority=createEngine();
+const diagnosticScenario=fn=>()=>{if(!diagnosticCapture)return fn();try{return diagnosticCapture.run('33-ply-green-loss-shared-strict',fn);}finally{try{console.log('ENGINE_DIAGNOSTICS '+diagnosticCapture.serializeReport());}catch{try{console.error('ENGINE_DIAGNOSTICS_UNAVAILABLE');}catch{}}}};
 test('exact-five priority overrides legacy options in both engines',()=>{
   const b=blank();for(const c of ['D8','E8','F8','G8','H7','H9','G7','I9'])b[idx(c)]=1;b[idx('C8')]=2;
   assert(strict.inspect(b,idx('H8'),1).legal);assert(priority.inspect(b,idx('H8'),1).legal);
@@ -235,19 +237,20 @@ test('new-game search rejects the 30-ply loss setup and never reuses a refuted f
   assert((result.rejected||[]).some(x=>x.i===idx('J6')));
   assert(result.unverifiedDefense||result.lossProven);
 });
-test('new-game search traces the 33-ply green loss back through three forced blocks',()=>{
+test('new-game search traces the 33-ply green loss back through three forced blocks',diagnosticScenario(()=>{
   const moves='H8 H6 H10 G7 F8 I5 G9 E7 F10 I7 G10 E10 F9 F7 H7 D7 C7 J4 K3 H9 I10 J10 E11 D12 F11 F12 I11 J12 H11 G11 I12 E8 J13'.split(' '),board=blank();
   moves.forEach((c,k)=>{const p=k%2?2:1,s=strict.inspect(board,idx(c),p);assert(s.legal,`${k+1}/${c}`);assert.equal(!!s.win.length,k===32,`finish ${k+1}`);board[idx(c)]=p;});
   const before=n=>{const b=blank();moves.slice(0,n-1).forEach((c,k)=>b[idx(c)]=k%2?2:1);return b;};
+  const diagnosticAnalyze=(position,p,ms,lessons)=>diagnosticCapture?diagnosticCapture.stage(({3:'before4',5:'before6',13:'at14',15:'at16',17:'at18'})[position.filter(Boolean).length]||'33-ply',position,p,()=>strict.analyze(position,p,ms,lessons)):strict.analyze(position,p,ms,lessons);
   const sixth=before(6),i5=sixth.slice(),i7=sixth.slice();i5[idx('I5')]=2;i7[idx('I7')]=2;
   assert(strict.evaluate(i7,2)>strict.evaluate(i5,2),'independent attack axes outrank the single line');
   // These early alternatives have no win certificate; a wall-clock search
   // may complete a different depth. Assert the contract, not a heuristic tie.
   for(const position of [before(4),sixth]){
-    const r=strict.analyze(position,2,15000,[]);
+    const r=diagnosticAnalyze(position,2,15000,[]);
     assert(strict.inspect(position,r.i,2).legal);assert.equal(r.proven,false);
   }
-  const at14=strict.analyze(before(14),2,15000,[]);
+  const at14=diagnosticAnalyze(before(14),2,15000,[]);
   assert(strict.inspect(before(14),at14.i,2).legal);assert(!at14.proven);
   if(at14.lossProven)independentlyProvenLoss(before(14),2,at14);
   else assert((at14.counterThreats||[]).some(x=>x.i===idx('F7')&&x.block===idx('H7')));
@@ -259,7 +262,7 @@ test('new-game search traces the 33-ply green loss back through three forced blo
     assert(strict.inspect(after,actual.unrefutedReply,2).legal);
     assert(!(at14.rejected||[]).some(x=>x.i===at14.i));
   }
-  const at16=strict.analyze(before(16),2,15000,[]);
+  const at16=diagnosticAnalyze(before(16),2,15000,[]);
   assert(strict.inspect(before(16),at16.i,2).legal);assert(!at16.proven);
   if(at16.lossProven)independentlyProvenLoss(before(16),2,at16);
   else assert((at16.counterThreats||[]).some(x=>x.i===idx('D7')&&x.block===idx('C7')));
@@ -275,10 +278,10 @@ test('new-game search traces the 33-ply green loss back through three forced blo
     assert(strict.inspect(after,actual.unrefutedReply,2).legal);
     assert(!(at16.rejected||[]).some(x=>x.i===at16.i));
   }
-  const at18=strict.analyze(before(18),2,15000,[]);
+  const at18=diagnosticAnalyze(before(18),2,15000,[]);
   assert(at18.lossProven||(at18.i!=null&&strict.inspect(before(18),at18.i,2).legal&&!at18.proven),
     'a timed-out loss proof must retain a legal, explicitly unproven move');
-});
+}));
 test('new-game search keeps a legal move after the F11 defense and G8 reply',()=>{
   const moves='H8 H6 H10 G7 F8 I5 G9 E7 F10 I7 G10 E10 F9 F11 G8'.split(' '),board=blank();
   moves.forEach((c,k)=>{const p=k%2?2:1,s=strict.inspect(board,idx(c),p);assert(s.legal);assert.equal(s.win.length,0);board[idx(c)]=p;});
