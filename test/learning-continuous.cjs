@@ -5,6 +5,12 @@ const dir=path.join(S.ROOT,'work/learning-continuous-test-'+Date.now());
 function context(name,extra={}){const c=S.init(path.join(dir,name),{...runner.continuousProfile({continuous:true}),gamesPerCycle:2,minNewSamples:5,...extra});c.state.counters.generatedGames=128;c.state.counters.samples=100;c.state.lastTrainingSampleCount=100;return c;}
 (async()=>{
  let checks=0,c=context('rolling');const targets=[],trains=[];
+ assert.equal(c.settings.priority,'above-normal');
+ const priorities=require('node:os').constants.priority;
+ for(const [name,value] of [['above-normal',priorities.PRIORITY_ABOVE_NORMAL],['normal',priorities.PRIORITY_NORMAL],['below-normal',priorities.PRIORITY_BELOW_NORMAL]]){
+  assert.equal(runner.priorityValue(name),value);const settings={...c.settings,...runner.options(runner.parse(['cycle','--priority='+name]))};runner.validateSettings(settings);assert.equal(runner.continuousProfile({continuous:true,priority:name}).priority,name);
+ }
+ assert.throws(()=>runner.validateSettings({...c.settings,priority:'high'}),/Invalid resource scheduling/);checks++;
  const hooks={analyze:async()=>true,generate:async(x,o)=>{targets.push(o.target);x.state.counters.generatedGames=o.target;x.state.counters.samples+=3;return true;},train:async x=>{trains.push(x.state.counters.samples);x.state.lastTrainingSampleCount=x.state.counters.samples;return true;},validate:async()=>({complete:true,passed:false}),adopt:x=>{if(trains.length===2)S.atomic(path.join(x.dir,'stop.flag'),'test');return {adopted:false};}};
  assert.equal(await runner.cycle(c,{},Date.now()+60000,hooks),false);assert.deepEqual(targets,[130,132,134,136]);assert.deepEqual(trains,[106,112]);assert.equal(c.state.cycle,2);assert.equal(c.state.pipeline.stage,'cycle-end');checks++;
  fs.unlinkSync(path.join(c.dir,'stop.flag'));const loaded=S.init(c.dir);assert.equal(loaded.state.counters.generatedGames,136);assert.equal(loaded.state.lastTrainingSampleCount,112);let resumedTarget;await runner.cycle(loaded,{},Date.now()+60000,{...hooks,generate:async(x,o)=>{resumedTarget=o.target;S.atomic(path.join(x.dir,'stop.flag'),'test');return false;}});assert.equal(resumedTarget,138);checks++;
