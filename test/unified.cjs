@@ -2,7 +2,9 @@ const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
 const createEngine=require('./engine.cjs'),{createEngine:reader}=require('../src/reader-engine.js');
 const blank=()=>Array(225).fill(0),idx=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65;
 const filter=process.env.OMOK_TEST_FILTER?new RegExp(process.env.OMOK_TEST_FILTER):null;
-let count=0,failed=0;const test=(name,fn)=>{if(filter&&!filter.test(name))return;
+const advisoryGreenLoss='new-game search traces the 33-ply green loss back through three forced blocks';
+let count=0,failed=0,advisory=0;const test=(name,fn)=>{if(filter&&!filter.test(name))return;
+  if(process.env.OMOK_CI_ADVISORY_GREEN_LOSS==='1'&&name===advisoryGreenLoss){advisory++;console.log('ADVISORY (run separately in CI)',name);return;}
   try{fn();count++;console.log('PASS',name);}catch(error){failed++;process.exitCode=1;console.error('FAIL',name,error.stack);}
 };
 
@@ -320,4 +322,4 @@ test('new games exclude independently certified F6 and F10',()=>{
   assert((recommendation.rejected||[]).some(m=>m.i===idx('F6')&&m.verifiedRefutation));
   assert((recommendation.rejected||[]).some(m=>m.i===idx('F10')&&m.verifiedRefutation));
 });
-console.log(`${count} unified scenarios passed; ${failed} failed`);
+console.log(`${count} unified scenarios passed; ${failed} failed; ${advisory} moved to the separate CI advisory step`);

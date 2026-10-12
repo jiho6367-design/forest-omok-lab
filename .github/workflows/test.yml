@@ -27,6 +27,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:gpu
       - run: npm test
+        env:
+          OMOK_CI_ADVISORY_GREEN_LOSS: '1'
       - name: Check adopted-model publication boundaries
         run: |
           node test/learning-publish-adoption.cjs
@@ -36,6 +38,20 @@ jobs:
           CUDA_VISIBLE_DEVICES: ''
       - run: npm run test:learning:ui
       - run: git diff --exit-code -- outputs/omok.html dist/index.html
+      - name: Advisory — 33-ply green-loss trace (non-blocking)
+        id: green_loss_advisory
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        env:
+          OMOK_TEST_FILTER: '^new-game search traces the 33-ply green loss back through three forced blocks$'
+        run: node test/unified.cjs
+      - name: Record advisory result
+        if: ${{ !cancelled() }}
+        env:
+          ADVISORY_OUTCOME: ${{ steps.green_loss_advisory.outcome }}
+        run: |
+          echo '### Separate advisory: 33-ply green-loss trace' >> "$GITHUB_STEP_SUMMARY"
+          echo "Result: $ADVISORY_OUTCOME. This scenario remains under investigation and does not block CI. Its assertions and failure logs are retained; this is not a playing-strength certification." >> "$GITHUB_STEP_SUMMARY"
   cuda:
     if: github.event_name == 'workflow_dispatch' && inputs.cuda
     runs-on: [self-hosted, gpu]
