@@ -3,7 +3,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const root=path.resolve(__dirname,'../..'),project=path.resolve(root,'../..'),baseline=path.join(project,'work/baseline'),out=path.join(root,'outputs');
 const {instrument}=require('./root-instrument.cjs');
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
-const snap=()=>Object.fromEntries([...fs.readdirSync(path.join(root,'src')).map(f=>'src/'+f),'package.json','outputs/omok.html','outputs/omok-gpu.html','dist/index.html'].filter(f=>fs.statSync(path.join(root,f)).isFile()).map(f=>[f,sha(fs.readFileSync(path.join(root,f)))]));
+const snap=()=>Object.fromEntries([...fs.readdirSync(path.join(root,'src')).map(f=>'src/'+f),'package.json','outputs/omok.html','dist/index.html'].filter(f=>fs.statSync(path.join(root,f)).isFile()).map(f=>[f,sha(fs.readFileSync(path.join(root,f)))]));
 const output=path.join(out,'strategy-root-diagnosis-results.json');
 if(fs.existsSync(output))throw Error('Preserve existing diagnosis file');
 const original=require('./browser.cjs'),overlay=instrument(original.sources(root).engine);

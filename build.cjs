@@ -18,5 +18,4 @@ fs.mkdirSync(path.join(__dirname,'outputs'),{recursive:true});
 fs.writeFileSync(path.join(__dirname,'outputs/omok.html'),html);
 fs.mkdirSync(path.join(__dirname,'dist'),{recursive:true});
 fs.writeFileSync(path.join(__dirname,'dist/index.html'),html);
-fs.writeFileSync(path.join(__dirname,'outputs/omok-gpu.html'),html);
 console.log('Built outputs/omok.html (offline, all assets embedded)');

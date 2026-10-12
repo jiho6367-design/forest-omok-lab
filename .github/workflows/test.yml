@@ -35,7 +35,7 @@ jobs:
         env:
           CUDA_VISIBLE_DEVICES: ''
       - run: npm run test:learning:ui
-      - run: git diff --exit-code -- outputs/omok.html outputs/omok-gpu.html dist/index.html
+      - run: git diff --exit-code -- outputs/omok.html dist/index.html
   cuda:
     if: github.event_name == 'workflow_dispatch' && inputs.cuda
     runs-on: [self-hosted, gpu]

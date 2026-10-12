@@ -7,7 +7,7 @@ const fixed=path.join(out,'strategy-influence-selection.json'),results=path.join
 const startAt='2026-10-05T03:32:45Z',stopAt=Date.parse(startAt)+12*60000;
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const readJSON=f=>JSON.parse(fs.readFileSync(f,'utf8'));
-const snapshot=()=>Object.fromEntries([...fs.readdirSync(path.join(root,'src')).map(f=>'src/'+f),'package.json','outputs/omok.html','outputs/omok-gpu.html','dist/index.html'].filter(f=>fs.statSync(path.join(root,f)).isFile()).map(f=>[f,sha(fs.readFileSync(path.join(root,f)))]));
+const snapshot=()=>Object.fromEntries([...fs.readdirSync(path.join(root,'src')).map(f=>'src/'+f),'package.json','outputs/omok.html','dist/index.html'].filter(f=>fs.statSync(path.join(root,f)).isFile()).map(f=>[f,sha(fs.readFileSync(path.join(root,f)))]));
 const write=(f,s)=>{fs.writeFileSync(f+'.tmp',JSON.stringify(s,null,2));fs.renameSync(f+'.tmp',f);};
 const factory=require(path.join(root,'src/node-engine.cjs')),baseFactory=require(path.join(baseline,'src/node-engine.cjs'));
 function engine(first=1){return factory({firstPlayer:first,fivePriority:true});}

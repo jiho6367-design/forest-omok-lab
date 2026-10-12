@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');
 const S=require('../tools/learning/state.cjs'),A=require('../tools/learning/archive.cjs'),D=require('../tools/learning/deployment.cjs'),N=require('../src/neural-evaluator.js');
 const keys=['sourceHash','harnessHash','runtimeHash'],binding=value=>Object.fromEntries(keys.map(key=>[key,value[key]]));
-const htmlFiles=root=>[path.join(root,'outputs/omok.html'),path.join(root,'outputs/omok-gpu.html'),path.join(root,'dist/index.html'),path.resolve(root,'../../outputs/omok.html'),path.resolve(root,'../../outputs/omok-gpu.html')];
+const htmlFiles=root=>[path.join(root,'outputs/omok.html'),path.join(root,'dist/index.html'),path.resolve(root,'../../outputs/omok.html')];
 const transactionFile=root=>path.join(root,'work/local-learning-20261007/deployment/transaction.json');
 const context=root=>({dir:path.join(root,'run'),state:S.read(path.join(root,'run/state.json'))});
 function build({stage,accepted}){S.atomic(path.join(stage,'omok.html'),'synthetic compatible model '+accepted.modelId);}
