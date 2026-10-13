@@ -13,5 +13,14 @@ assert.equal(vm.runInContext('lastAdoption(run.state,run.adoption).cycle',contex
 delete context.run.candidate.training.warmStartModelId;vm.runInContext('renderSelected(run)',context);assert.match(elements.get('gpu').textContent,/초기값 유지/);
 context.run.candidate.training={selectedBaseline:false,epochsCompleted:20,validationMse:.699};
 vm.runInContext('renderSelected(run)',context);assert.match(elements.get('gpu').textContent,/새 학습 후보 선택/);assert(!elements.get('training').textContent.includes('새 가중치 미선택'));
+context.run.candidate.hash='current-candidate';context.run.arena={complete:true,passed:true,identityVerified:true,candidateHash:'current-candidate',candidateModelId:'fixture',cycle:80,trial:85};
+context.run.adoption={...current,decision:'insufficient-evidence',reason:'평가가 미완료여서 기존 엔진을 유지합니다.'};context.run.state.phase='adopt';context.run.state.status='failed';
+vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/검증은 통과.*모델 적용 중 오류/);assert(!elements.get('validation').textContent.includes('미완료여서'));
+context.run.active=true;vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/검증 통과.*적용하는 중/);
+context.run.active=false;context.run.state.status='stopped';vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/검증 통과.*기다리고/);
+context.run.arena.candidateHash='different-candidate';vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/검증이 충분하지/);
+context.run.arena.candidateHash='current-candidate';context.run.arena.identityVerified=false;vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/검증이 충분하지/);
+context.run.arena.identityVerified=true;context.run.champion={modelId:'fixture'};context.run.adoption={...current,adopted:true,decision:'accepted',candidateHash:'current-candidate'};
+vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/채택하고 오목 HTML에 적용/);
 const runner=require('../tools/learning/run.cjs'),S=require('../tools/learning/state.cjs');assert.equal(runner.continuousProfile({continuous:true}).learningRate,.0003);assert.equal(runner.continuousProfile({continuous:true}).trainSeconds,120);assert.equal(S.defaults().learningRate,.001);assert.equal(S.defaults().trainSeconds,60);assert.equal(runner.continuousProfile({continuous:true,learningRate:.001,trainSeconds:60}).learningRate,.001);assert.equal(runner.continuousProfile({continuous:true,learningRate:.001,trainSeconds:60}).trainSeconds,60);
 console.log('PASS unchanged/new candidate selection, latest decision, epoch/time diagnostics, explicit experiment settings preserved');

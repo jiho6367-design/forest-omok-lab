@@ -62,4 +62,9 @@ for(const boundary of [-1,7,8]){const root=setup('exposure-publish-'+boundary,{e
  const root=setup('exposure-rollback',{exposure:true}),prior=before(root,true);crash(root,8);drift(root,'sourceHash');assert.throws(()=>recover(root),/engine\/harness\/runtime changed/);assertBytes(prior);
  const invalid=setup('exposure-changed',{exposure:true}),expected=before(invalid,true);fs.appendFileSync(path.join(invalid,'run/temporal-exposures.jsonl'),'unbound bytes');assert.throws(()=>D.deploy(S.read(path.join(invalid,'accepted.json')),deployOptions(invalid)),/temporal exposure provenance changed/);assertBytes(expected);
 }
-console.log(JSON.stringify({passed:true,publishBoundaries:9,rollbackBoundaries:9,identityDimensions:identityKeys,acceptedExposureTargets:10,scope:'Abrupt publication/rollback recovery; source/harness/native-runtime drift; verified backup refusal; immutable accepted temporal exposure provenance',artifacts:temporary}));
+(async()=>{
+ const root=setup('completed-cycle-transition'),opts=deployOptions(root),ctx=opts.context,pipeline={stage:'adopt',target:1};ctx.state.pipeline=pipeline;ctx.state.counters.generatedGames=1;ctx.settings={...S.defaults(),games:1,continuous:false};let adopted=0;
+ const complete=await require('../tools/learning/run.cjs').cycle(ctx,{},Date.now()+30000,{adopt:()=>{assert.equal(++adopted,1,'A completed deployment must not re-enter adoption');return D.deploy(accepted,opts);}});
+ assert.equal(complete,true);assert.equal(ctx.state.pipeline,pipeline);assert.equal(S.read(path.join(ctx.dir,'state.json')).pipeline.stage,'cycle-end');assertCommitted(root);
+ console.log(JSON.stringify({passed:true,publishBoundaries:9,rollbackBoundaries:9,identityDimensions:identityKeys,acceptedExposureTargets:10,scope:'Abrupt publication/rollback recovery; source/harness/native-runtime drift; immutable exposure provenance; real deployment advances cycle exactly once',artifacts:temporary}));
+})().catch(error=>{console.error(error.stack||error);process.exitCode=1;});

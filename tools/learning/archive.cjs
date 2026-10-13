@@ -30,12 +30,34 @@ function canonicalIdentity(identity){
 }
 function operationalChanges(before,after){
  canonicalIdentity(before);canonicalIdentity(after);
- if(before.sourceHash!==after.sourceHash||digest(before.sourceManifest)!==digest(after.sourceManifest)||before.runtimeHash!==after.runtimeHash||digest(before.runtimeManifest)!==digest(after.runtimeManifest))throw Error('Operational compatibility cannot change engine source or native runtime');
+ if(before.runtimeHash!==after.runtimeHash||digest(before.runtimeManifest)!==digest(after.runtimeManifest))throw Error('Operational compatibility cannot change engine source or native runtime');
+ const sourceBefore=new Map(before.sourceManifest.map(row=>[row.path,row.sha256])),sourceAfter=new Map(after.sourceManifest.map(row=>[row.path,row.sha256]));
+ const sourceChanges=[...new Set([...sourceBefore.keys(),...sourceAfter.keys()])].sort().filter(file=>sourceBefore.get(file)!==sourceAfter.get(file));
+ // A build script participates in source identity, but removing this one
+ // redundant output does not change any generated HTML or engine bytes.
+ // Prove the exact text edit from SHA-bound preserved source; a build.cjs
+ // filename or a claimed operational scope alone never authorizes a change.
+ if(sourceChanges.length&&(sourceChanges.length!==1||sourceChanges[0]!=='build.cjs'||!duplicateOutputRemoval(verifiedSourceText(before,'build.cjs'),verifiedSourceText(after,'build.cjs'))))throw Error('Operational compatibility cannot change engine source; only the verified redundant HTML output removal is permitted');
  const a=new Map(before.harnessManifest.map(row=>[row.path,row.sha256])),b=new Map(after.harnessManifest.map(row=>[row.path,row.sha256]));
  const changed=[...new Set([...a.keys(),...b.keys()])].sort().filter(file=>a.get(file)!==b.get(file)).map(file=>({path:file,beforeSha256:a.get(file)||null,afterSha256:b.get(file)||null,scope:operationalScopes[file]}));
- if(!changed.length)throw Error('Operational compatibility receipt requires an explicitly reviewed operational change');
  for(const row of changed)if(!row.scope||!row.afterSha256||!row.beforeSha256&&row.path!=='tools/learning/run-retention.cjs')throw Error('Operational compatibility cannot change algorithm dependencies: '+row.path);
+ if(sourceChanges.length)changed.unshift({path:'build.cjs',beforeSha256:sourceBefore.get('build.cjs'),afterSha256:sourceAfter.get('build.cjs'),scope:'verified removal of redundant outputs/omok-gpu.html write; generated HTML unchanged'});
+ if(!changed.length)throw Error('Operational compatibility receipt requires an explicitly reviewed operational change');
  return changed;
+}
+function duplicateOutputRemoval(before,after){
+ const line="fs.writeFileSync(path.join(__dirname,'outputs/omok-gpu.html'),html);",lines=before.split('\n');
+ if(lines.filter(value=>value===line||value===line+'\r').length!==1)return false;
+ return before.replace(new RegExp('^'+line.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\r?\\n','m'),'')===after;
+}
+function verifiedSourceText(identity,file){
+ const sha256=identity.sourceManifest.find(row=>row.path===file)?.sha256,current=fs.readFileSync(path.join(ROOT,file),'utf8');
+ if(digest(current)===sha256)return current;
+ for(const candidate of [path.join(ROOT,'work/runtime-archives',archiveId(identity)+'.json'),SNAPSHOT]){
+  if(!fs.existsSync(candidate))continue;const snapshot=JSON.parse(fs.readFileSync(candidate,'utf8')),source=snapshot.files?.[file];
+  if(digest(snapshot.identity)===digest(identity)&&typeof source==='string'&&digest(source)===sha256)return source;
+ }
+ throw Error('Operational compatibility cannot change engine source without SHA-bound preserved '+file+' text');
 }
 function compatibilityId(before,after){return digest([identityBinding(before),identityBinding(after)]);}
 function validateOperationalReceipt(receipt,before,after){
@@ -56,7 +78,7 @@ function assertDeliverySource(snapshot,{identityProvider=()=>require('./state.cj
  const now=identityProvider(),before=snapshot?.identity;
  if(before?.version===2){try{canonicalIdentity(before);canonicalIdentity(now);}catch(error){throw Error('The production engine changed: operational compatibility verification failed: '+error.message);}}
  if(before&&now.sourceHash===before.sourceHash&&(!(before.version>=2)||now.harnessHash===before.harnessHash&&now.runtimeHash===before.runtimeHash))return null;
- if(before?.version===2&&before.sourceHash===now.sourceHash&&before.runtimeHash===now.runtimeHash){
+ if(before?.version===2&&before.runtimeHash===now.runtimeHash){
   try{const file=path.join(receiptDirectory,compatibilityId(before,now)+'.json');if(fs.existsSync(file)){const receipt=validateOperationalReceipt(JSON.parse(fs.readFileSync(file,'utf8')),before,now);return {receiptId:receipt.receiptId,receiptFile:path.relative(ROOT,file).split(path.sep).join('/'),receiptSha256:digest(fs.readFileSync(file,'utf8')),evaluationIdentity:identityBinding(before),deliveryIdentity:identityBinding(now),changes:receipt.changes};}}
   catch(error){throw Error('The production engine changed: operational compatibility verification failed: '+error.message);}
  }
@@ -64,7 +86,8 @@ function assertDeliverySource(snapshot,{identityProvider=()=>require('./state.cj
 }
 function wrapDeliveryPolicy(snapshot,deployment,{identityProvider=()=>require('./state.cjs').sourceIdentity(),receiptDirectory=COMPATIBILITY_DIRECTORY}={}){
  const check=()=>assertDeliverySource(snapshot,{identityProvider,receiptDirectory}),bind=provider=>()=>{check();const preserved=provider?provider():snapshot.identity;if(identityKeys.some(key=>preserved?.[key]!==snapshot.identity?.[key]))throw Error('Operational compatibility cannot substitute evaluation identity');return preserved;},deploy=deployment.deploy,recover=deployment.recoverDeployment;
- deployment.deploy=(accepted,options={})=>{const audit=check();if(identityKeys.some(key=>accepted.adoption?.[key]!==snapshot.identity?.[key]))throw Error('Operational compatibility cannot substitute accepted evaluation identity');if(audit){accepted={...accepted,adoption:{...accepted.adoption,operationalCompatibilityAudit:audit}};options={...options,entry:options.entry?{...options.entry,operationalCompatibilityAudit:audit}:options.entry};}return deploy(accepted,{...options,identityProvider:bind(options.identityProvider)});};
+ const hostDeploy=require('./deployment.cjs').deploy;
+ deployment.deploy=(accepted,options={})=>{const audit=check();if(identityKeys.some(key=>accepted.adoption?.[key]!==snapshot.identity?.[key]))throw Error('Operational compatibility cannot substitute accepted evaluation identity');if(audit){accepted={...accepted,adoption:{...accepted.adoption,operationalCompatibilityAudit:audit}};options={...options,entry:options.entry?{...options.entry,operationalCompatibilityAudit:audit}:options.entry};}const deliver=audit?.changes.some(row=>row.path==='tools/learning/deployment.cjs')?hostDeploy:deploy;return deliver(accepted,{...options,identityProvider:bind(options.identityProvider)});};
  deployment.recoverDeployment=(options={})=>recover({...options,identityProvider:bind(options.identityProvider)});
  return deployment;
 }
