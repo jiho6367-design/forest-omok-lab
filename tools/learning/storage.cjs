@@ -4,10 +4,14 @@ const reservations=new WeakMap();
 function watchedBytes(context){let total=0;for(const name of ['.train-cache','checkpoints']){const file=path.join(context.dir,name);if(fs.existsSync(file))total+=S.diskBytes(file);}for(const name of fs.readdirSync(context.dir))if(name.startsWith('candidate.json')||name.startsWith('train.')){const file=path.join(context.dir,name);try{const stat=fs.statSync(file);if(stat.isFile())total+=stat.size;}catch(error){if(error.code!=='ENOENT')throw error;}}return total;}
 function remainingReservations(context){return (reservations.get(context)||[]).reduce((sum,row)=>sum+Math.max(0,row.bytes-Math.max(0,watchedBytes(context)-row.baseline)),0);}
 function reserveTraining(context,bytes){requireBudget(context,bytes,'trainer-reservation');const row={stage:'trainer',bytes,baseline:watchedBytes(context)},rows=reservations.get(context)||[];rows.push(row);reservations.set(context,rows);context.state.storageReservations=rows.map(({stage,bytes})=>({stage,bytes}));S.save(context);return ()=>{reservations.set(context,rows.filter(value=>value!==row));context.state.storageReservations=(reservations.get(context)||[]).map(({stage,bytes})=>({stage,bytes}));S.save(context);};}
+const verificationPressure=new WeakMap(),pruningBudget=new WeakSet();
 function checkBudget(context,reserveBytes=0,stage='write'){
  if(!Number.isFinite(reserveBytes)||reserveBytes<0)throw Error('Invalid storage reservation');
- const used=S.diskBytes(context.dir),limit=context.settings.maxDiskBytes??Infinity;let available=Infinity;try{const v=fs.statfsSync(context.dir);available=v.bavail*v.bsize;}catch(error){if(error.code!=='ENOSYS')throw error;}
+ let used=S.diskBytes(context.dir);const limit=context.settings.maxDiskBytes??Infinity;let available=Infinity;try{const v=fs.statfsSync(context.dir);available=v.bavail*v.bsize;}catch(error){if(error.code!=='ENOSYS')throw error;}
  const heldBytes=remainingReservations(context);
+ if(!pruningBudget.has(context)&&storagePolicy(context)?.enabled&&used+heldBytes+reserveBytes>=limit*.8&&(used+heldBytes+reserveBytes>limit||Date.now()-(verificationPressure.get(context)||0)>60000)){
+  pruningBudget.add(context);verificationPressure.set(context,Date.now());try{ownedBoundary(context);pruneVerificationRecords(context);used=S.diskBytes(context.dir);}catch(error){context.state.verificationCleanupDeferred=error.message;}finally{pruningBudget.delete(context);}
+ }
  context.state.disk={usedBytes:used,reservedBytes:Math.ceil(reserveBytes),heldBytes,limitBytes:limit,availableBytes:available,stage,checkedAt:new Date().toISOString()};
  if(used+heldBytes+reserveBytes>limit||heldBytes+reserveBytes>available){const message='저장 공간 예산으로 중단했습니다 ('+stage+'). 사용 '+used+' bytes, 병렬 작업 예약 '+heldBytes+' bytes, 다음 저장 예약 '+Math.ceil(reserveBytes)+' bytes, 한도 '+limit+' bytes. 원본 자료를 보존했습니다.';context.state.stopReason={kind:'disk-budget',stage,message,...context.state.disk};context.state.message=message;S.save(context);return false;}return true;
 }
@@ -53,13 +57,13 @@ function pruneDerived(context,{onPrune=()=>{}}={}){
 // The replay pool is mutable experience, unlike published training snapshots.
 // This policy lives outside scientific settings so archived evaluations keep
 // their exact identity. Only the coordinator at a quiescent boundary may apply it.
-const DEFAULT_POLICY={schemaVersion:1,enabled:true,maxReplaySamples:500000,maxReplayBytes:1024**3,maxDerivedCycles:3};
+const DEFAULT_POLICY={schemaVersion:1,enabled:true,maxReplaySamples:500000,maxReplayBytes:1024**3,maxDerivedCycles:3,maxVerificationCycles:3,maxVerificationBytes:512*1024**2,maxDiagnosticBytes:16*1024**2,maxVerificationSummaries:1000};
 function storagePolicy(context){
- const policy=S.read(path.join(context.dir,'storage-policy.json'));if(!policy)return null;
- if(policy.schemaVersion!==1||typeof policy.enabled!=='boolean'||!Number.isSafeInteger(policy.maxReplaySamples)||policy.maxReplaySamples<1||policy.maxReplaySamples>5000000||!Number.isSafeInteger(policy.maxReplayBytes)||policy.maxReplayBytes<1024||!Number.isSafeInteger(policy.maxDerivedCycles)||policy.maxDerivedCycles<1)throw Error('Invalid bounded experience storage policy; preserve data');return policy;
+ const saved=S.read(path.join(context.dir,'storage-policy.json'));if(!saved)return null;const policy={...DEFAULT_POLICY,...saved};
+ if(policy.schemaVersion!==1||typeof policy.enabled!=='boolean'||!Number.isSafeInteger(policy.maxReplaySamples)||policy.maxReplaySamples<1||policy.maxReplaySamples>5000000||!Number.isSafeInteger(policy.maxReplayBytes)||policy.maxReplayBytes<1024||!Number.isSafeInteger(policy.maxDerivedCycles)||policy.maxDerivedCycles<1||!['maxVerificationCycles','maxVerificationBytes','maxDiagnosticBytes','maxVerificationSummaries'].every(key=>Number.isSafeInteger(policy[key])&&policy[key]>0))throw Error('Invalid bounded experience storage policy; preserve data');return policy;
 }
 function configureStorage(context,{enable=false}={}){
- let policy=storagePolicy(context);if(!policy&&enable){policy={...DEFAULT_POLICY,createdAt:new Date().toISOString()};S.atomic(path.join(context.dir,'storage-policy.json'),policy);}return policy;
+ let policy=storagePolicy(context);if(!policy&&enable)policy={...DEFAULT_POLICY,createdAt:new Date().toISOString()};if(policy&&S.hash(policy)!==S.hash(S.read(path.join(context.dir,'storage-policy.json'))))S.atomic(path.join(context.dir,'storage-policy.json'),policy);return policy;
 }
 function ownedBoundary(context){
  const root=path.resolve(context.dir),real=fs.realpathSync(root),inside=base=>{const relative=path.relative(path.resolve(base),real);return relative!==''&&relative!=='..'&&!relative.startsWith('..'+path.sep)&&!path.isAbsolute(relative);};if(root!==real||![path.join(S.ROOT,'work'),path.join(S.ROOT,'outputs'),require('node:os').tmpdir()].some(inside))throw Error('Retention requires real project or temporary run storage');
@@ -150,14 +154,87 @@ function pruneUnusedDerived(context){
  }
  if(removed.length)recordRetention(context,{kind:'unused-derived',transactionId:S.hash(removed),at:new Date().toISOString(),freedBytes:removed.reduce((sum,row)=>sum+row.bytes,0),removed,scope:'Rebuildable unused caches and old non-adopted optimizer checkpoints; current/recent/adopted snapshots and verification proof preserved'});return removed;
 }
+function verificationModels(context){
+ const cycles=new Set([context.state.cycle]),ids=new Set(),hashes=new Set();
+ for(const row of context.state.adoptions||[])if(row.adopted)cycles.add(row.cycle);
+ const log=localFile(context,'adoptions.jsonl');if(fs.existsSync(log))for(const line of fs.readFileSync(log,'utf8').split('\n'))if(line.trim()){const row=JSON.parse(line);if(row.adopted)cycles.add(row.cycle);}
+ const root=path.join(context.dir,'models');if(fs.existsSync(root)&&fs.lstatSync(root).isSymbolicLink())throw Error('Model proof directory is linked');
+ const files=['champion.json',...(fs.existsSync(root)?fs.readdirSync(root).filter(name=>name.endsWith('.json')).map(name=>'models/'+name):[])];
+ for(const name of files){const file=path.join(context.dir,...name.split('/'));if(!fs.existsSync(file))continue;if(fs.lstatSync(file).isSymbolicLink())throw Error('Accepted proof file is linked');const model=S.read(file);if(model?.adoption?.accepted){ids.add(model.modelId);hashes.add(model.adoption.validationHash);}}
+ return {cycles,ids,hashes};
+}
+function verificationFile(context,name,cycle){
+ if(name!=='arena-cycle-'+cycle+'.json'&&!new RegExp('^arena-partials-cycle-'+cycle+'/[a-f0-9]{24}\\.jsonl$').test(name))throw Error('Verification retirement target escaped its cycle');
+ const file=path.resolve(context.dir,...name.split('/')),relative=path.relative(context.dir,file);if(relative.startsWith('..')||path.isAbsolute(relative))throw Error('Verification target left run');
+ const parent=path.dirname(file);if(fs.existsSync(parent)&&fs.lstatSync(parent).isSymbolicLink()||fs.existsSync(file)&&fs.lstatSync(file).isSymbolicLink())throw Error('Verification retirement refuses links');return file;
+}
+function finishVerificationRetirement(context,intent,{onBoundary=()=>{}}={}){
+ const file=localFile(context,'verification-retention-intent.json'),payload={...intent};delete payload.transactionId;
+ if(intent.schemaVersion!==1||!Number.isSafeInteger(intent.cycle)||intent.cycle<1||!Array.isArray(intent.artifacts)||intent.transactionId!==S.hash(payload))throw Error('Invalid verification retirement intent');
+ const summary=localFile(context,'arena-cycle-'+intent.cycle+'.summary.json');if(!fs.existsSync(summary)||S.fileHash(summary)!==intent.summarySha256)throw Error('Verification summary changed before retirement');
+ const protectedModels=verificationModels(context);if(intent.removeFull&&(protectedModels.cycles.has(intent.cycle)||protectedModels.ids.has(intent.modelId)||protectedModels.hashes.has(intent.arenaSemanticHash)))throw Error('Verification retirement became protected; preserve remaining proof');
+ if(!intent.removeFull){const full=localFile(context,'arena-cycle-'+intent.cycle+'.json');if(!fs.existsSync(full)||S.fileHash(full)!==intent.arenaFileSha256)throw Error('Full completed verification proof changed; keep move journals');}
+ for(const row of intent.artifacts){const target=verificationFile(context,row.file,intent.cycle);if(!/^[a-f0-9]{64}$/.test(row.sha256||'')||!Number.isSafeInteger(row.bytes)||row.bytes<0||fs.existsSync(target)&&S.fileHash(target)!==row.sha256)throw Error('Verification artifact changed before retirement');}
+ for(const row of intent.artifacts){const target=verificationFile(context,row.file,intent.cycle);if(fs.existsSync(target))fs.unlinkSync(target);onBoundary(row.file.startsWith('arena-partials-')?'partial':'full');}
+ const partials=path.join(context.dir,'arena-partials-cycle-'+intent.cycle);if(fs.existsSync(partials)&&!fs.readdirSync(partials).length)fs.rmdirSync(partials);
+ const result={schemaVersion:1,status:'completed',transactionId:intent.transactionId,cycle:intent.cycle,trial:intent.trial,modelId:intent.modelId,candidateHash:intent.candidateHash,at:intent.at,completedAt:new Date().toISOString(),removeFull:intent.removeFull,arenaFileSha256:intent.arenaFileSha256,arenaSemanticHash:intent.arenaSemanticHash,summarySha256:intent.summarySha256,retiredManifestSha256:S.hash(intent.artifacts),retiredFiles:intent.artifacts.length,freedBytes:intent.artifacts.reduce((sum,row)=>sum+row.bytes,0),scope:'Negative details retired by age/bytes; summaries and trial ledger preserved. Completed move journals are redundant with verified full game events.'};
+ S.atomic(localFile(context,'verification-retired-cycle-'+intent.cycle+'.json'),result);onBoundary('recorded');fs.unlinkSync(file);S.syncDirectory(context.dir);return result;
+}
+function trimDiagnostic(context,name,maximum){
+ const file=localFile(context,name);if(!fs.existsSync(file)||fs.statSync(file).size<=maximum)return null;
+ const beforeBytes=fs.statSync(file).size,beforeSha256=S.fileHash(file),buffer=Buffer.alloc(Math.min(maximum,beforeBytes)),fd=fs.openSync(file,'r');try{fs.readSync(fd,buffer,0,buffer.length,beforeBytes-buffer.length);}finally{fs.closeSync(fd);}
+ const newline=buffer.indexOf(10);if(newline<0)return null;const tail=buffer.subarray(newline+1);S.atomic(file,tail.toString('utf8'));return {file:name,beforeSha256,afterSha256:S.fileHash(file),beforeBytes,afterBytes:fs.statSync(file).size,freedBytes:beforeBytes-fs.statSync(file).size};
+}
+function pruneVerificationRecords(context,{policy=storagePolicy(context),onBoundary=()=>{},persistState=true}={}){
+ if(!policy?.enabled)return [];ownedBoundary(context);const protection=verificationModels(context),results=[],intentFile=localFile(context,'verification-retention-intent.json');
+ if(fs.existsSync(intentFile))results.push(finishVerificationRetirement(context,S.read(intentFile),{onBoundary}));
+ const entries=fs.readdirSync(context.dir).filter(name=>/^arena-cycle-\d+\.json$/.test(name)).map(name=>({name,cycle:Number(name.match(/\d+/)[0])})).sort((a,b)=>b.cycle-a.cycle);let retained=0,retainedBytes=0;
+ for(const entry of entries){
+  if(entry.cycle===context.state.cycle)continue;const full=localFile(context,entry.name);if(fs.statSync(full).size>128*1024**2)continue;const classifiedSha=S.fileHash(full),arena=S.read(full);if(S.fileHash(full)!==classifiedSha)throw Error('Verification changed during retention classification');
+  if(arena?.complete!==true||typeof arena.passed!=='boolean'||typeof arena.candidateModelId!=='string'||!arena.candidateModelId||!Array.isArray(arena.games)||!arena.games.every(game=>game.completed||game.exhausted)||!arena.games.every(game=>typeof game.id==='string'&&Array.isArray(game.events))||!/^[a-f0-9]{64}$/.test(arena.candidateHash||'')||!/^[a-f0-9]{64}$/.test(arena.identity?.sourceHash||'')||!/^[a-f0-9]{64}$/.test(arena.identity?.harnessHash||''))continue;
+  const semanticHash=S.hash(arena),protectedFull=arena.passed||protection.cycles.has(entry.cycle)||protection.ids.has(arena.candidateModelId)||protection.hashes.has(semanticHash),bytes=fs.statSync(full).size;
+  const removeFull=!protectedFull&&(retained>=policy.maxVerificationCycles||retainedBytes+bytes>policy.maxVerificationBytes);if(!protectedFull&&!removeFull){retained++;retainedBytes+=bytes;}
+  const artifacts=[],partials=path.join(context.dir,'arena-partials-cycle-'+entry.cycle);let consistent=true;
+  if(fs.existsSync(partials)){
+   if(fs.lstatSync(partials).isSymbolicLink())throw Error('Verification move directory is linked');const byId=new Map(arena.games.map(game=>[game.id,game]));
+   for(const name of fs.readdirSync(partials)){if(!/^[a-f0-9]{24}\.jsonl$/.test(name)){consistent=false;break;}const relative='arena-partials-cycle-'+entry.cycle+'/'+name,target=verificationFile(context,relative,entry.cycle);
+    // Before discarding redundant journals, prove every durable event is in
+    // the preserved completed JSON. A truncated/foreign tail stays on disk.
+    if(!removeFull){if(fs.statSync(target).size>8*1024**2){consistent=false;break;}const text=fs.readFileSync(target,'utf8');if(text&&!text.endsWith('\n')){consistent=false;break;}for(const line of text.split('\n'))if(line.trim()){let row;try{row=JSON.parse(line);}catch{consistent=false;break;}const game=byId.get(row.gameId);if(!game||S.hash(row.gameId).slice(0,24)+'.jsonl'!==name||!Number.isInteger(row.ply)||row.ply<1||S.hash(game.events[row.ply-1])!==S.hash(row.event)){consistent=false;break;}}if(!consistent)break;}
+    artifacts.push({file:relative,bytes:fs.statSync(target).size,sha256:S.fileHash(target)});
+   }
+  }
+  if(!consistent)continue;if(removeFull)artifacts.push({file:entry.name,bytes,sha256:S.fileHash(full)});if(!artifacts.length)continue;
+  const summaryName='arena-cycle-'+entry.cycle+'.summary.json',summaryFile=localFile(context,summaryName),expected=require('./arena.cjs').arenaSummary(arena,entry.cycle),summary=S.read(summaryFile);
+  if(summary&&(summary.cycle!==entry.cycle||summary.trial!==arena.trial||summary.candidateHash!==arena.candidateHash||summary.complete!==arena.complete||summary.passed!==arena.passed||S.hash(summary.identity)!==S.hash(arena.identity)))continue;
+  if(!summary)S.atomic(summaryFile,expected);
+  if(S.fileHash(full)!==classifiedSha)throw Error('Verification changed before retirement publication');const payload={schemaVersion:1,cycle:entry.cycle,trial:arena.trial,modelId:arena.candidateModelId,candidateHash:arena.candidateHash,at:new Date().toISOString(),removeFull,arenaFileSha256:classifiedSha,arenaSemanticHash:semanticHash,summarySha256:S.fileHash(summaryFile),artifacts};const intent={...payload,transactionId:S.hash(payload)};
+  S.atomic(intentFile,intent);onBoundary('prepared');results.push(finishVerificationRetirement(context,intent,{onBoundary}));
+ }
+ // Negative result summaries are history, not promotion evidence. Keep the
+ // newest 1000; every adopted/passed/current/unfinished summary stays intact.
+ const summaries=fs.readdirSync(context.dir).filter(name=>/^arena-cycle-\d+\.summary\.json$/.test(name)).sort((a,b)=>Number(b.match(/\d+/)[0])-Number(a.match(/\d+/)[0]));let kept=0;
+ for(const name of summaries){const summaryFile=localFile(context,name),summary=S.read(summaryFile),cycle=Number(name.match(/\d+/)[0]);if(protection.cycles.has(cycle)||protection.ids.has(summary?.candidateModelId)||summary?.passed!==false||summary.complete!==true||fs.existsSync(localFile(context,'arena-cycle-'+cycle+'.json')))continue;if(kept++<policy.maxVerificationSummaries)continue;const bytes=fs.statSync(summaryFile).size,sha256=S.fileHash(summaryFile);fs.unlinkSync(summaryFile);const receipt=localFile(context,'verification-retired-cycle-'+cycle+'.json');let extra=0;if(fs.existsSync(receipt)){extra=fs.statSync(receipt).size;fs.unlinkSync(receipt);}results.push({kind:'old-negative-summary',cycle,sha256,freedBytes:bytes+extra});}
+ for(const name of ['perf.jsonl','timing.jsonl','train.stdout.log','train.stderr.log','errors.jsonl']){const result=trimDiagnostic(context,name,policy.maxDiagnosticBytes);if(result)results.push(result);}
+ if(results.length){const prior=S.read(localFile(context,'verification-retention.json'),{}),summary={schemaVersion:1,at:new Date().toISOString(),policy,freedBytes:(prior.freedBytes||0)+results.reduce((sum,row)=>sum+row.freedBytes,0),lastResults:results.slice(-100).map(row=>({cycle:row.cycle,file:row.file,kind:row.kind,freedBytes:row.freedBytes})),scope:'Verification retirement only; adopted full evidence, current/pending trials, raw games, cumulative exclusions and immutable continuation files remain unchanged'};S.atomic(localFile(context,'verification-retention.json'),summary);if(persistState)recordRetention(context,{kind:'verification-records',transactionId:S.hash(results),at:summary.at,freedBytes:results.reduce((sum,row)=>sum+row.freedBytes,0),cycles:results.filter(row=>row.cycle).slice(-100).map(row=>row.cycle)});}
+ return results;
+}
+function sweepStoppedVerificationRuns(context,{runsRoot=path.join(S.ROOT,'outputs','learning','runs')}={}){
+ const root=path.resolve(runsRoot);if(path.dirname(context.dir)!==root)return [];if(fs.lstatSync(root).isSymbolicLink()||fs.realpathSync(root)!==root)throw Error('Previous-run verification root is linked');
+ const results=[];for(const name of fs.readdirSync(root).filter(name=>/^run-[0-9]+-[a-zA-Z0-9_-]+$/.test(name))){const dir=path.join(root,name);if(dir===context.dir||fs.lstatSync(dir).isSymbolicLink())continue;const state=S.read(path.join(dir,'state.json')),lock=S.read(path.join(dir,'runner.lock'));if(!state||state.runId!==name||lock?.pid&&isAlive(lock.pid)||state.status==='running')continue;
+  let release;try{release=S.lock(dir);const frozenStateSha=S.fileHash(path.join(dir,'state.json')),other={dir,state,settings:S.read(path.join(dir,'settings.json'),{})},cleaned=pruneVerificationRecords(other,{policy:storagePolicy(context),persistState:false});if(S.fileHash(path.join(dir,'state.json'))!==frozenStateSha)throw Error('Historical source state changed during record cleanup');if(cleaned.length)results.push({runId:name,freedBytes:cleaned.reduce((sum,row)=>sum+row.freedBytes,0)});}catch(error){results.push({runId:name,deferred:error.message,freedBytes:0});}finally{release?.();}
+ }
+ if(results.length)S.atomic(localFile(context,'previous-run-verification-retention.json'),{at:new Date().toISOString(),results,freedBytes:results.reduce((sum,row)=>sum+row.freedBytes,0)});return results;
+}
 function maintainExperience(context,{closeJournal=()=>require('./journal.cjs').close(context.dir),closeCorpus=()=>require('./corpus.cjs').close(context.dir),onBoundary=()=>{}}={}){
  if(!storagePolicy(context)?.enabled&&!fs.existsSync(path.join(context.dir,'replay-retention-intent.json')))return [];
  // Startup can contain a crashed generation intent or transient trainer state.
  // Let the original coordinator recover it first; maintenance never blocks that.
  if(!fs.existsSync(path.join(context.dir,'replay-retention-intent.json'))&&(context.state.concurrency?.training||context.state.trainingProcess?.pid&&isAlive(context.state.trainingProcess.pid)||context.state.storageReservations?.length||fs.existsSync(path.join(context.dir,'generation-intent.json'))))return [];
- ownedBoundary(context);closeJournal();closeCorpus();const results=[];
+ ownedBoundary(context);configureStorage(context);closeJournal();closeCorpus();const results=[];
  const recovered=resumeReplayRetention(context,{onBoundary});if(recovered)results.push(recovered);
  const imported=compactImportedIndex(context);if(imported)results.push(imported);
- const replay=boundReplay(context,{onBoundary});if(replay)results.push(replay);results.push(...pruneUnusedDerived(context));checkBudget(context,0,'retention-complete');S.save(context);return results;
+ const replay=boundReplay(context,{onBoundary});if(replay)results.push(replay);results.push(...pruneUnusedDerived(context));try{results.push(...pruneVerificationRecords(context));delete context.state.verificationCleanupDeferred;}catch(error){context.state.verificationCleanupDeferred=error.message;}sweepStoppedVerificationRuns(context);checkBudget(context,0,'retention-complete');S.save(context);return results;
 }
 module.exports={checkBudget,requireBudget,reserveTraining,remainingReservations,pruneDerived,DEFAULT_POLICY,storagePolicy,configureStorage,maintainExperience,resumeReplayRetention,boundReplay,compactImportedIndex,pruneUnusedDerived};
+Object.assign(module.exports,{pruneVerificationRecords,sweepStoppedVerificationRuns,finishVerificationRetirement});
