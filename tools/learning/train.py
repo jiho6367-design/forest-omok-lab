@@ -593,6 +593,17 @@ def weighted_training_loss(squared, weights, normalization: str, global_weight_m
     raise ValueError("Unsupported loss weight normalization")
 
 
+def early_validation_due(epoch: int, updates: int, maximum: int, cursor: int, rows: int) -> bool:
+    """Bounded full-validation checks before the first completed epoch.
+
+    Powers of two sample the short warm-start adaptation window without turning
+    each minibatch into a validation pass. The epoch-end pass covers its final
+    batch. This policy is selection only; early-stop patience remains epochs.
+    """
+    return (epoch == 0 and 0 < updates <= maximum and cursor < rows
+            and updates & (updates - 1) == 0)
+
+
 def diagnostic_indices(torch, count: int, maximum: int):
     used = min(count, maximum)
     if not used:
@@ -681,15 +692,19 @@ def train_command(args) -> dict:
     diagnostic_samples = getattr(args, "diagnostic_samples", 512)
     selection_min_delta = getattr(args, "selection_min_delta", 0.0)
     loss_weight_normalization = getattr(args, "loss_weight_normalization", "batch")
+    early_validation_max_updates = getattr(args, "early_validation_max_updates", 0)
     if not math.isfinite(selection_min_delta) or not 0 <= selection_min_delta <= 1:
         raise ValueError("selection_min_delta must be finite and in [0,1]")
     if loss_weight_normalization not in ("batch", "global-mean"):
         raise ValueError("Unsupported loss weight normalization")
+    if (not isinstance(early_validation_max_updates, int) or isinstance(early_validation_max_updates, bool)
+            or not 0 <= early_validation_max_updates <= 1024):
+        raise ValueError("early_validation_max_updates must be an integer in [0,1024]")
     stop = StopController(args.max_seconds, Path(args.stop_file) if args.stop_file else None)
     timing_started = time.perf_counter()
     timings = {name: 0.0 for name in (
         "runtimeInit", "prepareData", "mappedDataAndCudaLoad", "modelInitOrResume",
-        "baselineValidation", "baselineDiagnostics", "trainAndControl", "epochValidation",
+        "baselineValidation", "baselineDiagnostics", "trainAndControl", "epochValidation", "updateValidation",
         "checkpoint", "finalSynchronization", "diagnosticsExportParity")}
 
     def measured(name, operation, *arguments):
@@ -752,14 +767,17 @@ def train_command(args) -> dict:
                 "earlyStopMinDelta": early_stop_min_delta, "minEpochs": min_epochs,
                 "diagnosticSamples": diagnostic_samples,
                 "selectionMinDelta": selection_min_delta, "lossWeightNormalization": loss_weight_normalization,
+                "earlyValidationMaxUpdates": early_validation_max_updates,
                 "objective": "antisymmetric-confidence-family-mse-v2" if loss_weight_normalization == "batch" else "antisymmetric-confidence-family-global-mse-v3",
                 "trainerHash": digest_file(Path(__file__)),
                 "runtime": {"torchVersion": str(torch.__version__), "device": args.device, "cudaVersion": torch.version.cuda}}
     epoch, cursor, updates, samples_seen = 0, 0, 0, 0
     permutation, best_state, best_metric, history = None, None, None, []
     baseline_validation, best_epoch, patience_metric, stale_epochs = None, None, None, 0
+    best_update, best_validation_kind, best_cursor = None, None, None
+    validation_history, pending_validation = [], None
     early_stopped, baseline_diagnostics = False, {}
-    previous_elapsed = 0.0
+    previous_elapsed, previous_loss = 0.0, None
     if args.resume:
         saved = torch.load(checkpoint, map_location="cpu", weights_only=True)
         if saved.get("status") not in ("running", "interrupted", "completed"):
@@ -781,14 +799,17 @@ def train_command(args) -> dict:
             torch.cuda.set_rng_state_all(saved["cudaRngState"])
         best_state, best_metric, history = saved["bestState"], saved["bestMetric"], saved["history"]
         baseline_validation, best_epoch = saved["baselineValidation"], saved["bestEpoch"]
+        best_update, best_validation_kind, best_cursor = (saved["bestUpdate"], saved["bestValidationKind"], saved["bestCursor"])
+        validation_history, pending_validation = saved["validationHistory"], saved["pendingValidation"]
         patience_metric, stale_epochs = saved["patienceMetric"], saved["staleEpochs"]
         early_stopped, baseline_diagnostics = saved["earlyStopped"], saved["baselineDiagnostics"]
         previous_elapsed, warm_start = saved["elapsedSeconds"], saved.get("warmStartModelId")
+        previous_loss = saved.get("currentLoss")
         warm_start_scale = saved["initEvaluationScale"]
     mean, scale = (torch.tensor(manifest["normalization"][key], device=args.device) for key in ("mean", "scale"))
     timings["modelInitOrResume"] = (time.perf_counter() - model_started) * 1000
     training_timing_started = time.perf_counter()
-    training_start, current_loss, run_updates = time.monotonic(), None, 0
+    training_start, current_loss, run_updates = time.monotonic(), previous_loss, 0
     last_loss, execution_permutation = None, None
     before_training = model[0].weight.detach().cpu().clone()
     initial_samples_seen = samples_seen
@@ -800,6 +821,7 @@ def train_command(args) -> dict:
         if baseline_validation:
             best_metric = patience_metric = baseline_validation["all"]
             best_epoch = 0
+            best_update, best_validation_kind, best_cursor = 0, "baseline", 0
             best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
         diagnostics_started = time.perf_counter()
         for split, rows in (("train", train_rows), ("validation", validation_rows)):
@@ -817,12 +839,15 @@ def train_command(args) -> dict:
         temporary = destination.with_name(destination.name + ".tmp-" + str(os.getpid()))
         saved = {"schemaVersion": 1, "identity": identity, "modelState": model.state_dict(),
                  "optimizerState": optimizer.state_dict(), "epoch": epoch, "cursor": cursor,
+                 "currentLoss": current_loss,
                  "updates": updates, "samplesSeen": samples_seen, "permutation": permutation,
                  "generatorState": generator.get_state(), "torchRngState": torch.get_rng_state(),
                  "pythonRngState": random.getstate(),
                  "cudaRngState": torch.cuda.get_rng_state_all() if args.device == "cuda" else None,
                  "bestState": best_state, "bestMetric": best_metric, "history": history,
                  "baselineValidation": baseline_validation, "bestEpoch": best_epoch,
+                 "bestUpdate": best_update, "bestValidationKind": best_validation_kind, "bestCursor": best_cursor,
+                 "validationHistory": validation_history, "pendingValidation": pending_validation,
                  "patienceMetric": patience_metric, "staleEpochs": stale_epochs,
                  "earlyStopped": early_stopped, "baselineDiagnostics": baseline_diagnostics,
                  "elapsedSeconds": previous_elapsed + time.monotonic() - training_start,
@@ -836,6 +861,35 @@ def train_command(args) -> dict:
     def save_checkpoint(status):
         return measured("checkpoint", write_checkpoint, status)
 
+    def select_validation(metrics, kind):
+        nonlocal best_metric, best_epoch, best_state, best_update, best_validation_kind, best_cursor
+        accepted = bool(metrics and (best_metric is None or metrics["all"] < best_metric - selection_min_delta))
+        if accepted:
+            best_metric = metrics["all"]
+            # An update check has not completed an epoch. The cursor/update
+            # identify its exact selected state without claiming otherwise.
+            best_epoch = epoch + 1 if kind == "epoch" else None
+            best_update, best_validation_kind, best_cursor = updates, kind, cursor
+            best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
+        return accepted
+
+    def finish_pending_validation():
+        nonlocal pending_validation
+        metrics = measured("updateValidation", validate, torch, model, execution_validation,
+                           mean, scale, args.batch_size, args.device, stop,
+                           execution_validation_family, family_balance)
+        if metrics is None:
+            return False
+        accepted = select_validation(metrics, "early-update")
+        row = {**pending_validation, "validation": metrics, "selectionAccepted": accepted}
+        validation_history.append(row)
+        pending_validation = None
+        # Save both the completed selection and cleared pending marker. Resume
+        # never steps past a scheduled check that was interrupted partway.
+        save_checkpoint("running")
+        emit({"event": "update-validation", **row})
+        return True
+
     model.train()
     # Establish a rollback boundary before the first optimizer update. Resume
     # retains its prior good checkpoint, and errors never overwrite this file.
@@ -845,6 +899,9 @@ def train_command(args) -> dict:
         while epoch < args.epochs and not early_stopped:
             reason = stop.reason()
             if reason:
+                break
+            if pending_validation is not None and not finish_pending_validation():
+                reason = stop.reason() or "validation-incomplete"
                 break
             if permutation is None:
                 permutation = torch.randperm(len(train_rows), generator=generator)
@@ -881,6 +938,15 @@ def train_command(args) -> dict:
                 samples_seen += len(selected)
                 updates += 1
                 run_updates += 1
+                if early_validation_due(epoch, updates, early_validation_max_updates, cursor, len(train_rows)):
+                    pending_validation = {"epochIndex": epoch, "updates": updates, "cursor": cursor,
+                                          "kind": "early-update"}
+                    # Persist the exact optimizer/RNG boundary before scanning
+                    # validation, so an interrupted scan can resume this state.
+                    save_checkpoint("running")
+                    if not finish_pending_validation():
+                        reason = stop.reason() or "validation-incomplete"
+                        break
                 if updates % args.checkpoint_every == 0:
                     save_checkpoint("running")
                     emit({"event": "checkpoint", "epoch": epoch, "cursor": cursor, "updates": updates, "loss": current_loss})
@@ -892,11 +958,11 @@ def train_command(args) -> dict:
             if stop.reason():
                 reason = stop.reason()
                 break
-            selection_accepted = bool(metrics and (best_metric is None or metrics["all"] < best_metric - selection_min_delta))
-            if selection_accepted:
-                best_metric = metrics["all"]
-                best_epoch = epoch + 1
-                best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
+            selection_accepted = select_validation(metrics, "epoch")
+            if metrics:
+                validation_history.append({"epochIndex": epoch, "updates": updates, "cursor": cursor,
+                                           "kind": "epoch", "validation": metrics,
+                                           "selectionAccepted": selection_accepted})
             if metrics:
                 if patience_metric is None or metrics["all"] < patience_metric - early_stop_min_delta:
                     patience_metric, stale_epochs = metrics["all"], 0
@@ -930,7 +996,7 @@ def train_command(args) -> dict:
     elapsed = time.monotonic() - training_start
     training_timing_ms = (time.perf_counter() - training_timing_started) * 1000
     timings["trainAndControl"] = max(0.0, training_timing_ms - sum(timings[name] for name in (
-        "baselineValidation", "baselineDiagnostics", "epochValidation", "checkpoint", "finalSynchronization")))
+        "baselineValidation", "baselineDiagnostics", "epochValidation", "updateValidation", "checkpoint", "finalSynchronization")))
     if not updates:
         report = {"status": "interrupted", "stopReason": reason, "updates": 0, "checkpoint": str(checkpoint),
                   "modelExported": False, "datasetHash": manifest["datasetHash"], "device": device,
@@ -946,13 +1012,18 @@ def train_command(args) -> dict:
                    for split, rows in (("train", train_rows), ("validation", validation_rows))}
     diagnostics["scope"] = "Bounded deterministic train/validation value samples; score changes do not prove different search decisions or playing strength. Final-test data were not opened."
     training = {"datasetHash": manifest["datasetHash"], "trainerHash": identity["trainerHash"],
+                "seed": args.seed,
                 "updates": updates, "epochsCompleted": epoch,
                 "status": status, "stopReason": reason, "trainSamples": manifest["counts"]["train"],
                 "validationSamples": manifest["counts"]["validation"], "excludedTestSamples": manifest["counts"]["test"],
                 "validationMse": best_metric, "selection": "best-completed-validation" if best_state else "latest-no-completed-validation",
-                "baselineValidation": baseline_validation, "bestEpoch": best_epoch, "selectedBaseline": best_epoch == 0,
+                "baselineValidation": baseline_validation, "bestEpoch": best_epoch,
+                "bestUpdate": best_update, "bestValidationKind": best_validation_kind, "bestCursor": best_cursor,
+                "selectedBaseline": best_validation_kind == "baseline",
                 "baselineKind": "warm-start-model" if warm_start else "seeded-initial-network",
-                "exportUsesTrainedEpoch": best_epoch is None or best_epoch > 0,
+                "exportUsesTrainedEpoch": best_validation_kind == "epoch",
+                "exportUsesTrainingUpdates": best_update is None or best_update > 0,
+                "earlyValidationMaxUpdates": early_validation_max_updates,
                 "familyBalance": family_balance, "earlyStopPatience": early_stop_patience,
                 "earlyStopMinDelta": early_stop_min_delta, "minEpochs": min_epochs,
                 "selectionMinDelta": selection_min_delta, "lossWeightNormalization": loss_weight_normalization,
@@ -978,7 +1049,8 @@ def train_command(args) -> dict:
               "datasetHash": manifest["datasetHash"], "counts": manifest["counts"], "families": manifest["families"],
               "labelTypes": manifest["labelTypes"], "duplicatesIgnored": manifest["duplicatesIgnored"],
               "familyWeights": manifest["familyWeights"], "diagnostics": diagnostics,
-              "training": training, "history": history, "device": device, "parity": {"passed": True, "maxAbsoluteError": parity["maxAbsoluteError"]},
+              "training": training, "history": history, "validationHistory": validation_history,
+              "pendingValidation": pending_validation, "device": device, "parity": {"passed": True, "maxAbsoluteError": parity["maxAbsoluteError"]},
               "evaluationBoundary": "No final-test metrics or automatic adoption; engine arena must decide candidate adoption"}
     atomic_json(output, exported)
     atomic_json(Path(str(output) + ".parity.json"), parity)
@@ -1036,6 +1108,8 @@ def parse_args():
                        help="Best-model selection requires this absolute completed validation MSE improvement; choose before a new experiment")
     train.add_argument("--early-stop-patience", type=int, default=0, help="Completed validation epochs without meaningful improvement; 0 disables")
     train.add_argument("--early-stop-min-delta", type=float, default=0.0)
+    train.add_argument("--early-validation-max-updates", type=int, default=0,
+                       help="Full validation at first-epoch power-of-two updates up to this cap (0 disables; max 1024)")
     train.add_argument("--min-epochs", type=int, default=1)
     train.add_argument("--diagnostic-samples", type=int, default=512, help="Bounded value-change samples per train/validation split; never final-test")
     verify = commands.add_parser("verify-export", help="Check JSON inference against PyTorch CPU")
@@ -1059,6 +1133,8 @@ def parse_args():
             parser.error("--selection-min-delta must be finite and in [0,1]")
         if not 0 <= args.early_stop_patience <= 1000 or not math.isfinite(args.early_stop_min_delta) or not 0 <= args.early_stop_min_delta <= 1:
             parser.error("Invalid validation early-stop settings")
+        if not 0 <= args.early_validation_max_updates <= 1024:
+            parser.error("--early-validation-max-updates must be in [0,1024]")
         if not 1 <= args.min_epochs <= args.epochs or not 1 <= args.diagnostic_samples <= 4096:
             parser.error("Invalid minimum epochs or diagnostic sample bound")
     return args

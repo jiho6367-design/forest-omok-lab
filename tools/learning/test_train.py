@@ -216,15 +216,183 @@ class NetworkContract(unittest.TestCase):
     def test_cpu_mid_epoch_resume_preserves_optimizer_rng_and_result(self):
         self.assert_mid_epoch_resume("cpu")
 
+    def early_validation_fixture(self, folder):
+        rows = []
+        for i in range(24):
+            split = "train" if i < 16 else "validation"
+            features = [((i * 17 + j * 11) % 101) / 101 for j in range(32)]
+            row = sample(str(i), split + "-family-" + str(i), split, 0)
+            row["features"], row["target"] = features, features[0] - features[12]
+            rows.append(row)
+        final = sample("opaque-final", "opaque-final-family", "test", 0)
+        final["features"] = final["target"] = "unopened final-test payload"
+        rows.append(final)
+        data, initial_file = folder / "synthetic.jsonl", folder / "initial.json"
+        data.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+        self.torch.manual_seed(26)
+        initial = trainer.export_model(trainer.network(self.torch, 4),
+            {"normalization": {"mean": [0.0] * 32, "scale": [1.0] * 32}}, 4, 600, {})
+        initial_file.write_text(json.dumps(initial), encoding="utf-8")
+
+        def settings(name, resume=False, maximum=8):
+            target = folder / name
+            return SimpleNamespace(data=str(data), output=str(target / "model.json"),
+                checkpoint=str(target / "checkpoint.pt"), device="cpu", epochs=3, batch_size=4,
+                hidden_size=4, learning_rate=0.03, weight_decay=0.0001, scale=600, seed=42,
+                max_seconds=30, checkpoint_every=100, stop_file=str(folder / "stop"), resume=resume,
+                init_model=str(initial_file), selection_min_delta=0.0001,
+                early_validation_max_updates=maximum, early_stop_patience=1,
+                early_stop_min_delta=0.0001, min_epochs=2, diagnostic_samples=2)
+
+        return settings
+
+    def test_early_validation_policy_is_bounded_first_epoch_and_optional(self):
+        due = trainer.early_validation_due
+        self.assertEqual([i for i in range(1, 2049) if due(0, i, 1024, i, 2049)],
+                         [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024])
+        self.assertFalse(due(0, 1, 0, 4, 16))
+        self.assertFalse(due(1, 1, 8, 4, 16))
+        self.assertFalse(due(0, 4, 8, 16, 16))
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self.early_validation_fixture(Path(temporary))
+            for maximum in (-1, 1025, 0.5, True):
+                with self.subTest(maximum=maximum), self.assertRaisesRegex(ValueError, "integer in"):
+                    trainer.train_command(settings("invalid", maximum=maximum))
+
+    def test_transient_improvement_selects_real_update_without_claiming_completed_epoch(self):
+        # Real forward/backward/optimizer updates, with controlled full-check
+        # metrics to isolate selection. This fixture makes no strength claim.
+        torch = self.torch
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self.early_validation_fixture(Path(temporary))
+            real_validate, selected_weights, checks = trainer.validate, None, 0
+
+            def validate(*args):
+                nonlocal checks, selected_weights
+                self.assertEqual(len(args[2]), 8, "Selection must use every validation row, not diagnostic samples")
+                self.assertIsNotNone(real_validate(*args))
+                checks += 1
+                if checks == 2:
+                    selected_weights = {key: value.detach().cpu().clone() for key, value in args[1].state_dict().items()}
+                value = {1: 0.1, 2: 0.0998, 3: 0.0999}.get(checks, 0.11)
+                return {"all": value, "terminal": value, "teacher": None, "unbalancedAll": value}
+
+            with mock.patch.object(trainer, "validate", side_effect=validate):
+                result = trainer.train_command(settings("early"))
+            trained = result["training"]
+            self.assertFalse(trained["selectedBaseline"])
+            self.assertEqual((trained["bestUpdate"], trained["bestCursor"], trained["bestValidationKind"]),
+                             (1, 4, "early-update"))
+            self.assertIsNone(trained["bestEpoch"])
+            self.assertFalse(trained["exportUsesTrainedEpoch"])
+            self.assertTrue(trained["exportUsesTrainingUpdates"])
+            self.assertEqual(trained["epochsCompleted"], 2, "Patience counts completed epochs, not early checks")
+            self.assertEqual(trained["validationMse"], 0.0998)
+            self.assertGreater(result["diagnostics"]["validation"]["maximumAbsoluteScoreChange"], 0)
+            self.assertEqual(result["training"]["excludedTestSamples"], 1)
+            self.assertIsNone(result["pendingValidation"])
+            saved = torch.load(settings("early").checkpoint, map_location="cpu", weights_only=True)
+            for key in selected_weights:
+                self.assertTrue(torch.equal(saved["bestState"][key], selected_weights[key]))
+            self.assertFalse(torch.equal(saved["modelState"]["0.weight"], saved["bestState"]["0.weight"]))
+            self.assertEqual([row["kind"] for row in result["validationHistory"]],
+                             ["early-update", "early-update", "epoch", "epoch"])
+            # Disabling the new policy keeps the prior epoch-end selection.
+            metrics = {"all": 0.1, "terminal": 0.1, "teacher": None, "unbalancedAll": 0.1}
+            worse = {**metrics, "all": 0.11}
+            with mock.patch.object(trainer, "validate", side_effect=[metrics, worse, worse]):
+                legacy = trainer.train_command(settings("legacy", maximum=0))
+            self.assertTrue(legacy["training"]["selectedBaseline"])
+
+    def test_incomplete_early_validation_resumes_before_step_and_matches_uninterrupted(self):
+        torch = self.torch
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            settings = self.early_validation_fixture(folder)
+            real_validate, original_step = trainer.validate, torch.optim.AdamW.step
+            state = {"steps": 0, "interrupt": False, "pendingResumed": False}
+
+            def step(optimizer, *args, **kwargs):
+                # After the incomplete update-1 scan, resume must finish that
+                # same scan before touching optimizer state for update 2.
+                if state["pendingResumed"]:
+                    self.assertEqual(state["steps"], 1)
+                    self.assertTrue(state["pendingCompleted"])
+                    state["pendingResumed"] = False
+                value = original_step(optimizer, *args, **kwargs)
+                state["steps"] += 1
+                return value
+
+            def validate(*args):
+                self.assertEqual(len(args[2]), 8)
+                if state["interrupt"] and state["steps"] == 1:
+                    state["interrupt"] = False
+                    # Interrupt an actual full scan after its first batch.
+                    with mock.patch.object(args[7], "reason", side_effect=[None, "stop-file"]):
+                        self.assertIsNone(real_validate(*args))
+                    (folder / "stop").write_text("interrupt validation", encoding="utf-8")
+                    return None
+                self.assertIsNotNone(real_validate(*args))
+                if state["pendingResumed"]:
+                    self.assertEqual(state["steps"], 1)
+                    state["pendingCompleted"] = True
+                value = {0: 0.1, 1: 0.0998, 2: 0.0999}.get(state["steps"], 0.11)
+                return {"all": value, "terminal": value, "teacher": None, "unbalancedAll": value}
+
+            with mock.patch.object(trainer, "validate", side_effect=validate), mock.patch.object(torch.optim.AdamW, "step", step):
+                clean = trainer.train_command(settings("clean"))
+                state.update(steps=0, interrupt=True)
+                partial = trainer.train_command(settings("resumed"))
+                self.assertEqual(partial["training"]["updates"], 1)
+                self.assertTrue(partial["training"]["selectedBaseline"])
+                self.assertEqual(partial["validationHistory"], [])
+                self.assertEqual(partial["pendingValidation"],
+                                 {"epochIndex": 0, "updates": 1, "cursor": 4, "kind": "early-update"})
+                saved_partial = torch.load(settings("resumed").checkpoint, map_location="cpu", weights_only=True)
+                self.assertEqual(saved_partial["pendingValidation"], partial["pendingValidation"])
+                (folder / "stop").unlink()
+                with self.assertRaisesRegex(ValueError, "identity differs"):
+                    trainer.train_command(settings("resumed", resume=True, maximum=16))
+                state.update(pendingResumed=True, pendingCompleted=False)
+                resumed = trainer.train_command(settings("resumed", resume=True))
+            self.assertEqual(resumed["modelId"], clean["modelId"])
+            self.assertEqual(resumed["training"], clean["training"])
+            self.assertEqual(resumed["history"], clean["history"])
+            self.assertEqual(resumed["validationHistory"], clean["validationHistory"])
+            self.assertEqual(resumed["diagnostics"], clean["diagnostics"])
+            self.assertIsNone(resumed["pendingValidation"])
+            a, b = [torch.load(settings(name).checkpoint, map_location="cpu", weights_only=True)
+                    for name in ("clean", "resumed")]
+            for section in ("modelState", "bestState"):
+                for key in a[section]:
+                    self.assertTrue(torch.equal(a[section][key], b[section][key]))
+            self.assertTrue(torch.equal(a["generatorState"], b["generatorState"]))
+            self.assertTrue(torch.equal(a["torchRngState"], b["torchRngState"]))
+            for key, value in a["optimizerState"]["state"].items():
+                for name, tensor in value.items():
+                    self.assertTrue(torch.equal(tensor, b["optimizerState"]["state"][key][name]))
+
     def test_global_mean_objective_and_selection_tolerance_resume_exactly_on_cpu(self):
         self.assert_mid_epoch_resume("cpu", "global-mean", 0.0001)
+
+    def test_real_early_validation_and_global_objective_resume_exactly_on_cpu(self):
+        self.assert_mid_epoch_resume("cpu", "global-mean", 0.0001, 128)
+
+    def test_resume_after_final_batch_preserves_completed_epoch_history(self):
+        self.assert_mid_epoch_resume("cpu", "global-mean", 0.0001, 128, 4)
 
     def test_cuda_resident_mid_epoch_resume_matches_mapped_execution(self):
         if not self.torch.cuda.is_available():
             self.skipTest("CUDA runtime is unavailable")
         self.assert_mid_epoch_resume("cuda")
 
-    def assert_mid_epoch_resume(self, device, normalization="batch", selection_min_delta=0.0):
+    def test_cuda_early_validation_resume_matches_uninterrupted_and_mapped_execution(self):
+        if not self.torch.cuda.is_available():
+            self.skipTest("CUDA runtime is unavailable")
+        self.assert_mid_epoch_resume("cuda", "global-mean", 0.0001, 128)
+
+    def assert_mid_epoch_resume(self, device, normalization="batch", selection_min_delta=0.0,
+                               early_validation_max_updates=0, stop_after_updates=2):
         with tempfile.TemporaryDirectory() as temporary:
             folder = Path(temporary)
             rows = []
@@ -249,7 +417,8 @@ class NetworkContract(unittest.TestCase):
                     max_seconds=30, checkpoint_every=100, stop_file=str(folder / "stop"),
                     resume=resume, init_model=None, family_balance=1.0, early_stop_patience=10,
                     early_stop_min_delta=0.00001, min_epochs=2, diagnostic_samples=12,
-                    loss_weight_normalization=normalization, selection_min_delta=selection_min_delta)
+                    loss_weight_normalization=normalization, selection_min_delta=selection_min_delta,
+                    early_validation_max_updates=early_validation_max_updates)
 
             baseline = trainer.train_command(settings("baseline"))
             original_step = self.torch.optim.AdamW.step
@@ -259,14 +428,14 @@ class NetworkContract(unittest.TestCase):
                 nonlocal steps
                 value = original_step(optimizer, *args, **kwargs)
                 steps += 1
-                if steps == 2:
+                if steps == stop_after_updates:
                     (folder / "stop").write_text("test interruption", encoding="utf-8")
                 return value
 
             with mock.patch.object(self.torch.optim.AdamW, "step", stop_after_two):
                 interrupted = trainer.train_command(settings("resumed"))
             self.assertEqual(interrupted["status"], "interrupted")
-            self.assertEqual(interrupted["training"]["updates"], 2)
+            self.assertEqual(interrupted["training"]["updates"], stop_after_updates)
             (folder / "stop").unlink()
             resumed = trainer.train_command(settings("resumed", resume=True))
             self.assertEqual(resumed["status"], "completed")
@@ -278,6 +447,11 @@ class NetworkContract(unittest.TestCase):
             self.assertEqual(resumed["device"]["trainedOnCuda"], device == "cuda")
             self.assertEqual(baseline["diagnostics"], resumed["diagnostics"])
             self.assertEqual(baseline["training"]["bestEpoch"], resumed["training"]["bestEpoch"])
+            self.assertEqual(baseline["training"]["bestUpdate"], resumed["training"]["bestUpdate"])
+            self.assertEqual(baseline["training"]["bestValidationKind"], resumed["training"]["bestValidationKind"])
+            self.assertEqual(baseline["validationHistory"], resumed["validationHistory"])
+            self.assertEqual(baseline["history"], resumed["history"])
+            self.assertEqual(resumed["training"]["seed"], 42)
             self.assertEqual(resumed["diagnostics"]["train"]["samples"], 12)
             self.assertEqual(resumed["training"]["excludedTestSamples"], 1)
             self.assertEqual(resumed["training"]["lossWeightNormalization"], normalization)
@@ -291,6 +465,7 @@ class NetworkContract(unittest.TestCase):
                 self.assertEqual(a["layers"], c["layers"])
                 self.assertEqual(a["modelId"], c["modelId"])
                 self.assertEqual(baseline["history"], mapped["history"])
+                self.assertEqual(baseline["validationHistory"], mapped["validationHistory"])
 
     def test_residency_respects_free_memory_before_allocating(self):
         torch = self.torch

@@ -6,6 +6,10 @@ function context(name,extra={}){const c=S.init(path.join(dir,name),{...runner.co
 (async()=>{
  let checks=0,c=context('rolling');const targets=[],trains=[];
  assert.equal(c.settings.priority,'above-normal');
+ assert.equal(c.settings.earlyValidationMaxUpdates,128);assert.equal(c.settings.trainingSeed,20261007);
+ const explicit=runner.options(runner.parse(['cycle','--early-validation-max-updates=64','--training-seed=42']));assert.equal(explicit.earlyValidationMaxUpdates,64);assert.equal(explicit.trainingSeed,42);runner.validateSettings({...c.settings,...explicit});
+ for(const value of [-1,1.5,1025])assert.throws(()=>runner.validateSettings({...c.settings,earlyValidationMaxUpdates:value}),/early-validation/);
+ assert.throws(()=>runner.validateSettings({...c.settings,trainingSeed:-1}),/training seed/);
  const priorities=require('node:os').constants.priority;
  for(const [name,value] of [['above-normal',priorities.PRIORITY_ABOVE_NORMAL],['normal',priorities.PRIORITY_NORMAL],['below-normal',priorities.PRIORITY_BELOW_NORMAL]]){
   assert.equal(runner.priorityValue(name),value);const settings={...c.settings,...runner.options(runner.parse(['cycle','--priority='+name]))};runner.validateSettings(settings);assert.equal(runner.continuousProfile({continuous:true,priority:name}).priority,name);

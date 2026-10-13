@@ -13,6 +13,7 @@ assert.equal(vm.runInContext('lastAdoption(run.state,run.adoption).cycle',contex
 delete context.run.candidate.training.warmStartModelId;vm.runInContext('renderSelected(run)',context);assert.match(elements.get('gpu').textContent,/초기값 유지/);
 context.run.candidate.training={selectedBaseline:false,epochsCompleted:20,validationMse:.699};
 vm.runInContext('renderSelected(run)',context);assert.match(elements.get('gpu').textContent,/새 학습 후보 선택/);assert(!elements.get('training').textContent.includes('새 가중치 미선택'));
+context.run.candidate.training.bestUpdate=2;context.run.candidate.training.bestValidationKind='early-update';vm.runInContext('renderSelected(run)',context);assert.match(elements.get('training').textContent,/선택 가중치: 업데이트 2.*전체 검증 완료/);
 context.run.candidate.hash='current-candidate';context.run.arena={complete:true,passed:true,identityVerified:true,candidateHash:'current-candidate',candidateModelId:'fixture',cycle:80,trial:85};
 context.run.adoption={...current,decision:'insufficient-evidence',reason:'평가가 미완료여서 기존 엔진을 유지합니다.'};context.run.state.phase='adopt';context.run.state.status='failed';
 vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/검증은 통과.*모델 적용 중 오류/);assert(!elements.get('validation').textContent.includes('미완료여서'));

@@ -40,6 +40,11 @@ async function failure(name,result,expected,{stale=false}={}){
  // argv to a tiny generated Node script. No ChildProcess event is mocked.
  // It writes a small final JSON+stderr and exits2 while data delivery is paused.
  // Exit observes unread pipes; close follows their genuine drain and closure.
+ for(const [override,expected] of [[20261007,20261007],[null,42]]){
+  const fixture=context('seed-and-checkpoint-policy');fixture.c.settings.seed=42;fixture.c.settings.trainingSeed=override;fixture.c.settings.earlyValidationMaxUpdates=128;
+  try{assert.equal(await runner.train(fixture.c,{execute:async({args,output})=>{assert.equal(args[args.indexOf('--seed')+1],String(expected));assert.equal(args[args.indexOf('--early-validation-max-updates')+1],'128');const candidate=model(fixture.hash,2);S.atomic(output,candidate);S.atomic(output+'.training.json',{status:'completed',modelExported:true,modelId:candidate.modelId,datasetHash:fixture.hash,training:candidate.training,device:{finite:true,updatesThisRun:2}});return {code:0,elapsedMs:1,stdout:'',stderr:''};}}),true);checks++;}finally{J.close(fixture.c.dir);}
+ }
+ console.log('PASS explicit training seed, shared-seed fallback and early full-validation policy reach actual trainer argv');
  const real=context('real-child-pipe-close'),script=path.join(base,'pipe-tail.cjs');
  const finalError={status:'error',type:'ValueError',error:'Invalid data at line 1: Invalid sampleId'},finalStderr='benign delayed-pipe runtime warning';
  fs.writeFileSync(script,"'use strict';process.stdout.write("+JSON.stringify(JSON.stringify(finalError)+'\n')+");process.stderr.write("+JSON.stringify(finalStderr)+");process.exitCode=2;\n");

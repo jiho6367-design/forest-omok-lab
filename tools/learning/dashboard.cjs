@@ -40,7 +40,7 @@ const PRESETS={
   standard:{minutes:null,games:128,pairs:32,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:10},
   extended:{minutes:null,games:1024,pairs:64,minPairs:32,moveMs:80,analysisMs:600,validationMs:1000,workers:1,epochs:20}
 };
-const LIMITS={games:[1,1000000],gamesPerCycle:[1,10000],minNewSamples:[1,1000000],maxTrainingSamples:[100,1000000],pairs:[1,2048],minPairs:[32,2048],moveMs:[30,10000],analysisMs:[50,30000],validationMs:[50,30000],workers:[1,16],epochs:[1,1000]};
+const LIMITS={games:[1,1000000],gamesPerCycle:[1,10000],minNewSamples:[1,1000000],maxTrainingSamples:[100,1000000],pairs:[1,2048],minPairs:[32,2048],moveMs:[30,10000],analysisMs:[50,30000],validationMs:[50,30000],workers:[1,16],epochs:[1,1000],earlyValidationMaxUpdates:[0,1024],trainingSeed:[0,4294967295]};
 function inside(root,target){const relative=path.relative(root,target);return relative===''||(!relative.startsWith('..'+path.sep)&&relative!=='..'&&!path.isAbsolute(relative));}
 function fail(status,message){const error=new Error(message);error.status=status;return error;}
 function configuration(body){
@@ -181,7 +181,7 @@ function createDashboard(options={}){
     const args=[selected.runner,...(selected.argsPrefix||[]),'cycle','--run='+run,'--python='+python,'--device=cuda'];
     if(resume){args.push('--resume');if(config?.maxDiskGiB!=null)args.push('--max-disk-gb='+config.maxDiskGiB);}else{
       if(checkedFile(run,'uploaded-records.json'))args.push('--input='+path.join(run,'uploaded-records.json'));
-      const keys={games:'games',gamesPerCycle:'games-per-cycle',minNewSamples:'min-new-samples',recordBranchFraction:'record-branch-fraction',maxTrainingSamples:'max-training-samples',pairs:'pairs',minPairs:'min-pairs',moveMs:'move-ms',analysisMs:'analysis-ms',validationMs:'validation-ms',workers:'workers',epochs:'epochs',trainSeconds:'train-seconds',learningRate:'learning-rate',minimumUsefulImprovement:'minimum-useful-improvement',targetPower:'target-power',maxEvaluationPairs:'max-evaluation-pairs'};
+      const keys={games:'games',gamesPerCycle:'games-per-cycle',minNewSamples:'min-new-samples',recordBranchFraction:'record-branch-fraction',maxTrainingSamples:'max-training-samples',pairs:'pairs',minPairs:'min-pairs',moveMs:'move-ms',analysisMs:'analysis-ms',validationMs:'validation-ms',workers:'workers',epochs:'epochs',trainSeconds:'train-seconds',learningRate:'learning-rate',earlyValidationMaxUpdates:'early-validation-max-updates',trainingSeed:'training-seed',minimumUsefulImprovement:'minimum-useful-improvement',targetPower:'target-power',maxEvaluationPairs:'max-evaluation-pairs'};
       for(const [key,flag] of Object.entries(keys))if(config[key]!=null)args.push('--'+flag+'='+config[key]);
       if(config.continuous)args.push('--continuous');if(fromRun)args.push('--from-run='+fromRun);
       if(fromRun&&continuationMode==='raw-reset')args.push('--continuation-mode=raw-reset','--fresh-model');
