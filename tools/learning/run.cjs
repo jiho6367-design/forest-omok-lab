@@ -134,7 +134,8 @@ async function cycle(context,args,deadline=Infinity,hooks={}){
   }else if(pipeline.stage==='train'){
    if(deadline-Date.now()<2000)return false;
    if(continuous&&trainStage===train){const file=path.join(context.dir,'datasets/cycle-'+context.state.cycle+'.jsonl'),manifest=await snapshotData(context,file);if(!manifest.counts.train||!manifest.counts.validation){context.state.training={status:'waiting-data',modelExported:false,reason:'학습과 검증을 나눌 독립 자료가 더 필요합니다.'};context.state.cycle++;context.state.pipeline={stage:'generate',target:nextTarget()};S.save(context);continue;}}
-   pipeline.trainingSampleCount??=context.state.dataset?.selection?.sourceRows??context.state.counters.samples;S.save(context);
+   // This is the cumulative generation cursor, not the bounded replay row count.
+   pipeline.trainingSampleCount??=context.state.counters.samples;S.save(context);
    const trainDeadline=Math.min(deadline,Date.now()+context.settings.trainSeconds*1000);
    const overlap=continuous&&context.settings.concurrentTraining&&(trainStage===train||hooks.overlap===true);
    const ok=await timed(context,'train',()=>overlap?trainWithGeneration(context,{deadline:trainDeadline,trainStage,generate}):trainStage(context,{deadline:trainDeadline,trainedThroughSamples:pipeline.trainingSampleCount}));
@@ -152,7 +153,7 @@ async function cycle(context,args,deadline=Infinity,hooks={}){
    pipeline.stage='cycle-end';S.save(context);
   }else if(pipeline.stage==='cycle-end'){
    if(!continuous&&context.state.counters.generatedGames>=total)return true;
-   require('./storage.cjs').pruneDerived(context);context.state.cycle++;context.state.pipeline={stage:'analyze',target:nextTarget()};context.state.message='검증 결과를 보관하고 다음 새 경험을 누적합니다.';S.save(context);
+   const storage=require('./storage.cjs');storage.pruneDerived(context);storage.maintainExperience(context);context.state.cycle++;context.state.pipeline={stage:'analyze',target:nextTarget()};context.state.message='검증 결과를 보관하고 다음 새 경험을 누적합니다.';S.save(context);
   }else throw Error('Unknown pipeline stage '+pipeline.stage);
  }
  return false;
@@ -182,6 +183,7 @@ async function main(argv=process.argv.slice(2),hooks={}){
  const initialize=lease=>{
   const fresh=!fs.existsSync(path.join(dir,'state.json'));if(args['continuation-mode']!=null&&!['normal','raw-reset'].includes(args['continuation-mode']))throw Error('Invalid continuation mode');if(fresh&&args['continuation-mode']==='raw-reset'&&(!args['from-run']||given.freshModel!==true))throw Error('Raw experience recovery requires --from-run and --fresh-model in a new run');if(fresh&&args['from-run']&&args['continuation-mode']!=='raw-reset')C.continuationPreflight(args['from-run']);
   context=S.init(dir,fresh?continuousProfile(given):given);validateSettings(context.settings);S.checkIdentity(context);require('./trial-ledger.cjs').reconcile(context);release=S.lock(dir);
+  const storage=require('./storage.cjs');storage.configureStorage(context,{enable:fresh&&context.settings.continuous});storage.maintainExperience(context);
   if(retention){if(args['from-run']){context.state.pendingContinuationSource=S.resolveRun(args['from-run']);S.save(context);}const protectedIds=args['from-run']&&directRunRetentionRoot(S.resolveRun(args['from-run']),hooks.retentionRunsRoot)?[path.basename(S.resolveRun(args['from-run']))]:[];const report=retention.enforceRetention(retentionRoot,{lease,repo:S.ROOT,protectedIds});context.state.runRetention=retentionMessage('start',report);console.log(JSON.stringify(context.state.runRetention));}
  };
  try{if(retention){fs.mkdirSync(retentionRoot,{recursive:true});await waitForRetentionGate(retentionRoot,initialize,hooks.retentionWaitMs??30000);}else initialize();}catch(error){C.close(dir);J.close(dir);release?.();throw error;}

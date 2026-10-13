@@ -162,15 +162,22 @@ function selectResumeRunner(run,{repo=ROOT}={}){
  const archived=state.identity?.harnessHash;if(/^[a-f0-9]{64}$/.test(archived||'')){const saved=S.read(path.join(repo,'work/runtime-archives',archived+'.json'));if(saved&&saved.identity.sourceHash===state.identity.sourceHash&&saved.identity.harnessHash===archived)return {runner:path.join(repo,'tools/learning/archive.cjs'),argsPrefix:['--archived-run','--runtime='+archived],snapshotFile:path.join(repo,'work/runtime-archives',archived+'.json'),cwd:repo};}
  throw Error('이 실험의 실행 버전을 찾을 수 없습니다. 저장된 경험을 새 누적 실험으로 이어 주세요.');
 }
-function applyExecutionPolicy(stateModule,storageModule){
+function applyExecutionPolicy(stateModule,storageModule,{journalModule,corpusModule}={}){
  const init=stateModule.init,defaults=stateModule.defaults,save=stateModule.save;
- stateModule.save=context=>{if(context.state.status==='stopped'&&/^(?:이번 실행 시간을 마쳤습니다\.|Time\/resource budget reached)/.test(context.state.message||''))context.state.message='현재 작업을 저장했습니다. 경험을 계속 누적하려면 같은 실험을 재개하세요.';return save(context);};
+ stateModule.save=context=>{if(context.state.status==='stopped'&&/^(?:이번 실행 시간을 마쳤습니다\.|Time\/resource budget reached)/.test(context.state.message||''))context.state.message='현재 작업을 저장했습니다. 경험을 계속 누적하려면 같은 실험을 재개하세요.';
+  if(context.state.experienceRetention?.retainedSamples!=null&&context.state.pipeline?.stage==='train'&&context.state.pipeline.trainingSampleCount==null)context.state.pipeline.trainingSampleCount=context.state.counters.samples;
+  return save(context);};
  stateModule.defaults=()=>({...defaults(),minutes:Infinity});
  stateModule.init=(...args)=>{const context=init(...args);context.settings.minutes=Infinity;context.state.executionPolicy={wholeRunTimeLimit:'none',archivedRuntime:true,storageAccounting:'host-budgeting-ENOENT-only',stageMinutes:context.settings.stageMinutes,trainSeconds:context.settings.trainSeconds};return context;};
  stateModule.diskBytes=require('./state.cjs').diskBytes;
- // Keep snapshot retirement and gameplay frozen; use the host's narrow fix for
- // budget reads and one shared reservation map while trainers rename temp files.
- if(storageModule){const current=require('./storage.cjs');for(const key of ['checkBudget','requireBudget','reserveTraining','remainingReservations'])storageModule[key]=current[key];}
+ // Scientific code stays frozen. Explicit host policy can retire mutable replay
+ // rows only at cycle-end, with immutable snapshots and exclusions preserved.
+ if(storageModule){const current=require('./storage.cjs');for(const key of ['checkBudget','requireBudget','reserveTraining','remainingReservations'])storageModule[key]=current[key];
+  const closures={closeJournal:()=>journalModule?.close(contextForLock?.dir),closeCorpus:()=>corpusModule?.close(contextForLock?.dir)},prune=storageModule.pruneDerived,initPolicy=stateModule.init,lock=stateModule.lock;let contextForLock;
+  stateModule.init=(...args)=>{const context=initPolicy(...args);contextForLock=context;return context;};
+  stateModule.lock=dir=>{const release=lock(dir);try{if(contextForLock?.dir===path.resolve(dir))current.maintainExperience(contextForLock,closures);return release;}catch(error){release();throw error;}};
+  storageModule.pruneDerived=(context,options)=>{const removed=prune(context,options);contextForLock=context;current.maintainExperience(context,closures);return removed;};
+ }
  return {wholeRunTimeLimit:'none',archivedRuntime:true,storageAccounting:'host-budgeting-ENOENT-only',transientMissingFiles:'skip-ENOENT-only'};
 }
 function frozenRuntime(snapshotFile=SNAPSHOT){
@@ -191,7 +198,9 @@ function frozenRuntime(snapshotFile=SNAPSHOT){
   const localRequire=id=>{if(id==='node:fs'||id==='fs')return frozenFs;if(id==='node:child_process'||id==='child_process')return frozenCp;if(id==='node:worker_threads'||id==='worker_threads')return frozenThreads;if(id.startsWith('.')||path.isAbsolute(id)){let name=relative(path.resolve(directory,id));if(!Object.hasOwn(sources,name))for(const suffix of ['.js','.cjs','.json','/index.js','/index.cjs'])if(Object.hasOwn(sources,name+suffix)){name+=suffix;break;}return load(name);}if(!builtinModules.includes(id)&&!builtinModules.includes(id.replace(/^node:/,'')))throw Error('Archived external dependency is not allowlisted (only native Node built-ins are allowed): '+id);return require(id);};
   if(key.endsWith('.json'))module.exports=JSON.parse(sources[key]);else vm.compileFunction(sources[key],['module','exports','require','__filename','__dirname'],{filename})(module,module.exports,localRequire,filename,directory);return module.exports;
  }
- const identity=load('tools/learning/state.cjs').sourceIdentity();if(identity.sourceHash!==snapshot.identity.sourceHash||identity.harnessHash!==snapshot.identity.harnessHash||snapshot.identity.version>=2&&identity.runtimeHash!==snapshot.identity.runtimeHash)throw Error('Preserved runtime identity mismatch');const executionPolicy=applyExecutionPolicy(load('tools/learning/state.cjs'),Object.hasOwn(sources,'tools/learning/storage.cjs')?load('tools/learning/storage.cjs'):null);if(Object.hasOwn(sources,'tools/learning/deployment.cjs'))wrapDeliveryPolicy(snapshot,load('tools/learning/deployment.cjs'));let startupWrapped=false;const operationalLoad=key=>{const exports=load(key);if(relative(path.join(ROOT,key))==='tools/learning/run.cjs'&&!startupWrapped){startupWrapped=true;wrapArchivedStartupPolicy(exports,load('tools/learning/state.cjs'));}return exports;};return {snapshot,load:operationalLoad,executionPolicy};
+ const identity=load('tools/learning/state.cjs').sourceIdentity();if(identity.sourceHash!==snapshot.identity.sourceHash||identity.harnessHash!==snapshot.identity.harnessHash||snapshot.identity.version>=2&&identity.runtimeHash!==snapshot.identity.runtimeHash)throw Error('Preserved runtime identity mismatch');
+ const executionPolicy=applyExecutionPolicy(load('tools/learning/state.cjs'),Object.hasOwn(sources,'tools/learning/storage.cjs')?load('tools/learning/storage.cjs'):null,{journalModule:Object.hasOwn(sources,'tools/learning/journal.cjs')?load('tools/learning/journal.cjs'):null,corpusModule:Object.hasOwn(sources,'tools/learning/corpus.cjs')?load('tools/learning/corpus.cjs'):null});
+ if(Object.hasOwn(sources,'tools/learning/deployment.cjs'))wrapDeliveryPolicy(snapshot,load('tools/learning/deployment.cjs'));let startupWrapped=false;const operationalLoad=key=>{const exports=load(key);if(relative(path.join(ROOT,key))==='tools/learning/run.cjs'&&!startupWrapped){startupWrapped=true;wrapArchivedStartupPolicy(exports,load('tools/learning/state.cjs'));}return exports;};return {snapshot,load:operationalLoad,executionPolicy};
 }
 if(!threads.isMainThread&&threads.workerData?.archivedWorkerModule)frozenRuntime(threads.workerData.snapshotFile).load(threads.workerData.archivedWorkerModule);
 else if(require.main===module){if(process.argv[2]!=='--archived-run')throw Error('Archive runner requires a trusted archived-run selection');const args=process.argv.slice(3);let snapshotFile=SNAPSHOT;if(args[0]?.startsWith('--runtime=')){const id=args.shift().slice(10);if(!/^[a-f0-9]{64}$/.test(id))throw Error('Invalid archived runtime identity');snapshotFile=path.join(ROOT,'work/runtime-archives',id+'.json');}const runtime=frozenRuntime(snapshotFile);console.log(JSON.stringify({archive:'execution-policy',...runtime.executionPolicy,preservedIdentity:runtime.snapshot.identity.harnessHash}));runtime.load('tools/learning/run.cjs').main(args).catch(error=>{console.error(error.stack||error);process.exitCode=1;});}
