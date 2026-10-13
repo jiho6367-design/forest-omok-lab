@@ -1,0 +1,517 @@
+{
+  "schemaVersion": 1,
+  "kind": "forest-omok-verified-adoption",
+  "runId": "run-20261010191342223-19db4f",
+  "cycle": 36,
+  "adoptedAt": "2026-10-13T07:51:21.916Z",
+  "modelId": "mlp-8119c9833971f1a5c8d9e6937fa1054f4636e2a817bf65637040ea81b2fbed70",
+  "accepted": true,
+  "transactionId": "032b68eab4b8e665c8d9eb907dd8e7431f586e5832967317f2ff2496ea0fb769",
+  "code": {
+    "evaluation": {
+      "version": 2,
+      "sourceHash": "313dd35cfa9ab75d9c25308139182823d61cc2ecb87f039bb1162b40fccd38df",
+      "harnessHash": "f8cdb48d86e2fa0f4d4c8bdd1ce5a49e952f8cadd2fa9106ec30d600c8eaa4da",
+      "runtimeHash": "8cddf88cba4b2c7ffbd39842192f7faa97884e9b1354c0cbf79762c223b37352",
+      "sourceManifest": [
+        {
+          "path": "build.cjs",
+          "sha256": "b6cefe8bbd1849bd6421abcbe0cf43d9fffaef1762808fda11e894c08fb6e767"
+        },
+        {
+          "path": "src/analysis-settings.js",
+          "sha256": "8a5bb67f10523cca1a8d6df396a9c0adb2ee8706d407b35d21b4dbadeed784ae"
+        },
+        {
+          "path": "src/app.js",
+          "sha256": "cb750d70b85af6a96d61e9ccfd28c9172c5c11c8666ae1fe9a52ba728d21b63b"
+        },
+        {
+          "path": "src/forest-engine.js",
+          "sha256": "e9c25744cbdac03465adefe45b45825dc47b15af69afcee8288e24618f3305d6"
+        },
+        {
+          "path": "src/gpu-app.js",
+          "sha256": "011454e8488cec1b604e4d4d5a3041a5dcc37373fa65f3f25d37485566ae1402"
+        },
+        {
+          "path": "src/gpu-patterns.js",
+          "sha256": "eaab311e4bd7d020a0aacc0b5a15bb7f49cb9b750e935633142e19c042a35c8b"
+        },
+        {
+          "path": "src/neural-app.js",
+          "sha256": "f4cd80b62d33258d269357b66e146dbd1723892be9235f9d643acb010a036236"
+        },
+        {
+          "path": "src/neural-evaluator.js",
+          "sha256": "c85d04d1d39ee33f08e357145d4b94b8dd4a7855b928b9082c792eee0b1404a7"
+        },
+        {
+          "path": "src/node-engine.cjs",
+          "sha256": "7bb1ce00805d63d7e289d5f3706668f96a416a5bea8c68f9ff35c265703ea150"
+        },
+        {
+          "path": "src/reader-engine.js",
+          "sha256": "3c0942698812f51bf1b380bc158b0791dba2bdec3c5e5b3a501b1bba421cfdf7"
+        },
+        {
+          "path": "src/search-memory.js",
+          "sha256": "79b0b19abf3b8921d47024f8d25cd8936117860fdad5c02487ea008f27b8c72a"
+        },
+        {
+          "path": "src/strategy-engine.js",
+          "sha256": "c6c280ee472d892f8e045ffaac77d455e9993bb5ca8b39f1e259039123a1a8f7"
+        },
+        {
+          "path": "src/template.html",
+          "sha256": "4c58effade8fc8c3ff4960e8f9338cc557a493b0ab856f1718ff649573c59055"
+        },
+        {
+          "path": "src/unified-app.js",
+          "sha256": "a61833e8b42e3ff5f27427d8b957635b75ed26484e25e01af728b988891ebeac"
+        },
+        {
+          "path": "src/unified-engine.js",
+          "sha256": "ea7043c034d44639b57a20ff38805d32dc3669b239951178344ee29c8dffc28b"
+        },
+        {
+          "path": "test/reader/game29.cjs",
+          "sha256": "73f335a95f5534eb38bddf2c5a7baba5b108515e76bbaf97b389c28781b7b9c3"
+        },
+        {
+          "path": "test/reader/game31.cjs",
+          "sha256": "8cc545e26d225264175dbfd0653db86f10bea4eea2ec0f76bc1388f8c193b068"
+        },
+        {
+          "path": "test/reader/game33.cjs",
+          "sha256": "cf0d4072a48c80715e5725679f67d2ca78d1ca2376750c0e2d2b7ce6bb492fd9"
+        },
+        {
+          "path": "test/reader/game47.cjs",
+          "sha256": "ada5204f2885f79a1a3f6a03cf9e64ea015cbb3dd783964c489181f1dd95d12d"
+        },
+        {
+          "path": "test/reader/game48.cjs",
+          "sha256": "db196e58a5b3f87c9a70a78dece0438276bb0ca7f3d16ef07dc433c4a4200a60"
+        },
+        {
+          "path": "test/reader/game95.cjs",
+          "sha256": "3ad0d2aaa2f99e1258877828659c73782d06b9cf44d1f1c62720eb591cd0fa7f"
+        }
+      ],
+      "harnessManifest": [
+        {
+          "path": "tools/learning/archive.cjs",
+          "sha256": "b40631bbc7c7f3c07802205140d19c5a4a203c25e5e08cb7367365e0a62e254b"
+        },
+        {
+          "path": "tools/learning/arena.cjs",
+          "sha256": "6e82e7c1ab017540e26b2447d20203cadd05b12f120f83dba5b0de10ee364837"
+        },
+        {
+          "path": "tools/learning/corpus.cjs",
+          "sha256": "544f28f191f276ca31b92afa3b4bdd2cfda3f43612cc4d241235b4cc05427b30"
+        },
+        {
+          "path": "tools/learning/deployment.cjs",
+          "sha256": "f38707e2147d7f043b6ab378875f8c1f224b984f6779932811f9548828b2de83"
+        },
+        {
+          "path": "tools/learning/experiment-plan.cjs",
+          "sha256": "ddeb40304ceac3fe3d88e9d906087c4dd57ef737aeec00625b93f3c4212cf95d"
+        },
+        {
+          "path": "tools/learning/generate.cjs",
+          "sha256": "48a8ec661d8c501c07471622d9e73a8d56733dc82d615d6344454110244730ec"
+        },
+        {
+          "path": "tools/learning/journal.cjs",
+          "sha256": "a2e9ba4d2dde6ca8b9b82d8afc9463f779726d4336e25e180477d9f5da734a46"
+        },
+        {
+          "path": "tools/learning/metrics.cjs",
+          "sha256": "30e9379da42871eee8f3affed1b6833423159bbba8c5c4910a1b9bc3914cd15c"
+        },
+        {
+          "path": "tools/learning/replay.cjs",
+          "sha256": "12910dd25bbf90de8076a9ec5320a1955eb89f86ff9032e50a8d624dd6a6e55b"
+        },
+        {
+          "path": "tools/learning/run-retention.cjs",
+          "sha256": "34be10e541595daa9a330555a07a341843ceab8eb4a43a7bff4fde696b358c31"
+        },
+        {
+          "path": "tools/learning/run.cjs",
+          "sha256": "8f745c6b43dff1c9378eef0c07bdf5753b0b4db23f99042dbec8ba73126ed080"
+        },
+        {
+          "path": "tools/learning/snapshot.cjs",
+          "sha256": "c04931f057b6234b352b2e55f9625031365275891af51a1367416e65f5711491"
+        },
+        {
+          "path": "tools/learning/state.cjs",
+          "sha256": "a81380466ba1916d58f000d2fcc6169a239bebe5fb48778f9c76db185215dfa9"
+        },
+        {
+          "path": "tools/learning/storage.cjs",
+          "sha256": "3e55340c0551c2171ba622c0f894c8008e8f66c8b2a34bf277708a90052ccec7"
+        },
+        {
+          "path": "tools/learning/train.py",
+          "sha256": "1d47020d61b5b76fb1828d96a4e27971c1d935c64e9d08fc75aaf8314ebff0e6"
+        },
+        {
+          "path": "tools/learning/trial-ledger.cjs",
+          "sha256": "60de7321bf067eadc778db4da0b7c1f65b7e01e9d5a812cd6d55c1f933263fb5"
+        }
+      ],
+      "runtimeManifest": {
+        "node": "24.19.0",
+        "v8": "13.6.233.17-node.51",
+        "sqlite": "3.53.3",
+        "platform": "win32",
+        "arch": "x64"
+      }
+    },
+    "publication": {
+      "version": 2,
+      "sourceHash": "bfe69122b5b234b0b38e37484175447d52a0d1ababa4d24e6ed46449fc2d5393",
+      "harnessHash": "a032f7365734d5292c6185f738a3e91785eb6645c3f75416de9b85b867d87f0b",
+      "runtimeHash": "8cddf88cba4b2c7ffbd39842192f7faa97884e9b1354c0cbf79762c223b37352",
+      "sourceManifest": [
+        {
+          "path": "build.cjs",
+          "sha256": "78dd09575a17600dbef554bbb3fdf83cc6067e94657b3873e5ca27b905361965"
+        },
+        {
+          "path": "src/analysis-settings.js",
+          "sha256": "8a5bb67f10523cca1a8d6df396a9c0adb2ee8706d407b35d21b4dbadeed784ae"
+        },
+        {
+          "path": "src/app.js",
+          "sha256": "cb750d70b85af6a96d61e9ccfd28c9172c5c11c8666ae1fe9a52ba728d21b63b"
+        },
+        {
+          "path": "src/forest-engine.js",
+          "sha256": "e9c25744cbdac03465adefe45b45825dc47b15af69afcee8288e24618f3305d6"
+        },
+        {
+          "path": "src/gpu-app.js",
+          "sha256": "011454e8488cec1b604e4d4d5a3041a5dcc37373fa65f3f25d37485566ae1402"
+        },
+        {
+          "path": "src/gpu-patterns.js",
+          "sha256": "eaab311e4bd7d020a0aacc0b5a15bb7f49cb9b750e935633142e19c042a35c8b"
+        },
+        {
+          "path": "src/neural-app.js",
+          "sha256": "f4cd80b62d33258d269357b66e146dbd1723892be9235f9d643acb010a036236"
+        },
+        {
+          "path": "src/neural-evaluator.js",
+          "sha256": "c85d04d1d39ee33f08e357145d4b94b8dd4a7855b928b9082c792eee0b1404a7"
+        },
+        {
+          "path": "src/node-engine.cjs",
+          "sha256": "7bb1ce00805d63d7e289d5f3706668f96a416a5bea8c68f9ff35c265703ea150"
+        },
+        {
+          "path": "src/reader-engine.js",
+          "sha256": "3c0942698812f51bf1b380bc158b0791dba2bdec3c5e5b3a501b1bba421cfdf7"
+        },
+        {
+          "path": "src/search-memory.js",
+          "sha256": "79b0b19abf3b8921d47024f8d25cd8936117860fdad5c02487ea008f27b8c72a"
+        },
+        {
+          "path": "src/strategy-engine.js",
+          "sha256": "c6c280ee472d892f8e045ffaac77d455e9993bb5ca8b39f1e259039123a1a8f7"
+        },
+        {
+          "path": "src/template.html",
+          "sha256": "4c58effade8fc8c3ff4960e8f9338cc557a493b0ab856f1718ff649573c59055"
+        },
+        {
+          "path": "src/unified-app.js",
+          "sha256": "a61833e8b42e3ff5f27427d8b957635b75ed26484e25e01af728b988891ebeac"
+        },
+        {
+          "path": "src/unified-engine.js",
+          "sha256": "ea7043c034d44639b57a20ff38805d32dc3669b239951178344ee29c8dffc28b"
+        },
+        {
+          "path": "test/reader/game29.cjs",
+          "sha256": "73f335a95f5534eb38bddf2c5a7baba5b108515e76bbaf97b389c28781b7b9c3"
+        },
+        {
+          "path": "test/reader/game31.cjs",
+          "sha256": "8cc545e26d225264175dbfd0653db86f10bea4eea2ec0f76bc1388f8c193b068"
+        },
+        {
+          "path": "test/reader/game33.cjs",
+          "sha256": "cf0d4072a48c80715e5725679f67d2ca78d1ca2376750c0e2d2b7ce6bb492fd9"
+        },
+        {
+          "path": "test/reader/game47.cjs",
+          "sha256": "ada5204f2885f79a1a3f6a03cf9e64ea015cbb3dd783964c489181f1dd95d12d"
+        },
+        {
+          "path": "test/reader/game48.cjs",
+          "sha256": "db196e58a5b3f87c9a70a78dece0438276bb0ca7f3d16ef07dc433c4a4200a60"
+        },
+        {
+          "path": "test/reader/game95.cjs",
+          "sha256": "3ad0d2aaa2f99e1258877828659c73782d06b9cf44d1f1c62720eb591cd0fa7f"
+        }
+      ],
+      "harnessManifest": [
+        {
+          "path": "tools/learning/archive.cjs",
+          "sha256": "7fa9c9395e5bd1480b3faa03206b814a859197b5f90f2d96cb847e5470fface7"
+        },
+        {
+          "path": "tools/learning/arena.cjs",
+          "sha256": "6e82e7c1ab017540e26b2447d20203cadd05b12f120f83dba5b0de10ee364837"
+        },
+        {
+          "path": "tools/learning/corpus.cjs",
+          "sha256": "544f28f191f276ca31b92afa3b4bdd2cfda3f43612cc4d241235b4cc05427b30"
+        },
+        {
+          "path": "tools/learning/deployment.cjs",
+          "sha256": "55dfc35c8a0a4f710764d1e03b986539b3ddb2a862082fd2d3722117aa167506"
+        },
+        {
+          "path": "tools/learning/experiment-plan.cjs",
+          "sha256": "ddeb40304ceac3fe3d88e9d906087c4dd57ef737aeec00625b93f3c4212cf95d"
+        },
+        {
+          "path": "tools/learning/generate.cjs",
+          "sha256": "48a8ec661d8c501c07471622d9e73a8d56733dc82d615d6344454110244730ec"
+        },
+        {
+          "path": "tools/learning/journal.cjs",
+          "sha256": "a2e9ba4d2dde6ca8b9b82d8afc9463f779726d4336e25e180477d9f5da734a46"
+        },
+        {
+          "path": "tools/learning/metrics.cjs",
+          "sha256": "30e9379da42871eee8f3affed1b6833423159bbba8c5c4910a1b9bc3914cd15c"
+        },
+        {
+          "path": "tools/learning/replay.cjs",
+          "sha256": "12910dd25bbf90de8076a9ec5320a1955eb89f86ff9032e50a8d624dd6a6e55b"
+        },
+        {
+          "path": "tools/learning/run-retention.cjs",
+          "sha256": "34be10e541595daa9a330555a07a341843ceab8eb4a43a7bff4fde696b358c31"
+        },
+        {
+          "path": "tools/learning/run.cjs",
+          "sha256": "2439377d4235e7aa6eb7e8ab955012c5c4691f3cd2219227a0fead69f7a8af6a"
+        },
+        {
+          "path": "tools/learning/snapshot.cjs",
+          "sha256": "c04931f057b6234b352b2e55f9625031365275891af51a1367416e65f5711491"
+        },
+        {
+          "path": "tools/learning/state.cjs",
+          "sha256": "ef49a0489e8bedbd5a4db9a5ce8fc99bfe34ef271dd77e202e8a6bb708ddce79"
+        },
+        {
+          "path": "tools/learning/storage.cjs",
+          "sha256": "3e55340c0551c2171ba622c0f894c8008e8f66c8b2a34bf277708a90052ccec7"
+        },
+        {
+          "path": "tools/learning/train.py",
+          "sha256": "1d47020d61b5b76fb1828d96a4e27971c1d935c64e9d08fc75aaf8314ebff0e6"
+        },
+        {
+          "path": "tools/learning/trial-ledger.cjs",
+          "sha256": "60de7321bf067eadc778db4da0b7c1f65b7e01e9d5a812cd6d55c1f933263fb5"
+        }
+      ],
+      "runtimeManifest": {
+        "node": "24.19.0",
+        "v8": "13.6.233.17-node.51",
+        "sqlite": "3.53.3",
+        "platform": "win32",
+        "arch": "x64"
+      }
+    },
+    "verifiedEvaluationGitCommit": "09c41d5730b3612fbd418c1dd605c399026cf8fd",
+    "operationalCompatibility": {
+      "receiptId": "4d02658fb69ba852a31f95eb7b5b05ff7e0b02f6a7a348ec0e00828ddb0e1b3b",
+      "receiptSha256": "941ee04f3a3bc9597c02cd2d7701973115bd6bfa8e7f6aefc72c58be76537ba0",
+      "changes": [
+        {
+          "path": "build.cjs",
+          "beforeSha256": "b6cefe8bbd1849bd6421abcbe0cf43d9fffaef1762808fda11e894c08fb6e767",
+          "afterSha256": "78dd09575a17600dbef554bbb3fdf83cc6067e94657b3873e5ca27b905361965",
+          "scope": "verified removal of redundant outputs/omok-gpu.html write; generated HTML unchanged"
+        },
+        {
+          "path": "tools/learning/archive.cjs",
+          "beforeSha256": "b40631bbc7c7f3c07802205140d19c5a4a203c25e5e08cb7367365e0a62e254b",
+          "afterSha256": "7fa9c9395e5bd1480b3faa03206b814a859197b5f90f2d96cb847e5470fface7",
+          "scope": "host operational overrides and audited delivery compatibility"
+        },
+        {
+          "path": "tools/learning/deployment.cjs",
+          "beforeSha256": "f38707e2147d7f043b6ab378875f8c1f224b984f6779932811f9548828b2de83",
+          "afterSha256": "55dfc35c8a0a4f710764d1e03b986539b3ddb2a862082fd2d3722117aa167506",
+          "scope": "audited operational compatibility during interrupted delivery recovery"
+        },
+        {
+          "path": "tools/learning/run.cjs",
+          "beforeSha256": "8f745c6b43dff1c9378eef0c07bdf5753b0b4db23f99042dbec8ba73126ed080",
+          "afterSha256": "2439377d4235e7aa6eb7e8ab955012c5c4691f3cd2219227a0fead69f7a8af6a",
+          "scope": "whole-run scheduling and historical resume dispatch"
+        },
+        {
+          "path": "tools/learning/state.cjs",
+          "beforeSha256": "a81380466ba1916d58f000d2fcc6169a239bebe5fb48778f9c76db185215dfa9",
+          "afterSha256": "ef49a0489e8bedbd5a4db9a5ce8fc99bfe34ef271dd77e202e8a6bb708ddce79",
+          "scope": "whole-run scheduling and transient filesystem accounting"
+        }
+      ]
+    }
+  },
+  "settings": {
+    "baselineCommit": "0c652e887753e338eeccc52e86d1722a6b62c26e",
+    "rulesId": "15x15-exact5-both33-v1",
+    "featureVersion": "house32-v1",
+    "seed": 1707,
+    "moveMs": 80,
+    "analysisMs": 600,
+    "validationMs": 1000,
+    "workers": 13,
+    "priority": "below-normal",
+    "concurrentTraining": true,
+    "games": 256,
+    "pairs": 1700,
+    "minPairs": 32,
+    "epochs": 20,
+    "batchSize": 256,
+    "minutes": null,
+    "stageMinutes": 5,
+    "trainSeconds": 120,
+    "maxSamples": 9007199254740991,
+    "maxDiskBytes": 19327352832,
+    "maxPlies": 225,
+    "sampleEvery": 4,
+    "exploration": 0.2,
+    "device": "cuda",
+    "autoAdopt": true,
+    "confidence": 0.95,
+    "continuous": true,
+    "gamesPerCycle": 512,
+    "minNewSamples": 10000,
+    "maxTrainingSamples": 100000,
+    "hiddenSize": 16,
+    "scale": 600,
+    "learningRate": 0.0003,
+    "familyBalance": 1,
+    "earlyStopPatience": 10,
+    "earlyStopMinDelta": 0.0001,
+    "minEpochs": 10,
+    "diagnosticSamples": 512,
+    "samplePolicy": "paired-v1",
+    "selectionMinDelta": 0.0001,
+    "lossWeightNormalization": "global-mean",
+    "maxDerivedCycles": 3,
+    "poweredEvaluation": true,
+    "minimumUsefulImprovement": 0.1,
+    "targetPower": 0.8,
+    "maxEvaluationPairs": 2048
+  },
+  "settingsHash": "967000bdc65608dfe972b6b5735622e8842218620d49ce5f1c402145d919b3b6",
+  "comparison": {
+    "baselineCommit": "0c652e887753e338eeccc52e86d1722a6b62c26e",
+    "baselineSourceHash": "2ded1bc0de381d15b66c3e2141fbef23eaab56f660ecebff918834244dee23fe",
+    "incumbentHash": null,
+    "opponents": [
+      "baseline",
+      "current-no-model"
+    ],
+    "moveMs": 1000,
+    "schedule": "parallel-arena-v1"
+  },
+  "validation": {
+    "trial": 85,
+    "completedGames": 6800,
+    "independentFamiliesPerOpponent": 1700,
+    "stats": {
+      "baseline": {
+        "wins": 1938,
+        "draws": 27,
+        "losses": 1435,
+        "unfinished": 0,
+        "completedGames": 3400,
+        "completedPairs": 1700,
+        "independentFamilies": 1700,
+        "meanScore": 0.5739705882352941,
+        "lowerConfidenceBound": 0.5148278624971727,
+        "alpha": 0.000006839945280437762,
+        "minPairs": 32,
+        "passed": true,
+        "method": "one-sided Hoeffding bound on family-averaged paired scores with alpha spending",
+        "scope": "Improvement only against the recorded opponent, openings and move budget; not a universal strength claim"
+      },
+      "current-no-model": {
+        "wins": 1933,
+        "draws": 43,
+        "losses": 1424,
+        "unfinished": 0,
+        "completedGames": 3400,
+        "completedPairs": 1700,
+        "independentFamilies": 1700,
+        "meanScore": 0.5748529411764706,
+        "lowerConfidenceBound": 0.5157102154383492,
+        "alpha": 0.000006839945280437762,
+        "minPairs": 32,
+        "passed": true,
+        "method": "one-sided Hoeffding bound on family-averaged paired scores with alpha spending",
+        "scope": "Improvement only against the recorded opponent, openings and move budget; not a universal strength claim"
+      }
+    },
+    "criteria": {
+      "minPairs": 32,
+      "confidence": 0.95,
+      "method": "one-sided Hoeffding bound on family-averaged paired scores with alpha spending",
+      "lowerConfidenceBoundStrictlyGreaterThan": 0.5
+    },
+    "complete": true,
+    "passed": true,
+    "rules": {
+      "passed": true,
+      "checks": 32
+    },
+    "parity": {
+      "passed": true,
+      "cases": 5,
+      "maxAbsoluteError": 2.7755575615628914e-16,
+      "effectiveMaxAbsoluteError": 1.3877787807814457e-16
+    },
+    "training": {
+      "passed": true,
+      "updates": 6400,
+      "trainedOnCuda": true
+    },
+    "exclusions": {
+      "version": 2,
+      "sha256": "849c933e2c1431e4da8b4e3446657a13c84494e561944f691d5ce22612ee3f11"
+    },
+    "reservationHash": "b09f491483152d5d75e832857963d1b54978b72f91d339d76e2139b461cb2b48"
+  },
+  "hashes": {
+    "artifactSha256": "7ceb9256b50bb9f5817041a679fa2ec021e6e169b900f4fff5e9a1d4e533d176",
+    "localAcceptedModelSha256": "66d74f49bf8468adfb391e941356828d21fbdb2abd92e96c073e585708580f07",
+    "candidateSemanticHash": "7b05524609bcf94749ff6a5b19ad6bf23ddac55befe778237d28562bab6c8433",
+    "arenaSemanticHash": "da2bdaa2daa43959230d84e52285270d77e4e6defdae6df25178f0e3dffd3ac5",
+    "arenaFileSha256": "4bb71cc6453da4deab8e9616206337630d59aa21854b9d1fc320985d42fbc58d",
+    "settingsFileSha256": "daccc4f63f2d2db8df9330cd097ff65de01e4c9801905143a3f1498ba6313e6c",
+    "datasetSha256": "d0d6e6857e393fc01071c65d703fc03d1f0c40416cace09d95cf82dd14e716fc",
+    "exposureSha256": "789ffce6390f58936c724a142ccf922f03be6f861b0318162b08b712c1a09d81"
+  },
+  "scope": "Only the adopted inference model and bounded validation summary are published. Local games, experience databases, checkpoints, candidate history and raw exposure records remain local."
+}
