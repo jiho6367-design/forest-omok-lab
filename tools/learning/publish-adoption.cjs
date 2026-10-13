@@ -43,10 +43,12 @@ function verifiedGitCommit(root,evaluation,head){
  if(!COMMIT.test(head||''))return null;
  try{for(const row of [...evaluation.sourceManifest,...evaluation.harnessManifest]){const bytes=cp.execFileSync('git',['show',head+':'+row.path],{cwd:root,windowsHide:true,maxBuffer:16*1024*1024,stdio:['ignore','pipe','ignore']});if(S.hash(bytes)!==row.sha256)return null;}return head;}catch{return null;}
 }
-function stableEvaluationCommit(root,evaluation,head){
+function stableEvaluationCommit(root,evaluation,head,delivery=evaluation){
  // A claimed code commit must contain the exact evaluated bytes. Documentation
  // and artifact-only commits do not create a different evaluation code version.
- if(!verifiedGitCommit(root,evaluation,head))throw Error('Evaluated engine/harness is not exactly reproducible from repository HEAD');
+ // An audited operational bridge preserves the historical evaluation commit;
+ // the actual delivery code must still be exactly present in current HEAD.
+ if(!verifiedGitCommit(root,delivery,head))throw Error('Evaluated engine/harness is not exactly reproducible from repository HEAD');
  const names=[...evaluation.sourceManifest,...evaluation.harnessManifest].map(row=>row.path);
  const revisions=cp.execFileSync('git',['log','-n','256','--format=%H','HEAD','--',...names],{cwd:root,encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','ignore']}).trim().split('\n').filter(Boolean);
  for(const commit of revisions)if(verifiedGitCommit(root,evaluation,commit))return commit;
@@ -94,11 +96,13 @@ function verifyTrial(root,arena){
  const db=new DatabaseSync(file,{readOnly:true});try{const row=db.prepare('SELECT trial,arena FROM trials WHERE reservation=?').get(arena.budget.reservation);if(!row||Number(row.trial)!==arena.trial||S.hash(immutableArena(JSON.parse(row.arena)))!==S.hash(immutableArena(arena)))throw Error('Adoption durable reservation/context mismatch');}finally{db.close();}
 }
 function verifyExecution(accepted,evaluation,{identityProvider=S.sourceIdentity,receiptDirectory}={}){
- const now=identity(identityProvider());let audit=null;
+ const recordedHost=identityProvider(),now=identity(recordedHost);let audit=null;
  if(!sameIdentity(evaluation,now)){
   const original=accepted.adoption.operationalCompatibilityAudit;
   if(!original||!sameIdentity(original.evaluationIdentity||{},evaluation)||!sameIdentity(original.deliveryIdentity||{},now))throw Error('Adoption engine/harness/native runtime changed; publication requires fresh verified adoption');
-  audit=require('./archive.cjs').assertDeliverySource({identity:evaluation},{identityProvider:()=>now,...(receiptDirectory?{receiptDirectory}:{})});
+  // Receipts bind the original recorded identity objects. Publication's
+  // normalized public representation must not replace those audit inputs.
+  audit=require('./archive.cjs').assertDeliverySource({identity:evaluation},{identityProvider:()=>recordedHost,...(receiptDirectory?{receiptDirectory}:{})});
   if(!audit||S.hash(audit)!==S.hash(original))throw Error('Adoption operational compatibility receipt changed');
  }
  return {now,audit};
@@ -120,7 +124,7 @@ function verify({root=S.ROOT,identityProvider=S.sourceIdentity,receiptDirectory}
  const arenaInput=read(root,runRelative+'/'+entry.arena,{maxBytes:256*1024*1024}),arena=arenaInput.value;
  if(adoption.validationHash!==S.hash(arena)||arena.candidateHash!==entry.candidateHash||arena.candidateModelId!==accepted.modelId||arena.complete!==true||arena.passed!==true||arena.controlsPresent!==true||!Array.isArray(arena.rejectionReasons)||arena.rejectionReasons.length||!Array.isArray(arena.invalidGames)||arena.invalidGames.length)throw Error('Adoption evaluation is missing, changed, rejected or incomplete');
  const evaluation=identity(arena.identity);if(!sameIdentity(evaluation,adoption)||!sameIdentity(evaluation,state.value.identity||{}))throw Error('Adoption/run/evaluation identities differ');
- const execution=verifyExecution(accepted,evaluation,{identityProvider,receiptDirectory});
+ const execution=verifyExecution(accepted,arena.identity,{identityProvider,receiptDirectory});
  if(arena.rulesId!==accepted.rulesId||arena.rulesId!==settings.rulesId||!COMMIT.test(arena.baselineCommit||'')||arena.baselineCommit!==state.value.baselineCommit||arena.baselineCommit!==adoption.baselineCommit||arena.baselineCommit!==settings.baselineCommit)throw Error('Adoption rules or comparison baseline mismatch');
  if(baselineSourceHash(root,arena.baselineCommit)!==state.value.baselineSourceHash)throw Error('Historical baseline source is not reproducible from its comparison commit');
  if(arena.settingsHash!==A.evaluationSettingsHash(settings)||arena.moveMs!==settings.validationMs)throw Error('Adoption evaluation settings changed');
@@ -146,7 +150,7 @@ function verify({root=S.ROOT,identityProvider=S.sourceIdentity,receiptDirectory}
  const transaction=read(root,'work/local-learning-20261007/deployment/transaction.json').value;
  if(transaction.schemaVersion!==2||transaction.status!=='committed'||transaction.root!==root||transaction.transactionId!==entry.transactionId||entry.delivery?.transactionId!==entry.transactionId||!HASH.test(entry.transactionId||'')||!sameIdentity(transaction.identity||{},evaluation)||!sameIdentity(entry.delivery?.identity||{},evaluation))throw Error('Adoption deployment did not durably commit or changed');
  for(const [file,sha256]of [[active.file,active.sha256],[path.join(logicalRunDir,'models/'+accepted.modelId+'.json'),storedModel.sha256],[path.join(logicalRunDir,'adoption.json'),S.hash(JSON.stringify(entry,null,2))]]){const targets=(transaction.targets||[]).filter(row=>row.file===file);if(targets.length!==1||targets[0].sha256!==sha256)throw Error('Adoption committed deployment target/hash mismatch');}
- const model=publicModel(accepted),modelText=JSON.stringify(model,null,2)+'\n',artifactHash=S.hash(modelText),head=currentGitCommit(root),evaluationCommit=stableEvaluationCommit(root,evaluation,head);
+ const model=publicModel(accepted),modelText=JSON.stringify(model,null,2)+'\n',artifactHash=S.hash(modelText),head=currentGitCommit(root),evaluationCommit=stableEvaluationCommit(root,evaluation,head,execution.audit?execution.now:evaluation);
  const evidence={schemaVersion:1,kind:'forest-omok-verified-adoption',runId:state.value.runId,cycle:entry.cycle,adoptedAt:entry.at,modelId:accepted.modelId,accepted:true,transactionId:entry.transactionId,code:{evaluation,publication:execution.now,verifiedEvaluationGitCommit:evaluationCommit,...(execution.audit?{operationalCompatibility:{receiptId:execution.audit.receiptId,receiptSha256:execution.audit.receiptSha256,changes:execution.audit.changes}}:{})},settings,settingsHash:arena.settingsHash,comparison:{baselineCommit:arena.baselineCommit,baselineSourceHash:assertHash(state.value.baselineSourceHash,'historical baseline'),incumbentHash:arena.incumbentHash,opponents,moveMs:arena.moveMs,schedule:arena.execution.schedule},validation:{trial:arena.trial,completedGames:arena.games.length,independentFamiliesPerOpponent:arena.pairs,stats,criteria:{...adoption.criteria,lowerConfidenceBoundStrictlyGreaterThan:.5},complete:true,passed:true,rules:{passed:true,checks:arena.rules.checks},parity:{passed:true,cases:arena.parity.cases,maxAbsoluteError:arena.parity.maxAbsoluteError,effectiveMaxAbsoluteError:arena.parity.effectiveMaxAbsoluteError},training:{passed:true,updates:training.updates,trainedOnCuda:training.trainedOnCuda},exclusions:{version:2,sha256:S.hash(arena.exclusions)},reservationHash:arena.budget.reservation},hashes:{artifactSha256:artifactHash,localAcceptedModelSha256:active.sha256,candidateSemanticHash:entry.candidateHash,arenaSemanticHash:adoption.validationHash,arenaFileSha256:arenaInput.sha256,settingsFileSha256:settingsInput.sha256,datasetSha256:arena.datasetSha256,exposureSha256:adoption.exposure.sha256},scope:'Only the adopted inference model and bounded validation summary are published. Local games, experience databases, checkpoints, candidate history and raw exposure records remain local.'};
  const evidenceText=JSON.stringify(evidence,null,2)+'\n';if(Buffer.byteLength(modelText)>MAX_MODEL_BYTES||Buffer.byteLength(evidenceText)>MAX_EVIDENCE_BYTES)throw Error('Adoption publication exceeds lightweight artifact/evidence bound');
  // Check an immutable binding once more after potentially long replay/hash reads.
@@ -174,4 +178,4 @@ function prepare(options={}){
 }
 function check(options={}){const checked=verify(options);if(checked.skipped)return checked;const hashes=verifyBundle(checked.root,checked.relativeDirectory,checked);return {skipped:false,reason:'verified-adoption-publication',artifactHash:checked.artifactHash,runId:checked.runId,modelId:checked.modelId,files:checked.files,...hashes};}
 if(require.main===module){try{const mode=process.argv[2]||'prepare';if(process.argv.length>3||!['prepare','check'].includes(mode))throw Error('Usage: node tools/learning/publish-adoption.cjs prepare|check');console.log(JSON.stringify(mode==='prepare'?prepare():check()));}catch(error){console.error(error.stack||error);process.exitCode=1;}}
-module.exports={OUTPUT,FILES,SETTINGS,MAX_MODEL_BYTES,MAX_EVIDENCE_BYTES,verify,prepare,check,verifyBundle};
+module.exports={OUTPUT,FILES,SETTINGS,MAX_MODEL_BYTES,MAX_EVIDENCE_BYTES,verifyExecution,stableEvaluationCommit,verify,prepare,check,verifyBundle};

@@ -18,6 +18,9 @@ context.run.adoption={...current,decision:'insufficient-evidence',reason:'평가
 vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/검증은 통과.*모델 적용 중 오류/);assert(!elements.get('validation').textContent.includes('미완료여서'));
 context.run.active=true;vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/검증 통과.*적용하는 중/);
 context.run.active=false;context.run.state.status='stopped';vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/검증 통과.*기다리고/);
+context.run.adoption={...current,decision:'kept-current',modelId:'fixture',candidateHash:'current-candidate',reason:'Active incumbent changed; fresh evaluation required'};
+vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/추가 채택 검사를 통과하지/);assert.match(elements.get('validation').textContent,/Active incumbent changed/);
+context.run.adoption={...current,decision:'insufficient-evidence',reason:'평가가 미완료여서 기존 엔진을 유지합니다.'};
 context.run.arena.candidateHash='different-candidate';vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/검증이 충분하지/);
 context.run.arena.candidateHash='current-candidate';context.run.arena.identityVerified=false;vm.runInContext('renderSelected(run)',context);assert.match(elements.get('adoption').textContent,/검증이 충분하지/);
 context.run.arena.identityVerified=true;context.run.champion={modelId:'fixture'};context.run.adoption={...current,adopted:true,decision:'accepted',candidateHash:'current-candidate'};
