@@ -51,4 +51,5 @@ async function benchmarkGPU(){
 }
 $('gpuBenchmark').onclick=benchmarkGPU;
 $('gpuCancel').onclick=()=>cancelBenchmark?.();
-selectComputeMode(true).then(()=>{if(location.search.includes('diagnostics')){$('setup').close();benchmarkGPU();}});
+// Restore model settings later in this script before announcing readiness or starting analysis.
+queueMicrotask(()=>{selectComputeMode(true).then(()=>{if(location.search.includes('diagnostics')){$('setup').close();benchmarkGPU();}});});
