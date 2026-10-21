@@ -62,6 +62,13 @@ for(const boundary of [-1,7,8]){const root=setup('exposure-publish-'+boundary,{e
  const root=setup('exposure-rollback',{exposure:true}),prior=before(root,true);crash(root,8);drift(root,'sourceHash');assert.throws(()=>recover(root),/engine\/harness\/runtime changed/);assertBytes(prior);
  const invalid=setup('exposure-changed',{exposure:true}),expected=before(invalid,true);fs.appendFileSync(path.join(invalid,'run/temporal-exposures.jsonl'),'unbound bytes');assert.throws(()=>D.deploy(S.read(path.join(invalid,'accepted.json')),deployOptions(invalid)),/temporal exposure provenance changed/);assertBytes(expected);
 }
+{
+ const root=setup('separate-public-and-local-appearance'),model=S.read(path.join(root,'accepted.json'));
+ D.deploy(model,{...deployOptions(root),build:arg=>{stagedBuild(arg);S.atomic(path.join(arg.stage,'public.html'),'public stones '+arg.accepted.modelId);}});
+ const files=htmlFiles(root),result=S.read(transactionFile(root)).delivery;
+ for(const file of files){assert.equal(fs.readFileSync(file,'utf8'),(file===path.join(root,'dist/index.html')?'public stones ':'synthetic accepted ')+model.modelId);assert.equal(result.artifacts.find(a=>a.file===file).sha256,S.fileHash(file));}
+ assert.equal(recover(root),null);
+}
 (async()=>{
  const root=setup('completed-cycle-transition'),opts=deployOptions(root),ctx=opts.context,pipeline={stage:'adopt',target:1};ctx.state.pipeline=pipeline;ctx.state.counters.generatedGames=1;ctx.settings={...S.defaults(),games:1,continuous:false};let adopted=0;
  const complete=await require('../tools/learning/run.cjs').cycle(ctx,{},Date.now()+30000,{adopt:()=>{assert.equal(++adopted,1,'A completed deployment must not re-enter adoption');return D.deploy(accepted,opts);}});

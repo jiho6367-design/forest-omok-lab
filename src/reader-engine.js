@@ -10,7 +10,7 @@ function createEngine(N, board, options={}) {
   const memory=options.searchMemory||null,memScope=memory?OmokSearchMemory.scope('reader',N,{...options,modelVersion:neural?.modelId||options.modelVersion}):'';
   const inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N, at=(x,y)=>inside(x,y)?b[y*N+x]:3;
   const strategyFactory=typeof createStrategyEngine==='function'?createStrategyEngine:typeof require==='function'?require('./strategy-engine.js'):null;
-  const forestFactory=typeof createForestEngine==='function'?createForestEngine:typeof require==='function'?require('./forest-engine.js'):null;
+  const forestFactory=typeof createForestEngine==='function'?createForestEngine:typeof require==='function'?require('./search-engine.js'):null;
   const ruleAdapter=options.strategy!==false&&N===15&&strategyFactory&&forestFactory?forestFactory({strategy:false,patternTable:options.patternTable}):null;
   const strategy=ruleAdapter?strategyFactory(N,{inspect:ruleAdapter.inspect,legal:(board,i,p)=>ruleAdapter.inspect(board,i,p).legal,winning:ruleAdapter.winning},options):null;
 

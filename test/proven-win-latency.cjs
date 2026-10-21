@@ -2,7 +2,7 @@
 // Generated tactical boards only. Proof replay below does not call either
 // engine's forcing solver; every legal defender response is checked directly.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{performance}=require('node:perf_hooks');
-const files=['neural-evaluator.js','search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','forest-engine.js','unified-engine.js'];
+const files=['neural-evaluator.js','search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','search-engine.js','unified-engine.js'];
 const texts=files.map(name=>fs.readFileSync('src/'+name,'utf8'));
 texts[4]=texts[4].replace('function createEngine(','function createReaderEngine(');
 const source=texts.join('\n'),idx=c=>(Number(c.slice(1))-1)*15+c.charCodeAt(0)-65;

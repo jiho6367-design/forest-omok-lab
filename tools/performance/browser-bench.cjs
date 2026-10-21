@@ -7,7 +7,7 @@ const source=f=>fs.readFileSync(path.join(root,'src',f),'utf8');
 const app=source('unified-app.js');
 const spawnSource=app.slice(app.indexOf('function spawnAnalysis('),app.indexOf('function acceptResult('));
 let reader=source('reader-engine.js').replace('function createEngine(','function createReaderEngine(').replace('entry=tt.get(key)','entry=__ttGet(tt,key)');
-let forest=source('forest-engine.js').replace('save=tt.get(key)','save=__ttGet(tt,key)');
+let forest=source('search-engine.js').replace('save=tt.get(key)','save=__ttGet(tt,key)');
 const instrumentation='let __tt={lookups:0,hits:0};function __ttGet(t,k){__tt.lookups++;const v=t.get(k);if(v!==undefined)__tt.hits++;return v;}';
 const baseEngine=reader+'\n'+forest+'\n'+source('unified-engine.js');
 const engine=instrumentation+'\n'+baseEngine+'\nconst __baseCreate=createEngine;createEngine=function(...a){const e=__baseCreate(...a),run=e.analyze;e.analyze=(...args)=>{const r=run(...args);return {...r,benchTT:{...__tt},benchPositionCache:e.getPositionCacheStats?.()};};return e;};';

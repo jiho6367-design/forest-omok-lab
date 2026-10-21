@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),Memory=require('../src/search-memory.js');
 const context={performance,Date,console};vm.createContext(context);
-for(const f of ['search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','forest-engine.js','unified-engine.js']){
+for(const f of ['search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','search-engine.js','unified-engine.js']){
  let text=fs.readFileSync('src/'+f,'utf8');
  if(f==='reader-engine.js')text=text.replace('function createEngine(','function createReaderEngine(').replace('return {fixedWork,rank,',
   'return {probe:(p,d,ply)=>{nodes=0;deadline=Infinity;strategy?.setBudget(Infinity);const r=search(p,d,-Infinity,Infinity,ply,6,0);return {...r,nodes};},fixedWork,rank,');

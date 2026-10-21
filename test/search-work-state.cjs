@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
-const source=fs.readFileSync(process.env.FOREST_TEST_SOURCE||path.join(__dirname,'../src/forest-engine.js'),'utf8'),anchor='let best=options[0],pv=[best.i],score=best.score;',tick='const check=()=>{nodes++;if(clockNow()>=deadline)throw TIME;};';
+const source=fs.readFileSync(process.env.FOREST_TEST_SOURCE||path.join(__dirname,'../src/search-engine.js'),'utf8'),anchor='let best=options[0],pv=[best.i],score=best.score;',tick='const check=()=>{nodes++;if(clockNow()>=deadline)throw TIME;};';
 assert.equal(source.split(anchor).length,2);assert.equal(source.split(tick).length,2);
 // Isolate both horizon and ordinary search rules from wall-clock completion.
 const code=source.replace(tick,'const check=()=>{nodes++;if(nodes>4000)throw TIME;};').replace(anchor,'return {snapshot:()=>b.slice(),run:(work,clear,depth)=>{strategy.setBudget(work);if(clear){tt.clear();rankCache.clear();}nodes=0;return search(p,depth,-Infinity,Infinity,1);}};');

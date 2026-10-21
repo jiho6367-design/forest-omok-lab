@@ -4,7 +4,7 @@ const boardOf=coords=>{const b=Array(225).fill(0);coords.split(' ').forEach((c,k
 const prefix='H8 G7 G6 H6 F8';
 function controlled(wrapForest,wrapReader){
  const c={Date,console};vm.createContext(c);
- vm.runInContext(fs.readFileSync('src/reader-engine.js','utf8').replace('function createEngine(','function createReaderEngine(')+'\n'+fs.readFileSync('src/forest-engine.js','utf8'),c);
+ vm.runInContext(fs.readFileSync('src/reader-engine.js','utf8').replace('function createEngine(','function createReaderEngine(')+'\n'+fs.readFileSync('src/search-engine.js','utf8'),c);
  const f=c.createForestEngine,r=c.createReaderEngine;c.createForestEngine=o=>wrapForest(f(o));c.createReaderEngine=(...args)=>wrapReader(r(...args));
  vm.runInContext(fs.readFileSync('src/unified-engine.js','utf8'),c);return c.createEngine();
 }

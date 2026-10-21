@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict');
-const forest=require('../src/forest-engine.js');
+const forest=require('../src/search-engine.js');
 const reader=require('../src/reader-engine.js').createEngine;
 const unified=require('../src/node-engine.cjs');
 const idx=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65;

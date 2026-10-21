@@ -24,7 +24,7 @@ if(kind==='auto-gate'){
 const read=f=>fs.readFileSync('src/'+f,'utf8');
 const source="let hits=0,lookups=0;function ttGet(t,k){lookups++;const v=t.get(k);if(v!==undefined)hits++;return v;}\n"+
  read('reader-engine.js').replace('function createEngine(','function createReaderEngine(').replace('entry=tt.get(key)','entry=ttGet(tt,key)')+'\n'+
- read('forest-engine.js').replace('save=tt.get(key)','save=ttGet(tt,key)')+'\n'+read('unified-engine.js');
+ read('search-engine.js').replace('save=tt.get(key)','save=ttGet(tt,key)')+'\n'+read('unified-engine.js');
 const coord=i=>String.fromCharCode(65+i%15)+(1+Math.floor(i/15)),idx=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65;
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.OMOK_BROWSER||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true,args:['--disable-background-timer-throttling','--disable-renderer-backgrounding']});

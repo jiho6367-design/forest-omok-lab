@@ -4,7 +4,7 @@ const blank=()=>Array(225).fill(0),candidate=(c,score,depth=4)=>({i:idx(c),score
 function controlled(wrapForest=f=>f,wrapReader=r=>r){
  const c={Date,console};vm.createContext(c);
  const read=f=>fs.readFileSync('src/'+f,'utf8');
- vm.runInContext(read('strategy-engine.js')+'\n'+read('reader-engine.js').replace('function createEngine(','function createReaderEngine(')+'\n'+read('forest-engine.js'),c);
+ vm.runInContext(read('strategy-engine.js')+'\n'+read('reader-engine.js').replace('function createEngine(','function createReaderEngine(')+'\n'+read('search-engine.js'),c);
  const f=c.createForestEngine,r=c.createReaderEngine;
  c.createForestEngine=o=>wrapForest(f(o));c.createReaderEngine=(...args)=>wrapReader(r(...args));
  vm.runInContext(read('unified-engine.js'),c);return c.createEngine({firstPlayer:2});

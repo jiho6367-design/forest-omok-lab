@@ -2,10 +2,10 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),{pathToFileURL}=require('node:url');
 const runtime='C:/Users/jiho/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright';
 const {chromium}=require(process.env.OMOK_PLAYWRIGHT||runtime);
-const sourceFiles=['gpu-patterns.js','strategy-engine.js','reader-engine.js','forest-engine.js','unified-engine.js'];
+const sourceFiles=['gpu-patterns.js','strategy-engine.js','reader-engine.js','search-engine.js','forest-engine.js','unified-engine.js'];
 const sha=v=>crypto.createHash('sha256').update(v).digest('hex');
 function sources(root){
- const files=sourceFiles.filter(f=>fs.existsSync(path.join(root,'src',f))),text=Object.fromEntries([...files,'app.js','unified-app.js','gpu-app.js','template.html'].map(f=>[f,fs.readFileSync(path.join(root,'src',f),'utf8')]));
+ const files=sourceFiles.filter(f=>fs.existsSync(path.join(root,'src',f))&&(f!=='forest-engine.js'||!fs.existsSync(path.join(root,'src','search-engine.js')))),text=Object.fromEntries([...files,'app.js','unified-app.js','gpu-app.js','template.html'].map(f=>[f,fs.readFileSync(path.join(root,'src',f),'utf8')]));
  const engine=files.map(f=>f==='reader-engine.js'?text[f].replace('function createEngine(','function createReaderEngine('):text[f]).join('\n');
  const app=text['unified-app.js'],start=app.indexOf('function spawnAnalysis('),end=app.indexOf('function acceptResult(',start);
  if(start<0||end<0)throw Error('Cannot extract actual application Worker path');

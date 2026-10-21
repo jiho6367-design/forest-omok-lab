@@ -1,5 +1,5 @@
 'use strict';
-const assert=require('node:assert/strict'),makeForest=require('../src/forest-engine.js'),makeStrategy=require('../src/strategy-engine.js');
+const assert=require('node:assert/strict'),makeForest=require('../src/search-engine.js'),makeStrategy=require('../src/strategy-engine.js');
 const ix=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65,rules=makeForest({strategy:false});
 const seed=Array(225).fill(0);for(const [p,cs]of [[2,['D4','D6','B3']],[1,['B5','F5','L13','O9']]])for(const c of cs)seed[ix(c)]=p;
 for(let transform=0;transform<8;transform++)for(const swap of [false,true]){

@@ -1,6 +1,6 @@
 'use strict';
-const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),makeForest=require('../src/forest-engine.js');
-const file=process.env.FOREST_TEST_SOURCE||'src/forest-engine.js',source=fs.readFileSync(file,'utf8');
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),makeForest=require('../src/search-engine.js');
+const file=process.env.FOREST_TEST_SOURCE||'src/search-engine.js',source=fs.readFileSync(file,'utf8');
 const anchor='let best=options[0],pv=[best.i],score=best.score;';
 assert.equal(source.split(anchor).length,2);
 // Expose the actual production horizon, with a frozen clock and a node cap.

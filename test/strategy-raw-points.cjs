@@ -1,5 +1,5 @@
 'use strict';
-const assert=require('node:assert/strict'),createForest=require('../src/forest-engine.js'),createStrategy=require('../src/strategy-engine.js');
+const assert=require('node:assert/strict'),createForest=require('../src/search-engine.js'),createStrategy=require('../src/strategy-engine.js');
 const rules=createForest({strategy:false}),make=()=>createStrategy(15,{inspect:rules.inspect,legal:(b,i,p)=>rules.inspect(b,i,p).legal,winning:rules.winning});
 const normal=points=>[...points.values()].map(({i,score,axes,axisScores})=>({i,score,axes,axisScores})).sort((a,b)=>a.i-b.i);
 let randomState=0x193b452a;const random=()=>{randomState=(Math.imul(randomState,1664525)+1013904223)>>>0;return randomState;},engine=make();

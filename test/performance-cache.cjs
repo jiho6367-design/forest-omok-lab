@@ -1,4 +1,4 @@
-const assert=require('node:assert/strict'),create=require('../src/forest-engine.js');
+const assert=require('node:assert/strict'),create=require('../src/search-engine.js');
 const cached=create(),plain=create({positionCache:false});let seed=9821;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
 for(let k=0;k<80;k++){
  const b=Array(225).fill(0);for(let n=0;n<5+k%60;n++){let i;do{i=Math.floor(random()*225)}while(b[i]);b[i]=n%2+1;}

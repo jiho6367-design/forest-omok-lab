@@ -4,14 +4,14 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm'),cp=require('node:child_process');
 const {performance}=require('node:perf_hooks'),{Worker,isMainThread,parentPort,workerData}=require('node:worker_threads');
 const ROOT=path.resolve(__dirname,'../..'),Neural=require('../../src/neural-evaluator.js');
-const NAMES=['neural-evaluator.js','search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','forest-engine.js','unified-engine.js'];
+const NAMES=['neural-evaluator.js','search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','search-engine.js','unified-engine.js'];
 const hash=value=>crypto.createHash('sha256').update(typeof value==='string'||Buffer.isBuffer(value)?value:JSON.stringify(value)).digest('hex');
 const index=coord=>{if(Number.isInteger(coord)&&coord>=0&&coord<225)return coord;const match=/^([A-O])(1[0-5]|[1-9])$/i.exec(String(coord));if(!match)throw Error('Invalid coordinate '+coord);return (+match[2]-1)*15+match[1].toUpperCase().charCodeAt(0)-65;};
 const coord=i=>i==null?null:String.fromCharCode(65+i%15)+(1+(i/15|0));
 
 function sources(ref=null){
  const commit=ref?cp.execFileSync('git',['rev-parse',ref+'^{commit}'],{cwd:ROOT,encoding:'utf8',windowsHide:true}).trim():null,files=[];
- for(const name of NAMES){let text;if(commit){try{text=cp.execFileSync('git',['show',commit+':src/'+name],{cwd:ROOT,encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','pipe'],maxBuffer:8*1024*1024});}catch(error){if(name==='neural-evaluator.js')continue;throw error;}}else text=fs.readFileSync(path.join(ROOT,'src',name),'utf8');files.push({name,text,sha256:hash(text)});}
+ for(const name of NAMES){let text;if(commit){try{text=cp.execFileSync('git',['show',commit+':src/'+name],{cwd:ROOT,encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','pipe'],maxBuffer:8*1024*1024});}catch(error){if(name==='neural-evaluator.js')continue;if(name==='search-engine.js'){text=cp.execFileSync('git',['show',commit+':src/forest-engine.js'],{cwd:ROOT,encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','pipe'],maxBuffer:8*1024*1024});}else throw error;}}else text=fs.readFileSync(path.join(ROOT,'src',name),'utf8');files.push({name,text,sha256:hash(text)});}
  return {files,commit,sourceHash:hash(files.map(row=>[row.name,row.sha256]))};
 }
 function runtime(bundle,{profileLeaves=false}={}){

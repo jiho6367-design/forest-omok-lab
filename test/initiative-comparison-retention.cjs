@@ -9,7 +9,7 @@ function run(change={},budget={automatic:true,ms:15000}){
  let extra=0;
  const context={Date,console};vm.createContext(context);
  const read=f=>fs.readFileSync('src/'+f,'utf8');
- vm.runInContext(read('strategy-engine.js')+'\n'+read('reader-engine.js').replace('function createEngine(','function createReaderEngine(')+'\n'+read('forest-engine.js'),context);
+ vm.runInContext(read('strategy-engine.js')+'\n'+read('reader-engine.js').replace('function createEngine(','function createReaderEngine(')+'\n'+read('search-engine.js'),context);
  const forest=context.createForestEngine,reader=context.createReaderEngine;
  const r=Object.assign(row(),change.row||{}),deep={i:B,score:90123,pv:[B],depth:0,reason:'unchecked fallback',kind:'search',
    defenseChecked:false,analysisIncomplete:false,proven:false,lossProven:false,forcedLoss:false,

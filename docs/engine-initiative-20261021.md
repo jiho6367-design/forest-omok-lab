@@ -57,9 +57,9 @@ CUDA, CPU worker 13개, 18GiB 한도, 낮은 우선순위(`below-normal`), 학�
 
 필수 검사: 전체 `npm test` 종료 코드 0(통합 엔진 35국면 모두 통과), 영향받은 예산·병렬·Worker·학습 초기화 검사 재실행 통과, 기존 GPU 검사 통과, Python 36검사 통과, 학습 화면 및 모델 UI 검사 통과, 최종 배포 HTML의 실제 Edge 병렬 UI 검사 통과, 채택 게시·동기화 경계 검사 통과. 작은 fixture에서 주입한 실패·예전 구현 실패는 의도한 음성 대조군이며 새 실패와 구분한다. 깨끗한 빌드와 실제 전달 HTML의 SHA-256은 `6fb9f9caa3ec6d58afebc229fca2da82d46367ca6d60bccf7c89551b83eec0e8`이다.
 
-소스 commit `e904b3617b753f6a43fd18816fa31204f0298704`의 [GitHub Actions 실행](https://github.com/jiho6367-design/forest-omok-lab/actions/runs/39520420460)도 성공했다. 깨끗한 Linux 환경의 전체 검사·Python CPU·브라우저·병렬 분석·게시 경계와 생성 HTML 일치 검사를 포함한다. 별도 GPU runner의 CUDA job은 수동 실행 전용이라 이 push에서는 실행하지 않았다. 실제 CUDA 학습은 아래 로컬 새 run에서 따로 확인한다.
+소스 commit `e904b3617b753f6a43fd18816fa31204f0298704`의 [GitHub Actions 실행](https://github.com/jiho6367-design/my-omok/actions/runs/39520420460)도 성공했다. 깨끗한 Linux 환경의 전체 검사·Python CPU·브라우저·병렬 분석·게시 경계와 생성 HTML 일치 검사를 포함한다. 별도 GPU runner의 CUDA job은 수동 실행 전용이라 이 push에서는 실행하지 않았다. 실제 CUDA 학습은 아래 로컬 새 run에서 따로 확인한다.
 
-선후공 맥락을 포함한 64개 회귀 사례와 문서 보완 commit `bd308941e254b0d9c6c9ca93ad527b605d13b5ac`의 [후속 CI](https://github.com/jiho6367-design/forest-omok-lab/actions/runs/39522756528)도 전체 성공했다. 이 보완으로 동결된 엔진·학습 harness의 실행 식별자는 바뀌지 않았다.
+선후공 맥락을 포함한 64개 회귀 사례와 문서 보완 commit `bd308941e254b0d9c6c9ca93ad527b605d13b5ac`의 [후속 CI](https://github.com/jiho6367-design/my-omok/actions/runs/39522756528)도 전체 성공했다. 이 보완으로 동결된 엔진·학습 harness의 실행 식별자는 바뀌지 않았다.
 
 재개 명령은 `node tools/learning/run.cjs cycle --run=<새 run 경로> --from-run=<위 원본 run 경로>`에 원본 launch의 설정 인수를 붙인다. 이미 가져오기가 완료된 새 run 재개는 `node tools/learning/run.cjs cycle --run=<새 run 경로>`를 사용한다. 기존 run에 새 엔진을 덮어쓰거나 raw-reset을 사용하지 않는다.
 

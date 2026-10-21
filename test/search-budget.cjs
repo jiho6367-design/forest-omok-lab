@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const source=fs.readFileSync(require.resolve('../src/forest-engine.js'),'utf8');
+const source=fs.readFileSync(require.resolve('../src/search-engine.js'),'utf8');
 // Observe the actual analyze initialization, before any expensive tree work.
 const anchor='const check=()=>{nodes++;if(clockNow()>=deadline)throw TIME;};';
 assert.equal(source.split(anchor).length,2);

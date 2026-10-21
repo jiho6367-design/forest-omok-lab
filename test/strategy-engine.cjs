@@ -1,4 +1,4 @@
-const assert=require('node:assert/strict'),createForest=require('../src/forest-engine.js'),createStrategy=require('../src/strategy-engine.js'),{createEngine:createReader}=require('../src/reader-engine.js');
+const assert=require('node:assert/strict'),createForest=require('../src/search-engine.js'),createStrategy=require('../src/strategy-engine.js'),{createEngine:createReader}=require('../src/reader-engine.js');
 const idx=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65;
 const board=(mine,theirs=[])=>{const b=Array(225).fill(0);for(const c of mine)b[idx(c)]=1;for(const c of theirs)b[idx(c)]=2;return b;};
 const rules=createForest({strategy:false});

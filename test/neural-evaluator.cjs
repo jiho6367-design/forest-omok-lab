@@ -19,7 +19,7 @@ const delta=learned.evaluate(position,1)-baseline.evaluate(position,1);assert(Ma
 const memory=Memory.create(),engine=createEngine({model:m,searchMemory:memory});engine.analyze(position,2,80);
 assert(memory.stats().entries>0);engine.configure({model:null});assert.equal(memory.stats().entries,0);assert.equal(engine.getContext().modelVersion,'baseline');
 engine.configure({model:m});const oldId=engine.getContext().modelVersion;const altered=JSON.parse(JSON.stringify(m));altered.layers[1].weights[0][0]=2;engine.configure({model:altered});assert.notEqual(engine.getContext().modelVersion,oldId);
-const context={Date,performance,console};vm.createContext(context);for(const f of ['neural-evaluator.js','search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','forest-engine.js','unified-engine.js']){
+const context={Date,performance,console};vm.createContext(context);for(const f of ['neural-evaluator.js','search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','search-engine.js','unified-engine.js']){
  let source=fs.readFileSync('src/'+f,'utf8');if(f==='reader-engine.js')source=source.replace('function createEngine(','function createReaderEngine(');vm.runInContext(source,context);
 }
 for(const p of [1,2]){const win=blank();for(const c of ['D5','F5','G5','H5'])win[idx(c)]=p;

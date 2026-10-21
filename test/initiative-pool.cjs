@@ -5,7 +5,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const idx=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65;
 const A=idx('G8'),B=idx('I8'),C=idx('H7'),board=Array(225).fill(0);board[idx('H8')]=1;
 function run(mode){
- let source=fs.readFileSync('src/forest-engine.js','utf8');
+ let source=fs.readFileSync('src/search-engine.js','utf8');
  const replace=(from,to)=>{assert.equal(source.split(from).length-1,1,'fixture anchor '+from.slice(0,50));source=source.replace(from,to);};
  replace('limits=limitsFor(budget)','limits={...limitsFor(budget),depth:1}');
  replace('let roots=ranked(b,p,true).filter',"let roots=testRoots.map((i,k)=>({i,a:inspect(b,i,p),score:k===0?10000:k===1?0:20000})).filter");

@@ -220,7 +220,7 @@ Windows의 고정 Node 24.19.0에서 전체 `npm test`를 실제 실행하여 �
 
 추가 CI 계약도 실제 통과했다: 게시 경계 26개, 동기화 경계 20개, 확인된 CPU 학습 28개·CUDA 1개 skip이다. 처음 Python 호출에서는 생성 fixture의 작은 CUDA 검사가 함께 실행되어 그 기록을 보존하고 CPU 전용이라고 표시하지 않았다. 별도 CPU 호출에서 CUDA 사용 불가와 초기화 없음, 전후 37개 소스·배포 메타데이터 불변을 확인했다. 이는 기존 격리 테스트이며 생산 모델의 추가 학습이나 채택이 아니다. 최종 기록 SHA는 `61b0b69f4e84da289fac4dd090f4e683c09ff42d97f3b31410b674a959233f46`다.
 
-이 소스 수정은 commit `a82d198964a0807c42cdb9cb543fe2b23278a15d`로 GitHub에 동기화했고 [push CI 실행 #146](https://github.com/jiho6367-design/forest-omok-lab/actions/runs/38073737908)이 실제 성공했다. CI 성공과 이후 생산 자료의 정상 이어받기 성공은 서로 다른 증거다.
+이 소스 수정은 commit `a82d198964a0807c42cdb9cb543fe2b23278a15d`로 GitHub에 동기화했고 [push CI 실행 #146](https://github.com/jiho6367-design/my-omok/actions/runs/38073737908)이 실제 성공했다. CI 성공과 이후 생산 자료의 정상 이어받기 성공은 서로 다른 증거다.
 
 ## 정상 이어받기에서 발견한 추가 계약 결함
 
@@ -239,7 +239,7 @@ Windows의 고정 Node 24.19.0에서 전체 `npm test`를 실제 실행하여 �
 
 04:07 KST에 실제 수정 소스의 여섯 검사 묶음이 모두 종료 코드 0으로 완료됐다. 전체 `npm test`(320.992초), GPU 계약, CPU 학습 계약 총 30개(29개 통과·CUDA 1개 skip), 게시 경계 26개, 동기화 경계 20개, UI 5개 흐름을 확인했다. CPU 호출은 CUDA 사용 불가와 전후 초기화 없음도 검증했다. 실제 전체 검사에는 새 corpus 31개·snapshot 18개 및 quota 경계·훈련 오류 13개가 포함된다. 전후 37개 소스·runtime·active/deployment 메타데이터는 같고 추적 HTML 세 파일도 추가 변경이 없다. 이는 생성 fixture와 소스 계약 검사이며 생산 기력이나 정상 재개 완료 증거가 아니다. 최종 검사 기록 SHA는 `a903afb1a7339f96bd076558b2b7e46653746fcff729a767d71b5402c78091ef`다. 원격에 먼저 추가된 README commit `fd384ce2b9770efba095afbd7359f379b68a611b`도 fast-forward로 보존했다.
 
-두 계약 수정은 유지보수 commit `09c41d5730b3612fbd418c1dd605c399026cf8fd`로 실제 push했고 로컬·origin/main·실제 원격 ID 일치를 확인했다. [해당 소스의 push CI #148](https://github.com/jiho6367-design/forest-omok-lab/actions/runs/38078906817)은 04:19:29 KST에 `success`로 완료되어 04:22:31에 GitHub API로 확인했다. CI 확인 기록 SHA는 `a7e2d28155bd5c4e24dd984db4ec24c51a5d57f8d50bcc501a542a22c1112c35`다. 이 유지보수는 사용자의 명시적 요청에 따른 작업이며, 새 채택이 없으면 게시를 건너뛰는 예약 `github`의 [채택 전용 정책](github-adoption-policy.md)과 구분한다.
+두 계약 수정은 유지보수 commit `09c41d5730b3612fbd418c1dd605c399026cf8fd`로 실제 push했고 로컬·origin/main·실제 원격 ID 일치를 확인했다. [해당 소스의 push CI #148](https://github.com/jiho6367-design/my-omok/actions/runs/38078906817)은 04:19:29 KST에 `success`로 완료되어 04:22:31에 GitHub API로 확인했다. CI 확인 기록 SHA는 `a7e2d28155bd5c4e24dd984db4ec24c51a5d57f8d50bcc501a542a22c1112c35`다. 이 유지보수는 사용자의 명시적 요청에 따른 작업이며, 새 채택이 없으면 게시를 건너뛰는 예약 `github`의 [채택 전용 정책](github-adoption-policy.md)과 구분한다.
 
 ## 수정 후 실제 정상 재개
 

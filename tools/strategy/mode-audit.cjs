@@ -2,7 +2,7 @@
 // Local, bounded diagnostic. Does not touch learning runs, ledgers or models.
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto'),{performance}=require('node:perf_hooks');
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex'),root=path.resolve(__dirname,'../..');
-const sources=['neural-evaluator.js','search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','forest-engine.js','unified-engine.js'];
+const sources=['neural-evaluator.js','search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','search-engine.js','unified-engine.js'];
 function load(directory,model){
  const manifests=sources.map(name=>({path:'src/'+name,sha256:sha(fs.readFileSync(path.join(directory,'src',name)))}));
  const ctx={Date,console,performance};vm.createContext(ctx);vm.runInContext(sources.map(name=>{const text=fs.readFileSync(path.join(directory,'src',name),'utf8');return name==='reader-engine.js'?text.replace('function createEngine(','function createReaderEngine('):text;}).join('\n'),ctx);

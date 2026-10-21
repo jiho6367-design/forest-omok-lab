@@ -6,7 +6,7 @@ const roots=['G8','H9','G7','I9','I8','H7'].map(idx),[A,D,E,F,B,C]=roots;
 const input=Array(225).fill(0);input[idx('H8')]=1;
 const neuralSource=fs.readFileSync('src/neural-evaluator.js','utf8'),zeroModel={schemaVersion:1,kind:'forest-value-mlp',rulesId:'15x15-exact5-both33-v1',featureVersion:'house32-v1',inputSize:32,hiddenSize:1,activation:'relu',outputActivation:'tanh',normalization:{mean:Array(32).fill(0),scale:Array(32).fill(1)},layers:[{weights:[Array(32).fill(0)],bias:[0]},{weights:[[0]],bias:[0]}],modelId:'initiative-guard-zero',scale:600};
 for(const learningMode of ['disabled','zero'])for(const scenario of ['sub12-complete','ranked-reselection','incomplete-outside-width','attempt-cap','deadline-after-refutation']){
- let source=fs.readFileSync('src/forest-engine.js','utf8'),now=0,calls=[],reservation=null;
+ let source=fs.readFileSync('src/search-engine.js','utf8'),now=0,calls=[],reservation=null;
  const put=(from,to)=>{assert.equal(source.split(from).length-1,1,'fixture anchor '+from.slice(0,50));source=source.replace(from,to);};
  put('limits=limitsFor(budget)',`limits={...limitsFor(budget),depth:1,root:${scenario==='incomplete-outside-width'?3:6}}`);
  const staticScores=roots.map((_,k)=>scenario==='ranked-reselection'&&k===1?1000:10000-k*500);

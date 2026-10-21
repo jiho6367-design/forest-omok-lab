@@ -4,7 +4,7 @@ const ROOT=path.resolve(__dirname,'../..');
 const RULES_ID='15x15-exact5-both33-v1',FEATURE_VERSION='house32-v1',BASELINE='0c652e8';
 const hash=x=>crypto.createHash('sha256').update(typeof x==='string'||Buffer.isBuffer(x)?x:JSON.stringify(x)).digest('hex');
 function fileHash(file){const digest=crypto.createHash('sha256'),fd=fs.openSync(file,'r'),buffer=Buffer.alloc(65536);try{for(;;){const count=fs.readSync(fd,buffer,0,buffer.length,null);if(!count)break;digest.update(buffer.subarray(0,count));}}finally{fs.closeSync(fd);}return digest.digest('hex');}
-const files=['search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','forest-engine.js','unified-engine.js'];
+const files=['search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','search-engine.js','unified-engine.js'];
 function syncDirectory(dir){let fd;try{fd=fs.openSync(dir,'r');fs.fsyncSync(fd);return true;}catch(error){if(['EPERM','EACCES','EISDIR','EINVAL','ENOTSUP','EBADF'].includes(error.code))return false;throw error;}finally{if(fd!==undefined)fs.closeSync(fd);}}
 function atomic(file,value){fs.mkdirSync(path.dirname(file),{recursive:true});const tmp=file+'.tmp-'+process.pid,fd=fs.openSync(tmp,'w');try{fs.writeFileSync(fd,typeof value==='string'?value:JSON.stringify(value,null,2));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}for(let attempt=0;;attempt++){try{fs.renameSync(tmp,file);syncDirectory(path.dirname(file));return;}catch(error){if(!['EPERM','EACCES','EBUSY'].includes(error.code)||attempt>=11)throw error;Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,Math.min(100,10*(attempt+1)));}}}
 function append(file,row){fs.mkdirSync(path.dirname(file),{recursive:true});const fd=fs.openSync(file,'a');try{fs.writeFileSync(fd,JSON.stringify(row)+'\n');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}syncDirectory(path.dirname(file));}
@@ -12,13 +12,13 @@ function read(file,fallback=null){return fs.existsSync(file)?JSON.parse(fs.readF
 function resolveRun(value='outputs/learning/default'){return path.resolve(ROOT,value);}
 function baselineFactory(ref=BASELINE){
  const commit=cp.execFileSync('git',['rev-parse',ref+'^{commit}'],{cwd:ROOT,encoding:'utf8'}).trim();
- const sources=files.map(f=>cp.execFileSync('git',['show',commit+':src/'+f],{cwd:ROOT,encoding:'utf8',maxBuffer:8*1024*1024}));
+ const sources=files.map(f=>{const historical=f==='search-engine.js'&&cp.spawnSync('git',['cat-file','-e',commit+':src/'+f],{cwd:ROOT,stdio:'ignore',windowsHide:true}).status!==0?'forest-engine.js':f;return cp.execFileSync('git',['show',commit+':src/'+historical],{cwd:ROOT,encoding:'utf8',maxBuffer:8*1024*1024});});
  sources[3]=sources[3].replace('function createEngine(','function createReaderEngine(');
  const context={Date,console,performance:require('node:perf_hooks').performance};vm.createContext(context);vm.runInContext(sources.join('\n'),context);
  return {createEngine:context.createEngine,commit,sourceHash:hash(sources.join('\n'))};
 }
 const publishedDefault=read(path.join(ROOT,'src/default-model-reference.json'));
-const buildDependencies=['tools/build-model.cjs','src/default-model-reference.json',...(publishedDefault?['model.json','evidence.json'].map(name=>'artifacts/adopted-models/'+publishedDefault.artifactSha256+'/'+name):[])];
+const buildDependencies=['tools/build-appearance.cjs','tools/build-model.cjs','src/default-model-reference.json',...(publishedDefault?['model.json','evidence.json'].map(name=>'artifacts/adopted-models/'+publishedDefault.artifactSha256+'/'+name):[])];
 const sourceDependencies=[...buildDependencies,...files.map(f=>'src/'+f),'src/neural-evaluator.js','src/node-engine.cjs','build.cjs','src/template.html','src/analysis-settings.js','src/parallel-analysis.js','src/app.js','src/unified-app.js','src/gpu-app.js','src/neural-app.js',...['29','31','33','47','48','95'].map(n=>'test/reader/game'+n+'.cjs')];
 function dependencyManifest(names){return names.slice().sort().map(name=>({path:name,sha256:fileHash(path.join(ROOT,name))}));}
 function sourceIdentity(){const sourceManifest=dependencyManifest(sourceDependencies),harnessNames=['state','replay','generate','arena','run','journal','corpus','snapshot','archive','metrics','deployment','storage','trial-ledger','run-retention','experiment-plan'].map(f=>'tools/learning/'+f+'.cjs').concat('tools/learning/train.py'),harnessManifest=dependencyManifest(harnessNames),runtimeManifest={node:process.versions.node,v8:process.versions.v8,sqlite:process.versions.sqlite??null,platform:process.platform,arch:process.arch};return {version:2,runtimeHash:hash(runtimeManifest),runtimeManifest,sourceHash:hash(sourceManifest),harnessHash:hash(harnessManifest),sourceManifest,harnessManifest};}

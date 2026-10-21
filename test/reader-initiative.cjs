@@ -1,5 +1,5 @@
 'use strict';
-const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),createForest=require('../src/forest-engine.js'),createStrategy=require('../src/strategy-engine.js');
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),createForest=require('../src/search-engine.js'),createStrategy=require('../src/strategy-engine.js');
 const ix=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65,board=(mine,theirs)=>{const b=Array(225).fill(0);mine.forEach(c=>b[ix(c)]=1);theirs.forEach(c=>b[ix(c)]=2);return b;};
 const rules=createForest({strategy:false}),make=()=>createStrategy(15,{inspect:rules.inspect,legal:(b,i,p)=>rules.inspect(b,i,p).legal,winning:rules.winning},{firstPlayer:2});
 for(const seed of [board(['G8','H8'],['J7','J8']),board(['F8','H8','G6','G7','E10','F9'],['L4','K4'])])for(let t=0;t<8;t++)for(const swap of [false,true]){
@@ -11,7 +11,7 @@ for(const seed of [board(['G8','H8'],['J7','J8']),board(['F8','H8','G6','G7','E1
  assert.deepEqual(b,before);
 }
 console.log('PASS D4/color support, descriptor cache both call orders, pure selection after measured budget exhaustion');
-const source=fs.readFileSync('src/reader-engine.js','utf8'),engine=fs.readFileSync('src/gpu-patterns.js','utf8')+'\n'+fs.readFileSync('src/strategy-engine.js','utf8')+'\n',forest=fs.readFileSync('src/forest-engine.js','utf8');
+const source=fs.readFileSync('src/reader-engine.js','utf8'),engine=fs.readFileSync('src/gpu-patterns.js','utf8')+'\n'+fs.readFileSync('src/strategy-engine.js','utf8')+'\n',forest=fs.readFileSync('src/search-engine.js','utf8');
 const add=`function compare(p,ids,reverse=false){nodes=0;strategy?.setBudget(options.workBudget??Infinity);deadline=Infinity;phaseDeadline=Infinity;tt.clear();tacticalCache.clear();let rs=rank(p,ids);if(reverse)rs.reverse();const out=[];for(const r of rs){set(r.i,p);let child;try{child=search(3-p,0,-Infinity,Infinity,1);}finally{set(r.i,0);}out.push({i:r.i,score:-child.score,pv:[r.i,...child.pv]});}return out;} `;
 let traced=source.replace('  return {fixedWork,rank,',add+'  return {compare,fixedWork,rank,').replace('entry=tt.get(key)','entry=options.noTT?undefined:tt.get(key)').replace('quietMoves=chosen;tick();','quietMoves=chosen;options.trace?.push({board:b.slice(),p,prepared,chosen});tick();');
 const ctx={performance,Date,console};vm.createContext(ctx);vm.runInContext(engine+traced.replace('function createEngine(','function createReaderEngine(')+'\n'+forest,ctx);const table=vm.runInContext('OmokGPU.cpu()',ctx),b=board(['G8','H8'],['J7','J8']),copy=b.slice(),ids=['F8','I8','I7','H9','J6','A1'].map(ix),observed=[];

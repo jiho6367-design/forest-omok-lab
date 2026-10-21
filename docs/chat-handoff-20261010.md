@@ -16,7 +16,7 @@
 
 trial 86은 기존 shared ledger에서 run·cycle·후보·설정에 결합된 reservation `c4f7bccb678f47f6ffab1b3c23f7a9949161c4db8ecda03cb7c052e5d9adbfd8`으로 예약됐다. 비교군은 역사적 baseline과 **trial 85 채택 모델**, 계획은 1,700개 독립 가족·6,800대국이다. 모델·자료·설정·engine/harness/runtime identity·표본 분리·규칙·parity를 확인했고 PID 31376의 실제 실행도 계속 살아 있다. 원본 ledger는 SQLite로 직접 열지 않고 전후 SHA가 일치하는 db/WAL 복사본의 예약 메타데이터만 읽었다. 부분 대국 점수는 조회하거나 후보 선택에 사용하지 않았다. 이는 **학습 정체 수정 및 정상 평가 시작의 증거**이며 trial 86 검증 통과나 새 채택을 뜻하지 않는다. HTML과 active model은 완료된 trial 85 모델을 계속 사용한다.
 
-ignored `work/learning-stagnation-20261014/completion-audit.json`의 다섯 요구사항과 `independent-production-proof.json`의 실제 파일 SHA·체크포인트·예약 검증이 모두 통과했다. 수정 소스는 commit `715ae0236cb73977653899691d694b6245e2f00c`로 push하고 원격 ID까지 확인했다. **별도 CI 실패는 남아 있다.** [CI #156](https://github.com/jiho6367-design/forest-omok-lab/actions/runs/38449495040)의 첫 시도는 새 원장을 동시에 초기화하는 fixture에서 SQLite `database is locked`로 실패했다. 한 번 재실행한 두 번째 시도에서는 전체 `npm test`·게시 경계·Python 검사가 통과했으나 Linux Chromium의 자동 적용 복귀 버튼 검사에서 시간 초과가 났다. 같은 13개 UI 흐름은 로컬 Edge에서 통과했지만 CI 원인은 미확정이다. 두 오류를 해결했다고 주장하지 않으며 근거는 ignored `ci-check.json`에 보존했다. 실제 실행 중인 harness를 바꾸거나 이 두 실패를 숨기는 검사 변경은 하지 않았다.
+ignored `work/learning-stagnation-20261014/completion-audit.json`의 다섯 요구사항과 `independent-production-proof.json`의 실제 파일 SHA·체크포인트·예약 검증이 모두 통과했다. 수정 소스는 commit `715ae0236cb73977653899691d694b6245e2f00c`로 push하고 원격 ID까지 확인했다. **별도 CI 실패는 남아 있다.** [CI #156](https://github.com/jiho6367-design/my-omok/actions/runs/38449495040)의 첫 시도는 새 원장을 동시에 초기화하는 fixture에서 SQLite `database is locked`로 실패했다. 한 번 재실행한 두 번째 시도에서는 전체 `npm test`·게시 경계·Python 검사가 통과했으나 Linux Chromium의 자동 적용 복귀 버튼 검사에서 시간 초과가 났다. 같은 13개 UI 흐름은 로컬 Edge에서 통과했지만 CI 원인은 미확정이다. 두 오류를 해결했다고 주장하지 않으며 근거는 ignored `ci-check.json`에 보존했다. 실제 실행 중인 harness를 바꾸거나 이 두 실패를 숨기는 검사 변경은 하지 않았다.
 
 **2026-10-14 03:43 KST 최신 확인: 기존 실행은 cycle 51에서 중단했고, trial 85 채택 모델을 기준으로 새 정상 연속 실행을 시작했다.** 새 ID는 `run-20261013184114212-bbef6b`, 시작 시각은 03:41:14 KST다. `initialIncumbentHash`와 `champion.json` 객체 hash `e4a609e8448ebedb3b16416107e38aebf9c4677f088ebfc2f10cf838385ecb92`가 채택 모델과 일치한다. 기존 48개 설정은 모두 같고, 학습 seed `20261007`과 초기 전체 검증 상한 `128`만 새 정책으로 명시했다. 원래 경험·노출 계보·공유 trial 원장을 normal continuation으로 이어받는 import가 실제 진행 중이다. 새 cycle은 1부터 시작하며 다음 예약 trial은 86이다. 이 시점에는 import 완료·새 학습·새 arena 완료를 주장하지 않는다.
 
@@ -36,13 +36,13 @@ cycle 37~49의 반복된 이전 후보 유지 원인을 실제 고정 cycle 49 �
 
 **현재 실행 확인: 2026-10-11 04:48 KST.** 수정 commit `09c41d5730b3612fbd418c1dd605c399026cf8fd`의 연속 normal 실행 `run-20261010191342223-19db4f`(PID 19520)을 실제 재개했다. 부모 `7a75a6`의 129,996대국·1,458,044행 전체와 기존 warm 모델·노출 계보를 이어받은 뒤 첫 CUDA 학습이 종료 코드 0으로 완료됐다. 새 optimizer update 3,575회·11 epoch, 실제 학습 모델 export·parity·stock 학습 증거 통과와 새 완료 대국 167개를 확인했다. 학습 후 50.183초 간격의 두 관찰에서 PID·lock·소스·설정 일치와 stop·오류 없음이 유지됐다. 현재 CPU 검증을 계속 실행 중이며 이번 새 후보의 기력 향상·채택은 아직 미확정이다. 아래의 04:07 이전 기록은 당시 시점이다.
 
-원래 48개 설정(CUDA·CPU 13개·병행 생성·18 GiB·연속 실행)을 정확히 유지했다. 새 run의 cycle은 1부터 시작하고 기존 자료·공유 trial 원장은 보존한다. 실패 `a7c4`의 추가 28대국은 별도로 보존하며 이번 import에 포함하지 않았다. 원래 `30c039` stop marker도 stock의 완료된 `.recycle` 위치에서 동일 SHA `13401c52…`로 확인했다. 재개 관찰 SHA는 `f54e88ea67c06a2c5bcdccab474d2344c7294ed74c7eeaf33f44a081e4620b72`이며, 첫 학습의 dataset·report·candidate·parity·checkpoint와 상세 완료 시각은 [조사 보고서의 정상 재개 절](learning-root-cause-20261010.md#수정-후-실제-정상-재개)에 기록했다. [수정 소스 push CI #148](https://github.com/jiho6367-design/forest-omok-lab/actions/runs/38078906817)은 실제 성공했다. 원자료·미채택 모델은 로컬에 유지하고 연속 실행은 중단하지 않는다.
+원래 48개 설정(CUDA·CPU 13개·병행 생성·18 GiB·연속 실행)을 정확히 유지했다. 새 run의 cycle은 1부터 시작하고 기존 자료·공유 trial 원장은 보존한다. 실패 `a7c4`의 추가 28대국은 별도로 보존하며 이번 import에 포함하지 않았다. 원래 `30c039` stop marker도 stock의 완료된 `.recycle` 위치에서 동일 SHA `13401c52…`로 확인했다. 재개 관찰 SHA는 `f54e88ea67c06a2c5bcdccab474d2344c7294ed74c7eeaf33f44a081e4620b72`이며, 첫 학습의 dataset·report·candidate·parity·checkpoint와 상세 완료 시각은 [조사 보고서의 정상 재개 절](learning-root-cause-20261010.md#수정-후-실제-정상-재개)에 기록했다. [수정 소스 push CI #148](https://github.com/jiho6367-design/my-omok/actions/runs/38078906817)은 실제 성공했다. 원자료·미채택 모델은 로컬에 유지하고 연속 실행은 중단하지 않는다.
 
 작성일: 2026-10-10, 한국시간(Asia/Seoul). 이 문서는 채팅의 결정과 파일로 확인한 결과를 요약한다. 다음 작업자는 실행 상태와 원장을 다시 확인해야 한다.
 
 **이전 갱신: 2026-10-11 04:07 KST.** 평가 당시 Reader 소스 `42089a7…`로 기존 cycle 6 모델을 검증한 trial 73은 4,848대국 전부 완료했다. 독립 감사가 전체 184,680착수, 상대별 1,212가족, 원장·중복 배제·규칙·parity·원본 입력 일치를 확인했다. baseline 56.2294%/신뢰하한 49.3146%, current-no-model 54.0842%/신뢰하한 47.1693%로 요구 점수 >56.9148%에 미달했다. 별도 실제 stock `adopt`는 `kept-current`이며 새 active model이나 채택 artifact 게시가 없다. 이번 검증의 새 optimizer update는 0이고 과거 CUDA 6,194 updates와 구분한다.
 
-완료 감사 `completed-trial73-audit-1791653723266.json` SHA `c27af862…`, 독립 검토 SHA `0b7efc0a…`, 실제 adopt 판정 시각 `2026-10-10T17:37:06.456Z`를 ignored 조사 폴더에 보존했다. 원본 37개 평가 소스·속성·기보·candidate·checkpoint·stop marker는 유지했다. 이후 출력 계약 수정 a7을 실제 적용하고 run/state 두 파일의 CRLF만 LF로 정리했다. 실제 수정 source는 `313dd35c…`, harness `5f8db9c2…`이며 원래 평가의 `42089a7…/9f9a8a26…` 증거를 새 코드로 바꾸지 않는다. 소스·검사·휴대 가능한 HTML은 commit `a82d198964a0807c42cdb9cb543fe2b23278a15d`로 GitHub에 동기화됐고 [실제 push CI](https://github.com/jiho6367-design/forest-omok-lab/actions/runs/38073737908)가 성공했다. 이후 원래 48개 설정의 새 stock normal 연속 실행을 실제 시작했으나, 첫 학습에서 별도의 ID 전달 계약 오류를 발견했다. 아래 실행 중·미완료 표현은 각 과거 시점의 기록이다.
+완료 감사 `completed-trial73-audit-1791653723266.json` SHA `c27af862…`, 독립 검토 SHA `0b7efc0a…`, 실제 adopt 판정 시각 `2026-10-10T17:37:06.456Z`를 ignored 조사 폴더에 보존했다. 원본 37개 평가 소스·속성·기보·candidate·checkpoint·stop marker는 유지했다. 이후 출력 계약 수정 a7을 실제 적용하고 run/state 두 파일의 CRLF만 LF로 정리했다. 실제 수정 source는 `313dd35c…`, harness `5f8db9c2…`이며 원래 평가의 `42089a7…/9f9a8a26…` 증거를 새 코드로 바꾸지 않는다. 소스·검사·휴대 가능한 HTML은 commit `a82d198964a0807c42cdb9cb543fe2b23278a15d`로 GitHub에 동기화됐고 [실제 push CI](https://github.com/jiho6367-design/my-omok/actions/runs/38073737908)가 성공했다. 이후 원래 48개 설정의 새 stock normal 연속 실행을 실제 시작했으나, 첫 학습에서 별도의 ID 전달 계약 오류를 발견했다. 아래 실행 중·미완료 표현은 각 과거 시점의 기록이다.
 
 **첫 정상 재개 시도 `run-20261010175654551-a7c4`는 현재 실패·종료 상태다.** 02:56:57 KST 시작 후 03:26:43에 129,996대국·1,458,044행의 전체 import와 warm 모델·노출 이력을 검증해 가져왔다. snapshot 준비도 완료하고 새 대국 28개·191행을 실제 저장했지만 03:31:25에 Python이 첫 행의 `sampleId`를 거부했다. 계보 접두사 10개와 원래 ID가 합쳐져 266자가 되었고 학습기의 256자 한도를 넘었다. 새 CUDA optimizer update는 0이며 candidate·checkpoint를 만들지 않았다. 실제 구조화 오류는 `Invalid data at line 1: Invalid sampleId`지만 실행기가 stderr만 사용해 화면에는 `Training failed: `로 전달했다. PID 27840·trainer 종료, 자식 프로세스 0·lock 해제·stop 없음, 보관 runtime 37파일 일치를 확인했다. 실패한 원자료·snapshot·오류·새 28대국은 보존했다. 후속 ID·오류 전달 수정과 정상 재개 결과는 이 문서 첫 절에 기록한다. 종료·보존 감사 SHA는 `4404661efe2603508b09882ab7ca98a8f0d6e06100f827904eab0c296c116f3a`다. 이 실패를 정상 연속 실행 완료나 과거 trial 미채택의 원인으로 소급하지 않는다.
 
@@ -81,10 +81,10 @@ cycle 37~49의 반복된 이전 후보 유지 원인을 실제 고정 cycle 49 �
 로컬 프로젝트:
 
 ```text
-C:\Users\jiho\Documents\Codex\2026-10-05\jiho6367-design-forest-omok-lab-gpu\work\forest-omok-lab
+프로젝트 루트: git rev-parse --show-toplevel 명령으로 현재 로컬 경로 확인
 ```
 
-GitHub: https://github.com/jiho6367-design/forest-omok-lab
+GitHub: https://github.com/jiho6367-design/my-omok
 
 브랜치: `main`. 프로젝트 루트의 `AGENTS.md`와 `.gitignore`를 준수한다.
 
@@ -256,7 +256,7 @@ candidate SHA-256:
    ```
 
    12 GiB는 현재 준비 검사를 통과할 여유가 있으나 이후 누적을 무기한 보장하지 않는다. 실제 예산 검사는 계속 적용된다. 대시보드는 disk-budget로 중단된 실행에서만 저장 한도 증가를 허용하며, 일반 재개는 저장 설정을 유지한다.
-6. 서버 시작은 `outputs/start-learning.cmd`, 화면 주소는 `http://127.0.0.1:8766`이다. 브라우저만 닫아도 서버와 학습이 종료되는 것은 아니다.
+6. 서버 시작은 `tools/learning/start-dashboard.cmd`, 화면 주소는 `http://127.0.0.1:8766`이다. 브라우저만 닫아도 서버와 학습이 종료되는 것은 아니다.
 7. 중단할 때는 **「중단 요청」 → 저장 후 중단 확인 → 서버 종료** 순서를 사용한다.
 
 이번 후속 작업은 읽기 전용 감사, 모델 경로 조사 및 저장 예산 재개 UI/API 보완을 수행했다. 기준 완화·다음 장시간 평가 예약·프로덕션 재시작은 수행하지 않았다. 예약 없이 계산한 trial 70의 powered 계획은 상대별 **1,206가족**, 총 **4,824대국**, 필요한 점수 **56.9070% 초과**다. 실제 번호·계획은 재개 시 공유 원장에서 다시 확인한다.

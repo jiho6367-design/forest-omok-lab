@@ -1,9 +1,9 @@
 'use strict';
 const S=require('./store.cjs'),assert=require('node:assert/strict'),s=S.read();
 assert(!S.fs.existsSync(S.path.join(S.dir,'STOP.json')),'paused');
-const forestHash=S.sha(S.fs.readFileSync(S.path.join(S.root,'src/forest-engine.js'))),testHash=S.sha(S.fs.readFileSync(S.path.join(S.root,'test/forest-quiet-state.cjs')));
+const forestHash=S.sha(S.fs.readFileSync(S.path.join(S.root,'src/search-engine.js'))),testHash=S.sha(S.fs.readFileSync(S.path.join(S.root,'test/search-quiet-state.cjs')));
 const expected='04702212c1fe4b748d1bdd11bee0f9542a5ef2dd293152b0f6cfcfe9dec38151';assert.equal(forestHash,expected);
-for(const test of ['test/forest-quiet-state.cjs','test/search-budget.cjs','test/strategy-engine.cjs','test/initiative-comparison-retention.cjs']){const row=s.experiments.findLast(x=>x.condition?.test===test&&x.condition.sourceHash===forestHash&&x.condition.testHash===S.sha(S.fs.readFileSync(S.path.join(S.root,test))));assert(row&&row.status==='completed'&&row.result.status===0,'current affected check '+test);}
+for(const test of ['test/search-quiet-state.cjs','test/search-budget.cjs','test/strategy-engine.cjs','test/initiative-comparison-retention.cjs']){const row=s.experiments.findLast(x=>x.condition?.test===test&&x.condition.sourceHash===forestHash&&x.condition.testHash===S.sha(S.fs.readFileSync(S.path.join(S.root,test))));assert(row&&row.status==='completed'&&row.result.status===0,'current affected check '+test);}
 const read=f=>JSON.parse(S.fs.readFileSync(S.path.join(S.dir,f))),comparison=read('candidate1-comparison.json'),independent=read('candidate1-independent-comparison.json'),preserve=read('candidate1-preservation-review.json'),next=read('candidate1-v12b-next-review.json');assert(comparison.complete&&comparison.rows.length===9);assert.equal(independent.rows.length,10);assert(preserve.complete&&preserve.rows.length===11);assert(next.complete&&next.rows.length===11);
 assert(read('root-order-review-v2.json').filter(x=>x.branchLocal).every(x=>!x.changed.length));assert(read('logs/forest-state-diagnostic-2.json').rows.some(x=>x.staleLeafReused));
 const final=read('logs/candidate1-after-required-I9-L4-improved.json');assert.equal(final.result.move,'K6');assert(!final.result.error&&!final.result.invalid);

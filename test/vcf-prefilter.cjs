@@ -1,4 +1,4 @@
-const assert=require('node:assert/strict'),create=require('../src/forest-engine.js');
+const assert=require('node:assert/strict'),create=require('../src/search-engine.js');
 const idx=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65,boards=[];
 for(const prefix of ['H8 G7 G6 H6 F8','H8 G7 G6 H6 F8 I5 K3','H8 A1 H9 B1 H10 C1','H8 A1 H9 B1 H10 C1 H11 D2']){
  const b=Array(225).fill(0);prefix.split(' ').forEach((c,k)=>b[idx(c)]=k%2?2:1);boards.push(b);

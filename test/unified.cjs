@@ -88,16 +88,17 @@ test('deep mode retains a move and validates its returned PV',()=>{
 });
 test('text import validates order, pass, occupied and forbidden positions atomically',()=>{
   const text=fs.readFileSync('src/unified-app.js','utf8'),start=text.indexOf('function parseTextRecord'),end=text.indexOf('const importTextButton',start),ctx={createEngine};vm.createContext(ctx);vm.runInContext(text.slice(start,end),ctx);
-  const r=ctx.parseTextRecord('1. 백 H8 · 2. 흑 G9\n3. 초록 슬라임 PASS(40초 초과)',{fivePriority:false});assert.equal(r[0].i,idx('H8'));assert.equal(r[2].type,'timeout');
-  const copied=ctx.parseTextRecord('내 돌: 노란 버섯 (흑) · 후공\n1. 초록 슬라임 H8\n2. 노란 버섯 G7',{fivePriority:false});assert.equal(copied.length,2);assert.equal(copied[1].p,1);
+  const r=ctx.parseTextRecord('1. 백 H8 · 2. 흑 G9\n3. 백돌 PASS(40초 초과)',{fivePriority:false});assert.equal(r[0].i,idx('H8'));assert.equal(r[2].type,'timeout');
+  const copied=ctx.parseTextRecord('내 돌: 흑돌 (흑) · 후공\n1. 백돌 H8\n2. 흑돌 G7',{fivePriority:false});assert.equal(copied.length,2);assert.equal(copied[1].p,1);
+  ctx.names=['','private black','private white'];const personal=ctx.parseTextRecord('private white H8 · private black G7',{});assert.equal(personal[0].p,2);assert.equal(personal[1].p,1);
   assert.throws(()=>ctx.parseTextRecord('흑 H8 · 백 H8',{}));assert.throws(()=>ctx.parseTextRecord('흑 H8 · 흑 G9',{}));assert.throws(()=>ctx.parseTextRecord('흑 Z19',{}));
 });
 test('copied text record identifies my stone and move order',()=>{
-  const text=fs.readFileSync('src/app.js','utf8'),start=text.indexOf('function formatRecordText'),end=text.indexOf('const recordText',start),ctx={names:{1:'노란 버섯',2:'초록 슬라임'},E:{coord:i=>i===112?'H8':'G7'}};vm.createContext(ctx);vm.runInContext(text.slice(start,end),ctx);
-  const out=ctx.formatRecordText({me:1,first:2},[{p:2,type:'move',i:112},{p:1,type:'move',i:96}]);assert(out.startsWith('내 돌: 노란 버섯 (흑) · 후공\n'));assert(out.includes('1. 초록 슬라임 H8'));assert(out.includes('2. 노란 버섯 G7'));
+  const text=fs.readFileSync('src/app.js','utf8'),start=text.indexOf('function formatRecordText'),end=text.indexOf('const recordText',start),ctx={names:{1:'흑돌',2:'백돌'},E:{coord:i=>i===112?'H8':'G7'}};vm.createContext(ctx);vm.runInContext(text.slice(start,end),ctx);
+  const out=ctx.formatRecordText({me:1,first:2},[{p:2,type:'move',i:112},{p:1,type:'move',i:96}]);assert(out.startsWith('내 돌: 흑돌 (흑) · 후공\n'));assert(out.includes('1. 백돌 H8'));assert(out.includes('2. 흑돌 G7'));
 });
 test('single-file build embeds scripts and images without external dependencies',()=>{
-  const html=fs.readFileSync(process.env.OMOK_TEST_HTML||'outputs/omok.html','utf8');assert(html.includes('data:image/'));assert(!/<script[^>]+src=|<link[^>]+href=/.test(html));
+  const html=fs.readFileSync(process.env.OMOK_TEST_HTML||'outputs/omok.html','utf8');assert(html.includes('.sprite.s1{')&&html.includes('.sprite.s2{'));assert(!/<script[^>]+src=|<link[^>]+href=/.test(html));
   for(const m of html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
 });
 test('80-ply green record is legal and yellow has the verified M6 forcing line',()=>{

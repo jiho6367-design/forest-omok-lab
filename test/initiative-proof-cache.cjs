@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),verify=require('../tools/verify-attack.cjs'),ix=c=>(+c.slice(1)-1)*15+c.charCodeAt(0)-65;
 const coords='H8 G7 I7 G9 I8 G8 G6 F9 H7 J9 H9 H6'.split(' '),board=Array(225).fill(0);coords.forEach((c,k)=>board[ix(c)]=k%2?1:2);
-const original=fs.readFileSync('src/forest-engine.js','utf8'),anchor='function solve(left){if(clockNow()>=end)throw TIME;nodes++;';assert.equal(original.split(anchor).length,2);
+const original=fs.readFileSync('src/search-engine.js','utf8'),anchor='function solve(left){if(clockNow()>=end)throw TIME;nodes++;';assert.equal(original.split(anchor).length,2);
 let work=0;const ctx={Date,performance:{now:()=>work},testStep:()=>work++};vm.createContext(ctx);vm.runInContext(original.replace(anchor,'function solve(left){if(clockNow()>=end)throw TIME;testStep();nodes++;'),ctx);const E=ctx.createForestEngine({strategy:false}),shared=new Map();
 const partial=E.forcedReplyTrap(board,1,80,ix('G10'),19,true,shared);assert(!partial.complete&&!partial.proof);assert(shared.size>0);const partialSize=shared.size;
 const resumed=E.forcedReplyTrap(board,1,100000,ix('G10'),19,true,shared);assert(resumed.complete&&resumed.proof);const retainedEntries=shared.size;

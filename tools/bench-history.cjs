@@ -2,7 +2,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),cp=require('node:child_process');
 const read=(f,old)=>old?cp.execFileSync('git',['show',`HEAD:src/${f}`],{encoding:'utf8'}):fs.readFileSync(`src/${f}`,'utf8');
 function engine(old){const context={Date,console};vm.createContext(context);
-  vm.runInContext(read('reader-engine.js',old).replace('function createEngine(','function createReaderEngine(')+'\n'+read('forest-engine.js',old)+'\n'+read('unified-engine.js',old),context);
+  vm.runInContext(read('reader-engine.js',old).replace('function createEngine(','function createReaderEngine(')+'\n'+read(old&&cp.spawnSync('git',['cat-file','-e','HEAD:src/search-engine.js'],{stdio:'ignore'}).status!==0?'forest-engine.js':'search-engine.js',old)+'\n'+read('unified-engine.js',old),context);
   return context.createEngine({fivePriority:false});}
 const coords='H8 G7 G6 H6 F8 I7 E8 G8 F7'.split(' ');
 const board=Array(225).fill(0);coords.forEach((c,k)=>board[(+c.slice(1)-1)*15+c.charCodeAt(0)-65]=k%2?2:1);

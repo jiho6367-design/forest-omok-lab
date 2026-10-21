@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),Memory=require('../src/search-memory.js');
-const source=fs.readFileSync('src/forest-engine.js','utf8'),anchor='let best=options[0],pv=[best.i],score=best.score;';
+const source=fs.readFileSync('src/search-engine.js','utf8'),anchor='let best=options[0],pv=[best.i],score=best.score;';
 assert.equal(source.split(anchor).length,2);
 const code=source.replace(anchor,'return {run:(d,ply=1)=>{nodes=0;const result=search(p,d,-Infinity,Infinity,ply);return {...result,nodes};},board:()=>b.slice()};');
 const ctx={performance:{now:()=>0},Date,console};vm.createContext(ctx);for(const f of ['search-memory.js','strategy-engine.js'])vm.runInContext(fs.readFileSync('src/'+f,'utf8'),ctx);vm.runInContext(code,ctx);

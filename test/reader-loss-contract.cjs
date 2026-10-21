@@ -4,7 +4,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=process.env.OMOK_LOSS_SOURCE_ROOT||path.resolve(__dirname,'../src');
 const base=process.env.OMOK_LOSS_BASE_SOURCE||null;
-const names=['neural-evaluator.js','search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','forest-engine.js','unified-engine.js'];
+const names=['neural-evaluator.js','search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','search-engine.js','unified-engine.js'];
 const idx=c=>(Number(c.slice(1))-1)*15+c.charCodeAt(0)-65,blank=()=>Array(225).fill(0),plain=v=>v===undefined?undefined:JSON.parse(JSON.stringify(v));
 function fixture(black,white=[]){const b=blank();for(const c of black)b[idx(c)]=1;for(const c of white)b[idx(c)]=2;return b;}
 function load(directory,clock){const context={Date,console,performance:clock||require('node:perf_hooks').performance};vm.createContext(context);

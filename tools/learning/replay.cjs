@@ -5,10 +5,10 @@ const createEngine=require('../../src/node-engine.cjs');
 const blank=()=>Array(225).fill(0),coord=i=>String.fromCharCode(65+i%15)+(1+(i/15|0));
 function index(value){if(Number.isInteger(value)&&value>=0&&value<225)return value;const m=/^([A-O])(1[0-5]|[1-9])$/i.exec(String(value));if(!m)throw Error('Invalid coordinate: '+value);return (+m[2]-1)*15+m[1].toUpperCase().charCodeAt(0)-65;}
 function eventsFromText(text,firstPlayer){
- const header=/내\s*돌\s*:\s*(흑|백|노란\s*버섯|초록\s*슬라임)[^\n\r]*(선공|후공)/i.exec(text);let me=header?(/흑|버섯/.test(header[1])?1:2):null;
+ const header=/내\s*돌\s*:\s*(흑돌|백돌|흑|백|\uB178\uB780\s*\uBC84\uC12F|\uCD08\uB85D\s*\uC2AC\uB77C\uC784)[^\n\r]*(선공|후공)/i.exec(text);let me=header?(/흑|\uBC84\uC12F/.test(header[1])?1:2):null;
  if(header)firstPlayer=header[2]==='선공'?me:3-me;
  text=text.replace(/^\s*내\s*돌\s*:[^\r\n]*(?:\r?\n|$)/im,'');const parts=text.split(/[·\n\r;]+/).map(x=>x.trim()).filter(Boolean),events=[];let p=firstPlayer;
- for(const entry of parts){const m=/^(?:\d+\s*[.)]\s*)?(?:(흑|백|노란\s*버섯|초록\s*슬라임)\s*)?([A-O](?:1[0-5]|[1-9])|PASS(?:\([^)]*\))?)$/i.exec(entry);if(!m)throw Error('Cannot read record item '+(events.length+1)+': '+entry);const q=m[1]?(/흑|버섯/.test(m[1])?1:2):p;if(![1,2].includes(q))throw Error('First player is required for a record without color labels.');if(!events.length&&p==null)p=q;if(q!==p)throw Error('Wrong player at move '+(events.length+1));events.push({type:/^PASS/i.test(m[2])?'timeout':'move',p:q,i:/^PASS/i.test(m[2])?null:index(m[2])});p=3-q;}
+ for(const entry of parts){const m=/^(?:\d+\s*[.)]\s*)?(?:(흑돌|백돌|흑|백|\uB178\uB780\s*\uBC84\uC12F|\uCD08\uB85D\s*\uC2AC\uB77C\uC784)\s*)?([A-O](?:1[0-5]|[1-9])|PASS(?:\([^)]*\))?)$/i.exec(entry);if(!m)throw Error('Cannot read record item '+(events.length+1)+': '+entry);const q=m[1]?(/흑|\uBC84\uC12F/.test(m[1])?1:2):p;if(![1,2].includes(q))throw Error('First player is required for a record without color labels.');if(!events.length&&p==null)p=q;if(q!==p)throw Error('Wrong player at move '+(events.length+1));events.push({type:/^PASS/i.test(m[2])?'timeout':'move',p:q,i:/^PASS/i.test(m[2])?null:index(m[2])});p=3-q;}
  return {first:events[0]?.p||firstPlayer,me,events};
 }
 function familyFor(events,first){const E=positionEngine||(positionEngine=createEngine({strategy:false,model:null}));let best=null;for(let t=0;t<8;t++){const encoded=events.map(e=>(e.p===first?1:2)+':'+(e.type==='timeout'?'PASS':E.transformed(e.i,t))).join(',');if(best===null||encoded<best)best=encoded;}return 'record-'+hash(best).slice(0,24);}

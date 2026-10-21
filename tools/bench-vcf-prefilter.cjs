@@ -1,6 +1,6 @@
-let create=require('../src/forest-engine.js');
+let create=require('../src/search-engine.js');
 const vmMode=process.argv.includes('--vm');
-if(vmMode){const vm=require('node:vm'),fs=require('node:fs'),context={Date,console};vm.createContext(context);create=vm.runInContext(fs.readFileSync(require.resolve('../src/forest-engine.js'),'utf8')+'\ncreateForestEngine;',context);}
+if(vmMode){const vm=require('node:vm'),fs=require('node:fs'),context={Date,console};vm.createContext(context);create=vm.runInContext(fs.readFileSync(require.resolve('../src/search-engine.js'),'utf8')+'\ncreateForestEngine;',context);}
 const positions=['H8 G7 G6 H6 F8','H8 G7 G6 H6 F8 I5 K3','H8 G7 G6 H6 F8 I5 K3 G8 G9'];
 const boards=positions.map(prefix=>{const b=Array(225).fill(0);prefix.split(' ').forEach((c,k)=>b[(+c.slice(1)-1)*15+c.charCodeAt(0)-65]=k%2?2:1);return b;});
 for(const enabled of [false,true]){

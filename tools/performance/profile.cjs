@@ -1,7 +1,7 @@
 const fs=require('fs'),path=require('path'),{chromium}=require('playwright');
 const positions=require('./positions.cjs'),root=path.resolve(__dirname,'../..'),out=path.join(root,'reports/performance');
 (async()=>{const browser=await chromium.launch({executablePath:process.env.OMOK_BROWSER||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});const page=await browser.newPage();
- for(const f of ['reader-engine.js','forest-engine.js','unified-engine.js']){let s=fs.readFileSync(path.join(root,'src',f),'utf8');if(f.startsWith('reader'))s=s.replace('function createEngine(','function createReaderEngine(');await page.addScriptTag({content:s+'\n//# sourceURL='+f});}
+ for(const f of ['reader-engine.js','search-engine.js','unified-engine.js']){let s=fs.readFileSync(path.join(root,'src',f),'utf8');if(f.startsWith('reader'))s=s.replace('function createEngine(','function createReaderEngine(');await page.addScriptTag({content:s+'\n//# sourceURL='+f});}
  const session=await page.context().newCDPSession(page);await session.send('Profiler.enable');await session.send('Profiler.setSamplingInterval',{interval:1000});const summary=[];
  for(const [id,ms] of [['sixth-move',15000],['quiet-middle',25000]]){
   await session.send('Profiler.start');const result=await page.evaluate(({position,ms})=>{const e=createEngine({fivePriority:true}),t=performance.now(),r=e.analyze(position.board,position.p,ms,[]);const j=performance.now(),serialized=JSON.stringify(r);return {elapsed:performance.now()-t,engineMs:r.ms,serializationMs:performance.now()-j,serializedBytes:serialized.length,depth:r.depth,nodes:r.nodes,move:r.i==null?null:e.coord(r.i)};},{position:positions.find(p=>p.id===id),ms});

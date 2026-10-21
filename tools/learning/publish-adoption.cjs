@@ -55,8 +55,8 @@ function stableEvaluationCommit(root,evaluation,head,delivery=evaluation){
  throw Error('No exact evaluated source commit was found');
 }
 function baselineSourceHash(root,commit){
- const names=['search-memory','gpu-patterns','strategy-engine','reader-engine','forest-engine','unified-engine'];
- const sources=names.map(name=>cp.execFileSync('git',['show',commit+':src/'+name+'.js'],{cwd:root,encoding:'utf8',windowsHide:true,maxBuffer:8*1024*1024,stdio:['ignore','pipe','ignore']}));
+ const names=['search-memory','gpu-patterns','strategy-engine','reader-engine','search-engine','unified-engine'];
+ const sources=names.map(name=>{const file=name==='search-engine'&&cp.spawnSync('git',['cat-file','-e',commit+':src/search-engine.js'],{cwd:root,stdio:'ignore',windowsHide:true}).status!==0?'forest-engine':name;return cp.execFileSync('git',['show',commit+':src/'+file+'.js'],{cwd:root,encoding:'utf8',windowsHide:true,maxBuffer:8*1024*1024,stdio:['ignore','pipe','ignore']});});
  sources[3]=sources[3].replace('function createEngine(','function createReaderEngine(');return S.hash(sources.join('\n'));
 }
 function publicSettings(settings){

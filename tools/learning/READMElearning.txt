@@ -1,9 +1,9 @@
-숲속 오목 로컬 분석·학습
+my오목 로컬 분석·학습
 
 기존 CPU 수읽기/금수 검사/검증된 반증을 유지하고, 작은 국면 가치 신경망의 제한된 평가 보정을 학습합니다. 자료 생성·변형 대국·수읽기·대국 검증은 CPU, 신경망 미니배치 학습은 GPU(CUDA)입니다. 기존 GPU 혼합의 59,049개 정적 패턴표와 신경망 학습은 서로 다른 기능입니다. 반복 실행은 Node/Python 로컬 프로그램이며 ChatGPT/Codex/외부 AI API를 호출하지 않습니다.
 
 저장소 루트에서 사용:
-  outputs/start-learning.cmd 더블클릭: 서버를 켠 뒤 기본 브라우저를 자동으로 엽니다.
+  tools/learning/start-dashboard.cmd 더블클릭: 서버를 켠 뒤 기본 브라우저를 자동으로 엽니다.
   재부팅 후에도 같은 파일을 더블클릭하면 됩니다. 사용하는 동안 처음 열린 서버 창을 열어 둡니다.
   이미 실행 중이면 기존 학습 화면을 엽니다. 저장된 기보·모델·진행 상태는 유지됩니다.
   node tools/learning/run.cjs init --run=outputs/learning/my-run
@@ -113,4 +113,4 @@ leaf-profile은 별도의 고정 깊이 Reader 실행에서 실제 static leaf �
 - 대시보드는 초기값 유지와 새 epoch 선택을 구분하고, 완료 epoch 및 자료 준비·학습 처리 시간을 표시합니다. 과거 아레나와 더 최신의 학습 미개선 결정을 혼동하지 않습니다.
 - 이번 조사에서 장시간 독립 아레나와 실제 모델 채택은 실행하지 않았습니다. outputs/candidate-adoption-report-20261010.txt와 같은 날짜의 diagnosis/study JSON에 근거와 남은 검증을 기록했습니다.
 
-새 preset을 사용하려면 기존 학습 서버 콘솔에서 Ctrl+C 후 outputs/start-learning.cmd를 다시 실행합니다. 실행 중인 서버는 이전 설정을 기억하므로 브라우저 새로고침만으로는 바뀌지 않습니다.
+새 preset을 사용하려면 기존 학습 서버 콘솔에서 Ctrl+C 후 tools/learning/start-dashboard.cmd를 다시 실행합니다. 실행 중인 서버는 이전 설정을 기억하므로 브라우저 새로고침만으로는 바뀌지 않습니다.

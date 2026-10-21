@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-const source=fs.readFileSync(process.env.FOREST_TEST_SOURCE||path.join(__dirname,'../src/forest-engine.js'),'utf8');
+const source=fs.readFileSync(process.env.FOREST_TEST_SOURCE||path.join(__dirname,'../src/search-engine.js'),'utf8');
 const strategySource=fs.readFileSync(path.join(__dirname,'../src/strategy-engine.js'),'utf8');
 const anchor='let best=options[0],pv=[best.i],score=best.score;',tick='const check=()=>{nodes++;if(clockNow()>=deadline)throw TIME;};';
 assert.equal(source.split(anchor).length,2);assert.equal(source.split(tick).length,2);
