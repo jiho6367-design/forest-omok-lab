@@ -13,12 +13,12 @@ const seeds=[
  {id:'single-four-attack',p:2,own:['J5','J6','J7'],enemy:['J4','I8','K8'],required:'J8',field:'forcing'},
  {id:'pure-cut-defense',p:2,own:['A1','O13'],enemy:['D4','D5','D6'],required:null,field:'cut'}
 ];
-for(const seed of seeds)for(let t=0;t<8;t++)for(const swap of [false,true]){
+for(const seed of seeds)for(let t=0;t<8;t++)for(const swap of [false,true])for(const ownFirst of [false,true]){
  const b=Array(225).fill(0),p=swap?3-seed.p:seed.p;
  for(const [color,cells]of [[p,seed.own],[3-p,seed.enemy]])for(const c of cells)b[rules.transformed(ix(c),t)]=color;
  const trace=[],ctx={Date,console,testTrace:trace,performance:{now:()=>0}};vm.createContext(ctx);
  vm.runInContext(fs.readFileSync('src/strategy-engine.js','utf8')+'\n'+code,ctx);
- const before=b.slice(),engine=ctx.createForestEngine({firstPlayer:3-p,trace}),api=engine.analyze(b,p,15000),r=api.run();
+ const before=b.slice(),engine=ctx.createForestEngine({firstPlayer:ownFirst?p:3-p,trace}),api=engine.analyze(b,p,15000),r=api.run();
  const root=trace.find(q=>q.p===p&&q.board.every((v,i)=>v===b[i]));assert(root,seed.id+' entered actual horizon');
  if(seed.field==='forcing'){
   const move=root.moves.find(m=>m.i===rules.transformed(ix(seed.required),t));assert(move?.strategy.forcing,'single legal four survives at the horizon');
@@ -27,7 +27,7 @@ for(const seed of seeds)for(let t=0;t<8;t++)for(const swap of [false,true]){
  const pv=b.slice();let q=p;for(const i of r.pv){assert(engine.inspect(pv,i,q).legal);pv[i]=q;q=3-q;}
  assert(root.moves.length<=2,'bounded attack/cut extension width');
 }
-console.log('PASS 32 real Forest horizon cases: single-four attacks and pure defensive cuts across D4 and colors; legal PV and board restoration');
+console.log('PASS 64 real Forest horizon cases: single-four attacks and pure defensive cuts across D4, colors and both first-player roles; legal PV and board restoration');
 
 // A completed loss at one position must never suppress a later opponent error.
 const load=fs.readFileSync('src/reader-engine.js','utf8').replace('function createEngine(','function createReaderEngine('),ctx={Date,console,performance};vm.createContext(ctx);
