@@ -31,6 +31,7 @@ function assertPrior(prior){for(const [file,bytes] of prior)assert.deepEqual(fs.
 function crash(root){const child=cp.spawnSync(process.execPath,[__filename,'crash',root],{encoding:'utf8',windowsHide:true});assert.equal(child.status,73,child.stderr||child.stdout);assert.equal(S.read(transactionFile(root)).status,'prepared');}
 try{
  check(()=>assert.equal(A.assertDeliverySource({identity:current},gate),null));
+ check(()=>{const publish=require('../tools/learning/publish-adoption.cjs');assert.equal(publish.verifyExecution({},current,{identityProvider:()=>current}).audit,null);for(const name of ['artifacts/other.json','artifacts/adopted-models/'+('a'.repeat(64))+'/raw.json','artifacts/adopted-models/../model.json']){const unsafe=structuredClone(current);unsafe.sourceManifest.push({path:name,sha256:'a'.repeat(64)});unsafe.sourceHash=S.hash(unsafe.sourceManifest);assert.throws(()=>publish.verifyExecution({},unsafe,{identityProvider:()=>unsafe}),/Unsafe/);}});
  check(()=>assert.throws(()=>A.assertDeliverySource(snapshot,gate),/production engine changed/));
  check(()=>assert.throws(()=>A.registerOperationalCompatibility({beforeIdentity:before,afterIdentity:current,changes:[],reason:'fixture explicit review'},{directory:receiptDirectory}),/explicitly reviewed/));
  check(()=>assert.throws(()=>A.registerOperationalCompatibility({beforeIdentity:before,afterIdentity:current,changes,reason:''},{directory:receiptDirectory}),/explicitly reviewed/));

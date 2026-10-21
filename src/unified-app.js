@@ -14,7 +14,7 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority" disabled><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.17.0';versionBadge.title='대국 경험 누적 학습 · 턴 사이 탐색 기록 재사용';versionBadge.setAttribute('aria-label','통합 버전 5.17.0');
+versionBadge.textContent='통합 v5.18.0';versionBadge.title='대국 경험 누적 학습 · 턴 사이 탐색 기록 재사용';versionBadge.setAttribute('aria-label','통합 버전 5.18.0');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
 wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 추천 카드의 분석 시간 설정으로 계산합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 const settingsPolicy=OmokAnalysisSettings;
@@ -70,8 +70,9 @@ const positionKey=(board,p)=>[g?.id,g?.first??'unknown',p,g?.rules?.fivePriority
 function formatAnalysisPlan(policy,result){
   if(!policy)return '';
   const role=policy.role==='prediction'?'상대 다음 수 예측 · 1초 고정 · ':policy.role==='ponder'?'내 예상 응수 · ':'';
-  const end=result?(result.timedOut?'시간 상한 도달':result.urgent||['win','block','terminal'].includes(result.kind)?'즉시 전술 판정으로 조기 완료':result.autoReason||result.reason||'엔진 계산 완료'):policy.reason;
-  return role+'선택 '+policy.selectedLabel+' · 적용 최대 '+(policy.externalMs/1000).toFixed(2)+'초 · 내부 탐색 '+(policy.internalMs/1000).toFixed(2)+'초'+(policy.clockLimited?' · 대국 시계로 예산 축소':'')+' · '+end;
+  const end=result?(result.timedOut?'시간 상한 도달':result.urgent||['win','block','terminal'].includes(result.kind)?'즉시 전술 판정으로 조기 완료':result.analysisIncomplete?'추가 탐색·검사 미완료 · 마지막 완료 비교 유지':result.autoReason||result.reason||'엔진 계산 완료'):policy.reason;
+  const work=result?' · 실제 '+((result.ms||result.analysisWork?.elapsedMs||0)/1000).toFixed(2)+'초 · 완료 깊이 '+(result.depth||0):'';
+  return role+'선택 '+policy.selectedLabel+' · 적용 최대 '+(policy.externalMs/1000).toFixed(2)+'초 · 내부 탐색 '+(policy.internalMs/1000).toFixed(2)+'초'+(policy.clockLimited?' · 대국 시계로 예산 축소':'')+work+' · '+end;
 }
 function configuredOwnBudget(board,p,available=40000){
   const policy=settingsPolicy.resolve(analysisSettings,board,p,available,(board,p,time)=>E.suggestBudget(board,p,time));
@@ -97,13 +98,14 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
     if(spawnAnalysis.memory?.key!==memoryKey)spawnAnalysis.memory={key:memoryKey,store:OmokSearchMemory.create()};
     session=spawnAnalysis.memory;session.store.begin();
   }
-  const src=$('engineSource').textContent+'\nonmessage=e=>{try{const memory=typeof OmokSearchMemory!=="undefined"?OmokSearchMemory.create({snapshot:e.data.searchMemory}):null;const E=createEngine({...e.data.rules,model:e.data.model,firstPlayer:e.data.firstPlayer,patternTable:e.data.patternTable,optimized:e.data.optimized,searchMemory:memory});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r,searchMemory:memory?.delta(512)}));postMessage({result:r,searchMemory:memory?.delta(4096)})}catch(x){postMessage({error:String(x)})}}';
+  const engineSource=$('engineSource').textContent;
+  const src=engineSource+'\nonmessage=e=>{try{const memory=typeof OmokSearchMemory!=="undefined"?OmokSearchMemory.create({snapshot:e.data.searchMemory}):null;const E=createEngine({...e.data.rules,model:e.data.model,firstPlayer:e.data.firstPlayer,patternTable:e.data.patternTable,optimized:e.data.optimized,searchMemory:memory});const r=E.analyze(e.data.b,e.data.p,e.data.ms,e.data.lessons,r=>postMessage({progress:true,result:r,searchMemory:memory?.delta(512)}));postMessage({result:r,searchMemory:memory?.delta(4096)})}catch(x){postMessage({error:String(x)})}}';
   const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));let w;
   try{w=new Worker(url);}finally{URL.revokeObjectURL(url);}
   const limit=typeof budget==='object'?budget.ms:Number(budget);
   const reserve=Math.min(1500,Math.max(60,limit*.06)),searchLimit=Math.max(30,limit-reserve);
   const searchBudget=typeof budget==='object'?{...budget,ms:searchLimit}:searchLimit;
-  let finished=false,lastVerified=null,lastLegal=null,latestRefuted=new Set(),latestRefutations=new Map();
+  let finished=false,lastVerified=null,lastLegal=null,latestRefuted=new Set(),latestRefutations=new Map(),parallel=null,serialFinished=null;
   const health=spawnAnalysis.health||(spawnAnalysis.health={blockedUntil:0,healthySince:0,lastLag:0});
   let tickAt=performance.now(),timer;
   const heartbeat=setInterval(()=>{
@@ -113,7 +115,7 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
     }else if(lag<30){if(!health.healthySince)health.healthySince=now;}else health.healthySince=0;
   },100);
   const terminate=w.terminate.bind(w);
-  w.terminate=()=>{finished=true;clearTimeout(timer);clearInterval(heartbeat);terminate();};
+  w.terminate=()=>{finished=true;parallel?.terminate();clearTimeout(timer);clearInterval(heartbeat);terminate();};
   const rejectedSnapshot=r=>!!r&&!r.lossProven&&r.i!=null&&latestRefuted.has(r.i);
   const rememberRefutations=r=>{
     for(const m of r?.rejected||[])if(m.pv?.length||m.line?.length||m.replyTrap||m.verifiedRefutation){latestRefuted.add(m.i);latestRefutations.set(m.i,m);}
@@ -150,13 +152,23 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
       // New proof evidence supersedes older comparison snapshots, including
       // when the replacement has no completed depth. The watchdog must not
       // restore a refuted move after cancellation or timeout.
-      rememberRefutations(r);if(rejectedSnapshot(r))return;
+      rememberRefutations(r);if(parallel&&!e.data.parallel)parallel.observe(r);
+      if(rejectedSnapshot(r))return;
+      if(parallel&&!e.data.parallel&&parallel.latest&&!r.proven&&!r.lossProven)return;
       const legal=r?.i!=null&&E.inspect(board,r.i,p).legal;
       if(legal)lastLegal=r;
       if(r?.lossProven||legal&&(r?.depth>0||r?.proven))lastVerified=r;onProgress(retainEvidence(r));}
-    else finish(e.data.result);};
+    else if(parallel&&e.data.result&&!e.data.result.proven&&!e.data.result.lossProven&&e.data.result.kind!=='terminal'){
+      serialFinished=e.data.result;w.onmessage({data:{progress:true,result:serialFinished}});
+    }else finish(e.data.result);};
   w.onerror=e=>finish(lastVerified,e.message||'Worker 오류');
-  w.postMessage({model:E.getModel?.()??null,firstPlayer:g?.first??null,patternTable:globalThis.omokAcceleration?.table,optimized:globalThis.omokAcceleration?.optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{},searchMemory:session?.store.snapshot()});return w;
+  const model=E.getModel?.()??null,firstPlayer=g?.first??null,patternTable=globalThis.omokAcceleration?.table,optimized=globalThis.omokAcceleration?.optimized,searchMemory=session?.store.snapshot();
+  w.postMessage({model,firstPlayer,patternTable,optimized,b:board,p,ms:searchBudget,lessons:db.lessons,rules:g?.rules||{},searchMemory});
+  if(typeof OmokParallel!=='undefined')parallel=OmokParallel.start({source:engineSource,budget:searchLimit,mode:budget?.mode||(budget?.automatic?'auto':null),
+    base:{b:board,p,options:{...(g?.rules||{}),model,firstPlayer,patternTable,optimized},modelInfo:E.getModelInfo?.(),searchMemory},
+    onProgress:(r,memory)=>w.onmessage({data:{progress:true,result:r,searchMemory:memory,parallel:true}}),onDone:r=>finish(r),
+    onError:()=>{parallel=null;if(serialFinished)finish(serialFinished);}});
+  return w;
 }
 function acceptResult(result,partial=false){
   if(result&&E.finalizeResult)result=E.finalizeResult(b,turn,result);
@@ -187,7 +199,7 @@ function prepareReply(){
   predictionNote.textContent=`상대 ${E.coord(opponent)} 1초 예측 · 내 응수 ${settingsPolicy.label(analysisSettings)}으로 사전 계산`;
   const current=()=>ponder===task&&g&&!reviewing&&positionKey(b,turn)===(task.promoted?task.key:task.sourceKey);
   const finish=r=>{if(!current())return;task.worker=null;r={...r,analysisPolicy:task.policy};task.result=r;if(task.promoted){acceptResult(r);predictionNote.textContent='예측 일치 · 사전 계산 결과 사용';task.onDone?.(r);}else predictionNote.textContent=`상대 ${E.coord(opponent)} 예상 · 응수 ${r.i==null?'없음':E.coord(r.i)} 준비 완료`;};
-  const immediate=E.urgent(board,p);if(immediate&&(typeof budget==='object'||immediate.proven||immediate.lossProven||immediate.kind==='terminal')){finish(immediate);return;}
+  const immediate=E.urgent(board,p);if(immediate&&(budget?.automatic===true||immediate.proven||immediate.lossProven||immediate.kind==='terminal')){finish(immediate);return;}
   try{task.worker=spawnAnalysis(board,p,budget,r=>{if(current()){task.partial={...r,analysisPolicy:task.policy};if(task.promoted)acceptResult(task.partial,true);}},finish,()=>{if(current()){cancelPonder();if(task.promoted)analyze();}});}catch(e){cancelPonder();}
 }
 analyze=function(explicit,onDone){
@@ -201,7 +213,7 @@ analyze=function(explicit,onDone){
     else setAnalysisStatus('분석 중','상대 예상 수가 일치했습니다. 앞서 시작한 계산을 이어서 완료합니다.','thinking');return;
   }
   stopWorker();lastProgress=null;rec=null;render();const token=job,board=b.slice(),p=turn,budget=selectedBudget(board,p);
-  const immediate=E.urgent(board,p);if(immediate){acceptResult(immediate);if(typeof budget==='object'||immediate.proven||immediate.lossProven||immediate.kind==='terminal'){onDone?.(immediate);prepareReply();return;}}
+  const immediate=E.urgent(board,p);if(immediate){acceptResult(immediate);if(budget?.automatic===true||immediate.proven||immediate.lossProven||immediate.kind==='terminal'){onDone?.(immediate);prepareReply();return;}}
   setAnalysisStatus('분석 중','임시 후보를 먼저 찾고, 공격·방어를 계속 비교하고 있습니다.','thinking');
   const failed=error=>{if(token!==job)return;worker=null;if(lastProgress){setAnalysisStatus('분석 중단 · 후보 유지','완료된 비교 결과가 없어 현재의 합법 후보를 유지합니다.','stopped');}else{const r=E.analyze(board,p,30);acceptResult(r);}msg('분석 오류: '+error+' · 다시 분석할 수 있습니다.');};
   try{worker=spawnAnalysis(board,p,budget,r=>{if(token===job)acceptResult(r,true);},r=>{if(token!==job)return;worker=null;acceptResult(r);onDone?.(r);prepareReply();},failed);}catch(e){failed(e.message);}

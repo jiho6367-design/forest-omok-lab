@@ -29,3 +29,37 @@ w.onmessage({data:{result:{i:1,pv:[1],depth:4,analysisIncomplete:true,proofStatu
 assert(incompleteResult.analysisIncomplete);assert.equal(incompleteResult.proofStatus,'UNRESOLVED');assert.equal(incompleteResult.assessmentStatus,'INCOMPLETE');
 assert.equal(incompleteResult.depth,4);assert(w.stopped);assert.equal(intervals.size,0);assert.equal(timers.size,0);
 console.log('PASS normal Worker completion preserves incomplete finalist evidence at positive depth');
+for(const refuted of [false,true]){
+ let deadlineMs,result;
+ c.setTimeout=(fn,ms)=>{deadlineMs=ms;timers.set(++next,fn);return next;};
+ w=c.spawnAnalysis(Array(225).fill(0),1,{mode:'deep',ms:25000},()=>{},r=>{result=r;},()=>errors++);
+ assert.equal(deadlineMs,25000);assert.equal(w.data.ms.mode,'deep');assert.equal(w.data.ms.ms,23500);
+ w.onmessage({data:{progress:true,result:{i:4,pv:[4],depth:3,score:100}}});
+ w.onmessage({data:{progress:true,result:{i:5,pv:[5],depth:4,score:50,candidates:[{i:5,score:50},{i:4,score:30}]}}});
+ w.onmessage({data:{progress:true,result:{i:6,pv:[6],depth:0,score:9999,rejected:refuted?[{i:5,line:[5,8]}]:[]}}});
+ [...timers.values()][0]();assert(w.stopped);assert(result.timedOut);assert.equal(result.externalBudgetMs,25000);
+ assert.equal(result.i,refuted?6:5,'watchdog retains latest completed comparison; partial scores cannot replace it, verified refutations can');
+ const kept=result;w.onmessage({data:{result:{i:7,pv:[7],depth:9}}});assert.equal(result,kept,'late work never replaces the deadline result');
+ assert.equal(intervals.size,0);assert.equal(timers.size,0);
+}
+console.log('PASS explicit deep mode stops at 25 seconds; latest completed best, refutations and late-message exclusion survive the watchdog');
+{
+ let hooks,stopped=0,result;const observed=[];
+ c.OmokParallel={start:options=>{hooks=options;return {observe:r=>observed.push(r),terminate:()=>stopped++,latest:{i:5,depth:4}};}};
+ w=c.spawnAnalysis(Array(225).fill(0),1,{mode:'deep',ms:25000},()=>{},r=>result=r,()=>errors++);
+ const refuted={i:5,depth:0,rejected:[{i:5,line:[5,8]}]};w.onmessage({data:{progress:true,result:refuted}});
+ assert.equal(observed[0],refuted,'proof Worker rejection reaches the pool even when its own displayed candidate is already refuted');
+ hooks.onDone({i:6,pv:[6],depth:4,candidates:[{i:6,score:10}]});assert.equal(result.i,6);assert(result.rejected.some(r=>r.i===5));assert.equal(stopped,1);
+ delete c.OmokParallel;
+}
+console.log('PASS serial-to-parallel refutation propagation precedes candidate filtering; final result preserves proof and pool cancellation');
+{
+ let hooks,result;c.E.urgent=()=>null;
+ c.OmokParallel={start:options=>{hooks=options;return {observe:()=>{},terminate:()=>{},latest:{i:5,depth:4}};}};
+ w=c.spawnAnalysis(Array(225).fill(0),1,{mode:'deep',ms:25000},()=>{},r=>result=r,()=>errors++);
+ hooks.onProgress({i:5,pv:[5],depth:4,candidates:[{i:5,score:10}]});
+ w.onmessage({data:{result:{i:5,pv:[5],depth:3}}});
+ hooks.onProgress({i:5,pv:[5],depth:4,rejected:[{i:5,pv:[8,9],verifiedRefutation:true}]});hooks.onError('all pool finalists refuted');
+ assert(result&&result.i!==5);assert(result.rejected.some(r=>r.i===5));assert(result.analysisIncomplete);delete c.OmokParallel;
+}
+console.log('PASS all pool finalists refuted: main fallback cannot restore a newly refuted serial recommendation');

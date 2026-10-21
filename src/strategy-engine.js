@@ -4,7 +4,7 @@
 function createStrategyEngine(N,rules,options={}){
  const now=options.clock||(()=>typeof performance!=='undefined'?performance.now():Date.now());
  const firstPlayer=[1,2].includes(options.firstPlayer??options.context?.firstPlayer)?(options.firstPlayer??options.context.firstPlayer):null;
- const context=Object.freeze({firstPlayer}),strategyVersion='initiative-1';
+ const context=Object.freeze({firstPlayer}),strategyVersion='initiative-2';
  const D=[[1,0],[0,1],[1,1],[1,-1]],inside=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
  const geometry=createStrategyEngine.geometry||(createStrategyEngine.geometry=new Map());
  let windows=geometry.get(N);

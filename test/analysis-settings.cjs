@@ -18,4 +18,14 @@ test('same fixed board preserves automatic planning, deep and custom budgets',()
  p=S.resolve({...state,mode:'custom',manualMs:1000},board,1,40000,planner);assert.equal(p.externalMs,1000);assert.equal(p.internalMs,940);assert.equal(p.selectedLabel,'직접 설정 · 1초');
  p=S.resolve(state,board,1,3500,planner);assert.equal(p.externalMs,500);assert(p.clockLimited);assert.equal(p.mode,'auto');
 });
+test('explicit modes, legacy custom time and the 40-second clock remain bounded',()=>{
+ const board=Array(225).fill(0),planner=()=>({ms:30000});
+ for(const [mode,ms]of [['fast',1000],['auto',15000],['deep',25000]]){
+  const r=S.resolve({...S.defaults(),mode},board,1,40000,planner);assert.equal(r.externalMs,ms);assert.equal(r.budget.mode,mode);
+  assert.equal(r.budget.ms,ms);assert.equal(r.budget.automatic,mode==='auto');assert(r.internalMs<ms);
+  const limited=S.resolve({...S.defaults(),mode},board,1,3500,planner);assert.equal(limited.externalMs,500);assert(limited.clockLimited);
+ }
+ const old={version:1,mode:'custom',manualMs:25000};assert.deepEqual(S.load(store({[S.KEY]:JSON.stringify(old)})).state,old);
+ assert(S.valid({...old,manualMs:25000}));assert(!S.valid({...old,manualMs:25001}));
+});
 console.log(count+' analysis settings groups passed; real search starts 0');

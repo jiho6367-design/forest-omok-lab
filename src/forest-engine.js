@@ -218,7 +218,7 @@ function createForestEngine(options={}){
   // Runtime search may still prove a loss independently.
   return null;
  }
- function analyze(board,p,budget=1000,lessons=[]){
+ function analyze(board,p,budget=1000,lessons=[],profile={}){
   strategy?.setBudget(Math.min(budget*.12,budget<=1000?100:budget>15000?2500:1000));
   let immediate=urgent(board,p);if(immediate)return immediate;
   const certified=certifiedLoss(board,p);if(certified)return certified;
@@ -226,12 +226,14 @@ function createForestEngine(options={}){
   // Grow the guard reserve continuously; at 12s it still has 1s to verify.
   const guardReserve=Math.min(budget*.28,Math.max(0,budget-11000));
   let b=board.slice(),start=clockNow(),totalDeadline=start+budget,deadline=start+budget-guardReserve,nodes=0,depth=0,tt=new Map(),proofCache=searchMemory?searchMemory.cache(memScope+'|forcing'):new Map(),TIME={},MATE=1e8,limits=limitsFor(budget),strategicSummary=null,lastCandidates=[],lastComparison=[];
+  if(profile.deep)limits=limitsFor(Math.max(24000,budget));
   const check=()=>{nodes++;if(clockNow()>=deadline)throw TIME;};
   const timedProof=(q,ms)=>{let r=forcing(b,q,limits.forcing,Math.max(1,Math.min(ms,deadline-clockNow())),proofCache);nodes+=r.nodes;return r;};
   const verifiedBad=knownRefutations(b,p),verifiedBadSet=new Set(verifiedBad.map(m=>m.i));
   let roots=ranked(b,p,true).filter(m=>!verifiedBadSet.has(m.i)),can=canonical(b,p),memory=lessons.filter(l=>l.key===can.key),bad=memory.map(l=>untransform(l.bad,can.t)),good=memory.map(l=>untransform(l.good,can.t));
+  let comparedRootCount=0,screenedRootCount=0;
   const verifiedRejected=verifiedBad.map(m=>({i:m.i,reason:m.reason,verifiedRefutation:true}));
-  function finish(m,reason,extra={}){return {i:m?.i??null,reason,depth,score:m?.score||0,pv:m?[m.i]:[],ms:clockNow()-start,nodes,proven:false,forcedLoss:false,threats:[],memory:memory.length,bad,shape:m?.a,limits,engineVersion:'3.0-cached-search',candidates:lastCandidates.length?lastCandidates:m?[{i:m.i,score:m.score,pv:[m.i],depth:0,strategy:m.strategy,comparisonComplete:false}]:[],...(strategy?{strategy:{...(strategicSummary||strategy.profile(board,p)),work:strategy.statistics()}}:{}),...extra};}
+  function finish(m,reason,extra={}){return {i:m?.i??null,reason,depth,score:m?.score||0,pv:m?[m.i]:[],ms:clockNow()-start,nodes,rootWork:{generated:roots.length,compared:comparedRootCount,screened:screenedRootCount},proven:false,forcedLoss:false,threats:[],memory:memory.length,bad,shape:m?.a,limits,engineVersion:'3.0-cached-search',candidates:lastCandidates.length?lastCandidates:m?[{i:m.i,score:m.score,pv:[m.i],depth:0,strategy:m.strategy,comparisonComplete:false}]:[],...(strategy?{strategy:{...(strategicSummary||strategy.profile(board,p)),work:strategy.statistics()}}:{}),...extra};}
   if(!roots.length)return finish(null,'합법적인 후보 없음');
   let w=roots.find(m=>m.a.win.length);if(w)return finish(w,'정확한 5목으로 즉시 승리',{proven:true,depth:1,score:MATE});
   let enemyWins=winning(b,3-p),blocking=roots.filter(m=>enemyWins.includes(m.i));
@@ -256,6 +258,7 @@ function createForestEngine(options={}){
    if(b[i]||verifiedBadSet.has(i)||roots.some(m=>m.i===i))continue;let a=inspect(b,i,p);if(!a.legal)continue;let m={i,a,score:0,order:0};roots.push(m);
    if(clockNow()>=deadline){unknown.push(m);continue;}b[i]=p;let r;try{r=timedProof(3-p,screenSlice);}finally{b[i]=0;}m.lossProof=r.proof;m.screened=r.complete;checked.push(m);
   }
+  screenedRootCount=checked.filter(m=>m.screened).length;
   let safe=checked.filter(m=>m.screened&&!m.lossProof&&!m.replyTrap&&!m.counterThreat),undecided=[...checked.filter(m=>!m.screened&&!m.lossProof&&!m.replyTrap&&!m.counterThreat),...unknown],risky=checked.filter(m=>m.counterThreat&&!m.lossProof&&!m.replyTrap),losing=checked.filter(m=>m.lossProof||m.replyTrap);
   // 증명된 패배 수는 평가점수나 기억 보너스로 다시 추천하지 않는다.
   // A completed bounded check is evidence, not grounds to discard another
@@ -284,7 +287,17 @@ function createForestEngine(options={}){
    if(threats.length>1)return {score:-MATE+ply+1,pv:[]};
    let moves,quiet=false;if(threats.length){let i=threats[0];if(!inspect(b,i,q).legal)return {score:-MATE+ply+1,pv:[]};moves=[{i}];}else if(ply>=limits.forcing)return {score:staticEval(q),pv:[]};else{
     const all=d>0||strategy&&quietExtension>0&&ply<=4?searchMoves(q):[];
-    if(d<=0){moves=strategy&&quietExtension>0&&ply<=4?strategy.searchSelect(b,q,all,4,4,new Set(),'unknown').filter(m=>m.strategy.legalExtensions.length&&(m.strategy.usableThreeAxes.length||m.strategy.axes.length>1)):[];if(!moves.length)return {score:staticEval(q),pv:[]};quiet=true;}
+    if(d<=0){
+     // A cut can be the only way to stop a coming three/four sequence. A
+     // single four must also survive even without a second attacking axis.
+     // Nomination is not a proof: read the opponent's actual next turn.
+     const prepared=strategy&&quietExtension>0&&ply<=4?strategy.searchSelect(b,q,all,4,4,new Set(),'unknown').map(m=>({...m,strategy:strategy.searchMove(b,m.i,q)})):[];
+     const attack=m=>m.strategy.legalExtensions.length&&(m.strategy.forcing||m.strategy.usableThreeAxes.length||m.strategy.axes.length>1),cut=m=>m.strategy.cut>=120;
+     const eligible=prepared.filter(m=>m.strategy.legal&&(attack(m)||cut(m)));moves=[];
+     for(const [accept,field]of [[attack,'attack'],[cut,'cut']]){const m=eligible.filter(accept).sort((a,c)=>c.strategy[field]-a.strategy[field]||c.score-a.score||a.i-c.i)[0];if(m&&!moves.some(x=>x.i===m.i))moves.push(m);}
+     for(const m of eligible)if(moves.length<2&&!moves.some(x=>x.i===m.i))moves.push(m);
+     if(!moves.length)return {score:staticEval(q),pv:[]};quiet=true;
+    }
     else moves=strategy?strategy.searchSelect(b,q,all,ply<2?limits.root:limits.branch,4,new Set(all.filter(m=>m.a.fours.length).map(m=>m.i)),'unknown'):all.slice(0,ply<2?limits.root:limits.branch);
    }
    // 탐색 끝에서도 강제 방어를 연장한다. 일반 평가와 확정 승패는 구분한다.
@@ -294,7 +307,7 @@ function createForestEngine(options={}){
    searchMemory?.put(memScope+'|search',memoryKey,{...best,score:OmokSearchMemory.toStored(best.score,ply,MATE),bound},Math.max(0,d)*2+(bound==='exact'?4:0));return best;
   }
   let best=options[0],pv=[best.i],score=best.score;
-  if(!lossProven)for(let d=1;d<=limits.depth;d++){const round=[];try{for(let m of rootOptions){check();b[m.i]=p;let r;try{r=search(3-p,d-1,-Infinity,Infinity,1);}finally{b[m.i]=0;}let v=-r.score-(bad.includes(m.i)&&Math.abs(r.score)<MATE/2?12000:0)+(Math.abs(r.score)<MATE/2?(strategicAdjust.get(m.i)||0):0);round.push({m,i:m.i,score:v,pv:[m.i,...r.pv],depth:d,strategy:m.strategy,comparisonComplete:true});}if(round.length){round.sort((a,c)=>c.score-a.score);best=round[0].m;pv=round[0].pv;score=round[0].score;depth=d;lastComparison=round;lastCandidates=round.slice(0,3).map(({m,...row})=>row);rootOptions=round.map(r=>r.m);options.sort((a,c)=>(c===best)-(a===best));}}catch(e){if(e!==TIME)throw e;break;}}
+  if(!lossProven)for(let d=1;d<=limits.depth;d++){const round=[];try{for(let m of rootOptions){check();b[m.i]=p;let r;try{r=search(3-p,d-1,-Infinity,Infinity,1);}finally{b[m.i]=0;}let v=-r.score-(bad.includes(m.i)&&Math.abs(r.score)<MATE/2?12000:0)+(Math.abs(r.score)<MATE/2?(strategicAdjust.get(m.i)||0):0);round.push({m,i:m.i,score:v,pv:[m.i,...r.pv],depth:d,strategy:m.strategy,comparisonComplete:true});}if(round.length){comparedRootCount=round.length;round.sort((a,c)=>c.score-a.score);best=round[0].m;pv=round[0].pv;score=round[0].score;depth=d;lastComparison=round;lastCandidates=round.slice(0,3).map(({m,...row})=>row);rootOptions=round.map(r=>r.m);options.sort((a,c)=>(c===best)-(a===best));}}catch(e){if(e!==TIME)throw e;break;}}
   // Reserve time for the actual chosen move; top-N screening alone can miss it.
   let finalGuard=null,avoidedTrap=false;let retainedComparison=null;
   const candidateGuards=[],alternatives=()=>{

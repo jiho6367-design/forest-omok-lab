@@ -78,8 +78,8 @@ test('opponent prediction stays at one second while my analysis uses the selecte
   const settingsPolicy=require('../src/analysis-settings.js');let selected={version:1,mode:'custom',manualMs:15000};const plan={textContent:''},ctx={g:{me:1,timer:false},reviewing:false,paused:false,deadline:Date.now()+40000,analysisPlan:plan,settingsPolicy,analysisSettings:selected,E:{suggestBudget:()=>({ms:7000,reason:'자동 분석'})},$:()=>({value:selected})};
   vm.createContext(ctx);vm.runInContext(`let activePlan='',currentAnalysisPolicy=null;\n${source.slice(start,end)}`,ctx);
   const board=blank();assert.equal(ctx.selectedBudget(board,2),1000);assert.equal(ctx.selectedBudget(board,2,25000),1000);assert.match(plan.textContent,/1초 고정/);
-  assert.equal(ctx.selectedBudget(board,1),15000);assert.equal(ctx.configuredOwnBudget(board,1,40000).budget,15000);
-  ctx.analysisSettings={...selected,mode:'deep'};assert.equal(ctx.selectedBudget(board,2),1000);assert.equal(ctx.selectedBudget(board,1),25000);
+  assert.equal(ctx.selectedBudget(board,1).ms,15000);assert.equal(ctx.configuredOwnBudget(board,1,40000).budget.ms,15000);assert.equal(ctx.selectedBudget(board,1).mode,'custom');
+  ctx.analysisSettings={...selected,mode:'deep'};assert.equal(ctx.selectedBudget(board,2),1000);assert.equal(ctx.selectedBudget(board,1).ms,25000);assert.equal(ctx.selectedBudget(board,1).mode,'deep');
   ctx.analysisSettings={...selected,mode:'auto'};assert.equal(ctx.selectedBudget(board,2),1000);assert.equal(ctx.selectedBudget(board,1).ms,7000);assert.equal(ctx.configuredOwnBudget(board,1,40000).budget.ms,7000);
 });
 test('deep mode retains a move and validates its returned PV',()=>{

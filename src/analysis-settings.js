@@ -1,7 +1,7 @@
-// Shared UI policy only; the engine's automatic planner and search are unchanged.
+// Shared mode and turn-clock policy. Existing version-1 preferences stay valid.
 (function(root){
   const KEY='omok-analysis-settings',COMPUTE_KEY='omok-compute-mode';
-  const MIN_MS=900,MAX_MS=25000,labels={fast:'아주 빠르게 · 약 1초',auto:'자동',deep:'심층 · 최대 25초',custom:'직접 설정'};
+  const MIN_MS=900,MAX_MS=25000,labels={fast:'아주 빠르게 · 약 1초',auto:'자동 · 최대 15초',deep:'심층 · 최대 25초',custom:'직접 설정'};
   const manual=ms=>Number.isFinite(ms)&&ms>=MIN_MS&&ms<=MAX_MS;
   const valid=s=>!!s&&s.version===1&&Object.hasOwn(labels,s.mode)&&manual(s.manualMs);
   const defaults=()=>({version:1,mode:'auto',manualMs:1000});
@@ -22,13 +22,13 @@
   const label=s=>s.mode==='custom'?`직접 설정 · ${s.manualMs/1000}초`:labels[s.mode];
   function resolve(state,board,p,available,planner){
     state=valid(state)?state:defaults();available=Number.isFinite(available)?Math.max(0,available):40000;
-    const normal=state.mode==='auto'?planner(board,p,40000):{ms:state.mode==='fast'?900:state.mode==='deep'?25000:state.manualMs,reason:'선택한 분석 모드'};
+    const normal=state.mode==='auto'?planner(board,p,40000):{ms:state.mode==='fast'?1000:state.mode==='deep'?25000:state.manualMs,reason:'선택한 분석 모드'};
     const planned=state.mode==='auto'?planner(board,p,available):normal;
-    const requested=Math.max(30,Math.min(MAX_MS,Number(normal.ms)||30));
+    const requested=Math.max(30,Math.min(state.mode==='auto'?15000:MAX_MS,Number(normal.ms)||30));
     const ms=Math.max(30,Math.min(requested,Number(planned.ms)||30,available-3000));
     const internalMs=Math.max(30,ms-Math.min(1500,Math.max(60,ms*.06)));
     return {mode:state.mode,selectedLabel:label(state),requestedMs:requested,externalMs:ms,internalMs,clockLimited:ms<requested&&available<40000,
-      reason:normal.reason||'국면별 시간 정책',budget:state.mode==='auto'?{automatic:true,ms}:ms};
+      reason:normal.reason||'국면별 시간 정책',budget:{mode:state.mode,automatic:state.mode==='auto',ms}};
   }
   root.OmokAnalysisSettings={KEY,COMPUTE_KEY,MIN_MS,MAX_MS,labels,valid,defaults,read,save,load,label,resolve};
   if(typeof module!=='undefined')module.exports=root.OmokAnalysisSettings;

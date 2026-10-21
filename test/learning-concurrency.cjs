@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const S=require('../tools/learning/state.cjs'),G=require('../tools/learning/generate.cjs'),R=require('../tools/learning/run.cjs'),N=require('../src/neural-evaluator.js'),J=require('../tools/learning/journal.cjs');
 const dir=path.join(S.ROOT,'work/learning-concurrency-test-'+Date.now());
-function context(name){const c=S.init(path.join(dir,name),{continuous:true,workers:2,concurrentTraining:true});c.state.cycle=1;c.state.pipeline={stage:'train',trainingSampleCount:10};c.state.counters.samples=10;return c;}
+function context(name){const c=S.init(path.join(dir,name),{freshModel:true,continuous:true,workers:2,concurrentTraining:true});c.state.cycle=1;c.state.pipeline={stage:'train',trainingSampleCount:10};c.state.counters.samples=10;return c;}
 (async()=>{
  let c=context('overlap'),generating=false,joined=false;
  const ok=await R.trainWithGeneration(c,{deadline:Date.now()+5000,trainStage:async(x,o)=>{await new Promise(r=>setImmediate(r));assert(generating);assert.equal(o.trainedThroughSamples,10);x.state.counters.samples=17;return true;},generate:async(x,o)=>{generating=true;assert.equal(o.target,256);while(!Atomics.load(new Int32Array(o.cancelBuffer),0))await new Promise(r=>setImmediate(r));joined=true;return false;}});

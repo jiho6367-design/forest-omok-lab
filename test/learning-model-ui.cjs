@@ -1,8 +1,10 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto'),{pathToFileURL}=require('node:url');
 const {chromium}=require(process.env.OMOK_PLAYWRIGHT||(process.platform==='win32'?'C:/Users/jiho/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright':'playwright'));
-const root=path.resolve(__dirname,'..'),html=path.resolve(process.env.OMOK_MODEL_UI_HTML||path.join(root,'outputs/omok.html'));
-const out=path.resolve(process.env.OMOK_MODEL_UI_OUT||path.join(root,'work/local-learning-20261007')),temporary=fs.mkdtempSync(path.join(os.tmpdir(),'omok-model-ui-')),report={kind:'actual-html-native-workers-synthetic-model-only',html,htmlHash:crypto.createHash('sha256').update(fs.readFileSync(html)).digest('hex'),steps:[],status:'running'};
+const root=path.resolve(__dirname,'..'),out=path.resolve(process.env.OMOK_MODEL_UI_OUT||path.join(root,'work/local-learning-20261007')),temporary=fs.mkdtempSync(path.join(os.tmpdir(),'omok-model-ui-'));
+const html=process.env.OMOK_MODEL_UI_HTML?path.resolve(process.env.OMOK_MODEL_UI_HTML):path.join(temporary,'baseline/omok.html');
+if(!process.env.OMOK_MODEL_UI_HTML)require('node:child_process').execFileSync(process.execPath,[path.join(root,'build.cjs'),'--baseline','--out-dir='+path.dirname(html)],{cwd:root,stdio:'pipe'});
+const report={kind:'actual-html-native-workers-synthetic-model-only',html,htmlHash:crypto.createHash('sha256').update(fs.readFileSync(html)).digest('hex'),steps:[],status:'running'};
 fs.mkdirSync(out,{recursive:true});let browser,page;
 const fixtureModel=id=>({schemaVersion:1,kind:'forest-value-mlp',rulesId:'15x15-exact5-both33-v1',featureVersion:'house32-v1',inputSize:32,hiddenSize:2,activation:'relu',outputActivation:'tanh',modelId:id,scale:80,normalization:{mean:Array(32).fill(0),scale:Array(32).fill(1)},layers:[{weights:[Array.from({length:32},(_,i)=>i===0?.003:i===1?.01:0),Array.from({length:32},(_,i)=>i===12?.002:i===13?.006:0)],bias:[0,0]},{weights:[[.5,-.25]],bias:[0]}],adoption:{accepted:true,kind:'synthetic-ui-test-certificate',validationHash:'synthetic-fixture-no-strength-evidence',sourceHash:'synthetic-ui-test-only'}});
 const models=[fixtureModel('ui-model-a'),fixtureModel('ui-model-b')];models[1].layers[1].weights[0][0]=.8;models.forEach((model,i)=>fs.writeFileSync(path.join(temporary,'model-'+i+'.json'),JSON.stringify(model)));

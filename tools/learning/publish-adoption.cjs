@@ -31,7 +31,7 @@ function identity(value){
  const result={version:2,...Object.fromEntries(KEYS.map(key=>[key,value[key]]))};
  for(const key of ['sourceManifest','harnessManifest']){
   if(!Array.isArray(value[key])||!value[key].length)throw Error('Missing execution source manifest');
-  const names=new Set();result[key]=value[key].map(row=>{if(typeof row.path!=='string'||!row.path.match(/^(?:src|tools|test)\/[A-Za-z0-9/._-]+$|^build\.cjs$/)||row.path.split('/').some(p=>p==='.'||p==='..')||names.has(row.path))throw Error('Unsafe or duplicate execution manifest path');names.add(row.path);return {path:row.path,sha256:assertHash(row.sha256,'manifest')};});
+  const names=new Set();result[key]=value[key].map(row=>{if(typeof row.path!=='string'||!row.path.match(/^(?:src|tools|test)\/[A-Za-z0-9/._-]+$|^build\.cjs$|^artifacts\/adopted-models\/[a-f0-9]{64}\/(?:model|evidence)\.json$/)||row.path.split('/').some(p=>p==='.'||p==='..')||names.has(row.path))throw Error('Unsafe or duplicate execution manifest path');names.add(row.path);return {path:row.path,sha256:assertHash(row.sha256,'manifest')};});
   if(S.hash(result[key])!==value[key==='sourceManifest'?'sourceHash':'harnessHash'])throw Error('Execution source manifest hash mismatch');
  }
  const runtime=value.runtimeManifest;if(!runtime||Object.keys(runtime).sort().join(',')!=='arch,node,platform,sqlite,v8'||Object.values(runtime).some(x=>x!==null&&(typeof x!=='string'||!x.match(/^[A-Za-z0-9._+-]{1,80}$/))))throw Error('Invalid native runtime manifest');

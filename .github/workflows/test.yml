@@ -37,6 +37,7 @@ jobs:
         env:
           CUDA_VISIBLE_DEVICES: ''
       - run: npm run test:learning:ui
+      - run: npm run test:analysis:ui
       - run: git diff --exit-code -- outputs/omok.html dist/index.html
       - name: Advisory — 33-ply green-loss trace (non-blocking)
         id: green_loss_advisory

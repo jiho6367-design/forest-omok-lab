@@ -219,7 +219,7 @@ function createEngine(N, board, options={}) {
     strategy?.setBudget(Math.min(ms*.12,ms<=1000?100:ms>15000?2500:1000));
     const terminal=state();if(terminal.winners.length||terminal.full)return {kind:'terminal',...terminal,moves:[],depth:0,nodes,danger:[],automatic,autoReason:automatic?'대국 종료':null};
     const own=wins(p),danger=wins(3-p);
-    let strategicSummary=null;
+    let strategicSummary=null,rootCount=0,comparedRootCount=0,parallelFrontier=null;
     const immediateThreats=danger.map(i=>{b[i]=3-p;try{return {i,lines:state().lines.filter(line=>line.includes(i))};}finally{b[i]=0;}});
     // A risk verdict is not a terminal game state. Keep a legal practical move
     // available even when every screened continuation loses or time runs out.
@@ -252,7 +252,7 @@ function createEngine(N, board, options={}) {
       const summary=strategy?(strategicSummary||(strategicSummary=(own.length||danger.length)?{initiative:own.length?'own':'opponent',firstPlayer:strategy.context.firstPlayer,strategyVersion:strategy.strategyVersion,evidence:{ownWins:own,enemyWins:danger,replyCoverage:'not-checked'}}:strategy.profile(b,p))):null;
       const selectedCheck=summary?.checks?.find(c=>c.i===moves[0]?.i&&c.complete),bounded=summary?.evidence?.replyCoverage==='bounded';
       const initiative=['win','forced'].includes(kind)?'own':bounded?(selectedCheck?.replies>0&&selectedCheck.continues===selectedCheck.replies?(selectedCheck.forcingReplies?'contested':'own'):selectedCheck?.forcingReplies&&selectedCheck.score<0?'opponent':'unknown'):summary?.initiative;
-      return {kind,moves,depth,nodes,danger,immediateThreats,...extra,...(summary?{strategy:{...summary,work:strategy.statistics(),initiative,selectedCheck:selectedCheck||null}}:{}),fallback,mandatoryDefense:!own.length&&danger.length===1&&legal(danger[0],p),automatic,autoReason:automatic?(extra.autoReason||(['win','forced'].includes(kind)?'승리 경로 확인':kind==='lost'?'강제 위협 확인':'복잡한 판 · 추가 비교 중')):null};
+      return {kind,moves,depth,nodes,danger,immediateThreats,...extra,rootWork:{generated:rootCount,compared:comparedRootCount,screened:extra.screened||0},...(options.exportRootFrontier&&parallelFrontier?{rootFrontier:parallelFrontier}:{}),...(summary?{strategy:{...summary,work:strategy.statistics(),initiative,selectedCheck:selectedCheck||null}}:{}),fallback,mandatoryDefense:!own.length&&danger.length===1&&legal(danger[0],p),automatic,autoReason:automatic?(extra.autoReason||(['win','forced'].includes(kind)?'승리 경로 확인':kind==='lost'?'강제 위협 확인':'복잡한 판 · 추가 비교 중')):null};
     };
     if(own.length)return output('win',own.map(i=>({i,score:M,pv:[i],status:'win'})),1);
     if(danger.length>1||danger.length===1&&!legal(danger[0],p))return output('lost',[],1,{lossReason:danger.length===1?'forbidden-defense':'immediate',forbiddenDefenses:danger.filter(i=>!legal(i,p)).map(i=>moveInfo(i,p))});
@@ -261,6 +261,7 @@ function createEngine(N, board, options={}) {
     // Screen every legal board point before heuristic pruning. Far-away moves
     // may be poor, but are still legal defenses and cannot be omitted in a loss claim.
     let roots=danger.length?[{i:danger[0],s:M}]:rank(p,b.some(Boolean)?b.flatMap((v,i)=>v?[]:[i]):candidates(),true);
+    rootCount=roots.length;
     if(!roots.length)return output('none',[]);
     onProgress(output('incomplete',[],0,{screeningComplete:false}));
     try{phaseDeadline=start+Math.min(ms*.22,2200);const proof=vcf(p,13);if(proof)return output('forced',[{i:proof[0],score:M-1,pv:proof,status:'proven'}],proof.length,{proof:'forcing-four'});}catch(e){if(e.message!=='timeout')throw e;}finally{phaseDeadline=Infinity;}
@@ -302,9 +303,12 @@ function createEngine(N, board, options={}) {
     let best=safe.slice(0,3),depth=0;const rejected=rejectedMoves.length;
     const kind=danger.length?'block':'search',extra={screeningComplete,forcingChecksComplete,screened:screened.length+counterRejected.length,rejected,rejectedMoves};
     onProgress(output(kind,best,depth,extra));
-    const forceSet=new Set(forcingCandidates(p));let frontier=strategy?strategy.searchSelect(b,p,safe,24,6,forceSet,own.length?'own':danger.length?'opponent':'unknown'):safe.filter((r,k)=>k<24||forceSet.has(r.i));
+    const forceSet=new Set(forcingCandidates(p));let frontier=strategy?strategy.searchSelect(b,p,safe,Number.isInteger(options.rootWidth)&&options.rootWidth>=24&&options.rootWidth<=48?options.rootWidth:24,6,forceSet,own.length?'own':danger.length?'opponent':'unknown'):safe.filter((r,k)=>k<24||forceSet.has(r.i));
     const strategicAdjust=new Map(),pressureChecks=new Map(),tempoChecks=new Map();
     if(strategy&&clockNow()<deadline){strategicSummary=strategy.probe(b,p,frontier,Math.min(strategy.remaining(),Math.max(0,deadline-clockNow())));for(const c of strategicSummary.checks)if(c.complete){strategicAdjust.set(c.i,Math.max(-250,Math.min(250,c.score*.04)));if(strategicSummary.complete&&c.replies>=2){if(c.continues===c.replies)pressureChecks.set(c.i,c);if(Number.isInteger(c.tempoLosses)&&c.tempoLosses>0&&c.tempoLosses<=c.replies-c.continues&&Array.isArray(c.tempoLossReplies)&&c.tempoLossReplies.length===c.tempoLosses&&new Set(c.tempoLossReplies.map(x=>x.i)).size===c.tempoLosses&&c.tempoLossReplies.every(x=>Number.isInteger(x.i)&&x.i>=0&&x.i<b.length&&Number.isInteger(x.follow)&&x.follow>=0&&x.follow<b.length&&x.i!==c.i&&x.follow!==c.i&&x.follow!==x.i&&x.replyAttack>=120&&x.replyCut>=120))tempoChecks.set(c.i,c);}}}
+    if(options.exportRootFrontier)parallelFrontier=frontier.map(r=>({...r,rootPolicy:{
+      adjust:strategicAdjust.get(r.i)||0,pressure:r.status==='screened'&&pressureChecks.has(r.i)?420:0,
+      tempo:r.status==='screened'&&tempoChecks.has(r.i)?420:0}}));
     const rounds=[];let stopReason='최대 탐색 깊이 도달';
     for(let d=1;d<=10;d++){
       const round=[];
@@ -315,7 +319,7 @@ function createEngine(N, board, options={}) {
         const positional=Math.abs(child.score)<M/2,check=positional&&r.status==='screened'?pressureChecks.get(r.i):null,pressureBonus=check?420:0,probeAdjust=positional?(strategicAdjust.get(r.i)||0):0,baseSearchScore=-child.score;
         const tempo=positional&&r.status==='screened'?tempoChecks.get(r.i):null,tempoPenalty=tempo?420:0;
         const score=baseSearchScore+probeAdjust+pressureBonus-tempoPenalty;round.push({...r,score,pv:[r.i,...child.pv],depth:d,comparisonComplete:true,baseSearchScore,probeAdjust,pressureBonus,tempoPenalty,tempoEvidence:tempo?{replyCoverage:'bounded',replies:tempo.replies,tempoLosses:tempo.tempoLosses,counterBlocks:tempo.tempoLossReplies,probeComplete:strategicSummary.complete,proven:false}:null,pressureEvidence:check?{replyCoverage:'bounded',replies:check.replies,continues:check.continues,pv:check.pv.slice(),probeComplete:strategicSummary.complete,proven:false}:null});}
-        round.sort((a,c)=>c.score-a.score);best=round.slice(0,3);depth=d;frontier=round;
+        round.sort((a,c)=>c.score-a.score);best=round.slice(0,3);depth=d;frontier=round;comparedRootCount=round.length;
         onProgress(output(kind,best,depth,extra));
         rounds.push({i:best[0].i,score:best[0].score,depth,
           pv:(best[0].pv||[]).slice(0,3),ranking:best.map(m=>m.i),
@@ -332,7 +336,17 @@ function createEngine(N, board, options={}) {
   // bounded proof work; it is never itself a threat or a loss certificate.
   function counterSeeds(p,ms=40){const oldDeadline=deadline,oldPhase=phaseDeadline;deadline=Math.min(oldDeadline,clockNow()+Math.max(0,ms));phaseDeadline=Math.min(oldPhase,deadline);const found=[];try{for(const {i}of rank(p)){tick();set(i,p);try{if(wins(p).length||threes(i,p))continue;const axes=new Set(),three=[];for(const id of cellAffected[i]){const w=windows[id],own=p===1?counts1[id]:counts2[id],enemy=p===1?counts2[id]:counts1[id];if(enemy||b[w.pre]===p||b[w.post]===p)continue;if(own>=2)axes.add(w.axis);if(own>=3)three.push(id);}if(three.length&&axes.size>=2)found.push(i);}finally{set(i,0);}}}catch(error){if(error.message!=='timeout')throw error;}finally{deadline=oldDeadline;phaseDeadline=oldPhase;}return found;}
   function fixedWork(p,depth=3){nodes=0;strategy?.setBudget(Infinity);deadline=Infinity;phaseDeadline=Infinity;tt.clear();tacticalCache.clear();if(memory&&!options.memoryManaged)memory.begin();const start=clockNow(),result=search(p,depth,-Infinity,Infinity,0);return {...result,nodes,depth,ms:clockNow()-start,searchMemory:memory?.stats()};}
-  return {fixedWork,rank,counterRejections,counterSeeds,counterMove,counterLoss,counterCertificate,legal,moveInfo,winMove,threes,analyze,state,board:b,winningMoves:wins,threatWin:(p,ms=1000)=>{deadline=clockNow()+ms;try{return threatWin(p);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}},forcingWin:(p,depth=13,ms=1000)=>{deadline=clockNow()+ms;try{return vcf(p,depth);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}}};
+  function compareRoots(p,roots,depth=1,ms=1000){
+    if(![1,2].includes(p)||!Number.isInteger(depth)||depth<1||depth>16||!Array.isArray(roots)||roots.some(r=>!legal(r.i,p)))throw Error('Invalid root comparison');
+    const oldDeadline=deadline,oldPhase=phaseDeadline,start=clockNow(),rows=[];nodes=0;deadline=start+Math.max(1,ms);phaseDeadline=Infinity;strategy?.setBudget(Infinity);
+    try{for(const r of roots){tick();set(r.i,p);let child;try{child=search(3-p,depth-1,-Infinity,Infinity,1);}finally{set(r.i,0);}
+      const positional=Math.abs(child.score)<M/2,policy=r.rootPolicy||{},probeAdjust=positional?policy.adjust||0:0,
+        pressureBonus=positional?policy.pressure||0:0,tempoPenalty=positional?policy.tempo||0:0,baseSearchScore=-child.score;
+      rows.push({...r,score:baseSearchScore+probeAdjust+pressureBonus-tempoPenalty,baseSearchScore,probeAdjust,pressureBonus,tempoPenalty,pv:[r.i,...child.pv],depth,comparisonComplete:true});
+    }}catch(error){if(error.message!=='timeout')throw error;}finally{deadline=oldDeadline;phaseDeadline=oldPhase;}
+    return {complete:rows.length===roots.length,rows,nodes,depth,ms:clockNow()-start};
+  }
+  return {fixedWork,rank,compareRoots,counterRejections,counterSeeds,counterMove,counterLoss,counterCertificate,legal,moveInfo,winMove,threes,analyze,state,board:b,winningMoves:wins,threatWin:(p,ms=1000)=>{deadline=clockNow()+ms;try{return threatWin(p);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}},forcingWin:(p,depth=13,ms=1000)=>{deadline=clockNow()+ms;try{return vcf(p,depth);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}}};
 }
 function autoStable(rounds,depth,elapsed,checks,moves){
   if(elapsed<1000||depth<4||rounds.length<3||!checks.screeningComplete||!checks.forcingChecksComplete||!moves.length||moves[0].status==='unverified')return false;

@@ -51,7 +51,7 @@ for(const refuteBest of [false,true]){
   forcing:board=>{const move=['J4','I5','G8'].find(c=>board[idx(c)]===2);checked.push(move);return {complete:refuteBest&&move==='J4',proof:refuteBest&&move==='J4'?{pv:[idx('E8')]}:null,nodes:1};}
  }),reader=>({...reader,analyze:(p,ms,progress)=>{progress?.(result);return result;}}));
  const out=staged.analyze(boardOf(prefix),2,25000);
- assert(comparisonBudget<=15000);assert.deepEqual(checked,['J4','I5','G8']);assert.equal(out.candidateChecks.length,3);
+ assert(comparisonBudget>15000&&comparisonBudget<25000,'deep comparison grows past the old 15s cap while retaining guard time');assert(out.analysisWork.guardBudgetMs>0);assert.deepEqual(checked,['J4','I5','G8']);assert.equal(out.candidateChecks.length,3);
  assert.equal(out.i,idx(refuteBest?'I5':'J4'));assert.equal(out.proofStatus,'UNRESOLVED');assert(!out.lossProven);
  assert.equal(out.candidateChecks.filter(x=>x.refuted).length,refuteBest?1:0);
 }

@@ -4,7 +4,7 @@ function createEngine(options={}) {
   const clockNow=typeof performance!=='undefined'?performance.now.bind(performance):Date.now.bind(Date);
   // Exact five takes precedence even when loading a legacy strict-rule setting.
   const normalizeFirst=value=>[1,2].includes(value)?value:null;
-  const strategyVersion='initiative-1';
+  const strategyVersion='initiative-2';
   const searchMemory=options.searchMemory===false?null:options.searchMemory||
     (typeof OmokSearchMemory!=='undefined'?OmokSearchMemory.create({snapshot:options.memorySnapshot}):null);
   const rules={fivePriority:true,patternTable:options.patternTable,optimized:options.optimized,
@@ -123,7 +123,7 @@ function createEngine(options={}) {
       forbiddenDefense,
       defenseChecked:first?.status==='screened',fallback:!!r.fallback,kind:r.kind,
       autoReason:r.autoReason,automatic:r.automatic,screeningComplete:r.screeningComplete,
-      forcingChecksComplete:r.forcingChecksComplete,counterProof:r.counterProof,lossCoverage:r.lossCoverage,counterChecks:r.counterChecks,strategy:r.strategy,comparisonSource:'reader',
+      forcingChecksComplete:r.forcingChecksComplete,counterProof:r.counterProof,lossCoverage:r.lossCoverage,counterChecks:r.counterChecks,strategy:r.strategy,comparisonSource:'reader',rootWork:r.rootWork,
       candidates:(r.moves||[]).map(m=>{const pv=validPV(board,p,m.pv);return {...m,pv,depth:m.depth??r.depth??0,comparisonSource:'reader',
         comparisonDepthExplicit:Number.isInteger(m.depth)&&m.depth>0,
         comparisonPVComplete:Array.isArray(m.pv)&&m.pv.length>0&&pv.length===m.pv.length&&pv[0]===m.i};}),rejected:r.rejectedMoves||[],
@@ -142,7 +142,7 @@ function createEngine(options={}) {
     const reason=cap>8000?`위협이 얽힌 국면 · 심층 방어 최대 ${cap/1000}초`:`최대 ${cap/1000}초 · 후보 안정 시 조기 종료`;
     return {ms:Math.max(30,Math.min(cap,remaining-3000)),automatic:true,reason};
   }
-  function analyzeCore(board,p,budget='auto',lessons=[],progress=()=>{}) {
+  function analyzeCore(board,p,budget='auto',lessons=[],progress=()=>{},profile={}) {
     lessons=lessons.filter(l=>(l.rules?.fivePriority!==false)===rules.fivePriority);
     const started=clockNow(),automatic=budget==='auto'||budget?.automatic===true;
     const limit=automatic?(budget?.ms||8000):Math.max(30,Number(budget)||1000);
@@ -289,7 +289,7 @@ function createEngine(options={}) {
     const counterReserve=counterContext?Math.min(5000,limit*.34):0;
     const remaining=limit-(clockNow()-started)-Math.min(400,limit*.04)-counterReserve;
     if(remaining>50){
-      const extended=forest.analyze(board,p,remaining,lessons);
+      const extended=forest.analyze(board,p,remaining,lessons,profile);
       if(extended.i!=null&&inspect(board,extended.i,p).legal&&!refuted.has(extended.i)&&(!counterRisk.has(extended.i)||extended.proven)){
         const opponentProof=i=>{
           if(i==null)return null;
@@ -392,18 +392,30 @@ function createEngine(options={}) {
     return ensureLegalCandidate(best);
   }
   function analyze(board,p,budget='auto',lessons=[],progress=()=>{}) {
+    const object=budget&&typeof budget==='object',explicitMode=object&&['fast','auto','deep','custom'].includes(budget.mode)?budget.mode:null;
+    const automatic=explicitMode?explicitMode==='auto':budget==='auto'||object&&budget.automatic===true;
+    const requested=object?Number(budget.ms):Number(budget),mode=explicitMode||(automatic?'auto':requested>=20000?'deep':'custom');
+    const limit=Math.max(30,Math.min({fast:1000,auto:15000,deep:25000,custom:25000}[mode],Number.isFinite(requested)?requested:automatic?8000:1000));
+    const applied=automatic?{automatic:true,ms:limit}:limit,staged=limit>=20000;
+    // Additional deep time belongs to candidate comparison as well as proof
+    // checking. The old 15s cap made auto and deep share the same comparison.
+    const comparisonBudget=staged?limit*.82:limit,started=clockNow();
     searchMemory?.begin();
-    const describe=r=>({...finalizeResult(board,p,r),searchMemory:searchMemory?.stats()});
-    const limit=Number(budget),staged=Number.isFinite(limit)&&limit>=20000;
-    if(!staged)return describe(analyzeCore(board,p,budget,lessons,r=>progress(describe(r))));
-    const started=clockNow(),deadline=started+limit;
+    const describe=r=>({...finalizeResult(board,p,r),searchMemory:searchMemory?.stats(),analysisWork:{
+      mode,budgetMs:limit,comparisonBudgetMs:comparisonBudget,guardBudgetMs:limit-comparisonBudget,
+      elapsedMs:Math.round(clockNow()-started),completedDepth:r.depth||0,nodes:r.nodes||0,source:r.comparisonSource||null,
+      candidates:r.candidates?.length||0,roots:r.rootWork||null,checkedCandidates:r.candidateChecks?.filter(c=>c.complete).length||0,
+      screeningComplete:r.screeningComplete===true,
+      stopReason:r.proven?'verified-win':r.lossProven?'verified-loss':r.kind==='terminal'?'terminal':clockNow()-started>=limit*.96?'time-limit':r.autoReason||'bounded-comparison-complete'}});
+    if(!staged)return describe(analyzeCore(board,p,applied,lessons,r=>progress(describe(r))));
+    const deadline=started+limit;
     let compared=[];
-    // Keep completed comparison results. The additional time validates a small
-    // shortlist with existing tactical tools; it does not widen the root tree.
-    let best=analyzeCore(board,p,Math.min(15000,limit*.6),lessons,r=>{
+    // Retain complete rounds through final checks; different engine scores
+    // are never mixed. Deep expands Forest's root/branch/depth profile.
+    let best=analyzeCore(board,p,comparisonBudget,lessons,r=>{
       if(r.depth>0&&r.candidates?.length>1)compared=r.candidates.slice();
       progress(describe(r));
-    });
+    },{deep:true});
     if(best.proven||best.lossProven||best.kind==='terminal'||best.i==null)return describe(best);
     progress(describe(best));
     const rejected=[...(best.rejected||[])],bad=new Set(rejected.filter(refutation).map(m=>m.i));

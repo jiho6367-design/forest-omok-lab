@@ -1,0 +1,33 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{pathToFileURL}=require('node:url');
+const {chromium}=require(process.env.OMOK_PLAYWRIGHT||(process.platform==='win32'?'C:/Users/jiho/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright':'playwright'));
+const out=path.resolve('work/engine-improvement-20261021/ui'),fixture=require('./reader/game33.cjs');fs.mkdirSync(out,{recursive:true});
+const report={scope:'Actual application/native Workers with navigator concurrency fixed to 8 for the fixture; not a throughput or strength test.',steps:[]};let browser;
+(async()=>{
+ browser=await chromium.launch({executablePath:process.env.OMOK_BROWSER||(process.platform==='win32'?'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe':undefined),headless:true});
+ const page=await browser.newPage({viewport:{width:1280,height:980}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(()=>{
+  Object.defineProperty(navigator,'hardwareConcurrency',{value:8});
+  localStorage.setItem('omok-compute-mode','optimized');localStorage.setItem('omok-analysis-settings',JSON.stringify({version:1,mode:'deep',manualMs:1000}));
+  window.__poolInputs=[];window.__activeWorkers=new Set();let id=0;const NativeWorker=Worker;
+  window.Worker=class extends NativeWorker{constructor(...args){super(...args);this.testId=++id;__activeWorkers.add(this.testId);}postMessage(data,...args){if(data?.type==='plan'||data?.type==='compare')__poolInputs.push({id:this.testId,type:data.type,depth:data.depth,roots:data.roots?.length});return super.postMessage(data,...args);}terminate(){__activeWorkers.delete(this.testId);return super.terminate();}};
+ });
+ await page.goto(pathToFileURL(path.resolve('outputs/omok.html')).href);await page.waitForFunction(()=>globalThis.omokComputeReady===true);
+ if(await page.locator('#setup').evaluate(d=>d.open))await page.locator('#cancelSetup').click();
+ await page.getByText('분석 시간',{exact:true}).click();
+ assert.equal(await page.locator('#manualSeconds').getAttribute('max'),'25');
+ const game={id:'parallel-ui-fixture',first:2,me:2,timer:false,rules:{fivePriority:true},axis:'descending',events:fixture.coords.slice(0,6).map((c,k)=>({type:'move',i:fixture.idx(c),p:k%2?1:2,legal:true,remaining:40000,time:new Date().toISOString()})),cursor:6,result:null};
+ await page.evaluate(g=>loadGame(g),game);await page.waitForFunction(()=>__poolInputs.some(x=>x.type==='compare'));
+ const previous=await page.evaluate(()=>[...__activeWorkers]);await page.selectOption('#budget','fast');
+ await page.waitForFunction(()=>rec?.analysisPolicy?.mode==='fast'&&!worker,{timeout:8000});
+ const canceled=await page.evaluate(ids=>({allStopped:ids.every(id=>!__activeWorkers.has(id)),mode:rec.analysisPolicy.mode}),previous);assert(canceled.allStopped);report.steps.push({step:'changing-mode-cancels-proof-and-pool-workers',...canceled});
+ const autoStarted=Date.now();await page.selectOption('#budget','auto');await page.waitForFunction(()=>rec?.analysisPolicy?.mode==='auto'&&rec?.parallel?.depth>0&&!worker,undefined,{timeout:18000});
+ const automatic=await page.evaluate(()=>({result:rec,active:[...__activeWorkers]}));assert(automatic.result.automatic);assert(automatic.result.externalBudgetMs<=15000);assert(automatic.result.rootWork.compared>=24);assert.deepEqual(automatic.active,[]);assert(Date.now()-autoStarted<17000);
+ report.steps.push({step:'automatic-parallel-comparison-within-15-second-policy',elapsedMs:Date.now()-autoStarted,depth:automatic.result.depth,roots:automatic.result.rootWork.compared,workers:automatic.result.parallel.workers});
+ const started=Date.now();await page.selectOption('#budget','deep');await page.waitForFunction(()=>rec?.parallel?.depth>0&&!worker,{timeout:28000});
+ const result=await page.evaluate(()=>({result:rec,model:E.getModelInfo(),validPV:E.validPV(b,turn,rec.pv).length===rec.pv.length,legal:E.inspect(b,rec.i,turn).legal,activeWorkers:[...__activeWorkers],poolJobs:__poolInputs.length,plan:document.getElementById('analysisPlan').textContent}));
+ assert(Date.now()-started<26000);assert(result.legal&&result.validPV);assert.equal(result.result.externalBudgetMs,25000);assert.equal(result.result.parallel.workers,3);assert(result.result.depth>0);assert.equal(result.result.proofStatus,'UNRESOLVED');assert.deepEqual(result.activeWorkers,[]);assert.match(result.plan,/25/);
+ assert.equal(result.result.modelVersion,result.model.modelVersion);assert.equal(result.result.rootWork.compared,32);assert(result.result.candidateChecks?.length,'actual parallel finalists receive reserved reply checks');
+ report.steps.push({step:'deep-25-second-result-from-complete-parallel-round',move:result.result.i,elapsedMs:Date.now()-started,depth:result.result.depth,workers:3,roots:result.result.rootWork,parallel:result.result.parallel,candidateChecks:result.result.candidateChecks,modelVersion:result.model.modelVersion,legal:true,validPV:true,remainingWorkers:0});
+ assert.deepEqual(errors,[]);report.status='passed';await page.screenshot({path:path.join(out,'parallel-analysis.png'),fullPage:true});console.log(JSON.stringify(report));
+})().catch(error=>{report.status='failed';report.error=error.stack;console.error(error);process.exitCode=1;}).finally(async()=>{fs.writeFileSync(path.join(out,'parallel-analysis.json'),JSON.stringify(report,null,2)+'\n');await browser?.close();});
