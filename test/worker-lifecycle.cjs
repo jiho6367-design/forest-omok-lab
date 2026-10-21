@@ -63,3 +63,25 @@ console.log('PASS serial-to-parallel refutation propagation precedes candidate f
  assert(result&&result.i!==5);assert(result.rejected.some(r=>r.i===5));assert(result.analysisIncomplete);delete c.OmokParallel;
 }
 console.log('PASS all pool finalists refuted: main fallback cannot restore a newly refuted serial recommendation');
+// Controlled delivery tests, not tactical proof fixtures: a certified win
+// message must complete immediately, but a score/loss message must not.
+for(const mode of ['fast','auto','deep']){
+ let result,completions=0,stopped=0;
+ c.OmokParallel={start:()=>mode==='fast'?null:{observe:()=>{},terminate:()=>stopped++,latest:{i:5,depth:4}}};
+ w=c.spawnAnalysis(Array(225).fill(0),1,{mode,ms:mode==='fast'?1000:mode==='auto'?15000:25000},()=>{},r=>{result=r;completions++;},()=>errors++);
+ for(const r of [{i:4,pv:[4],depth:8,score:1e8,proven:false},{i:4,pv:[4],depth:0,lossProven:true}]){
+  w.onmessage({data:{progress:true,result:r}});assert.equal(completions,0,'a score or loss progress does not use the win shortcut');assert(!w.stopped);
+ }
+ const win={i:4,pv:[4],depth:3,proven:true,lossProven:false,proofStatus:'PROVEN_WIN'};
+ w.onmessage({data:{progress:true,result:win}});assert.equal(completions,1,'win progress must not wait for final serial/pool messages');assert(result.proven);assert(w.stopped);
+ assert.equal(stopped,mode==='fast'?0:1);assert.equal(timers.size,0);assert.equal(intervals.size,0);
+ w.onmessage({data:{result:{i:9,pv:[9],depth:9}}});assert.equal(completions,1);assert.equal(result.i,4);
+ delete c.OmokParallel;
+}
+{
+ let result;c.E.finalizeResult=(_b,_p,r)=>({...r,proven:false,proofStatus:'UNRESOLVED'});
+ w=c.spawnAnalysis(Array(225).fill(0),1,{mode:'deep',ms:25000},()=>{},r=>result=r,()=>errors++);
+ w.onmessage({data:{progress:true,result:{i:4,pv:[4],proven:true}}});assert.equal(result,undefined,'a demoted proof cannot complete via the shortcut');assert(!w.stopped);
+ w.terminate();delete c.E.finalizeResult;
+}
+console.log('PASS win-only certified progress preempts serial and pool work in all modes; scores, loss progress and demoted proofs do not');

@@ -1,6 +1,20 @@
 // CPU root parallelism. Only a complete equal-depth round may replace the
 // recommendation. The ordinary engine continues to discover forcing proofs.
 const OmokParallel=(()=>{
+ // Reader's plan may finish with a forcing certificate before it ever builds
+ // a comparison frontier. Preserve that proof instead of treating it as an
+ // empty plan. A bounded mate-like score alone never enters this path.
+ function readerVictory(result){
+  const first=result?.moves?.[0],kind=result?.kind;
+  if(!first||!(kind==='win'&&first.status==='win'||kind==='forced'&&first.status==='proven'&&result.proof==='forcing-four')||
+    !Number.isInteger(first.i)||!Array.isArray(first.pv)||first.pv[0]!==first.i||!first.pv.every(i=>Number.isInteger(i)&&i>=0&&i<225))return null;
+  return {i:first.i,pv:first.pv,score:first.score,depth:result.depth||0,nodes:result.nodes||0,
+   kind,proven:true,lossProven:false,forcedLoss:false,urgent:kind==='win',comparisonSource:'reader',
+   proof:{type:kind==='win'?'exact-five':'forcing-four',source:'parallel-plan'},
+   reason:kind==='win'?'정확한 5목 완성':'연속 위협 강제승 확인',
+   candidates:result.moves.map(m=>({...m,depth:result.depth||0,comparisonSource:'reader'})),
+   rejected:result.rejectedMoves||[],rootWork:result.rootWork};
+ }
  function checkFinalists(engine,board,p,rows,ms,onCheck=()=>{}){
   const deadline=performance.now()+Math.max(1,ms),checks=[];
   for(let k=0;k<rows.length&&performance.now()<deadline-20;k++){
@@ -57,7 +71,13 @@ const OmokParallel=(()=>{
    if(data.type==='guard-progress'){if(!checks.some(c=>c.i===data.check.i))checks.push(data.check);if(data.check.refuted){bad.add(data.check.i);onProgress({...latest,rejected:checks.filter(c=>c.rejection).map(c=>c.rejection)});}return;}
    if(data.type==='guard'){finish(guardReason);return;}if(guarding)return;
    if(data.type==='plan'){
-    seed=data.result;roots=seed.rootFrontier?.filter(r=>!bad.has(r.i));
+    seed=data.result;const victory=readerVictory(seed);
+    if(victory&&!bad.has(victory.i)){
+     close();onDone({...victory,modelVersion:base.modelInfo?.modelVersion,learnedEvaluation:!!base.modelInfo?.active,automatic:mode==='auto',
+      analysisWork:{mode,budgetMs:budget,elapsedMs:Math.round(performance.now()-started),completedDepth:victory.depth,
+       nodes:victory.nodes,source:'parallel-plan',stopReason:'verified-win'}});return;
+    }
+    roots=seed.rootFrontier?.filter(r=>!bad.has(r.i));
     if(!roots?.length){fail('병렬 비교 후보 없음');return;}dispatch();return;
    }
    if(data.round!==round||parts[k])return;parts[k]=data.result;
@@ -83,6 +103,6 @@ const OmokParallel=(()=>{
   }catch(error){fail(String(error));return null;}
   return {terminate:close,observe(result){serial=result;for(const m of result?.rejected||[])if(!m.riskOnly&&(m.verifiedRefutation||m.pv?.length||m.line?.length||m.replyTrap))bad.add(m.i);},get latest(){return latest;}};
  }
- return {start,mergeRound,checkFinalists};
+ return {start,mergeRound,checkFinalists,readerVictory};
 })();
 if(typeof module!=='undefined')module.exports=OmokParallel;

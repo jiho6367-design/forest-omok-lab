@@ -1726,6 +1726,20 @@ if(typeof module!=='undefined')module.exports=createEngine;
 // CPU root parallelism. Only a complete equal-depth round may replace the
 // recommendation. The ordinary engine continues to discover forcing proofs.
 const OmokParallel=(()=>{
+ // Reader's plan may finish with a forcing certificate before it ever builds
+ // a comparison frontier. Preserve that proof instead of treating it as an
+ // empty plan. A bounded mate-like score alone never enters this path.
+ function readerVictory(result){
+  const first=result?.moves?.[0],kind=result?.kind;
+  if(!first||!(kind==='win'&&first.status==='win'||kind==='forced'&&first.status==='proven'&&result.proof==='forcing-four')||
+    !Number.isInteger(first.i)||!Array.isArray(first.pv)||first.pv[0]!==first.i||!first.pv.every(i=>Number.isInteger(i)&&i>=0&&i<225))return null;
+  return {i:first.i,pv:first.pv,score:first.score,depth:result.depth||0,nodes:result.nodes||0,
+   kind,proven:true,lossProven:false,forcedLoss:false,urgent:kind==='win',comparisonSource:'reader',
+   proof:{type:kind==='win'?'exact-five':'forcing-four',source:'parallel-plan'},
+   reason:kind==='win'?'정확한 5목 완성':'연속 위협 강제승 확인',
+   candidates:result.moves.map(m=>({...m,depth:result.depth||0,comparisonSource:'reader'})),
+   rejected:result.rejectedMoves||[],rootWork:result.rootWork};
+ }
  function checkFinalists(engine,board,p,rows,ms,onCheck=()=>{}){
   const deadline=performance.now()+Math.max(1,ms),checks=[];
   for(let k=0;k<rows.length&&performance.now()<deadline-20;k++){
@@ -1782,7 +1796,13 @@ const OmokParallel=(()=>{
    if(data.type==='guard-progress'){if(!checks.some(c=>c.i===data.check.i))checks.push(data.check);if(data.check.refuted){bad.add(data.check.i);onProgress({...latest,rejected:checks.filter(c=>c.rejection).map(c=>c.rejection)});}return;}
    if(data.type==='guard'){finish(guardReason);return;}if(guarding)return;
    if(data.type==='plan'){
-    seed=data.result;roots=seed.rootFrontier?.filter(r=>!bad.has(r.i));
+    seed=data.result;const victory=readerVictory(seed);
+    if(victory&&!bad.has(victory.i)){
+     close();onDone({...victory,modelVersion:base.modelInfo?.modelVersion,learnedEvaluation:!!base.modelInfo?.active,automatic:mode==='auto',
+      analysisWork:{mode,budgetMs:budget,elapsedMs:Math.round(performance.now()-started),completedDepth:victory.depth,
+       nodes:victory.nodes,source:'parallel-plan',stopReason:'verified-win'}});return;
+    }
+    roots=seed.rootFrontier?.filter(r=>!bad.has(r.i));
     if(!roots?.length){fail('병렬 비교 후보 없음');return;}dispatch();return;
    }
    if(data.round!==round||parts[k])return;parts[k]=data.result;
@@ -1808,7 +1828,7 @@ const OmokParallel=(()=>{
   }catch(error){fail(String(error));return null;}
   return {terminate:close,observe(result){serial=result;for(const m of result?.rejected||[])if(!m.riskOnly&&(m.verifiedRefutation||m.pv?.length||m.line?.length||m.replyTrap))bad.add(m.i);},get latest(){return latest;}};
  }
- return {start,mergeRound,checkFinalists};
+ return {start,mergeRound,checkFinalists,readerVictory};
 })();
 if(typeof module!=='undefined')module.exports=OmokParallel;
 
@@ -2019,7 +2039,7 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority" disabled><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.18.0';versionBadge.title='대국 경험 누적 학습 · 턴 사이 탐색 기록 재사용';versionBadge.setAttribute('aria-label','통합 버전 5.18.0');
+versionBadge.textContent='통합 v5.18.1';versionBadge.title='대국 경험 누적 학습 · 턴 사이 탐색 기록 재사용';versionBadge.setAttribute('aria-label','통합 버전 5.18.1');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
 wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 추천 카드의 분석 시간 설정으로 계산합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 const settingsPolicy=OmokAnalysisSettings;
@@ -2153,12 +2173,22 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   w.onmessage=e=>{if(finished)return;
     if(session&&spawnAnalysis.memory===session)session.store.merge(e.data.searchMemory);
     if(e.data.error)finish(lastVerified,e.data.error);
-    else if(e.data.progress){const r=e.data.result;
+    else if(e.data.progress){let r=e.data.result;
       // New proof evidence supersedes older comparison snapshots, including
       // when the replacement has no completed depth. The watchdog must not
       // restore a refuted move after cancellation or timeout.
       rememberRefutations(r);if(parallel&&!e.data.parallel)parallel.observe(r);
       if(rejectedSnapshot(r))return;
+      // One certified winning move is enough. Do not leave it provisional
+      // while another Worker compares alternatives. Loss evidence still follows
+      // the ordinary defense/resistance analysis and final-result path.
+      if(r?.proven&&!r.lossProven){
+        r=E.finalizeResult?E.finalizeResult(board,p,retainEvidence(r)):r;
+        if(r.proven&&!r.lossProven&&r.i!=null&&E.inspect(board,r.i,p).legal&&
+          r.pv?.[0]===r.i&&(!E.validPV||E.validPV(board,p,r.pv).length===r.pv.length)){
+          finish(r);return;
+        }
+      }
       if(parallel&&!e.data.parallel&&parallel.latest&&!r.proven&&!r.lossProven)return;
       const legal=r?.i!=null&&E.inspect(board,r.i,p).legal;
       if(legal)lastLegal=r;
@@ -2383,8 +2413,8 @@ const gpuPanel=document.createElement('div');gpuPanel.className='card';gpuPanel.
 $('nextMovePanel').after(gpuPanel);
 $('computeMode').value=initialCompute;
 const gpuAnalysisMode=document.createElement('p');gpuAnalysisMode.id='gpuAnalysisMode';gpuAnalysisMode.className='muted';$('computeMode').parentElement.after(gpuAnalysisMode);syncAnalysisSettingsUI();
-versionBadge.textContent='통합 v5.18.0 · GPU';
-versionBadge.setAttribute('aria-label','통합 버전 5.18.0');
+versionBadge.textContent='통합 v5.18.1 · GPU';
+versionBadge.setAttribute('aria-label','통합 버전 5.18.1');
 versionBadge.title='기존 엔진 보완 학습 · GPU 혼합 · 정확한 5목 우선';
 let gpuPrepared=null,cpuPatterns=null,modeRequest=0,benchmarkWorker=null,cancelBenchmark=null;
 async function selectComputeMode(reanalyze=false){

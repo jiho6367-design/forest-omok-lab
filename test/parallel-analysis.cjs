@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),{Worker}=require('node:worker_threads');
-const {mergeRound,checkFinalists}=require('../src/parallel-analysis.js'),{createEngine}=require('../src/reader-engine.js');
+const {mergeRound,checkFinalists,readerVictory}=require('../src/parallel-analysis.js'),{createEngine}=require('../src/reader-engine.js');
 const fixture=require('./reader/game33.cjs');
 const workerSource=`const {parentPort,workerData}=require('node:worker_threads');const {createEngine}=require(workerData.module);const e=createEngine(15,workerData.board,workerData.options);parentPort.postMessage(e.compareRoots(workerData.p,workerData.roots,workerData.depth,30000));`;
 const compute=data=>new Promise((resolve,reject)=>{const w=new Worker(workerSource,{eval:true,workerData:data});w.once('message',resolve);w.once('error',reject);w.once('exit',code=>{if(code)reject(Error('Worker exit '+code));});});
@@ -39,4 +39,17 @@ const compute=data=>new Promise((resolve,reject)=>{const w=new Worker(workerSour
  const checks=checkFinalists(engine,board,1,[{i:1},{i:2},{i:3}],1000,c=>checked.push(c));
  assert(checks[0].refuted&&checks[0].rejection.verifiedRefutation);assert(!checks[1].complete);assert(checks[2].complete&&!checks[2].refuted);assert.equal(checked.length,3);assert(board.every(v=>v===0));
  console.log('PASS final shortlist guard preserves opponent proofs and distinguishes incomplete checks from bounded complete checks');
+ for(const color of [1,2])for(const mode of ['auto','deep']){
+  const b=Array(225).fill(0);for(const i of [111,112,113])b[i]=color;
+  const proof=createEngine(15,b,{optimized:true}).analyze(color,700);assert.equal(proof.kind,'forced');assert(!proof.rootFrontier);
+  const startAt=workers.length;let win,failed=0;
+  ctx.module.exports.start({source:'',base:{p:color,b,modelInfo:{}},budget:mode==='auto'?14100:23500,mode,hardware:8,
+   onProgress:()=>{},onDone:r=>win=r,onError:()=>failed++});
+  const planWorker=workers[startAt];planWorker.onmessage({data:{type:'plan',result:proof}});
+  assert(win?.proven&&!win.lossProven,'a planner certificate is a result even without a root frontier');assert.equal(win.i,proof.moves[0].i);
+  assert.equal(win.analysisWork.stopReason,'verified-win');assert.equal(failed,0);assert(workers.slice(startAt).every(w=>w.stopped));assert.equal(timers.size,0);
+  planWorker.onmessage({data:{type:'plan',result:{kind:'search',rootFrontier:[{i:0}]}}});assert.equal(win.i,proof.moves[0].i,'late plans cannot replace a win');
+  for(const changed of [{...proof,kind:'search'},{...proof,kind:'lost'},{...proof,proof:null},{...proof,moves:[{...proof.moves[0],status:'unverified'}]}])assert.equal(readerVictory(changed),null);
+ }
+ console.log('PASS real Reader plan wins in both colors preempt auto/deep comparison without a frontier; scores, losses and partial claims cannot');
 })().catch(error=>{console.error(error);process.exitCode=1;});

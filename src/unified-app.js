@@ -14,7 +14,7 @@ const setupOptions=document.createElement('div');
 setupOptions.innerHTML='<label>5목과 3·3이 동시에 생기면<select id="fivePriority" disabled><option value="priority">정확한 5목 우선 (숲속 기존 규칙)</option></select></label><label>좌표 표시<select id="axisChoice"><option value="descending">위 15 → 아래 1 (수읽기 방식)</option><option value="ascending">위 1 → 아래 15 (숲속 방식)</option></select></label><label><input type="checkbox" id="useTimer"> 40초 시계 사용 · 초과 시 PASS</label><p class="muted">노란 버섯 = 흑 · 초록 슬라임 = 백. 선후공은 별도로 선택합니다.</p>';
 $('setup').querySelector('.modal-actions').before(setupOptions);
 $('my').options[0].textContent='초록 슬라임 (백)';$('my').options[1].textContent='노란 버섯 (흑)';
-versionBadge.textContent='통합 v5.18.0';versionBadge.title='대국 경험 누적 학습 · 턴 사이 탐색 기록 재사용';versionBadge.setAttribute('aria-label','통합 버전 5.18.0');
+versionBadge.textContent='통합 v5.18.1';versionBadge.title='대국 경험 누적 학습 · 턴 사이 탐색 기록 재사용';versionBadge.setAttribute('aria-label','통합 버전 5.18.1');
 document.title='숲속 오목 · 통합 수읽기';document.querySelector('h1').textContent='숲속 오목 · 통합 수읽기';
 wideHelp.textContent='상대 다음 수는 1초로 빠르게 예측합니다. 내 수와 예상 응수는 추천 카드의 분석 시간 설정으로 계산합니다. 자동 모드에서는 국면에 따라 시간을 정합니다. 추천은 무패 보장이 아닙니다.';
 const settingsPolicy=OmokAnalysisSettings;
@@ -148,12 +148,22 @@ function spawnAnalysis(board,p,budget,onProgress,onDone,onError){
   w.onmessage=e=>{if(finished)return;
     if(session&&spawnAnalysis.memory===session)session.store.merge(e.data.searchMemory);
     if(e.data.error)finish(lastVerified,e.data.error);
-    else if(e.data.progress){const r=e.data.result;
+    else if(e.data.progress){let r=e.data.result;
       // New proof evidence supersedes older comparison snapshots, including
       // when the replacement has no completed depth. The watchdog must not
       // restore a refuted move after cancellation or timeout.
       rememberRefutations(r);if(parallel&&!e.data.parallel)parallel.observe(r);
       if(rejectedSnapshot(r))return;
+      // One certified winning move is enough. Do not leave it provisional
+      // while another Worker compares alternatives. Loss evidence still follows
+      // the ordinary defense/resistance analysis and final-result path.
+      if(r?.proven&&!r.lossProven){
+        r=E.finalizeResult?E.finalizeResult(board,p,retainEvidence(r)):r;
+        if(r.proven&&!r.lossProven&&r.i!=null&&E.inspect(board,r.i,p).legal&&
+          r.pv?.[0]===r.i&&(!E.validPV||E.validPV(board,p,r.pv).length===r.pv.length)){
+          finish(r);return;
+        }
+      }
       if(parallel&&!e.data.parallel&&parallel.latest&&!r.proven&&!r.lossProven)return;
       const legal=r?.i!=null&&E.inspect(board,r.i,p).legal;
       if(legal)lastLegal=r;
