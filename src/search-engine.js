@@ -128,6 +128,13 @@ function createForestEngine(options={}){
   for(const m of moves){if(clockNow()>=end)return {complete:false,proof:null,scopeComplete:false};const r=forcedReplyTrap(board,p,end-clockNow(),m.i,maxPlies,includeCounter,cache);if(r.proof)return r;if(!r.complete)return r;}
   return {complete:true,proof:null,scopeComplete:true};
  }
+ // Shared serial/pool guard. Reader's targeted discovery proves every legal
+ // defender response, including counter-fours; nominations alone reject nothing.
+ function forbiddenTrap(board,p,budget=120,maxPlies=13,quiet=1){
+  const factory=typeof createReaderEngine==='function'?createReaderEngine:typeof require==='function'?require('./reader-engine.js').createEngine:null;
+  if(!factory)return {complete:false,proof:null,scope:'targeted-forbidden-preparations'};
+  return factory(N,board,{strategy:false,optimized:true,counterProofDetails:options.counterProofDetails===true}).forbiddenTrap(3-p,budget,maxPlies,quiet);
+ }
  function assessMove(board,p,i){
   const s=inspect(board,i,p);if(!s.legal||s.win.length)return {mustWarn:false};
   const r=urgent(board,p);
@@ -371,6 +378,6 @@ function createForestEngine(options={}){
   let loss=s.win.length?{proof:null,complete:true}:forcing(after,3-p,11,Math.floor(budget*.3));
   return {...r,actual:i,actualLossProof:loss.proof,reviewLabel:r.lossProven?'이미 강제 패배 상태 · 이 수만의 실수 아님':loss.proof?'이 착수 뒤 상대 연속 4 강제승 확인':r.i!==i?'대안 후보 비교 (추정)':'추천 수와 일치'};
  }
- return {N,D,getPositionCacheStats,win,inspect,shapes,candidates,analyze,urgent,assessMove,limitsFor,suggestBudget,evaluate,strategicMove,strategicScore,strategicProfile,patternDefense,knownRefutations,certifiedLoss,forcing,forcedReplyTrap,quietTrap,reviewMove,canonical,transformed,untransform,coord,winning};
+ return {N,D,getPositionCacheStats,win,inspect,shapes,candidates,analyze,urgent,assessMove,limitsFor,suggestBudget,evaluate,strategicMove,strategicScore,strategicProfile,patternDefense,knownRefutations,certifiedLoss,forcing,forcedReplyTrap,quietTrap,forbiddenTrap,reviewMove,canonical,transformed,untransform,coord,winning};
 }
 if(typeof module!=='undefined')module.exports=createForestEngine;

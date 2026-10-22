@@ -154,6 +154,60 @@ function createEngine(N, board, options={}) {
 
   function counterMove(i,p,ms=1000,left=19,quiet=2){if(!legal(i,p)||winMove(i,p))return {proof:null,complete:true,ownWin:winMove(i,p)};set(i,p);try{return counterCertificate(3-p,ms,left,quiet);}finally{set(i,0);}}
 
+  // Nomination changes attacker OR discovery only, never defender coverage.
+  function forbiddenSeeds(p){
+    const targets=[],seeds=new Map(),enemy=3-p;
+    for(let i=0;i<b.length;i++){
+      tick();if(b[i])continue;set(i,enemy);let axes,win;try{win=exact(i,enemy);axes=threes(i,enemy);}finally{set(i,0);}
+      if(win||!axes)continue;
+      for(const id of cellAffected[i]){const w=windows[id],own=p===1?counts1[id]:counts2[id],other=p===1?counts2[id]:counts1[id];
+        if(other||own<2||b[w.pre]===p||b[w.post]===p)continue;
+        targets.push({i,forbidden:axes>=2,axis:w.axis});
+        for(const j of w.cells)if(j!==i&&!b[j]&&legal(j,p))seeds.set(j,(seeds.get(j)||0)+own*10+(axes>=2?40:0));
+      }
+    }
+    return {targets,rows:[...seeds].map(([i,priority])=>({i,priority})).sort((a,c)=>c.priority-a.priority||a.i-c.i).slice(0,16)};
+  }
+  function forbiddenEnd(p,pv){
+    const undo=[];let q=p;
+    try{for(const i of pv||[]){if(!legal(i,q))return null;set(i,q);undo.push(i);if(exact(i,q))return null;
+      if(q===p){const ends=wins(p);if(ends.length===1&&!legal(ends[0],3-p))return {i:ends[0],boardKey:b.join(''),threes:moveInfo(ends[0],3-p).threes};}q=3-q;
+    }return null;}finally{for(let k=undo.length-1;k>=0;k--)set(undo[k],0);}
+  }
+  function forbiddenTrap(p,ms=120,left=13,quiet=1){
+    const savedDeadline=deadline,savedPhase=phaseDeadline,start=clockNow(),startNodes=nodes,entryBoardKey=b.join('');
+    deadline=Math.min(savedDeadline,start+Math.max(0,ms));phaseDeadline=Math.min(savedPhase,deadline);
+    let nominated=0,checked=0,targets=[];
+    const output=(complete,proof=null)=>({complete,proof,scope:'targeted-forbidden-preparations',nominated,checked,targets,nodes:nodes-startNodes,ms:clockNow()-start});
+    try{
+      tick();const danger=wins(3-p);if(danger.length>1||danger.length===1&&!legal(danger[0],p))return output(true);
+      const seed=forbiddenSeeds(p);targets=seed.targets;
+      const attacks=danger.length?[{i:danger[0]}]:seed.rows;nominated=attacks.length;
+      for(const {i}of attacks){tick();if(!legal(i,p))continue;set(i,p);
+        try{
+          if(exact(i,p)||wins(3-p).length)continue;
+          const ends=wins(p),forced=ends.length===1;
+          if(forced&&!legal(ends[0],3-p))return output(true,{type:'vcf',pv:[i],entryBoardKey,forbiddenLine:[i],forbiddenEnd:{i:ends[0],boardKey:b.join(''),threes:moveInfo(ends[0],3-p).threes}});
+          if(ends.length>1)continue;
+          const remainingQuiet=quiet-(danger.length||forced?0:1);if(remainingQuiet<0)continue;
+          const replies=forced?[ends[0]]:rank(3-p,b.flatMap((v,j)=>v?[]:[j])).map(m=>m.i),branches=[];
+          let all=replies.length>0,terminal=null,terminalLine=null;
+          for(const j of replies){tick();if(!legal(j,3-p)){all=false;break;}set(j,3-p);let child;
+            try{if(exact(j,3-p)){all=false;break;}
+              const line=vcf(p,Math.max(1,left-2));child=line?{type:'vcf',pv:line}:counterSolve(p,Math.max(1,left-2),remainingQuiet,true);
+              if(child&&!terminal){terminal=forbiddenEnd(p,child.pv);if(terminal)terminalLine=[i,j,...child.pv];}
+            }finally{set(j,0);}
+            if(!child){all=false;break;}branches.push({i:j,proof:child});
+          }
+          checked++;
+          if(all&&terminal)return output(true,{type:'move',i,forced,checkedReplies:branches.length,pv:[i,branches[0].i,...branches[0].proof.pv],forbiddenEnd:terminal,forbiddenLine:terminalLine,
+            ...(options.counterProofDetails?{branches}:{}),entryBoardKey});
+        }finally{set(i,0);}
+      }
+      return output(true);
+    }catch(error){if(error.message!=='timeout')throw error;return output(false);}finally{deadline=savedDeadline;phaseDeadline=savedPhase;}
+  }
+
   function search(p,depth,alpha,beta,ply,extension=6,quietExtension=1){
     tick();const own=wins(p);if(own.length)return {score:M-ply,pv:[own[0]]};const danger=wins(3-p);
     if(danger.length>1||danger.length===1&&!legal(danger[0],p))return {score:-M+ply+1,pv:[]};
@@ -282,16 +336,20 @@ function createEngine(N, board, options={}) {
     if(!roots.length)return output('lost',[],0,{lossReason:'counter-threat',screened:counterRejected.length,rejectedMoves:counterRejected,screeningComplete:true,forcingChecksComplete:true});
     const screeningDeadline=Math.min(deadline,start+(automatic?2200:Math.max(10,ms*.45)));
     const screened=[];let screeningComplete=true,forcingChecksComplete=true;
-    for(let r of roots){if(clockNow()>screeningDeadline){screeningComplete=false;break;}phaseDeadline=screeningDeadline;let status='screened',refutation=[],lossReason=null,proofTree=null;try{tick();set(r.i,p);try{const threats=wins(3-p);if(threats.length){status='loss';refutation=[threats[0]];lossReason='immediate';}else{const f=fork(3-p);if(f){status='loss';refutation=[f.i];lossReason=f.forbiddenBlock?'forbidden-defense':'fork';}
+    for(let r of roots){if(clockNow()>screeningDeadline){screeningComplete=false;break;}phaseDeadline=screeningDeadline;let status='screened',refutation=[],lossReason=null,proofTree=null,forbiddenCheck=null;try{tick();set(r.i,p);try{const threats=wins(3-p);if(threats.length){status='loss';refutation=[threats[0]];lossReason='immediate';}else{const f=fork(3-p);if(f){status='loss';refutation=[f.i];lossReason=f.forbiddenBlock?'forbidden-defense':'fork';}
         else{try{phaseDeadline=Math.min(screeningDeadline,clockNow()+Math.max(20,Math.min(200,ms*.035)));const line=vcf(3-p,13);if(line){status='loss';refutation=line;lossReason='forcing-line';}
-          else{phaseDeadline=Math.min(screeningDeadline,clockNow()+Math.max(60,Math.min(650,ms*.15)));const trap=forcedReplyTrap(p);if(trap){status='loss';refutation=trap.line;lossReason='forced-reply-trap';proofTree=trap.proofTree||null;}
+          else{if(options.forbiddenGuard&&screened.length<12){phaseDeadline=screeningDeadline;forbiddenCheck=forbiddenTrap(3-p,Math.min(100,ms*.06),13,1);}
+            if(forbiddenCheck?.proof){status='loss';refutation=forbiddenCheck.proof.pv;lossReason='forbidden-trap';}
+            else{phaseDeadline=Math.min(screeningDeadline,clockNow()+Math.max(60,Math.min(650,ms*.15)));const trap=forcedReplyTrap(p);if(trap){status='loss';refutation=trap.line;lossReason='forced-reply-trap';proofTree=trap.proofTree||null;}
             else{phaseDeadline=Math.min(screeningDeadline,clockNow()+Math.max(50,Math.min(4000,ms*.15)));const quiet=threatWin(3-p);if(quiet){status='loss';refutation=quiet;lossReason='three-threat';proofTree=lastThreatProof;}}}
+          }
         }catch(e){if(e.message!=='timeout')throw e;status='unverified';forcingChecksComplete=false;}finally{phaseDeadline=Infinity;}}
       }}finally{set(r.i,0);}}catch(e){if(e.message!=='timeout')throw e;screeningComplete=false;break;}
-      screened.push({...r,score:status==='loss'?-M+3:r.s,pv:[r.i],status,refutation,lossReason,...(options.proofDetails&&proofTree?{proofTree}:{})});
+      if(forbiddenCheck&&!forbiddenCheck.complete&&status!=='loss'){status='unverified';forcingChecksComplete=false;}
+      screened.push({...r,score:status==='loss'?-M+3:r.s,pv:[r.i],status,refutation,lossReason,...(forbiddenCheck?.proof?{forbiddenTrap:forbiddenCheck}:{}),...(options.proofDetails&&proofTree?{proofTree}:{})});
     }
     phaseDeadline=Infinity;
-    const rejectedMoves=[...counterRejected,...screened.filter(r=>r.status==='loss').map(r=>({i:r.i,reason:r.lossReason,line:[r.i,...r.refutation],...(r.proofTree?{proofTree:r.proofTree}:{})}))];
+    const rejectedMoves=[...counterRejected,...screened.filter(r=>r.status==='loss').map(r=>({i:r.i,reason:r.lossReason,line:[r.i,...r.refutation],...(r.forbiddenTrap?{forbiddenTrap:r.forbiddenTrap,verifiedRefutation:true}:{}),...(r.proofTree?{proofTree:r.proofTree}:{})}))];
     // Unexamined points remain candidates; a partial screen cannot prove loss.
     const checked=new Set(screened.map(r=>r.i));
     const pending=roots.filter(r=>!checked.has(r.i)).map(r=>({...r,score:r.s,pv:[r.i],status:'unverified'}));
@@ -346,7 +404,7 @@ function createEngine(N, board, options={}) {
     }}catch(error){if(error.message!=='timeout')throw error;}finally{deadline=oldDeadline;phaseDeadline=oldPhase;}
     return {complete:rows.length===roots.length,rows,nodes,depth,ms:clockNow()-start};
   }
-  return {fixedWork,rank,compareRoots,counterRejections,counterSeeds,counterMove,counterLoss,counterCertificate,legal,moveInfo,winMove,threes,analyze,state,board:b,winningMoves:wins,threatWin:(p,ms=1000)=>{deadline=clockNow()+ms;try{return threatWin(p);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}},forcingWin:(p,depth=13,ms=1000)=>{deadline=clockNow()+ms;try{return vcf(p,depth);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}}};
+  return {fixedWork,rank,compareRoots,forbiddenTrap,counterRejections,counterSeeds,counterMove,counterLoss,counterCertificate,legal,moveInfo,winMove,threes,analyze,state,board:b,winningMoves:wins,threatWin:(p,ms=1000)=>{deadline=clockNow()+ms;try{return threatWin(p);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}},forcingWin:(p,depth=13,ms=1000)=>{deadline=clockNow()+ms;try{return vcf(p,depth);}catch(e){if(e.message==='timeout')return null;throw e;}finally{deadline=Infinity;}}};
 }
 function autoStable(rounds,depth,elapsed,checks,moves){
   if(elapsed<1000||depth<4||rounds.length<3||!checks.screeningComplete||!checks.forcingChecksComplete||!moves.length||moves[0].status==='unverified')return false;

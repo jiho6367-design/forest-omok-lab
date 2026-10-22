@@ -8,7 +8,7 @@ function createEngine(options={}) {
   const searchMemory=options.searchMemory===false?null:options.searchMemory||
     (typeof OmokSearchMemory!=='undefined'?OmokSearchMemory.create({snapshot:options.memorySnapshot}):null);
   const rules={fivePriority:true,patternTable:options.patternTable,optimized:options.optimized,
-    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy,searchMemory,memoryManaged:true,...(options.proofDetails===true?{proofDetails:true}:{}),
+    firstPlayer:normalizeFirst(options.firstPlayer??options.context?.firstPlayer),strategy:options.strategy,forbiddenGuard:options.forbiddenGuard!==false,searchMemory,memoryManaged:true,...(options.proofDetails===true?{proofDetails:true}:{}),
     model:options.model===undefined?(typeof OmokNeural!=='undefined'?OmokNeural.getDefaultModel():null):options.model};
   rules.modelVersion=typeof OmokNeural!=='undefined'?OmokNeural.identity(rules.model):'baseline';
   let forest=createForestEngine(rules);
@@ -106,7 +106,7 @@ function createEngine(options={}) {
       r.retainedComparison?.finalDefenseUnchecked&&!r.defenseChecked?(feature?.cut>0?'BLOCKING_UNCHECKED':'INCOMPLETE'):
       r.kind==='block'||(!(r.depth>0)&&feature?.cut>0)?'BLOCKING_UNCHECKED':
       r.depth>0&&!r.fallback?'BOUNDED_FAVORABLE':'INCOMPLETE';
-    r.engineVersion='unified-'+strategyVersion;
+    r.engineVersion='unified-'+strategyVersion+'-forbidden-1';
     return r;
   }
   function convert(board,p,r,started) {
@@ -399,7 +399,7 @@ function createEngine(options={}) {
     const applied=automatic?{automatic:true,ms:limit}:limit,staged=limit>=20000;
     // Additional deep time belongs to candidate comparison as well as proof
     // checking. The old 15s cap made auto and deep share the same comparison.
-    const comparisonBudget=staged?limit*.82:limit,started=clockNow();
+    const comparisonBudget=staged?limit*.82:limit>=3000?limit-Math.min(400,limit*.08):limit,started=clockNow();
     searchMemory?.begin();
     const describe=r=>({...finalizeResult(board,p,r),searchMemory:searchMemory?.stats(),analysisWork:{
       mode,budgetMs:limit,comparisonBudgetMs:comparisonBudget,guardBudgetMs:limit-comparisonBudget,
@@ -407,7 +407,20 @@ function createEngine(options={}) {
       candidates:r.candidates?.length||0,roots:r.rootWork||null,checkedCandidates:r.candidateChecks?.filter(c=>c.complete).length||0,
       screeningComplete:r.screeningComplete===true,
       stopReason:r.proven?'verified-win':r.lossProven?'verified-loss':r.kind==='terminal'?'terminal':clockNow()-started>=limit*.96?'time-limit':r.autoReason||'bounded-comparison-complete'}});
-    if(!staged)return describe(analyzeCore(board,p,applied,lessons,r=>progress(describe(r))));
+    if(!staged){
+      const request=automatic?{automatic:true,ms:comparisonBudget}:comparisonBudget;
+      let result=analyzeCore(board,p,request,lessons,r=>progress(describe(r)));
+      if(limit<3000||result.proven||result.lossProven||result.urgent||result.kind==='terminal'||result.i==null)return describe(result);
+      const checks=[],rejected=[...(result.rejected||[])],seen=new Set(),baseNodes=result.nodes||0,rows=[{i:result.i},...(result.candidates||[])].filter(m=>!seen.has(m.i)&&seen.add(m.i)).slice(0,3);let guardNodes=0;
+      for(let k=0;k<rows.length&&clockNow()<started+limit-20;k++){
+        const m=rows[k];if(!inspect(board,m.i,p).legal)continue;const after=board.slice();after[m.i]=p;
+        const check=forest.forbiddenTrap(after,p,Math.max(1,(started+limit-clockNow()-20)/(rows.length-k)),19,1);
+        guardNodes+=check.nodes||0;checks.push({i:m.i,complete:check.complete,refuted:!!check.proof,ms:check.ms,nodes:check.nodes||0});
+        if(check.proof){rejected.push({i:m.i,pv:check.proof.pv,forbiddenTrap:check,verifiedRefutation:true,reason:'3×3 금수 유도 수순 확인 · 함정 후보 제외'});
+          result=finalizeResult(board,p,{...result,rejected});progress(describe({...result,nodes:baseNodes+guardNodes,forbiddenChecks:checks.slice()}));}
+      }
+      return describe({...result,rejected,nodes:baseNodes+guardNodes,forbiddenChecks:checks,analysisIncomplete:!!result.analysisIncomplete||!checks.some(c=>c.i===result.i&&c.complete)});
+    }
     const deadline=started+limit;
     let compared=[];
     // Retain complete rounds through final checks; different engine scores
@@ -431,14 +444,17 @@ function createEngine(options={}) {
       const m=shortlist[k],after=board.slice();after[m.i]=p;
       const checkStarted=clockNow(),slice=(deadline-checkStarted-30)/(shortlist.length-k),end=checkStarted+slice;
       const direct=forest.forcing(after,3-p,25,Math.max(1,Math.min(1000,slice*.25)));
-      const trap=direct.proof||!direct.complete||clockNow()>=end?null:
+      const forbidden=direct.proof||clockNow()>=end?null:forest.forbiddenTrap(after,p,Math.max(1,Math.min(600,(end-clockNow())*.4)),19,1);
+      const trap=direct.proof||forbidden?.proof||!direct.complete||clockNow()>=end?null:
         inspect(board,m.i,p).fours.length?
           forest.forcedReplyTrap(after,p,Math.max(1,Math.min(500,end-clockNow())),null,25,true):
           forest.quietTrap(after,p,Math.max(1,end-clockNow()),14,25,true);
-      extraNodes+=(direct.nodes||0)+(trap?.nodes||0);
-      const proof=direct.proof||trap?.proof;
-      checks.push({i:m.i,complete:!!direct.complete&&(!trap||!!trap.complete),refuted:!!proof,ms:clockNow()-checkStarted});
-      if(proof){bad.add(m.i);rejected.push({i:m.i,pv:direct.proof?.pv||[],replyTrap:trap?.proof||null,reason:'상위 후보 추가 검사에서 상대 강제승 확인'});}
+      extraNodes+=(direct.nodes||0)+(forbidden?.nodes||0)+(trap?.nodes||0);
+      const proof=direct.proof||forbidden?.proof||trap?.proof;
+      checks.push({i:m.i,complete:!!proof||!!direct.complete&&(!forbidden||forbidden.complete)&&(!trap||!!trap.complete),refuted:!!proof,ms:clockNow()-checkStarted});
+      if(proof){bad.add(m.i);rejected.push({i:m.i,pv:direct.proof?.pv||forbidden?.proof?.pv||[],replyTrap:trap?.proof||null,
+        ...(forbidden?.proof?{forbiddenTrap:forbidden,verifiedRefutation:true}:{}),reason:forbidden?.proof?'3×3 금수 유도 수순 확인 · 함정 후보 제외':'상위 후보 추가 검사에서 상대 강제승 확인'});
+        progress(describe(finalizeResult(board,p,{...best,rejected})));}
     }
     // A mate-like evaluation only selects work; it is never proof by itself.
     // Confirm the chosen move with the existing exhaustive legal-root screen.
@@ -486,7 +502,8 @@ function createEngine(options={}) {
     const completed=seeds.filter(m=>!bad.has(m.i)&&m.comparisonSource===best.comparisonSource&&m.comparisonComplete);
     return describe({...best,shape:best.i==null?null:inspect(board,best.i,p),rejected,
       candidates:best.i==null?[]:completed.length?completed:best.candidates,
-      candidateChecks:checks,counterVerification,nodes:(best.nodes||0)+extraNodes,ms:clockNow()-started});
+      candidateChecks:checks,counterVerification,nodes:(best.nodes||0)+extraNodes,ms:clockNow()-started,
+      analysisIncomplete:!!best.analysisIncomplete||!best.proven&&!best.lossProven&&!checks.some(c=>c.i===best.i&&c.complete)});
   }
   function assessMove(board,p,i) {
     if(!inspect(board,i,p).legal)return {mustWarn:false};

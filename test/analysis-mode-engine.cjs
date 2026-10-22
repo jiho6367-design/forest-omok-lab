@@ -12,5 +12,7 @@ for(const [budget,mode,limit]of [[{mode:'fast',ms:50000,automatic:true},'fast',1
  for(const p of progress){assert.equal(p.analysisWork.mode,mode);assert.equal(p.analysisWork.budgetMs,limit);}
  if(mode==='deep'){assert(r.analysisWork.comparisonBudgetMs>15000,'extra deep time reaches the comparison, beyond the old cap');assert(r.analysisWork.guardBudgetMs>0);}
  assert(!r.proven&&!r.lossProven,'budget completion alone proves neither win nor loss');
+ if(r.forbiddenChecks&&!r.forbiddenChecks.some(c=>c.i===r.i&&c.complete))assert(r.analysisIncomplete,'a missing or unfinished selected guard stays incomplete');
+ if(r.candidateChecks&&!r.candidateChecks.some(c=>c.i===r.i&&c.complete))assert(r.analysisIncomplete,'replacement candidates cannot inherit another finalist guard');
 }
 console.log('PASS actual engine under a deterministic advancing clock: named/legacy modes, cap, deep comparison reserve, progress, board and unresolved proof contract');

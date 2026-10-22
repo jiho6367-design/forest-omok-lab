@@ -21,10 +21,13 @@ const OmokParallel=(()=>{
    const m=rows[k],after=board.slice();if(!engine.inspect(board,m.i,p).legal)continue;after[m.i]=p;
    const start=performance.now(),slice=(deadline-start-20)/(rows.length-k),end=start+slice;
    const direct=engine.forcing(after,3-p,25,Math.max(1,Math.min(500,slice*.3)));
-   const trap=direct.proof||!direct.complete||performance.now()>=end?null:engine.inspect(board,m.i,p).fours.length?
+   const forbidden=direct.proof||performance.now()>=end||!engine.forbiddenTrap?null:engine.forbiddenTrap(after,p,Math.max(1,Math.min(300,(end-performance.now())*.5)),19,1);
+   const trap=direct.proof||forbidden?.proof||!direct.complete||performance.now()>=end?null:engine.inspect(board,m.i,p).fours.length?
     engine.forcedReplyTrap(after,p,Math.max(1,end-performance.now()),null,25,true):engine.quietTrap(after,p,Math.max(1,end-performance.now()),14,25,true);
-   const proof=direct.proof||trap?.proof,check={i:m.i,complete:!!proof||!!direct.complete&&!!trap?.complete,refuted:!!proof,ms:performance.now()-start,
-    ...(proof?{rejection:{i:m.i,pv:direct.proof?.pv||[],replyTrap:trap?.proof||null,verifiedRefutation:true,reason:'병렬 후보 최종 응수 검사에서 상대 강제승 확인'}}:{})};
+   const proof=direct.proof||forbidden?.proof||trap?.proof,check={i:m.i,complete:!!proof||!!direct.complete&&(!forbidden||forbidden.complete)&&!!trap?.complete,refuted:!!proof,ms:performance.now()-start,nodes:(direct.nodes||0)+(forbidden?.nodes||0)+(trap?.nodes||0),
+    ...(forbidden?{forbiddenTrap:{complete:forbidden.complete,nominated:forbidden.nominated,checked:forbidden.checked}}:{}),
+    ...(proof?{rejection:{i:m.i,pv:direct.proof?.pv||forbidden?.proof?.pv||[],replyTrap:trap?.proof||null,
+     ...(forbidden?.proof?{forbiddenTrap:forbidden}:{}),verifiedRefutation:true,reason:forbidden?.proof?'3×3 금수 유도 수순 확인 · 함정 후보 제외':'병렬 후보 최종 응수 검사에서 상대 강제승 확인'}}:{})};
    checks.push(check);onCheck(check);
   }
   return checks;
@@ -45,7 +48,7 @@ const OmokParallel=(()=>{
  onmessage=e=>{const m=e.data;try{
   if(m.type==='guard'){const engine=createEngine(m.base.options);const checks=checkFinalists(engine,m.base.b,m.base.p,m.roots,m.ms,check=>postMessage({type:'guard-progress',check}));postMessage({type:'guard',checks});return;}
   if(!reader){memory=typeof OmokSearchMemory!=='undefined'?OmokSearchMemory.create({snapshot:m.base.searchMemory}):null;
-   reader=createReaderEngine(15,m.base.b,{...m.base.options,searchMemory:memory,memoryManaged:true,exportRootFrontier:true});}
+   reader=createReaderEngine(15,m.base.b,{...m.base.options,forbiddenGuard:true,searchMemory:memory,memoryManaged:true,exportRootFrontier:true});}
   if(m.type==='plan'){const result=reader.analyze(m.base.p,700);postMessage({type:'plan',result});}
   else{const result=reader.compareRoots(m.base.p,m.roots,m.depth,m.ms);postMessage({type:'round',round:m.round,result,searchMemory:memory?.delta(1024)});}
  }catch(error){postMessage({error:String(error)});}};`;
@@ -56,7 +59,7 @@ const OmokParallel=(()=>{
   let stopped=false,guarding=false,guardReason=null,roots=null,seed=null,round=0,depth=1,parts=[],latest=null,lastRows=[],timer,serial=null;const checks=[];
   const close=()=>{if(stopped)return;stopped=true;clearTimeout(timer);for(const w of workers)w.terminate();};
   const fail=error=>{if(stopped)return;close();onError(error,serial);};
-  const finish=reason=>{if(stopped)return;const rows=lastRows.filter(r=>!bad.has(r.i)),first=rows[0],result=latest&&first?{...latest,i:first.i,score:first.score,pv:first.pv,candidates:rows.slice(0,3),candidateChecks:checks,rejected:checks.filter(c=>c.rejection).map(c=>c.rejection)}:null;close();if(result)onDone({...result,parallel:{...result.parallel,elapsedMs:Math.round(performance.now()-started),stopReason:reason},analysisWork:{...result.analysisWork,elapsedMs:Math.round(performance.now()-started),checkedCandidates:checks.filter(c=>c.complete).length,stopReason:reason},analysisIncomplete:reason==='time-limit'||reason==='incomplete-round'||reason==='guard-time-limit'||!checks.some(c=>c.i===result.i&&c.complete)});else onError('병렬 비교 깊이 미완료',serial);};
+  const finish=reason=>{if(stopped)return;const rows=lastRows.filter(r=>!bad.has(r.i)),first=rows[0],result=latest&&first?{...latest,i:first.i,score:first.score,pv:first.pv,nodes:latest.nodes+checks.reduce((n,c)=>n+(c.nodes||0),0),candidates:rows.slice(0,3),candidateChecks:checks,rejected:[...(seed?.rejectedMoves||[]),...checks.filter(c=>c.rejection).map(c=>c.rejection)]}:null;close();if(result)onDone({...result,parallel:{...result.parallel,elapsedMs:Math.round(performance.now()-started),stopReason:reason},analysisWork:{...result.analysisWork,elapsedMs:Math.round(performance.now()-started),nodes:result.nodes,checkedCandidates:checks.filter(c=>c.complete).length,stopReason:reason},analysisIncomplete:reason==='time-limit'||reason==='incomplete-round'||reason==='guard-time-limit'||!checks.some(c=>c.i===result.i&&c.complete)});else onError('병렬 비교 깊이 미완료',serial);};
   const done=reason=>{if(stopped||guarding)return;guarding=true;guardReason=reason;clearTimeout(timer);for(const w of workers)w.terminate();
    const finalDeadline=Math.min(guardDeadline,performance.now()+1200),remaining=finalDeadline-performance.now()-30,candidates=lastRows.filter(r=>!bad.has(r.i)).slice(0,3);if(!candidates.length||remaining<=0){finish(reason);return;}
    try{const url=URL.createObjectURL(new Blob([source+'\n'+workerCode],{type:'text/javascript'}));let w;try{w=new Worker(url);workers.push(w);}finally{URL.revokeObjectURL(url);}w.onmessage=e=>receive(-1,e.data);w.onerror=e=>{if(!stopped)finish('guard-time-limit');};timer=setTimeout(()=>finish('guard-time-limit'),Math.max(1,finalDeadline-performance.now()));w.postMessage({type:'guard',base,roots:candidates,ms:remaining});}catch{finish('guard-time-limit');}

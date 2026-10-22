@@ -1,5 +1,10 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),Memory=require('../src/search-memory.js');
+{
+ const cache=Memory.create(),current=Memory.scope('reader',15,{}),legacy=current.replace('node-v3','node-v2');
+ assert.notEqual(current,legacy);cache.put(legacy,'position',{score:123,pv:[112]});
+ const imported=Memory.create({snapshot:cache.snapshot()});assert.equal(imported.get(current,'position'),undefined,'pre-guard cache entries cannot answer the revised engine');
+}
 const context={performance,Date,console};vm.createContext(context);
 for(const f of ['search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','search-engine.js','unified-engine.js']){
  let text=fs.readFileSync('src/'+f,'utf8');
