@@ -46,6 +46,7 @@ const OmokParallel=(()=>{
  const checkFinalists=${checkFinalists.toString()};
  let reader=null,memory=null;
  onmessage=e=>{const m=e.data;try{
+  if(m.type==='win-check'){const check=createEngine(m.base.options).verifyWinningMove(m.base.b,m.base.p,m.i,m.ms);postMessage({type:'win-check',round:m.round,i:m.i,check});return;}
   if(m.type==='guard'){const engine=createEngine(m.base.options);const checks=checkFinalists(engine,m.base.b,m.base.p,m.roots,m.ms,check=>postMessage({type:'guard-progress',check}));postMessage({type:'guard',checks});return;}
   if(!reader){memory=typeof OmokSearchMemory!=='undefined'?OmokSearchMemory.create({snapshot:m.base.searchMemory}):null;
    reader=createReaderEngine(15,m.base.b,{...m.base.options,forbiddenGuard:true,searchMemory:memory,memoryManaged:true,exportRootFrontier:true});}
@@ -56,10 +57,10 @@ const OmokParallel=(()=>{
   if(!['auto','deep'].includes(mode)||budget<3000||hardware<6||typeof Worker==='undefined')return null;
   base={...base,options:{...base.options,rootWidth:mode==='deep'?32:24}};
   const started=performance.now(),guardDeadline=started+Math.max(30,budget-100),deadline=guardDeadline-Math.min(1200,budget*.12),count=Math.min(3,hardware-2),workers=[],bad=new Set(),rounds=[];
-  let stopped=false,guarding=false,guardReason=null,roots=null,seed=null,round=0,depth=1,parts=[],latest=null,lastRows=[],timer,serial=null;const checks=[];
+  let stopped=false,guarding=false,guardReason=null,roots=null,seed=null,round=0,depth=1,parts=[],latest=null,lastRows=[],timer,serial=null,pendingWin=null,winMs=0;const checks=[],winChecks=[],winAttempted=new Set();
   const close=()=>{if(stopped)return;stopped=true;clearTimeout(timer);for(const w of workers)w.terminate();};
   const fail=error=>{if(stopped)return;close();onError(error,serial);};
-  const finish=reason=>{if(stopped)return;const rows=lastRows.filter(r=>!bad.has(r.i)),first=rows[0],result=latest&&first?{...latest,i:first.i,score:first.score,pv:first.pv,nodes:latest.nodes+checks.reduce((n,c)=>n+(c.nodes||0),0),candidates:rows.slice(0,3),candidateChecks:checks,rejected:[...(seed?.rejectedMoves||[]),...checks.filter(c=>c.rejection).map(c=>c.rejection)]}:null;close();if(result)onDone({...result,parallel:{...result.parallel,elapsedMs:Math.round(performance.now()-started),stopReason:reason},analysisWork:{...result.analysisWork,elapsedMs:Math.round(performance.now()-started),nodes:result.nodes,checkedCandidates:checks.filter(c=>c.complete).length,stopReason:reason},analysisIncomplete:reason==='time-limit'||reason==='incomplete-round'||reason==='guard-time-limit'||!checks.some(c=>c.i===result.i&&c.complete)});else onError('병렬 비교 깊이 미완료',serial);};
+  const finish=reason=>{if(stopped)return;const rows=lastRows.filter(r=>!bad.has(r.i)),first=rows[0],result=latest&&first?{...latest,i:first.i,score:first.score,pv:first.pv,nodes:latest.nodes+[...checks,...winChecks].reduce((n,c)=>n+(c.nodes||0),0),candidates:rows.slice(0,3),candidateChecks:checks,candidateWinChecks:winChecks,rejected:[...(seed?.rejectedMoves||[]),...checks.filter(c=>c.rejection).map(c=>c.rejection)]}:null;close();if(result)onDone({...result,parallel:{...result.parallel,elapsedMs:Math.round(performance.now()-started),stopReason:reason},analysisWork:{...result.analysisWork,elapsedMs:Math.round(performance.now()-started),nodes:result.nodes,checkedCandidates:checks.filter(c=>c.complete).length,stopReason:reason},analysisIncomplete:reason==='time-limit'||reason==='incomplete-round'||reason==='guard-time-limit'||!checks.some(c=>c.i===result.i&&c.complete)});else onError('병렬 비교 깊이 미완료',serial);};
   const done=reason=>{if(stopped||guarding)return;guarding=true;guardReason=reason;clearTimeout(timer);for(const w of workers)w.terminate();
    const finalDeadline=Math.min(guardDeadline,performance.now()+1200),remaining=finalDeadline-performance.now()-30,candidates=lastRows.filter(r=>!bad.has(r.i)).slice(0,3);if(!candidates.length||remaining<=0){finish(reason);return;}
    try{const url=URL.createObjectURL(new Blob([source+'\n'+workerCode],{type:'text/javascript'}));let w;try{w=new Worker(url);workers.push(w);}finally{URL.revokeObjectURL(url);}w.onmessage=e=>receive(-1,e.data);w.onerror=e=>{if(!stopped)finish('guard-time-limit');};timer=setTimeout(()=>finish('guard-time-limit'),Math.max(1,finalDeadline-performance.now()));w.postMessage({type:'guard',base,roots:candidates,ms:remaining});}catch{finish('guard-time-limit');}
@@ -69,10 +70,26 @@ const OmokParallel=(()=>{
    const groups=Array.from({length:Math.min(count,roots.length)},()=>[]);roots.forEach((r,k)=>groups[k%groups.length].push(r));parts=Array(groups.length).fill(null);round++;
    for(let k=0;k<groups.length;k++)workers[k].postMessage({type:'compare',base,roots:groups[k],depth,round,ms});
   };
+  const advance=()=>{
+   if(mode==='auto'&&typeof autoStable==='function'&&autoStable(rounds,depth,performance.now()-started,seed,lastRows)){done('stable-completed-rounds');return;}
+   if(depth>=10){done('depth-limit');return;}depth++;dispatch();
+  };
   const receive=(k,data)=>{
    if(stopped)return;if(data.error){if(guarding)finish('guard-time-limit');else fail(data.error);return;}
    if(data.type==='guard-progress'){if(!checks.some(c=>c.i===data.check.i))checks.push(data.check);if(data.check.refuted){bad.add(data.check.i);onProgress({...latest,rejected:checks.filter(c=>c.rejection).map(c=>c.rejection)});}return;}
    if(data.type==='guard'){finish(guardReason);return;}if(guarding)return;
+   if(data.type==='win-check'){
+    if(!pendingWin||data.round!==round||data.i!==pendingWin.i)return;
+    const check=data.check;pendingWin=null;winMs+=check.ms||0;winChecks.push({i:data.i,complete:check.complete,proven:!!check.proof,ms:check.ms,nodes:check.nodes||0});
+    if(check.complete&&check.proof?.move===data.i&&!bad.has(data.i)){
+     const nodes=latest.nodes+winChecks.reduce((n,c)=>n+(c.nodes||0),0),result={...latest,i:data.i,proven:true,lossProven:false,forcedLoss:false,analysisIncomplete:false,timedOut:false,kind:check.kind,
+      pv:check.pv,proof:check.proof,score:1e8,depth:Math.max(latest.depth,check.pv.length),nodes,candidateWinChecks:winChecks,
+      reason:'후보 착수 뒤 상대의 모든 합법 응수에서 강제승 확인'};
+     close();onDone({...result,
+      parallel:{...result.parallel,elapsedMs:Math.round(performance.now()-started),stopReason:'verified-win'},analysisWork:{...result.analysisWork,completedDepth:result.depth,nodes,elapsedMs:Math.round(performance.now()-started),stopReason:'verified-win'}});return;
+    }
+    advance();return;
+   }
    if(data.type==='plan'){
     seed=data.result;const victory=readerVictory(seed);
     if(victory&&!bad.has(victory.i)){
@@ -96,8 +113,10 @@ const OmokParallel=(()=>{
     analysisWork:{mode,budgetMs:budget,elapsedMs:Math.round(performance.now()-started),completedDepth:depth,source:'parallel-reader',roots:{compared:roots.length},stopReason:'searching'}};
    onProgress(latest,data.searchMemory);
    rounds.push({i:best.i,score:best.score,depth,pv:best.pv.slice(0,3),ranking:compared.slice(0,3).map(m=>m.i),gap:compared.length>1?best.score-compared[1].score:null});
-   if(mode==='auto'&&typeof autoStable==='function'&&autoStable(rounds,depth,performance.now()-started,seed,compared)){done('stable-completed-rounds');return;}
-   if(depth>=10){done('depth-limit');return;}depth++;dispatch();
+   const key=best.i+'|'+(best.score>=5e6?'mate':'candidate'),winBudget=Math.min(160,320-winMs,deadline-performance.now()-30);
+   if(winChecks.length<4&&!winAttempted.has(key)&&winBudget>=20){winAttempted.add(key);pendingWin={i:best.i};
+    workers[0].postMessage({type:'win-check',base,round,i:best.i,ms:winBudget});return;}
+   advance();
   };
   try{
    const url=URL.createObjectURL(new Blob([source+'\n'+workerCode],{type:'text/javascript'}));

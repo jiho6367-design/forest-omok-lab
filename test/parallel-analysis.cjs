@@ -27,14 +27,32 @@ const compute=data=>new Promise((resolve,reject)=>{const w=new Worker(workerSour
  const result=(k,score,complete=true)=>({type:'round',round:workers[k].job.round,result:{complete,nodes:1,rows:[{i:k+1,score,pv:[k+1],depth:workers[k].job.depth,comparisonComplete:true}]}});
  workers[0].onmessage({data:result(0,30)});workers[1].onmessage({data:result(1,20)});assert.equal(events.length,0);
  workers[2].onmessage({data:result(2,10)});assert.equal(events.length,1);assert.equal(events[0].i,1);
+ assert.equal(workers[0].job.type,'win-check','verify the actual candidate before another comparison round');
+ workers[0].onmessage({data:{type:'win-check',round:workers[0].job.round,i:1,check:{complete:true,proof:null,ms:5,nodes:7}}});
+ assert.equal(workers[0].job.type,'compare','an unresolved candidate must continue comparing');
  workers[0].onmessage({data:result(0,9999)});pool.observe({rejected:[{i:1,line:[1,4]}]});
  [...timers.values()][0]();assert.equal(finished,null,'reserve final checks for actual parallel shortlist');const guard=workers.at(-1);assert.equal(guard.job.type,'guard');assert(guard.job.ms>0);
  guard.onmessage({data:{type:'guard-progress',check:{i:2,complete:true,refuted:true,rejection:{i:2,pv:[3,4],verifiedRefutation:true}}}});
  guard.onmessage({data:{type:'guard-progress',check:{i:3,complete:false,refuted:false}}});guard.onmessage({data:{type:'guard'}});
- assert.equal(finished.i,3);assert.equal(finished.depth,1);assert(finished.analysisIncomplete);assert(finished.rejected.some(r=>r.i===2));assert(workers.every(w=>w.stopped));
+ assert.equal(finished.i,3);assert.equal(finished.depth,1);assert(finished.analysisIncomplete);assert(finished.rejected.some(r=>r.i===2));assert(workers.every(w=>w.stopped));assert.equal(finished.candidateWinChecks.length,1);assert.equal(finished.nodes,10);
  assert(events.at(-1).rejected.some(r=>r.i===2),'new guard proof reaches the main watchdog even if no pool finalist survives');const delivered=events.length;
  workers[2].onmessage({data:result(2,99999)});assert.equal(events.length,delivered);assert.equal(finished.i,3);
  console.log('PASS browser scheduler: complete equal-depth rounds, final guard rejects actual pool finalist, retain proof at deadline and ignore late messages');
+ for(const mode of ['auto','deep'])for(const outcome of ['win','incomplete','mismatched','refuted']){
+  const offset=workers.length;let delivered=null;const pending=ctx.module.exports.start({source:'',base:{p:2,b:[],modelInfo:{}},budget:3000,mode,hardware:8,
+   onProgress:()=>{},onDone:r=>delivered=r,onError:e=>{throw Error(e);}});
+  const group=workers.slice(offset);group[0].onmessage({data:{type:'plan',result:{rootFrontier:rootRows}}});
+  for(let k=0;k<3;k++)group[k].onmessage({data:{type:'round',round:group[k].job.round,result:{complete:true,nodes:1,rows:[{i:k+1,score:9999997-k,pv:[k+1],depth:1,comparisonComplete:true}]}}});
+  const job=group[0].job;assert.equal(job.type,'win-check');assert.equal(delivered,null,'mate-like comparison scores are provisional');
+  if(outcome==='refuted')pending.observe({rejected:[{i:1,verifiedRefutation:true}]});
+  group[0].onmessage({data:{type:'win-check',round:job.round,i:job.i,check:{complete:outcome!=='incomplete',proof:{type:'all-legal-replies',move:outcome==='mismatched'?2:1},kind:'forced',pv:[1,4,5],nodes:209,ms:10}}});
+  if(outcome==='win'){
+   assert(delivered?.proven&&!delivered.lossProven);assert.equal(delivered.i,1);assert.equal(delivered.analysisWork.stopReason,'verified-win');assert.equal(delivered.nodes,212);assert(group.every(w=>w.stopped));
+   const saved=delivered;group[0].onmessage({data:{type:'win-check',round:job.round,i:2,check:{complete:true,proof:{move:2},pv:[2]}}});assert.equal(delivered,saved);
+  }else{assert.equal(delivered,null);assert.equal(group[0].job.type,'compare');pending.terminate();}
+  assert.equal(timers.size,0);
+ }
+ console.log('PASS candidate certificates preempt auto/deep rounds; incomplete, mismatched, refuted and late certificates cannot replace the result');
  const board=Array(225).fill(0),checked=[],engine={inspect:()=>({legal:true,fours:[]}),forcing:(after)=>{const i=after.findIndex(Boolean);return i===1?{proof:{pv:[5,6]},complete:true}:i===2?{complete:false}:{complete:true};},quietTrap:()=>({complete:true}),forcedReplyTrap:()=>{throw Error('wrong guard');}};
  const checks=checkFinalists(engine,board,1,[{i:1},{i:2},{i:3}],1000,c=>checked.push(c));
  assert(checks[0].refuted&&checks[0].rejection.verifiedRefutation);assert(!checks[1].complete);assert(checks[2].complete&&!checks[2].refuted);assert.equal(checked.length,3);assert(board.every(v=>v===0));

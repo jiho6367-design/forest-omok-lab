@@ -4,7 +4,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{execFileSync}=require('node:child_process'),{pathToFileURL}=require('node:url');
 const {chromium}=require(process.env.OMOK_PLAYWRIGHT||(process.platform==='win32'?'C:/Users/jiho/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright':'playwright'));
 const out=path.resolve(process.env.OMOK_WIN_UI_OUT||'work/proven-win-20261021/ui');fs.mkdirSync(out,{recursive:true});
-if(!process.env.OMOK_TEST_HTML)execFileSync(process.execPath,['build.cjs','--baseline','--out-dir='+path.join(out,'fixture')],{stdio:'pipe'});
+if(!process.env.OMOK_TEST_HTML)execFileSync(process.execPath,['build.cjs','--public','--baseline','--out-dir='+path.join(out,'fixture')],{stdio:'pipe'});
 const html=process.env.OMOK_TEST_HTML||path.join(out,'fixture/omok.html'),report={scope:'Generated legal game, native engine Workers; controlled delivery isolates only the indicated transport path.',steps:[]};let browser;
 (async()=>{
  browser=await chromium.launch({executablePath:process.env.OMOK_BROWSER||(process.platform==='win32'?'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe':undefined),headless:true});
@@ -18,8 +18,8 @@ const html=process.env.OMOK_TEST_HTML||path.join(out,'fixture/omok.html'),report
     if(__delivery==='pool-only'&&this.role==='serial'){event.stopImmediatePropagation();return;}
     if(__delivery==='serial-progress'){
      if(this.role!=='serial'){event.stopImmediatePropagation();return;}
-     if(!event.data.progress&&event.data.result?.proven){event.stopImmediatePropagation();__winMessages.push('serial-progress');
-      this.dispatchEvent(new MessageEvent('message',{data:{...event.data,progress:true,__forwardedWin:true}}));return;}
+     if(event.data.result?.proven){__winMessages.push('serial-progress');
+      if(!event.data.progress){event.stopImmediatePropagation();this.dispatchEvent(new MessageEvent('message',{data:{...event.data,progress:true,__forwardedWin:true}}));return;}}
     }
     if(event.data.type==='plan'&&['win','forced'].includes(event.data.result?.kind))__winMessages.push('planner-win');
    });}
@@ -28,7 +28,8 @@ const html=process.env.OMOK_TEST_HTML||path.join(out,'fixture/omok.html'),report
   };
  });
  await page.goto(pathToFileURL(path.resolve(html)).href);await page.waitForFunction(()=>globalThis.omokComputeReady===true);
- if(await page.locator('#setup').evaluate(d=>d.open))await page.locator('#cancelSetup').click();
+ await page.evaluate(()=>new Promise(resolve=>{const d=document.getElementById('setup');if(!d.open){resolve();return;}d.addEventListener('close',resolve,{once:true});d.close();}));
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  for(const delivery of ['native','serial-progress','pool-only'])for(const mode of ['fast','auto','deep']){
   if(delivery==='pool-only'&&mode==='fast')continue;
   for(const p of [1,2]){

@@ -2,6 +2,7 @@
 // Generated tactical boards only. Proof replay below does not call either
 // engine's forcing solver; every legal defender response is checked directly.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{performance}=require('node:perf_hooks');
+const serialize=require('../tools/counter-dag.cjs'),verify=require('../tools/verify-counter.cjs'),counterRules=require('../tools/counter-rules.cjs');
 const files=['neural-evaluator.js','search-memory.js','gpu-patterns.js','strategy-engine.js','reader-engine.js','search-engine.js','unified-engine.js'];
 const texts=files.map(name=>fs.readFileSync('src/'+name,'utf8'));
 texts[4]=texts[4].replace('function createEngine(','function createReaderEngine(');
@@ -47,7 +48,17 @@ for(const fixture of fixtures)for(const p of [1,2])for(const flip of [false,true
   const budget=mode==='auto'?15000:25000,result=engine.analyze(copy,p,{mode,automatic:mode==='auto',ms:budget});
   assert(result.proven&&!result.lossProven);assert.equal(result.proofStatus,'PROVEN_WIN');assert.equal(result.analysisWork.stopReason,'verified-win');
   assert(result.analysisWork.elapsedMs<1000,'certified win must return without using the long analysis budget');
-  replayProof(input,p,Array.from(result.pv));assert.deepEqual(copy,input);proofs++;
+  if(result.proof?.type==='all-legal-replies'){
+   const proof=JSON.parse(JSON.stringify(result.proof)),after=input.slice(),R=counterRules(input);
+   assert(R.legal(result.i,p),'the certified root must itself be legal');after[result.i]=p;
+   assert.equal(result.pv[0],result.i);let side=p;
+   for(let k=0;k<result.pv.length;k++){const i=result.pv[k];assert(R.legal(i,side),'representative PV alternates legal turns');R.put(i,side);if(R.exact(i,side))assert.equal(k,result.pv.length-1,'PV stops at exact five');side=3-side;}
+   assert.equal(proof.move,result.i);assert.equal(proof.entryBoardKey,input.join(''));assert.equal(proof.replyBoardKey,after.join(''));
+   assert.equal(proof.checkedReplies,legal(after,3-p).length);
+   const checked=verify(after,serialize(null,{attacker:p,roots:proof.branches}),{loss:true,limitMs:5000});
+   assert(checked.verified,checked.error);assert(checked.boardRestored);checkedReplies+=proof.checkedReplies+checked.stats.defenses;
+  }else replayProof(input,p,Array.from(result.pv));
+  assert.deepEqual(copy,input);proofs++;
  }
  maxElapsed=Math.max(maxElapsed,performance.now()-start);
 }

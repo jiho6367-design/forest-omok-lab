@@ -106,7 +106,7 @@ function createEngine(options={}) {
       r.retainedComparison?.finalDefenseUnchecked&&!r.defenseChecked?(feature?.cut>0?'BLOCKING_UNCHECKED':'INCOMPLETE'):
       r.kind==='block'||(!(r.depth>0)&&feature?.cut>0)?'BLOCKING_UNCHECKED':
       r.depth>0&&!r.fallback?'BOUNDED_FAVORABLE':'INCOMPLETE';
-    r.engineVersion='unified-'+strategyVersion+'-forbidden-1';
+    r.engineVersion='unified-'+strategyVersion+'-forbidden-1-candidate-win-1';
     return r;
   }
   function convert(board,p,r,started) {
@@ -391,7 +391,54 @@ function createEngine(options={}) {
     best.ms=clockNow()-started;
     return ensureLegalCandidate(best);
   }
-  function analyze(board,p,budget='auto',lessons=[],progress=()=>{}) {
+  // Check the opponent's ACTUAL next turn, including every legal counter-win
+  // and counter-four. A comparison score only schedules this certificate.
+  function verifyWinningMove(board,p,i,ms=160){
+    const start=clockNow(),shape=inspect(board,i,p),finish=(complete,proof=null,pv=[],nodes=0,kind=null)=>({complete,proof,pv,nodes,kind,ms:clockNow()-start});
+    if(!shape.legal)return finish(true);
+    if(shape.win.length)return finish(true,{type:'exact-five',move:i,attacker:p,complete:true},[i],0,'win');
+    const after=board.slice();after[i]=p;
+    // Ordinary cached proofs may omit their branch details. Build this small
+    // certificate locally so its exported all-response tree is self-contained.
+    const defender=createReaderEngine(15,after,{...rules,searchMemory:null,counterProofDetails:true}),check=defender.counterLoss(3-p,Math.max(0,ms-(clockNow()-start)),19,1);
+    if(!check.complete||!check.lossProven||!check.branches?.length)return finish(check.complete,null,[],check.nodes||0);
+    const branch=check.branches[0],pv=[i,branch.i,...branch.proof.pv];
+    if(validPV(board,p,pv).length!==pv.length)return finish(false,null,[],check.nodes||0);
+    return finish(true,{type:'all-legal-replies',move:i,attacker:p,defender:3-p,entryBoardKey:board.join(''),replyBoardKey:after.join(''),complete:true,
+      checkedReplies:check.branches.length,branches:check.branches},pv,check.nodes||0,'forced');
+  }
+  function analyze(board,p,budget='auto',lessons=[],progress=()=>{}){
+    const start=clockNow(),requested=budget&&typeof budget==='object'?Number(budget.ms):Number(budget),
+      mode=budget&&typeof budget==='object'&&['fast','auto','deep','custom'].includes(budget.mode)?budget.mode:null,
+      automatic=mode?mode==='auto':budget==='auto'||budget?.automatic===true,cap=mode==='fast'?1000:automatic?15000:25000,
+      limit=Math.max(30,Math.min(cap,Number.isFinite(requested)?requested:automatic?8000:1000)),
+      reserve=limit>=3000?320:limit>=300?80:0,attempted=new Set(),checks=[],stop={};
+    let spent=0,extraNodes=0,winner=null;
+    const decorate=r=>({...r,nodes:(r.nodes||0)+extraNodes,candidateWinChecks:checks.slice(),
+      analysisWork:r.analysisWork?{...r.analysisWork,nodes:(r.nodes||0)+extraNodes,elapsedMs:Math.round(clockNow()-start)}:r.analysisWork});
+    const forward=r=>{
+      const stage=r.score>=5e6?'mate':'shape',key=r.i+'|'+stage,shape=r.shape;
+      if(reserve&&checks.length<4&&!r.proven&&!r.lossProven&&r.i!=null&&!attempted.has(key)&&
+        (stage==='mate'||shape?.threes?.length||shape?.fours?.length)&&!r.rejected?.some(m=>m.i===r.i&&refutation(m))){
+        const ms=Math.min(160,reserve-spent,start+limit-clockNow()-30);
+        if(ms>=10){attempted.add(key);const check=verifyWinningMove(board,p,r.i,ms);spent+=check.ms;extraNodes+=check.nodes||0;
+          checks.push({i:r.i,stage,complete:check.complete,proven:!!check.proof,ms:check.ms,nodes:check.nodes||0});
+          if(check.proof){
+            winner=finalizeResult(board,p,{...r,proven:true,lossProven:false,forcedLoss:false,kind:check.kind,pv:check.pv,proof:check.proof,
+              score:1e8,depth:Math.max(r.depth||0,check.pv.length),analysisIncomplete:false,timedOut:false,
+              reason:'후보 착수 뒤 상대의 모든 합법 응수에서 강제승 확인'});
+            if(winner.proven){progress({...decorate(winner),analysisWork:{...r.analysisWork,completedDepth:winner.depth,nodes:(r.nodes||0)+extraNodes,
+              elapsedMs:Math.round(clockNow()-start),stopReason:'verified-win'}});throw stop;}
+          }
+        }
+      }
+      progress(decorate(r));
+    };
+    try{return decorate(analyzeSearch(board,p,budget,lessons,forward));}
+    catch(error){if(error!==stop)throw error;const result=decorate(winner);return {...result,ms:clockNow()-start,
+      analysisWork:{...result.analysisWork,nodes:result.nodes,completedDepth:result.depth,elapsedMs:Math.round(clockNow()-start),stopReason:'verified-win'}};}
+  }
+  function analyzeSearch(board,p,budget='auto',lessons=[],progress=()=>{}) {
     const object=budget&&typeof budget==='object',explicitMode=object&&['fast','auto','deep','custom'].includes(budget.mode)?budget.mode:null;
     const automatic=explicitMode?explicitMode==='auto':budget==='auto'||object&&budget.automatic===true;
     const requested=object?Number(budget.ms):Number(budget),mode=explicitMode||(automatic?'auto':requested>=20000?'deep':'custom');
@@ -521,7 +568,7 @@ function createEngine(options={}) {
   // configure can rebuild context-sensitive evaluation caches. Forward public
   // Forest methods to the current instance rather than retaining stale closures.
   const api={...forest};for(const name of Object.keys(api))if(typeof api[name]==='function')api[name]=(...args)=>forest[name](...args);
-  return {...api,configure,getContext,strategyVersion,finalizeResult,inspect,urgent,analyze,suggestBudget,assessMove,reviewMove,validPV,
+  return {...api,configure,getContext,strategyVersion,finalizeResult,inspect,urgent,analyze,verifyWinningMove,suggestBudget,assessMove,reviewMove,validPV,
     getModel:()=>rules.model,
     getModelInfo:()=>({active:!!rules.model,modelVersion:rules.modelVersion,featureVersion:rules.model?.featureVersion||null,scale:rules.model?.scale||0}),
     getSearchMemoryStats:()=>searchMemory?.stats()||null,
